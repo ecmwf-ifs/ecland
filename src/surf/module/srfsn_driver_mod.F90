@@ -5,7 +5,7 @@ SUBROUTINE SRFSN_DRIVER(KIDIA   ,KFDIA   ,KLON   ,KLEVSN, PTMST, LDLAND,&
   ! input at T-1 prognostics
   & PSSNM1M, PTSNM1M, PRSNM1M  ,PWSNM1M, PASNM1M, &
   ! input at T-1 fluxes or constants 
-  & PFRTI, PTSAM1M , PUSRF, PVSRF, PTSRF ,&
+  & PFRTI, PTSAM1M , PTIAM1M, PUSRF, PVSRF, PTSRF ,&
   & PSSFC, PSSFL   , PTSFC, PTSFL, &
   & PSLRFLTI, PSSRFLTI , PAHFSTI, PEVAPTI, PEVAPSNW, &
   & PWSAM1M , KSOTY, PAPRS, &
@@ -77,6 +77,7 @@ USE ABORT_SURF_MOD
 
 !    *PRFTI*      TILE FRACTIONS
 !    *PTSAM1M*    SOIL TEMPERATURE                               K
+!    *PTIAM1M*    ICE  TEMPERATURE                               K
 !    *PUSRF*      WIND U LOWEST MODEL LEVEL                     m s-1
 !    *PVSRF*      WIND V LOWEST MODEL LEVEL                     m s-1
 !    *PTSRF*      AIR TEMPERATURE LOWEST MODEL LEVEL             K
@@ -146,6 +147,7 @@ REAL(KIND=JPRB),    INTENT(IN)   :: PWSNM1M(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PASNM1M(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PFRTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PTSAM1M(:,:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PTIAM1M(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PUSRF(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PVSRF(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PTSRF(:)
@@ -206,6 +208,7 @@ REAL(KIND=JPRB) :: ZSNOTRS(KLON,KLEVSN+1) ! Solar rad abs in each snow layer
 
 REAL(KIND=JPRB) :: ZFF              ! Frozen soil fraction
 LOGICAL          :: LLNOSNOW(KLON)  ! FALSE to compute snow 
+REAL(KIND=JPRB) :: ZTBOTTOM(KLON)   ! Temperature bottom boundary condition
 
 INTEGER(KIND=JPRB) :: JL,JK
 
@@ -216,7 +219,8 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SRFSN_DRIVER_MOD:SRFSN_DRIVER',0,ZHOOK_HANDLE)
 
-ASSOCIATE(RTF1=>YDSOIL%RTF1, RTF2=>YDSOIL%RTF2, RTF3=>YDSOIL%RTF3, RTF4=>YDSOIL%RTF4)
+ASSOCIATE(RTF1=>YDSOIL%RTF1, RTF2=>YDSOIL%RTF2, RTF3=>YDSOIL%RTF3, RTF4=>YDSOIL%RTF4,&
+        & RCONDSICE=>YDSOIL%RCONDSICE)
 !     ------------------------------------------------------------------
 !*         1.1 Global computations 
 !*             Snow fraction, total heat and precip/snow to the snow scheme 
@@ -278,6 +282,9 @@ DO JL=KIDIA,KFDIA
     PTSFL(JL) = (1._JPRB - ZFRSN(JL) )*PTSFL(JL)
    
  
+    IF (LDLAND(JL)) THEN
+      ZTBOTTOM(JL)  = PTSAM1M(JL,1)
+
 ! added fix to be consistent with Peters-Lidard et al. 1998 
       IF(PTSAM1M(JL,1) < RTF1.AND.PTSAM1M(JL,1) > RTF2) THEN
         ZFF=0.5_JPRB*(1.0_JPRB-SIN(RTF4*(PTSAM1M(JL,1)-RTF3)))
@@ -287,7 +294,12 @@ DO JL=KIDIA,KFDIA
         ZFF=0.0_JPRB
       ENDIF
       !  ZFF=0.0_JPRB
-    ZSURFCOND(JL) = MAX(0.19_JPRB,MIN(2._JPRB,FSOILTCOND(PWSAM1M(JL,1),ZFF,KSOTY(JL))))
+      ZSURFCOND(JL) = MAX(0.19_JPRB,MIN(2._JPRB,FSOILTCOND(PWSAM1M(JL,1),ZFF,KSOTY(JL))))
+    ELSE
+      ZTBOTTOM(JL)  = PTIAM1M(JL,1)
+      ZFF=1.0_JPRB
+      ZSURFCOND(JL) = RCONDSICE
+    ENDIF
 
   ENDIF
   
@@ -331,10 +343,10 @@ CALL SRFSN_SSRABS(KIDIA,KFDIA,KLON,KLEVSN,&
 !*             
 !             -----------------------------------------------------------
 
-CALL SRFSN_WEBAL(KIDIA,KFDIA,KLON,KLEVSN, &
+CALL SRFSN_WEBAL(KIDIA,KFDIA,KLON,KLEVSN, LDLAND,&
  & PTMST,LLNOSNOW,ZFRSN,&
  & ZSSNM1M,ZWSNM1M,ZRSNM1M,ZTSNM1M,&
- & PTSAM1M(:,1),ZHFLUX,ZSNOTRS,ZSNOWF,ZRAINF,ZEVAPSN,ZSURFCOND,&
+ & ZTBOTTOM,ZHFLUX,ZSNOTRS,ZSNOWF,ZRAINF,ZEVAPSN,ZSURFCOND,&
  & PAPRS,&
  & YDSOIL,YDCST,&
  & PSSN,PWSN,PTSN,&
