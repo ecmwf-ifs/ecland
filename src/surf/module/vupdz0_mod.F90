@@ -8,7 +8,7 @@ PRIVATE PZ0WN
 PUBLIC VUPDZ0
 
 CONTAINS
-SUBROUTINE VUPDZ0(KIDIA,KFDIA,KLON,KTILES,KSTEP,CDCONF,&
+SUBROUTINE VUPDZ0(KIDIA,KFDIA,KLON,KTILES,KSTEP,CDCONF,LDSICE,&
  & KTVL,KTVH,PCVL,PCVH,PCUR,PUMLEV,PVMLEV,&
  & PTMLEV,PQMLEV,PAPHMS,PGEOMLEV,PDSN,&
  & PUSTRTI,PVSTRTI,PAHFSTI,PEVAPTI,&
@@ -101,6 +101,9 @@ USE YOS_URB   , ONLY : TURB
 !     *PVCURR*       OCEAN CURRENT V-COMPONENT
 !     *PFRTI*        TILE FRACTION
 
+!    Logicals (In):
+!    *LDSICE*     SEA ICE MASK (.T. OVER SEA ICE)
+
 !    Reals (Out):
 !     *PZ0MTI*       NEW AERODYNAMIC ROUGHNESS LENGTH
 !     *PZ0HTI*       NEW ROUGHNESS LENGTH FOR HEAT
@@ -155,6 +158,9 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PCHARHQ(:)
 REAL(KIND=JPRB)   ,INTENT(IN)   ,OPTIONAL :: PUCURR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)   ,OPTIONAL :: PVCURR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:)
+
+LOGICAL           ,INTENT(IN)    :: LDSICE(:)
+
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PZ0MTI(:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PZ0HTI(:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PZ0QTI(:,:) 
@@ -291,7 +297,16 @@ IF (LLINIT) THEN
 !       - Exposed snow
 ! blend between roughness of low vegetation and soil and roughness of ice caps, when snow depth below 25cm 
     ZMLOW=PCVL(JL)/(1.0_JPRB-PCVH(JL))*RVZ0M(KTVL(JL))+(1.0_JPRB-PCVL(JL)-PCVH(JL))/(1.0_JPRB-PCVH(JL))*RVZ0M(0)
-    PZ0MTI(JL,5)=ZSNWGHT(JL)*RVZ0M(12)+(1.0_JPRB-ZSNWGHT(JL))*ZMLOW
+
+! Snow over sea-ice: if we are over sea-ice, we use empirical formula.
+! Note that if LESNICE=.FALSE. (default) this is not having any effect
+    IF (LDSICE(JL)) THEN
+      PZ0MTI(JL,5)=PZ0ICE(RZ0ICE,PFRTI(JL,5))
+    ELSE ! we are over Land snow
+      PZ0MTI(JL,5)=ZSNWGHT(JL)*RVZ0M(12)+(1.0_JPRB-ZSNWGHT(JL))*ZMLOW
+    ENDIF
+
+
 !       - High vegetation
     PZ0MTI(JL,6)=RVZ0M(KTVH(JL))
 !       - Sheltered snow
