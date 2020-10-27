@@ -74,6 +74,7 @@ LOGICAL :: LEAIRCO2COUP    ! Variable air CO2 in photosynthesis
 REAL(KIND=JPRB) :: RLAIINT
 LOGICAL :: LECLIM10D ! 10-day clim interpolation
 LOGICAL :: LESNML  ! Multi-layer snow activated 
+LOGICAL :: LESNICE  ! Snow over sea-ice (SL or ML) activated 
 LOGICAL :: LEURBAN ! Urban tile active
 LOGICAL :: LEINTWIND  ! Interpolate wind to match T/Q level 
 LOGICAL :: LEWARMSTART ! Apply warm start to surf prognostics (only snow)
