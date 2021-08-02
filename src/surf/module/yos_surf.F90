@@ -53,81 +53,67 @@ TYPE, PUBLIC :: TSURF
   TYPE(TURB)      :: YURB
 END TYPE TSURF
 
-TYPE :: TLIST
-  TYPE(TSURF) :: YSURF
-  TYPE(C_PTR) :: CPTR 
-  TYPE(TLIST),  POINTER :: NEXT
-END TYPE TLIST
+! M. Lange: This construct has been removed in favour of storing the
+! storage object on the model and keeping a single local pointer to it
+! here in the module. This now implies that the implicit localisation
+! attempted via the linked list is defunct and any remaining use cases
+! need to switch to implicit OpenMP thread localtion.
 
-TYPE(TLIST), POINTER, SAVE :: LIST => NULL()
+!TYPE :: TLIST
+!  TYPE(TSURF) :: YSURF
+!  TYPE(C_PTR) :: CPTR 
+!  TYPE(TLIST),  POINTER :: NEXT
+!END TYPE TLIST
+
+! TYPE(TLIST), POINTER, SAVE :: LIST => NULL()
+
+! An explicitly typed pointer to the object and an implicitly typed
+! C_PTR for backward compatibility.
+TYPE(TSURF), POINTER, SAVE :: YSURF
+TYPE(C_PTR), SAVE :: YDSURF
 
 CONTAINS
 
-SUBROUTINE ALLO_SURF(YDSURF)
+SUBROUTINE ALLO_SURF(ZYDSURF, ZYSURF)
 IMPLICIT NONE
+TYPE(C_PTR), INTENT(OUT) :: ZYDSURF
+TYPE(TSURF), TARGET, INTENT(IN), OPTIONAL :: ZYSURF
 
-TYPE(C_PTR), INTENT(OUT) :: YDSURF
-
-TYPE(TLIST), POINTER :: THIS
-
-ALLOCATE(THIS)
-THIS%CPTR = C_LOC(THIS%YSURF)
-THIS%NEXT => LIST
-
-LIST => THIS
-YDSURF = THIS%CPTR
+! Backward compatbility mode that allows the associated C_PTR to be
+! associated with a given target object. Note that this used to handle
+! a global linked list of objects, only accessible via C_PTR
+! indirection, which has been removed now!
+IF (PRESENT(ZYSURF)) THEN
+  YSURF => ZYSURF
+ELSE
+  ALLOCATE(YSURF)
+END IF
+YDSURF = C_LOC(YSURF)
+ZYDSURF = YDSURF
 
 END SUBROUTINE ALLO_SURF
 
-SUBROUTINE DEALLO_SURF(YDSURF)
+SUBROUTINE DEALLO_SURF(ZYDSURF)
 IMPLICIT NONE
 
-TYPE(C_PTR), INTENT(INOUT) :: YDSURF
-
-TYPE(TLIST), POINTER :: PREVIOUS, CURRENT
-
-PREVIOUS => NULL()
-CURRENT => LIST
-
-DO WHILE (ASSOCIATED(CURRENT))
-  IF (C_ASSOCIATED(YDSURF,CURRENT%CPTR)) THEN
-    IF (ASSOCIATED(PREVIOUS)) THEN
-      PREVIOUS%NEXT => CURRENT%NEXT
-    ELSE
-      LIST => CURRENT%NEXT
-    ENDIF
-    DEALLOCATE(CURRENT)
-    YDSURF = C_NULL_PTR
-    RETURN
-  ENDIF
-  PREVIOUS => CURRENT
-  CURRENT => CURRENT%NEXT
-END DO
-
-CALL ABORT_SURF('YOS_SURF:DEALLO_SURF: NOT FOUND')
-
+TYPE(C_PTR), INTENT(INOUT) :: ZYDSURF
+DEALLOCATE(YSURF)
+NULLIFY(YSURF)
 END SUBROUTINE DEALLO_SURF
 
 
-FUNCTION GET_SURF(YDSURF)
+FUNCTION GET_SURF(ZYDSURF)
 IMPLICIT NONE
 
 TYPE(TSURF), POINTER    :: GET_SURF
-TYPE(C_PTR), INTENT(IN) :: YDSURF
+TYPE(C_PTR), INTENT(IN) :: ZYDSURF
 
-TYPE(TLIST), POINTER :: CURRENT
+! Backward compatbility mode that returns the surface object from a
+! C_PTR. Strictly speaking this is no longer required, but the
+! behaviour is maintained for now.
 
-CURRENT => LIST
-
-DO WHILE (ASSOCIATED(CURRENT))
-  IF (C_ASSOCIATED(YDSURF,CURRENT%CPTR)) THEN
-    GET_SURF => CURRENT%YSURF
-    RETURN
-  ENDIF
-  CURRENT => CURRENT%NEXT
-END DO
-
-CALL ABORT_SURF('YOS_SURF:GET_SURF: NOT FOUND')
+! TODO: Add check that C pointer is correctly associated.
+GET_SURF => YSURF
 
 END FUNCTION GET_SURF
 
