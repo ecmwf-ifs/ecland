@@ -308,8 +308,8 @@ IF (LEFLAKE) THEN
         IF (LESNICE) THEN  
        ! Snow over sea-ice (it applies only if LESNICE == True and snow
        ! depth is initialzied from ice model.
-       ! Assume that the snow cover fraction applies only to
-       !       ice cover
+       ! Assume that the snow cover fraction applies only to ice cover.
+       ! To be re-checked when moving to fraction land-sea mask.
           ZFRTIT=MIN(MAX(RCIMIN,PCI(JL)),1.0_JPRB)
           PFRTI(JL,1)=1.0_JPRB-ZFRTIT
           PFRTI(JL,2)=ZFRTIT*(1.0_JPRB-ZCVS(JL))   !MIN(MAX(RCIMIN,PCI(JL)-ZCVS(JL)),1.0_JPRB)
@@ -370,8 +370,15 @@ ELSE
  DO JL=KIDIA,KFDIA
   IF (.NOT. LDLAND(JL)) THEN
     IF (LDSICE(JL)) THEN
-      PFRTI(JL,2)=MAX(RCIMIN,PCI(JL))
-      PFRTI(JL,1)=1.0_JPRB-PFRTI(JL,2)
+      IF (LESNICE) THEN  
+        ZFRTIT=MIN(MAX(RCIMIN,PCI(JL)),1.0_JPRB)
+        PFRTI(JL,1)=1.0_JPRB-ZFRTIT
+        PFRTI(JL,2)=ZFRTIT*(1.0_JPRB-ZCVS(JL))   !MIN(MAX(RCIMIN,PCI(JL)-ZCVS(JL)),1.0_JPRB)
+        PFRTI(JL,5)=ZCVS(JL)*ZFRTIT
+      ELSE
+        PFRTI(JL,2)=MAX(RCIMIN,PCI(JL))
+        PFRTI(JL,1)=1.0_JPRB-PFRTI(JL,2)
+      ENDIF
     ELSE
       PFRTI(JL,1)=1.0_JPRB
     ENDIF
