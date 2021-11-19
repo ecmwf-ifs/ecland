@@ -608,8 +608,8 @@ ELSE
 
   IF ( LESN09 ) THEN
   !* LIQUID WATER DIAGNOSTIC
-    CALL SRFSN_LWIMP(KIDIA  ,KFDIA  ,KLON   ,KTILES   ,PTSPHY, LDLAND, &
-  & PSNM1M(:,1) ,PTSNM1M(:,1) ,PASNM1M,PRSNM1M(:,1),PTSAM1M,PHLICEM1M,  &
+    CALL SRFSN_LWIMP(KIDIA  ,KFDIA  ,KLON   ,KTILES   ,LDLAND, PTSPHY, &
+  & PSNM1M(:,1) ,PTSNM1M(:,1) ,PASNM1M,PRSNM1M(:,1),PTSAM1M,PTIAM1M,PHLICEM1M,  &
   & ZSLRFLTI, PSSRFLTI,PFRTI  ,PAHFSTI,PEVAPTI,            &
   & ZSSFC  ,ZSSFL   ,PEVAPSNW,                           &
   & ZTSFC  ,ZTSFL   ,PUSRF  ,PVSRF   ,PTSRF,             &
@@ -723,7 +723,7 @@ CALL SRFT(KIDIA  , KFDIA  , KLON   , KTILES, KLEVS  , &
 IF (LDSI) THEN
   CALL SRFI(&
    & KIDIA  , KFDIA  , KLON   , KLEVS  , KLEVI  , &
-   & PTSPHY , PTIAM1M, PFRTI  , PAHFSTI, PEVAPTI, ZGSN,&
+   & PTSPHY ,PFRTI  , PTIAM1M,  PAHFSTI, PEVAPTI, ZGSN,&
    & ZSLRFLTI(:,2) ,PSSRFLTI, LDSICE , LDNH   , LESNICE,&
    & YDCST  ,YDSOIL  ,&
    & ZTIA   ,PDHTIS)  
@@ -925,7 +925,8 @@ DO JK=1,KLEVS
        PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
        & ((ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
     ELSE
-! Not sure about this... needs re-checking
+       ! This assumes that when LDSICE, PFRTI(5) is only active over sea-ice.
+       ! Needs rechecking when moving to fractional land-sea mask.
        IF (LDSICE(JL)) THEN
          PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
          & ((PFRTI(JL,2)+PFRTI(JL,5)) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
