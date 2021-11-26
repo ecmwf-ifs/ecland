@@ -236,7 +236,6 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 !*         1.1   SET UP SOME CONSTANTS, INITIALISE ARRAYS.
 !                --- -- ---- -----------------------------
 IF (LHOOK) CALL DR_HOOK('SURFTSTPS_CTL_MOD:SURFTSTPS_CTL',0,ZHOOK_HANDLE)
-ASSOCIATE(LESNICE=>YDSOIL%LESNICE)
 
 ZTSPHY=1.0_JPRB/PTSPHY
 
@@ -330,9 +329,9 @@ IF (YDSOIL%LESNML) THEN
  
 ELSE
 
-  CALL SRFSN_LWIMPS(KIDIA  ,KFDIA  ,KLON   , LDLAND, PTSPHY, &
+  CALL SRFSN_LWIMPS(KIDIA  ,KFDIA  ,KLON   ,PTSPHY, &
    & PSNM1M(KIDIA:KFDIA,1) ,PTSNM1M(KIDIA:KFDIA,1) ,PRSNM1M(KIDIA:KFDIA,1),&
-   & PTSAM1M,PTIAM1M,PHLICEM1M,    &
+   & PTSAM1M,PHLICEM1M,    &
    & PSLRFL ,PSSRFLTI,PFRTI  ,PAHFSTI,PEVAPTI,      &
    & ZSSFC  ,ZSSFL   ,PEVAPSNW,                     &
    & ZTSFC  ,ZTSFL   ,                              &
@@ -365,9 +364,9 @@ CALL SRFTS(KIDIA  , KFDIA  , KLON   , KLEVS  , &
 ! sea-ice
 IF (LDSI) THEN
   CALL SRFIS(&
-   & KIDIA  , KFDIA  , KLON   , KLEVS  ,       &
-   & PTSPHY , PFRTI  , PTIAM1M, PAHFSTI, PEVAPTI, ZGSN, &
-   & PSLRFL ,PSSRFLTI, ZTIA   , LDSICE , LDNH, LESNICE,&
+   & KIDIA  , KFDIA  , KLON   , KLEVS  , &
+   & PTSPHY , PTIAM1M, PAHFSTI, PEVAPTI, &
+   & PSLRFL ,PSSRFLTI, ZTIA   , LDSICE , LDNH, &
    & YDCST  , YDSOIL)
 ELSE
   DO JK=1,KLEVS
@@ -398,24 +397,14 @@ ENDDO
 !    has a T representative of the fraction
 DO JK=1,KLEVS
   DO JL=KIDIA,KFDIA
-     ! This assumes that when LDSICE, PFRTI(5) is only active over sea-ice.
-     ! Needs rechecking when moving to fractional land-sea mask.
-     IF (LDSICE(JL)) THEN
-       PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-        & ((PFRTI(JL,2)+PFRTI(JL,5)) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
-        & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)-PFRTI(JL,5))*&
-        & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
-     ELSE
-       PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-        & (PFRTI(JL,2)*&
-        & (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
-        & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
-        & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY
-     ENDIF
+    PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+     & (PFRTI(JL,2)*&
+     & (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
+     & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
+     & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY
   ENDDO
 ENDDO
 
-END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SURFTSTPS_CTL_MOD:SURFTSTPS_CTL',1,ZHOOK_HANDLE)
 
 END SUBROUTINE SURFTSTPS_CTL
