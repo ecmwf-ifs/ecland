@@ -1,7 +1,7 @@
 MODULE SRFIS_MOD
 CONTAINS
 SUBROUTINE SRFIS(KIDIA , KFDIA  , KLON  , KLEVS ,&
- & PTMST  , PTIAM1M   , PAHFSTI, PEVAPTI,&
+ & PTMST  ,PFRTI , PTIAM1M   , PAHFSTI, PEVAPTI, PGSN,  &
  & PSLRFL , PSSRFLTI  , PTIA   , LDICE , LDNH   ,&
  & YDCST  , YDSOIL)
 
@@ -89,11 +89,13 @@ INTEGER(KIND=JPIM), INTENT(IN)   :: KLON
 INTEGER(KIND=JPIM), INTENT(IN)   :: KLEVS
 
 REAL(KIND=JPRB),    INTENT(IN)   :: PTMST
+REAL(KIND=JPRB),    INTENT(IN)   :: PFRTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PTIAM1M(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PAHFSTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PEVAPTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PSLRFL(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PSSRFLTI(:,:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PGSN(:) ! snow over seaice
 
 LOGICAL,            INTENT(IN)   :: LDICE(:)
 LOGICAL,            INTENT(IN)   :: LDNH(:)
@@ -116,6 +118,8 @@ LOGICAL ::LLALLAYS, LLDOICE
 INTEGER(KIND=JPIM) :: JK, JL
 
 REAL(KIND=JPRB) :: ZCONS1, ZCONS2, ZTHFL
+REAL(KIND=JPRB) :: ZSSRFL, ZSLRFL
+REAL(KIND=JPRB) :: ZEPSILON
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 ! -------------------------------------------------------------------------
@@ -153,6 +157,7 @@ ENDDO
 
 LLALLAYS = .TRUE.    ! done for all layers
 !LLALLAYS = .FALSE.   ! done for top layer only
+ZEPSILON=EPSILON(ZEPSILON)
 
 IF (LLDOICE) THEN
 
@@ -185,11 +190,17 @@ IF (LLDOICE) THEN
 
 !*         2. Compute net heat flux at the surface.
 !             -------------------------------------
-
   DO JL=KIDIA,KFDIA
     IF (LDICE(JL)) THEN
       ZTHFL=PAHFSTI(JL,2)+RLSTT*PEVAPTI(JL,2)
       ZSURFL(JL)=PSSRFLTI(JL,2)+PSLRFL(JL)+ZTHFL
+      IF (YDSOIL%LESNICE) THEN
+        ZSSRFL=PSSRFLTI(JL,2)*PFRTI(JL,2)
+        ZSLRFL=PSLRFL(JL)*PFRTI(JL,2)
+        ZTHFL=PAHFSTI(JL,2)*PFRTI(JL,2)+RLSTT*PEVAPTI(JL,2)*PFRTI(JL,2)
+    ! PGSN(JL) is already smeared out over the entire grid square.
+      ZSURFL(JL)=(PGSN(JL)+ZSSRFL+ZSLRFL+ZTHFL)/MAX(ZEPSILON,(PFRTI(JL,2)+PFRTI(JL,5)))
+      ENDIF
     ENDIF
   ENDDO
 
