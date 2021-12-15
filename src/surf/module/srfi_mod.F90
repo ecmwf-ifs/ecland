@@ -153,24 +153,28 @@ ENDDO
 ! Layer thickness is updated based on total ice layer depth and a minimum
 ! of 0.07m thickness per layer is mantained.
 ZKLEVI=KLEVS
-ZEPSICE=0.05_JPRB
+ZEPSICE=0.01_JPRB
 
 DO JL=KIDIA,KFDIA
   IF (LNEMOLIMTHK) THEN
-      ZTHICK=RDAI(1)+RDAI(2)+RDAI(3)
+    ZTHICK=RDAI(1)+RDAI(2)+RDAI(3)
     IF ( (PTHKICE(JL) >= (ZTHICK+ZEPSICE)) .AND. &
-        &(PTHKICE(JL)-ZTHICK>=RDAI(3)) ) THEN
+        &(PTHKICE(JL)-ZTHICK >= RDAI(3)) ) THEN
         
        ZDAI(JL,KLEVS)=PTHKICE(JL)-ZTHICK
     ELSEIF ( (PTHKICE(JL) >= (ZTHICK+ZEPSICE)) .AND. &
         &(PTHKICE(JL)-ZTHICK<RDAI(3)) ) THEN
        ZTHICK2 = (RDAI(3)+PTHKICE(JL)-ZTHICK)/2._JPRB
        ZDAI(JL,KLEVS-1:KLEVS)=ZTHICK2
-    ELSEIF ( (PTHKICE(JL) < (ZTHICK+ZEPSICE)))THEN
+    ELSEIF ( (PTHKICE(JL) < (ZTHICK+ZEPSICE)) .AND. &
+             (PTHKICE(JL) > KLEVS*RDAI(1)) )THEN
        ZTHICK2 = (PTHKICE(JL)-RDAI(1))/(KLEVS-1._JPRB)
        ZDAI(JL,2:KLEVS)=ZTHICK2
     ELSE IF (PTHKICE(JL) <= KLEVS*RDAI(1))THEN
        ZDAI(JL,1:KLEVS)   = RDAI(1)
+    ELSE 
+       ZDAI(JL,1:KLEVS)   = RDAI(1)
+       WRITE(*,*) 'JL, PTHKICE',JL,PTHKICE(JL)
     ENDIF
   ELSE
     IF (LDNH(JL)) THEN
