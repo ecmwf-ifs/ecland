@@ -174,7 +174,6 @@ DO JL=KIDIA,KFDIA
        ZDAI(JL,1:KLEVS)   = RDAI(1)
     ELSE 
        ZDAI(JL,1:KLEVS)   = RDAI(1)
-       WRITE(*,*) 'JL, PTHKICE',JL,PTHKICE(JL)
     ENDIF
   ELSE
     IF (LDNH(JL)) THEN
