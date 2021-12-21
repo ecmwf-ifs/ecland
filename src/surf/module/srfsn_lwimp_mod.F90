@@ -181,6 +181,7 @@ REAL(KIND=JPRB),    INTENT(OUT)  :: PDHSSS(:,:,:)
 !      LOCAL VARIABLES
 
 LOGICAL            :: LLNOSNOW(KLON)  
+LOGICAL            :: LSNOWICEONLY(KLON)  
 
 REAL(KIND=JPRB),DIMENSION(KLON)   :: ZFRSN,ZSSFC,ZSSFL,ZLWC,ZLW,ZPMSNINT,ZDSNR,ZTSFC,ZTSFL,&
                                      ZHFLUXPP,ZLICE
@@ -247,6 +248,7 @@ ENDDO
 !             -----------------------------------------------------------
 
 DO JL=KIDIA,KFDIA
+  LSNOWICEONLY(JL)=.FALSE.
   ZFRSNGP=PFRTI(JL,5)+PFRTI(JL,7) ! snow fraction of the grid-box 
   ZFRLDGP=ZFRSNGP+PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8) ! land fraction of the grib-box 
   IF ( LEURBAN ) THEN
@@ -256,7 +258,16 @@ DO JL=KIDIA,KFDIA
     GRIDFRAC=1._JPRB
     ! snow cover fraction is normalized by the  land fraction 
 !   ZFRSN(JL)=MAX(ZFRSNGP/ZFRLDGP,RFRTINY)
-    ZFRSN(JL)=MAX(ZFRSNGP,RFRTINY)  ! to be replaced by the line above in 42r cycles
+    ! if there is snow over ice points and we want to 
+    ! account for its thermodynamic effect, then use snowSL only over ocean points (LDLAND=false).
+    ! Snow over land is considered by multi-layer snow model.
+    IF (.NOT. YDSOIL%LESNICE) THEN 
+      ZFRSN(JL)=MAX(ZFRSNGP,RFRTINY)  ! to be replaced by the line above in 42r cycles
+    ELSE ! If LESNICE, use snow scheme only over ice points
+      GRIDFRAC=0._JPRB
+      ZFRSN(JL)=0._JPRB
+      LSNOWICEONLY(JL)=.TRUE. !If this is true, skip all computations
+    ENDIF
   ELSE
     GRIDFRAC=0._JPRB
     ZFRSN(JL)=MAX(ZFRSNGP,RFRTINY)  ! it should be zero!
@@ -282,6 +293,7 @@ DO JL=KIDIA,KFDIA
 ENDDO
 
 DO JL=KIDIA,KFDIA
+IF(.NOT. LSNOWICEONLY(JL))THEN
   IF (LLNOSNOW(JL)) THEN
     IF ( YDSOIL%LEWBSOILFIX ) THEN
       ZSSTAR=PSSNM1M(JL)+(PTMST)*(ZSSFC(JL)+ZSSFL(JL)+PFRTI(JL,5)*PEVAPTI(JL,5)&
@@ -481,12 +493,14 @@ DO JL=KIDIA,KFDIA
       PTSN(JL) = MAX(180.0_JPRB,PTSN(JL))  ! Limit snow temperature to a reasonable value (minimum observed temperature 
     ENDIF
   ENDIF
+ENDIF
 ENDDO
 
 !*         3. NEW SNOW ALBEDO AND DENSITY.
 !             ----------------------------
 ZRSNDTDESTC=460._JPRB ! Original value up to CY43
 DO JL=KIDIA,KFDIA
+IF(.NOT. LSNOWICEONLY(JL))THEN
   IF (LLNOSNOW(JL)) THEN
     PASN(JL)=RALFMAXSN
     PRSN(JL)=RHOMINSN
@@ -541,12 +555,14 @@ DO JL=KIDIA,KFDIA
     PASN(JL)=MIN(RALFMAXSN,MAX(PASN(JL),RALFMINSN))
     
   ENDIF
+ENDIF
 ENDDO
 
 !*         5. NORMALIZE QUANTITIES TO THE GRID-SQUARE.
 !             ----------------------------------------
 
 DO JL=KIDIA,KFDIA
+IF(.NOT. LSNOWICEONLY(JL))THEN
   PGSN(JL)=ZFRSN(JL)*PGSN(JL)
   PMSN(JL)=ZFRSN(JL)*PMSN(JL)
 
@@ -569,7 +585,7 @@ DO JL=KIDIA,KFDIA
 ! Snow melt
     PDHSSS(JL,1,5)=-PMSN(JL)
   ENDIF
-
+ENDIF
 ENDDO
 
 !CALL DDH_BUDGET 

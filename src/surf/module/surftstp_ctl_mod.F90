@@ -606,6 +606,19 @@ IF ( LESNML ) THEN
   ! Diagnostics 
   & PDHTSS, PDHSSS)
 
+  ! If LESNICE=true, use srfsn_lwimp only for snow over ice points.
+  IF ( LESNICE ) THEN
+      CALL SRFSN_LWIMP(KIDIA  ,KFDIA  ,KLON   ,KTILES, LDLAND, PTSPHY, &
+    & PSNM1M(:,1) ,PTSNM1M(:,1) ,PASNM1M,PRSNM1M(:,1),PTSAM1M,PTIAM1M,PHLICEM1M,  &
+    & ZSLRFLTI, PSSRFLTI,PFRTI  ,PAHFSTI,PEVAPTI,            &
+    & ZSSFC  ,ZSSFL   ,PEVAPSNW,                           &
+    & ZTSFC  ,ZTSFL   ,PUSRF  ,PVSRF   ,PTSRF,             &
+    & YDCST  ,YDVEG   ,YDSOIL ,YDFLAKE, YDURB, YDEXC,             &
+    & ZSN(:,1)    ,ZTSN(:,1)    ,ZASN   ,ZRSN(:,1)   ,ZGSN   ,ZMSN,       &
+    & ZEMSSN ,ZTSFCIN,ZTSFLIN,                             &
+    & PDHTSS , PDHSSS )
+  ENDIF
+ 
 ELSE
 
 
