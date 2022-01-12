@@ -1,6 +1,6 @@
 MODULE SRFSN_LWIMP_MOD
 CONTAINS
-SUBROUTINE SRFSN_LWIMP(KIDIA  ,KFDIA  ,KLON   ,KTILES   ,LDLAND, PTMST,  &
+SUBROUTINE SRFSN_LWIMP(KIDIA  ,KFDIA  ,KLON   ,KTILES   ,LDLAND, LDSNOWLAND, PTMST,  &
  & PSSNM1M ,PTSNM1M ,PASNM1M ,PRSNM1M ,PTSAM1M,PTIAM1M,PHLICEM1M,     &
  & PSLRFLTI,PSSRFLTI,PFRTI   ,PAHFSTI ,PEVAPTI,               &
  & PSSFC   ,PSSFL   ,PEVAPSNW,                                &
@@ -138,6 +138,7 @@ INTEGER(KIND=JPIM), INTENT(IN)   :: KFDIA
 INTEGER(KIND=JPIM), INTENT(IN)   :: KLON
 INTEGER(KIND=JPIM), INTENT(IN)   :: KTILES
 LOGICAL           ,INTENT(IN)    :: LDLAND(:)
+LOGICAL           ,INTENT(IN)    :: LDSNOWLAND
 
 REAL(KIND=JPRB),    INTENT(IN)   :: PTMST
 REAL(KIND=JPRB),    INTENT(IN)   :: PSSNM1M(:)
@@ -261,7 +262,7 @@ DO JL=KIDIA,KFDIA
     ! if there is snow over ice points and we want to 
     ! account for its thermodynamic effect, then use snowSL only over ocean points (LDLAND=false).
     ! Snow over land is considered by multi-layer snow model.
-    IF (.NOT. YDSOIL%LESNICE) THEN 
+    IF (LDSNOWLAND) THEN 
       ZFRSN(JL)=MAX(ZFRSNGP,RFRTINY)  ! to be replaced by the line above in 42r cycles
     ELSE ! If LESNICE, use snow scheme only over ice points
       GRIDFRAC=0._JPRB
