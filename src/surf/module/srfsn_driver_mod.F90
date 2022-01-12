@@ -1,6 +1,7 @@
 MODULE SRFSN_DRIVER_MOD
 CONTAINS
 SUBROUTINE SRFSN_DRIVER(KIDIA   ,KFDIA   ,KLON   ,KLEVSN, PTMST, LDLAND,&
+  & LDSNOWICE, &
   & PSDOR, &
   ! input at T-1 prognostics
   & PSSNM1M, PTSNM1M, PRSNM1M  ,PWSNM1M, PASNM1M, &
@@ -138,6 +139,7 @@ INTEGER(KIND=JPIM), INTENT(IN)   :: KLON
 INTEGER(KIND=JPIM), INTENT(IN)   :: KLEVSN
 REAL(KIND=JPRB)   , INTENT(IN)   :: PTMST
 LOGICAL           , INTENT(IN)   :: LDLAND(:)
+LOGICAL           , INTENT(IN)   :: LDSNOWICE
 REAL(KIND=JPRB)   , INTENT(IN)   :: PSDOR(:)
 
 REAL(KIND=JPRB),    INTENT(IN)   :: PSSNM1M(:,:)
@@ -244,11 +246,11 @@ DO JL=KIDIA,KFDIA
     LLNOSNOW(JL)=.FALSE.
   ENDIF
   
-  LSNOWLANDONLY(JL)=.TRUE. ! By default, compute over all av points.
+  LSNOWLANDONLY(JL)=.TRUE. ! By default, compute over all points.
   ! if we are over ocean (ice) points, and there is snow and we want to 
   ! account for its thermodynamic effect, then use snowML only over Land points.
   ! Snow over sea-ice will be considered by single-layer for the time being.
-  IF (.NOT. LDLAND(JL) .AND. .NOT. LLNOSNOW(JL) .AND. YDSOIL%LESNICE)THEN
+  IF (.NOT. LDLAND(JL) .AND. .NOT. LLNOSNOW(JL) .AND. .NOT. LDSNOWICE)THEN
     LLNOSNOW(JL)=.TRUE.
     LSNOWLANDONLY(JL)=.FALSE.
   ENDIF
