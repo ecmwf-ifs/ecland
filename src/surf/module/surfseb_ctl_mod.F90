@@ -290,25 +290,25 @@ DO JT=1,KTILES
       ZLAMSK(JL,JT)=ZLARGE
     ENDDO
   CASE(2) ! Sea ice with possibly a snow layer on top of it
-     IF (LNEMOLIMTHK) THEN
-        DO JL=KIDIA,KFDIA
-           IF (PSNTICE(JL) > 0.0_JPRB) THEN
-              ! For now use same conductivity as snow on land
-              ! Possible refinement: take fractional snow cover for thin layers of snow into account
-              IF (PTSKM1M(JL,JT) >= PTSRF(JL,JT).AND.PTSKM1M(JL,JT) > ZRTTMEPS) THEN
-                 ZLAMSK(JL,JT)=ZLARGESN
-              ELSE
-                 ZLAMSK(JL,JT)=ZSNOW ! Snow tile!!
-              ENDIF
-           ELSE
-              IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
-                 ZLAMSK(JL,JT)=RVLAMSKS(12)
-              ELSE
-                 ZLAMSK(JL,JT)=RVLAMSK(12)
-              ENDIF
-           ENDIF
-        ENDDO
-     ELSE
+  !*  IF (LNEMOLIMTHK) THEN
+  !*      DO JL=KIDIA,KFDIA
+  !*         IF (PSNTICE(JL) > 0.0_JPRB) THEN
+  !*            ! For now use same conductivity as snow on land
+  !*            ! Possible refinement: take fractional snow cover for thin layers of snow into account
+  !*            IF (PTSKM1M(JL,JT) >= PTSRF(JL,JT).AND.PTSKM1M(JL,JT) > ZRTTMEPS) THEN
+  !*               ZLAMSK(JL,JT)=ZLARGESN
+  !*            ELSE
+  !*               ZLAMSK(JL,JT)=ZSNOW ! Snow tile!!
+  !*            ENDIF
+  !*         ELSE
+  !*            IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
+  !*               ZLAMSK(JL,JT)=RVLAMSKS(12)
+  !*            ELSE
+  !*               ZLAMSK(JL,JT)=RVLAMSK(12)
+  !*            ENDIF
+  !*         ENDIF
+  !*      ENDDO
+  !*   ELSE
         DO JL=KIDIA,KFDIA
            IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
               ZLAMSK(JL,JT)=RVLAMSKS(12)
