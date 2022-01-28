@@ -250,10 +250,10 @@ DO JL=KIDIA,KFDIA
   ! if we are over ocean (ice) points, and there is snow and we want to 
   ! account for its thermodynamic effect, then use snowML only over Land points.
   ! Snow over sea-ice will be considered by single-layer for the time being.
-  IF (.NOT. LDLAND(JL) .AND. .NOT. LLNOSNOW(JL) .AND. .NOT. LDSNOWICE)THEN
-    LLNOSNOW(JL)=.TRUE.
-    LSNOWLANDONLY(JL)=.FALSE.
-  ENDIF
+  !*IF (.NOT. LDLAND(JL) .AND. .NOT. LLNOSNOW(JL) .AND. .NOT. LDSNOWICE)THEN
+  !*  LLNOSNOW(JL)=.TRUE.
+  !*  LSNOWLANDONLY(JL)=.FALSE.
+  !*ENDIF
 
 ! NET RAINFALL & SNOWFALL 
 ! this needs to be checked carefully for points with subgrid-scale lakes: 
@@ -294,10 +294,10 @@ DO JL=KIDIA,KFDIA
     PTSFL(JL) = (1._JPRB - ZFRSN(JL) )*PTSFL(JL)
    
  
-    IF (LDLAND(JL)) THEN
+    IF (.NOT. YDSOIL%LESNICE) THEN
       ZTBOTTOM(JL)  = PTSAM1M(JL,1)
 
-! added fix to be consistent with Peters-Lidard et al. 1998 
+! ad  d fix to be consistent with Peters-Lidard et al. 1998 
       IF(PTSAM1M(JL,1) < RTF1.AND.PTSAM1M(JL,1) > RTF2) THEN
         ZFF=0.5_JPRB*(1.0_JPRB-SIN(RTF4*(PTSAM1M(JL,1)-RTF3)))
       ELSEIF (PTSAM1M(JL,1) <= RTF2) THEN
@@ -307,12 +307,27 @@ DO JL=KIDIA,KFDIA
       ENDIF
       !  ZFF=0.0_JPRB
       ZSURFCOND(JL) = MAX(0.19_JPRB,MIN(2._JPRB,FSOILTCOND(PWSAM1M(JL,1),ZFF,KSOTY(JL))))
-    ELSE
-      ZTBOTTOM(JL)  = PTIAM1M(JL,1)
-      ZFF=1.0_JPRB
-      ZSURFCOND(JL) = RCONDSICE
-    ENDIF
 
+    ELSE
+      IF (LDLAND(JL)) THEN
+        ZTBOTTOM(JL)  = PTSAM1M(JL,1)
+
+! ad  ded fix to be consistent with Peters-Lidard et al. 1998 
+        IF(PTSAM1M(JL,1) < RTF1.AND.PTSAM1M(JL,1) > RTF2) THEN
+          ZFF=0.5_JPRB*(1.0_JPRB-SIN(RTF4*(PTSAM1M(JL,1)-RTF3)))
+        ELSEIF (PTSAM1M(JL,1) <= RTF2) THEN
+          ZFF=1.0_JPRB
+        ELSE
+          ZFF=0.0_JPRB
+        ENDIF
+        !  ZFF=0.0_JPRB
+        ZSURFCOND(JL) = MAX(0.19_JPRB,MIN(2._JPRB,FSOILTCOND(PWSAM1M(JL,1),ZFF,KSOTY(JL))))
+      ELSE
+        ZTBOTTOM(JL)  = PTIAM1M(JL,1)
+        ZFF=1.0_JPRB
+        ZSURFCOND(JL) = RCONDSICE
+      ENDIF
+    ENDIF
   ENDIF
   
   
