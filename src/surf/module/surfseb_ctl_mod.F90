@@ -316,7 +316,7 @@ DO JT=1,KTILES
               ZLAMSK(JL,JT)=RVLAMSK(12)
            ENDIF
         ENDDO
-     ENDIF
+  !*  ENDIF
   CASE(3)
     DO JL=KIDIA,KFDIA
       !IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
