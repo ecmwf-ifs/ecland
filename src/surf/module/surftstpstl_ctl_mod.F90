@@ -456,16 +456,7 @@ ENDDO
 !    has a T representative of the fraction
 DO JK=1,KLEVS
   DO JL=KIDIA,KFDIA
-    IF (LDSICE(JL)) THEN
-      PTSAE1 (JL,JK) = PTSAE1 (JL,JK) &
-       & +((PFRTI(JL,2)+PFRTI(JL,5))*(ZTIA (JL,JK)-PTIAM1M (JL,JK)) &
-       & +(1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)-PFRTI(JL,5)) &
-       & *(ZTSA (JL,JK)-PTSAM1M (JL,JK)))*ZTSPHY
-      PTSAE15(JL,JK) = PTSAE15(JL,JK) &
-       & +((PFRTI(JL,2)+PFRTI(JL,5))*(ZTIA5(JL,JK)-PTIAM1M5(JL,JK)) &
-       & +(1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)-PFRTI(JL,5)) &
-       & *(ZTSA5(JL,JK)-PTSAM1M5(JL,JK)))*ZTSPHY
-    ELSE
+    IF (.NOT. YDSOIL%LESNICE)THEN
       PTSAE1 (JL,JK) = PTSAE1 (JL,JK) &
        & +(PFRTI(JL,2)*(ZTIA (JL,JK)-PTIAM1M (JL,JK)) &
        & +(1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)) &
@@ -474,7 +465,27 @@ DO JK=1,KLEVS
        & +(PFRTI(JL,2)*(ZTIA5(JL,JK)-PTIAM1M5(JL,JK)) &
        & +(1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)) &
        & *(ZTSA5(JL,JK)-PTSAM1M5(JL,JK)))*ZTSPHY
-     ENDIF
+    ELSE
+      IF (LDSICE(JL)) THEN
+        PTSAE1 (JL,JK) = PTSAE1 (JL,JK) &
+         & +((PFRTI(JL,2)+PFRTI(JL,5))*(ZTIA (JL,JK)-PTIAM1M (JL,JK)) &
+         & +(1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)-PFRTI(JL,5)) &
+         & *(ZTSA (JL,JK)-PTSAM1M (JL,JK)))*ZTSPHY
+        PTSAE15(JL,JK) = PTSAE15(JL,JK) &
+         & +((PFRTI(JL,2)+PFRTI(JL,5))*(ZTIA5(JL,JK)-PTIAM1M5(JL,JK)) &
+         & +(1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)-PFRTI(JL,5)) &
+         & *(ZTSA5(JL,JK)-PTSAM1M5(JL,JK)))*ZTSPHY
+      ELSE
+        PTSAE1 (JL,JK) = PTSAE1 (JL,JK) &
+         & +(PFRTI(JL,2)*(ZTIA (JL,JK)-PTIAM1M (JL,JK)) &
+         & +(1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)) &
+         & *(ZTSA (JL,JK)-PTSAM1M (JL,JK)))*ZTSPHY
+        PTSAE15(JL,JK) = PTSAE15(JL,JK) &
+         & +(PFRTI(JL,2)*(ZTIA5(JL,JK)-PTIAM1M5(JL,JK)) &
+         & +(1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)) &
+         & *(ZTSA5(JL,JK)-PTSAM1M5(JL,JK)))*ZTSPHY
+      ENDIF
+    ENDIF
   ENDDO
 ENDDO
 

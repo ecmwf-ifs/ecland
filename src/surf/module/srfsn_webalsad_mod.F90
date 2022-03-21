@@ -345,6 +345,7 @@ DO JL=KIDIA,KFDIA
     ZKERSTEN5=RKERST2*LOG10(ZCOND5)+RKERST3
     ZSOILCOND5=RLAMBDADRYM(JS)+ZKERSTEN5*(ZLAMBDASAT5-RLAMBDADRYM(JS)) 
     ZSOILDEPTH1= YDSOIL%RDAW(1) ! 1sth Soil layer depth
+
   ELSE
      IF (LDLAND(JL))THEN
        ZFF=0.0_JPRB
@@ -1059,6 +1060,7 @@ DO JL=KIDIA,KFDIA
       ZICE(JK)  = 0._JPRB
     ENDDO
 !*- Soil heat conductivity (simplified) - copied from srfts
+    IF (.NOT. YDSOIL%LESNICE)THEN
     JS = KSOTY(JL)
     ZINVWSAT = 1.0_JPRB/RWSATM(JS)
 
@@ -1089,7 +1091,42 @@ DO JL=KIDIA,KFDIA
     PWSURF(JL) = PWSURF(JL) + ZWU*(1._JPRB - ZFF)
     ZWU  = 0._JPRB
     ZFF  = 0._JPRB
+    ELSE
+      IF (LDLAND(JL))THEN
+        JS = KSOTY(JL)
+        ZINVWSAT = 1.0_JPRB/RWSATM(JS)
     
+        ZKERSTEN  = ZKERSTEN + ZSOILCOND*(ZLAMBDASAT5-RLAMBDADRYM(JS))
+        ZLAMBDASAT= ZLAMBDASAT + ZSOILCOND*ZKERSTEN5
+        ZSOILCOND = 0._JPRB
+
+        ZCOND     = ZCOND + ZKERSTEN*RKERST2/(ZLN10*ZCOND5)
+        ZKERSTEN  = 0._JPRB
+
+        IF (PWSURF5(JL)*ZINVWSAT > RKERST1) THEN
+          PWSURF(JL) = PWSURF(JL) + ZCOND*ZINVWSAT
+          ZCOND  = 0._JPRB
+        ELSE
+          ZCOND  = 0.0_JPRB
+        ENDIF
+        
+        ZLWT = ZLWT + ZLAMBDASAT*RLAMSAT1M(JS)*ZLIC5
+        ZLIC = ZLIC + ZLAMBDASAT*RLAMSAT1M(JS)*ZLWT5
+        ZLAMBDASAT  = 0._JPRB
+
+        ZWU   = ZWU - ZLIC*ZLIC5*LOG(RLAMBDAICE)
+        ZLIC  = 0._JPRB
+
+        ZWU   = ZWU + ZLWT*ZLWT5*LOG(RLAMBDAWAT)
+        ZLWT  = 0._JPRB
+        
+        PWSURF(JL) = PWSURF(JL) + ZWU*(1._JPRB - ZFF)
+        ZWU  = 0._JPRB
+        ZFF  = 0._JPRB
+      ELSE
+        ZSOILCOND=0._JPRB
+      ENDIF
+    ENDIF
     ! heat flux into the snowpack (not scaled by fraction, it simplifies fraction in
     ! heat transfer eq.
 
