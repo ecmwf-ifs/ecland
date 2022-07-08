@@ -107,4 +107,12 @@ CHARACTER(LEN=256)              :: CSUFPTH            ! .pth suffix for binary (
 CHARACTER(LEN=256)              :: CSUFCDF            ! .nc  suffix for netCDF
 
 !================================================
+! Fluxes buffers for IFS coupling
+REAL(KIND=JPRB), ALLOCATABLE :: ZBUFFO(:,:,:)
+REAL(KIND=JPRB), ALLOCATABLE :: ZBUFFI(:,:,:)
+REAL(KIND=JPRB), ALLOCATABLE :: ZACC0(:,:)
+REAL(KIND=JPRB), ALLOCATABLE :: ZACC1(:,:)
+!Time step to be advanced within DRV_ADVANCE used for IFS coupling
+INTEGER(KIND=JPIM)           :: ISTEPADV
+!===============================================
 END MODULE YOS_CMF_INPUT
