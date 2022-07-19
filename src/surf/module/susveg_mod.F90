@@ -109,6 +109,30 @@ RVINTER=0.5_JPRB
 ! Vegetation cover
  
 ! 0 value acts as default for vegetation type, simplifying code ...
+!IF(.NOT.ALLOCATED(YDVEG%RVCOV)) ALLOCATE(YDVEG%RVCOV(0:IVTYPES))
+!YDVEG%RVCOV(1)=0.9_JPRB     ! Crops, Mixed Farming
+!YDVEG%RVCOV(2)=0.85_JPRB    ! Short Grass
+!YDVEG%RVCOV(3)=0.9_JPRB     ! Evergreen Needleleaf Trees
+!YDVEG%RVCOV(4)=0.9_JPRB     ! Deciduous Needleleaf Trees
+!YDVEG%RVCOV(5)=0.9_JPRB     ! Deciduous Broadleaf Trees
+!YDVEG%RVCOV(6)=0.99_JPRB    ! Evergreen Broadleaf Trees
+!YDVEG%RVCOV(7)=0.7_JPRB     ! Tall Grass
+!YDVEG%RVCOV(8)=0.0_JPRB       ! Desert
+!YDVEG%RVCOV(9)=0.5_JPRB       ! Tundra
+!YDVEG%RVCOV(10)=0.9_JPRB    ! Irrigated Crops
+!YDVEG%RVCOV(11)=0.1_JPRB    ! Semidesert
+!YDVEG%RVCOV(12)=0.0_JPRB      ! Ice Caps and Glaciers
+!YDVEG%RVCOV(13)=0.6_JPRB    ! Bogs and Marshes
+!YDVEG%RVCOV(14)=0.0_JPRB      ! Inland Water
+!YDVEG%RVCOV(15)=0.0_JPRB      ! Ocean
+!YDVEG%RVCOV(16)=0.5_JPRB      ! Evergreen Shrubs
+!YDVEG%RVCOV(17)=0.5_JPRB      ! Deciduous Shrubs
+!YDVEG%RVCOV(18)=0.9_JPRB    ! Mixed Forest/woodland
+!YDVEG%RVCOV(19)=0.9_JPRB    ! Interrupted Forest
+!YDVEG%RVCOV(20)=0.6_JPRB    ! Water and Land Mixtures
+!YDVEG%RVCOV(0)=YDVEG%RVCOV(8)
+
+! Adjusted RCOV (Cveg) table for the new ESA-CCI v3/v4 cwt maps
 IF(.NOT.ALLOCATED(YDVEG%RVCOV)) ALLOCATE(YDVEG%RVCOV(0:IVTYPES))
 YDVEG%RVCOV(1)=0.9_JPRB     ! Crops, Mixed Farming
 YDVEG%RVCOV(2)=0.85_JPRB    ! Short Grass
@@ -116,18 +140,18 @@ YDVEG%RVCOV(3)=0.9_JPRB     ! Evergreen Needleleaf Trees
 YDVEG%RVCOV(4)=0.9_JPRB     ! Deciduous Needleleaf Trees
 YDVEG%RVCOV(5)=0.9_JPRB     ! Deciduous Broadleaf Trees
 YDVEG%RVCOV(6)=0.99_JPRB    ! Evergreen Broadleaf Trees
-YDVEG%RVCOV(7)=0.7_JPRB     ! Tall Grass
+YDVEG%RVCOV(7)=0.9_JPRB     ! Tall Grass/mixed crops
 YDVEG%RVCOV(8)=0.0_JPRB       ! Desert
 YDVEG%RVCOV(9)=0.5_JPRB       ! Tundra
 YDVEG%RVCOV(10)=0.9_JPRB    ! Irrigated Crops
-YDVEG%RVCOV(11)=0.1_JPRB    ! Semidesert
+YDVEG%RVCOV(11)=0.3_JPRB    ! Semidesert/sparse vegetation
 YDVEG%RVCOV(12)=0.0_JPRB      ! Ice Caps and Glaciers
 YDVEG%RVCOV(13)=0.6_JPRB    ! Bogs and Marshes
 YDVEG%RVCOV(14)=0.0_JPRB      ! Inland Water
 YDVEG%RVCOV(15)=0.0_JPRB      ! Ocean
-YDVEG%RVCOV(16)=0.5_JPRB      ! Evergreen Shrubs
-YDVEG%RVCOV(17)=0.5_JPRB      ! Deciduous Shrubs
-YDVEG%RVCOV(18)=0.9_JPRB    ! Mixed Forest/woodland
+YDVEG%RVCOV(16)=0.9_JPRB      ! Evergreen Shrubs
+YDVEG%RVCOV(17)=0.3_JPRB      ! Deciduous Shrubs
+YDVEG%RVCOV(18)=0.9_JPRB    ! Mixed Forest/woodland/Broad Savanah
 YDVEG%RVCOV(19)=0.9_JPRB    ! Interrupted Forest
 YDVEG%RVCOV(20)=0.6_JPRB    ! Water and Land Mixtures
 YDVEG%RVCOV(0)=YDVEG%RVCOV(8)
@@ -263,33 +287,63 @@ RCEPSW  =1.E-3_JPRB
 !                 for the decreased radiation stress function at full 
 !                 light saturation.
 
+!IF(.NOT.ALLOCATED(YDVEG%RVRSMIN)) ALLOCATE (YDVEG%RVRSMIN(0:IVTYPES))
+!!RVRSMIN(1)=180._JPRB    ! Crops, Mixed Farming
+!!RVRSMIN(2)=110._JPRB    ! Short Grass
+!YDVEG%RVRSMIN(1)=100._JPRB    ! Crops, Mixed Farming
+!YDVEG%RVRSMIN(2)=100._JPRB    ! Short Grass
+!!RVRSMIN(3)=500._JPRB    ! Evergreen Needleleaf Trees
+!!RVRSMIN(4)=500._JPRB    ! Deciduous Needleleaf Trees
+!YDVEG%RVRSMIN(3)=250._JPRB    ! Evergreen Needleleaf Trees
+!YDVEG%RVRSMIN(4)=250._JPRB    ! Deciduous Needleleaf Trees
+!YDVEG%RVRSMIN(5)=175._JPRB    ! Deciduous Broadleaf Trees
+!YDVEG%RVRSMIN(6)=240._JPRB    ! Evergreen Broadleaf Trees
+!YDVEG%RVRSMIN(7)=100._JPRB    ! Tall Grass
+!YDVEG%RVRSMIN(8)=250._JPRB    ! Desert
+!YDVEG%RVRSMIN(9)=80._JPRB     ! Tundra
+!!RVRSMIN(10)=180._JPRB   ! Irrigated Crops
+!YDVEG%RVRSMIN(10)=100._JPRB   ! Irrigated Crops
+!YDVEG%RVRSMIN(11)=150._JPRB   ! Semidesert
+!YDVEG%RVRSMIN(12)=0.0_JPRB      ! Ice Caps and Glaciers
+!YDVEG%RVRSMIN(13)=240._JPRB   ! Bogs and Marshes
+!YDVEG%RVRSMIN(14)=0.0_JPRB      ! Inland Water
+!YDVEG%RVRSMIN(15)=0.0_JPRB      ! Ocean
+!YDVEG%RVRSMIN(16)=225._JPRB   ! Evergreen Shrubs
+!YDVEG%RVRSMIN(17)=225._JPRB   ! Deciduous Shrubs
+!YDVEG%RVRSMIN(18)=250._JPRB   ! Mixed Forest/woodland
+!YDVEG%RVRSMIN(19)=175._JPRB   ! Interrupted Forest
+!YDVEG%RVRSMIN(20)=150._JPRB   ! Water and Land Mixtures
+!YDVEG%RVRSMIN(0)=YDVEG%RVRSMIN(8)
+
+! Adjusted Rsmin table for the new ESA-CCI v4 opt1 cwt maps
 IF(.NOT.ALLOCATED(YDVEG%RVRSMIN)) ALLOCATE (YDVEG%RVRSMIN(0:IVTYPES))
 !RVRSMIN(1)=180._JPRB    ! Crops, Mixed Farming
 !RVRSMIN(2)=110._JPRB    ! Short Grass
-YDVEG%RVRSMIN(1)=100._JPRB    ! Crops, Mixed Farming
-YDVEG%RVRSMIN(2)=100._JPRB    ! Short Grass
+YDVEG%RVRSMIN(1)=80._JPRB    ! Crops, Mixed Farming
+YDVEG%RVRSMIN(2)=70._JPRB    ! Short Grass
 !RVRSMIN(3)=500._JPRB    ! Evergreen Needleleaf Trees
 !RVRSMIN(4)=500._JPRB    ! Deciduous Needleleaf Trees
-YDVEG%RVRSMIN(3)=250._JPRB    ! Evergreen Needleleaf Trees
-YDVEG%RVRSMIN(4)=250._JPRB    ! Deciduous Needleleaf Trees
-YDVEG%RVRSMIN(5)=175._JPRB    ! Deciduous Broadleaf Trees
-YDVEG%RVRSMIN(6)=240._JPRB    ! Evergreen Broadleaf Trees
-YDVEG%RVRSMIN(7)=100._JPRB    ! Tall Grass
+YDVEG%RVRSMIN(3)=350._JPRB    ! Evergreen Needleleaf Trees
+YDVEG%RVRSMIN(4)=300._JPRB    ! Deciduous Needleleaf Trees
+YDVEG%RVRSMIN(5)=300._JPRB    ! Deciduous Broadleaf Trees
+YDVEG%RVRSMIN(6)=300._JPRB    ! Evergreen Broadleaf Trees
+YDVEG%RVRSMIN(7)=70._JPRB    ! mixed crops
 YDVEG%RVRSMIN(8)=250._JPRB    ! Desert
-YDVEG%RVRSMIN(9)=80._JPRB     ! Tundra
+YDVEG%RVRSMIN(9)=25._JPRB     ! Tundra
 !RVRSMIN(10)=180._JPRB   ! Irrigated Crops
-YDVEG%RVRSMIN(10)=100._JPRB   ! Irrigated Crops
-YDVEG%RVRSMIN(11)=150._JPRB   ! Semidesert
+YDVEG%RVRSMIN(10)=70._JPRB   ! Irrigated Crops
+YDVEG%RVRSMIN(11)=25._JPRB   ! sparse vegetation
 YDVEG%RVRSMIN(12)=0.0_JPRB      ! Ice Caps and Glaciers
-YDVEG%RVRSMIN(13)=240._JPRB   ! Bogs and Marshes
+YDVEG%RVRSMIN(13)=130._JPRB   ! Bogs and Marshes
 YDVEG%RVRSMIN(14)=0.0_JPRB      ! Inland Water
 YDVEG%RVRSMIN(15)=0.0_JPRB      ! Ocean
 YDVEG%RVRSMIN(16)=225._JPRB   ! Evergreen Shrubs
-YDVEG%RVRSMIN(17)=225._JPRB   ! Deciduous Shrubs
-YDVEG%RVRSMIN(18)=250._JPRB   ! Mixed Forest/woodland
+YDVEG%RVRSMIN(17)=80._JPRB   ! Deciduous Shrubs
+YDVEG%RVRSMIN(18)=175._JPRB   ! Broad/Savana
 YDVEG%RVRSMIN(19)=175._JPRB   ! Interrupted Forest
 YDVEG%RVRSMIN(20)=150._JPRB   ! Water and Land Mixtures
 YDVEG%RVRSMIN(0)=YDVEG%RVRSMIN(8)
+
 
 ! Parameter in humidity stress function (m/s mbar, converted to M/S kgkg-1)
 IF(.NOT.ALLOCATED(YDVEG%RVHSTR)) ALLOCATE (YDVEG%RVHSTR(0:IVTYPES))
@@ -319,25 +373,49 @@ YDVEG%RVHSTR(:)=ZCONV*YDVEG%RVHSTR(:)
 
 ! Roughness length for momentum (Mahfouf et al. 1995)
 
+!IF(.NOT.ALLOCATED(YDVEG%RVZ0M)) ALLOCATE (YDVEG%RVZ0M(0:IVTYPES))
+!YDVEG%RVZ0M(1)=0.25_JPRB     ! Crops, Mixed Farming
+!YDVEG%RVZ0M(2)=0.1_JPRB     ! Short Grass
+!YDVEG%RVZ0M(3)=2.00_JPRB     ! Evergreen Needleleaf Trees
+!YDVEG%RVZ0M(4)=2.00_JPRB     ! Deciduous Needleleaf Trees
+!YDVEG%RVZ0M(5)=2.00_JPRB     ! Deciduous Broadleaf Trees
+!YDVEG%RVZ0M(6)=2.00_JPRB     ! Evergreen Broadleaf Trees
+!YDVEG%RVZ0M(7)=0.47_JPRB     ! Tall Grass
+!YDVEG%RVZ0M(8)=0.013_JPRB    ! Desert                    # Masson et al.
+!YDVEG%RVZ0M(9)=0.034_JPRB     ! Tundra
+!YDVEG%RVZ0M(10)=0.5_JPRB    ! Irrigated Crops           # Crops type 1
+!YDVEG%RVZ0M(11)=0.17_JPRB    ! Semidesert 
+!YDVEG%RVZ0M(12)=0.0013_JPRB  ! Ice Caps and Glaciers     # Mason et al. 
+!YDVEG%RVZ0M(13)=0.5_JPRB    ! Bogs and Marshes
+!YDVEG%RVZ0M(14)=0.0001_JPRB  ! Inland Water              # Not used but needs value here
+!YDVEG%RVZ0M(15)=0.0001_JPRB  ! Ocean                     # Not used but needs value here
+!YDVEG%RVZ0M(16)=0.1_JPRB    ! Evergreen Shrubs
+!YDVEG%RVZ0M(17)=0.25_JPRB    ! Deciduous Shrubs
+!YDVEG%RVZ0M(18)=2.00_JPRB    ! Mixed Forest/woodland
+!YDVEG%RVZ0M(19)=1.1_JPRB    ! Interrupted Forest        # New value invented here
+!YDVEG%RVZ0M(20)=0.02_JPRB    ! Water and Land Mixtures   # Not used but needs value here
+!YDVEG%RVZ0M(0)=YDVEG%RVZ0M(8)      !                           # Bare soil value
+
+! Adjusted Roughness length tables for the new ESA-CCI v3/v4 opt1 cwt maps
 IF(.NOT.ALLOCATED(YDVEG%RVZ0M)) ALLOCATE (YDVEG%RVZ0M(0:IVTYPES))
 YDVEG%RVZ0M(1)=0.25_JPRB     ! Crops, Mixed Farming
 YDVEG%RVZ0M(2)=0.1_JPRB     ! Short Grass
-YDVEG%RVZ0M(3)=2.00_JPRB     ! Evergreen Needleleaf Trees
-YDVEG%RVZ0M(4)=2.00_JPRB     ! Deciduous Needleleaf Trees
-YDVEG%RVZ0M(5)=2.00_JPRB     ! Deciduous Broadleaf Trees
-YDVEG%RVZ0M(6)=2.00_JPRB     ! Evergreen Broadleaf Trees
-YDVEG%RVZ0M(7)=0.47_JPRB     ! Tall Grass
+YDVEG%RVZ0M(3)=3.0_JPRB     ! Evergreen Needleleaf Trees
+YDVEG%RVZ0M(4)=3.0_JPRB     ! Deciduous Needleleaf Trees
+YDVEG%RVZ0M(5)=3.0_JPRB     ! Deciduous Broadleaf Trees
+YDVEG%RVZ0M(6)=3.0_JPRB     ! Evergreen Broadleaf Trees
+YDVEG%RVZ0M(7)=1.10_JPRB     ! mixed crops
 YDVEG%RVZ0M(8)=0.013_JPRB    ! Desert                    # Masson et al.
-YDVEG%RVZ0M(9)=0.034_JPRB     ! Tundra
+YDVEG%RVZ0M(9)=0.03_JPRB     ! Tundra
 YDVEG%RVZ0M(10)=0.5_JPRB    ! Irrigated Crops           # Crops type 1
-YDVEG%RVZ0M(11)=0.17_JPRB    ! Semidesert 
+YDVEG%RVZ0M(11)=0.05_JPRB    ! sparse vegetation 
 YDVEG%RVZ0M(12)=0.0013_JPRB  ! Ice Caps and Glaciers     # Mason et al. 
-YDVEG%RVZ0M(13)=0.5_JPRB    ! Bogs and Marshes
+YDVEG%RVZ0M(13)=0.25_JPRB    ! Bogs and Marshes
 YDVEG%RVZ0M(14)=0.0001_JPRB  ! Inland Water              # Not used but needs value here
 YDVEG%RVZ0M(15)=0.0001_JPRB  ! Ocean                     # Not used but needs value here
-YDVEG%RVZ0M(16)=0.1_JPRB    ! Evergreen Shrubs
-YDVEG%RVZ0M(17)=0.25_JPRB    ! Deciduous Shrubs
-YDVEG%RVZ0M(18)=2.00_JPRB    ! Mixed Forest/woodland
+YDVEG%RVZ0M(16)=0.5_JPRB    ! Evergreen Shrubs
+YDVEG%RVZ0M(17)=0.1_JPRB    ! Deciduous Shrubs
+YDVEG%RVZ0M(18)=1.50_JPRB    ! Broad Savana
 YDVEG%RVZ0M(19)=1.1_JPRB    ! Interrupted Forest        # New value invented here
 YDVEG%RVZ0M(20)=0.02_JPRB    ! Water and Land Mixtures   # Not used but needs value here
 YDVEG%RVZ0M(0)=YDVEG%RVZ0M(8)      !                           # Bare soil value
@@ -346,6 +424,7 @@ YDVEG%RVZ0M(0)=YDVEG%RVZ0M(8)      !                           # Bare soil value
 ! Roughness length for heat
 
 IF(.NOT.ALLOCATED(YDVEG%RVZ0H)) ALLOCATE (YDVEG%RVZ0H(0:IVTYPES))
+! testing roughness for heat for he low veg as 1/10th
 YDVEG%RVZ0H(1)=YDVEG%RVZ0M( 1)/100._JPRB     ! Crops, Mixed Farming
 YDVEG%RVZ0H(2)=YDVEG%RVZ0M( 2)/100._JPRB     ! Short Grass
 YDVEG%RVZ0H(3)=YDVEG%RVZ0M( 3)              ! Evergreen Needleleaf Trees
@@ -363,7 +442,7 @@ YDVEG%RVZ0H(14)=YDVEG%RVZ0M(14)/10._JPRB    ! Inland Water
 YDVEG%RVZ0H(15)=YDVEG%RVZ0M(15)/10._JPRB    ! Ocean 
 YDVEG%RVZ0H(16)=YDVEG%RVZ0M(16)/100._JPRB    ! Evergreen Shrubs
 YDVEG%RVZ0H(17)=YDVEG%RVZ0M(17)/100._JPRB    ! Deciduous Shrubs
-YDVEG%RVZ0H(18)=YDVEG%RVZ0M(18)             ! Mixed Forest/woodland
+YDVEG%RVZ0H(18)=YDVEG%RVZ0M(18)/100._JPRB    ! Mixed Forest/woodland/Broad Savana
 YDVEG%RVZ0H(19)=YDVEG%RVZ0M(19)/100._JPRB    ! Interrupted Forest 
 YDVEG%RVZ0H(20)=YDVEG%RVZ0M(20)/10._JPRB    ! Water and Land Mixtures 
 YDVEG%RVZ0H(0)=YDVEG%RVZ0H(8)        
