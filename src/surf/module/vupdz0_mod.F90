@@ -184,6 +184,9 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 REAL(KIND=JPRB) :: ZLICE(KLON),ZLWAT(KLON)
 REAL(KIND=JPRD) :: ZDUMMY
 REAL(KIND=JPRB) :: ZURBF
+REAL(KIND=JPRB) :: ZZ0HSNOW, ZZ0QSNOW
+REAL(KIND=JPRD) :: zat_sn, zbt_sn,  zct_sn , zdt_sn, zaq_sn, zbq_sn, zcq_sn, zdq_sn, Rstar
+
 
 LOGICAL :: LLCURR,LLINIT
 
@@ -229,6 +232,17 @@ ENDIF
 
 
 ZCON2  =2.0_JPRB/3._JPRB
+
+! Constants for Andreas z0h computation for snow
+zat_sn=-0.0061586_JPRD 
+zbt_sn=-0.12756_JPRD
+zct_sn=-0.66267_JPRD
+zdt_sn=0.25344_JPRD
+zaq_sn=-0.0054869_JPRB
+zbq_sn=-0.12027_JPRB
+zcq_sn=-0.68407_JPRB
+zdq_sn=0.48260_JPRB
+
 
 !     PBL HEIGHT FOR W* - EFFECT
 
@@ -409,8 +423,22 @@ DO JL=KIDIA,KFDIA
   ZMLOW=PCVL(JL)/(1.0_JPRB-PCVH(JL))*RVZ0M(KTVL(JL))+(1.0_JPRB-PCVL(JL)-PCVH(JL))/(1.0_JPRB-PCVH(JL))*RVZ0M(0)
   ZHLOW=PCVL(JL)/(1.0_JPRB-PCVH(JL))*RVZ0H(KTVL(JL))+(1.0_JPRB-PCVL(JL)-PCVH(JL))/(1.0_JPRB-PCVH(JL))*RVZ0H(0)
   PZ0MTI(JL,JTILE)=ZSNWGHT(JL)*RVZ0M(12)+(1.0_JPRB-ZSNWGHT(JL))*ZMLOW
-  PZ0HTI(JL,JTILE)=ZSNWGHT(JL)*RVZ0H(12)+(1.0_JPRB-ZSNWGHT(JL))*ZHLOW
-  PZ0QTI(JL,JTILE)=PZ0HTI(JL,JTILE)
+!*  PZ0HTI(JL,JTILE)=ZSNWGHT(JL)*RVZ0H(12)+(1.0_JPRB-ZSNWGHT(JL))*ZHLOW
+!*  PZ0QTI(JL,JTILE)=PZ0HTI(JL,JTILE)
+
+  ! Use Andreas (2002) formula for z0h for exposed snow, tile 5
+  ! doi: 10.1175/1525-7541(2002)003<0417:PSTOSA>2.0.CO;2
+  ! The actual z0h is a log-average of vegetation and snow, dependending on ZSNWGHT
+  ! Kinematic viscosity of air at 0C: 1.35E-5;
+  Rstar=(REAL(RVZ0M(12)*ZUST(JL,JTILE),KIND=JPRD))/(1.35E-5_JPRD)
+  ZZ0HSNOW=REAL(RVZ0M(12),KIND=JPRD)*exp( zat_sn*log(Rstar)**3._JPRB + zbt_sn*log(Rstar)**2._JPRB + zct_sn*log(Rstar) + zdt_sn )
+
+  ZZ0QSNOW=REAL(RVZ0M(12),KIND=JPRD)*exp( zaq_sn*log(Rstar)**3._JPRB + zbq_sn*log(Rstar)**2._JPRB + zcq_sn*log(Rstar) + zdq_sn )
+
+  PZ0HTI(JL,JTILE)=ZSNWGHT(JL)*ZZ0HSNOW+(1.0_JPRB-ZSNWGHT(JL))*ZHLOW
+  PZ0QTI(JL,JTILE)=ZSNWGHT(JL)*ZZ0QSNOW+(1.0_JPRB-ZSNWGHT(JL))*ZHLOW
+
+
 ENDDO
 
 JTILE = 6
