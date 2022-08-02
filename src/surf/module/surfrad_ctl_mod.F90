@@ -562,6 +562,9 @@ DO JSW=1,KSW
 ! BARE SOIL
     ZADTI8=ZALBD
     ZAPTI8=ZALBP
+ ! SNOW UNDER HIGH-VEG    
+    ZADTI7=ZALBD
+    ZAPTI7=ZALBP   
 ! URBAN
     IF (KTILES .GT. 9) THEN
       ZADTI10=RROOALB*(1.0_JPRB/(1.0_JPRB+RWRR)) + PCANALB(JL)*(RWRR/(1.0_JPRB+RWRR))
@@ -618,21 +621,21 @@ DO JSW=1,KSW
     ENDIF
     ZAPTI5 = ZADTI5 ! Direct albedo = Diffuse albedo
 
-! SNOW UNDER HIGH-VEG
-    IF ( LESN09 ) THEN
-      IHIGH_VEG_TYPE = NINT(PTVH(JL))
-    ELSE
-      ! Note that RALB_SNOW_FOREST(0,:) contains the default
-      ! snow/forest albedos
-      IHIGH_VEG_TYPE = 0
-    ENDIF
+!! SNOW UNDER HIGH-VEG
+!    IF ( LESN09 ) THEN
+!      IHIGH_VEG_TYPE = NINT(PTVH(JL))
+!    ELSE
+!      ! Note that RALB_SNOW_FOREST(0,:) contains the default
+!      ! snow/forest albedos
+!      IHIGH_VEG_TYPE = 0
+!    ENDIF
 
-    IF (JSW <= NUVVIS) THEN
-      ZADTI7=RALB_SNOW_FOREST(IHIGH_VEG_TYPE,1) ! UV/Vis
-    ELSE
-      ZADTI7=RALB_SNOW_FOREST(IHIGH_VEG_TYPE,2) ! Near-IR
-    END IF
-    ZAPTI7 = ZADTI7 ! Direct albedo = Diffuse albedo
+!    IF (JSW <= NUVVIS) THEN
+!      ZADTI7=RALB_SNOW_FOREST(IHIGH_VEG_TYPE,1) ! UV/Vis
+!    ELSE
+!      ZADTI7=RALB_SNOW_FOREST(IHIGH_VEG_TYPE,2) ! Near-IR
+!    END IF
+!    ZAPTI7 = ZADTI7 ! Direct albedo = Diffuse albedo
 
 ! CORRECT FOR URBAN - TILE 7 (URBAN SNOW = HIGVEG SNOW)
     IF (KTILES .GT. 9) THEN
