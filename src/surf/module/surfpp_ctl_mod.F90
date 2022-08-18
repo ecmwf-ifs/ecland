@@ -233,6 +233,11 @@ INTEGER(KIND=JPIM) :: JTILE, JL
 
 REAL(KIND=JPRB) :: ZTSK(KLON),ZAHFSM(KLON),ZEVAPM(KLON),ZUSTAR(KLON)
 REAL(KIND=JPRB) :: ZT2M(KLON,KTILES), ZD2M(KLON,KTILES), ZQ2M(KLON,KTILES)
+
+REAL(KIND=JPRB) :: ZT2M_DL(KLON), ZQ2M_DL(KLON), ZD2M_DL(KLON)
+REAL(KIND=JPRB) :: ZU10M_DUMMY(KLON), ZV10M_DUMMY(KLON), Z10NU_DUMMY(KLON),&
+                 & Z10NV_DUMMY(KLON), ZUST_DUMMY(KLON)
+
 REAL(KIND=JPRB) :: ZRTMST,ZRHO
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
@@ -310,10 +315,21 @@ IF (LT2MTILE)THEN
    ZT2M(KIDIA:KFDIA,1:KTILES)=0._JPRB
    ZD2M(KIDIA:KFDIA,1:KTILES)=0._JPRB
    ZQ2M(KIDIA:KFDIA,1:KTILES)=0._JPRB
-   ! Wind calculations only for last iteration (tile-independent)
+   ! Dummy fields for second call to sppcfl for wind calculation
+   ZT2M_DL(KIDIA:KFDIA)=0._JPRB
+   ZD2M_DL(KIDIA:KFDIA)=0._JPRB
+   ZQ2M_DL(KIDIA:KFDIA)=0._JPRB
+   ! Dummy fields for first call to sppcfl for winds
+   ZU10M_DUMMY(KIDIA:KFDIA)=0._JPRB
+   ZV10M_DUMMY(KIDIA:KFDIA)=0._JPRB
+   Z10NU_DUMMY(KIDIA:KFDIA)=0._JPRB
+   Z10NV_DUMMY(KIDIA:KFDIA)=0._JPRB
+   ZUST_DUMMY(KIDIA:KFDIA)=0._JPRB
+
+   ! Wind calculations made separately after loop on tiles.
+   ! Temperature and humidity are computed per tile and averaged afterwards
    LWIND=.FALSE.
    DO JTILE=1,KTILES
-     IF (JTILE==KTILES) LWIND=.TRUE.
      CALL SPPCFL(KIDIA,KFDIA,KLON,JTILE &
      & , PUMLEV, PVMLEV, PQMLEV, PGEOMLEV, PCPTSPPTI(KIDIA:KFDIA,JTILE), PCPTGZLEV &
      & , PAPHMS, PZ0MW, PZDL    & ! For wind calc
@@ -321,10 +337,23 @@ IF (LT2MTILE)THEN
      & , PZDLTI(KIDIA:KFDIA,JTILE), PQSAPPTI(KIDIA:KFDIA,JTILE) &
      & , PBLEND, PFBLEND, PUCURR, PVCURR  &
      & , YDCST, YDEXC                     &
-     & , PU10M, PV10M, P10NU, P10NV, PUST &
+     ! Dummy fields for LWIND=false
+     & , ZU10M_DUMMY, ZV10M_DUMMY, Z10NU_DUMMY, Z10NV_DUMMY, ZUST_DUMMY &
      & , ZT2M(KIDIA:KFDIA,JTILE), ZD2M(KIDIA:KFDIA,JTILE), ZQ2M(KIDIA:KFDIA,JTILE), PRPLRG &
      & , LWIND)
    ENDDO
+   ! Compute postprocessed wind over dominant low
+   LWIND=.TRUE.
+   CALL SPPCFL(KIDIA,KFDIA,KLON,KLON &
+    & , PUMLEV, PVMLEV, PQMLEV, PGEOMLEV, PCPTSPP, PCPTGZLEV &
+    & , PAPHMS, PZ0MW, PZDL & ! For wind calc
+    & , PZ0MW, PZ0HW, PZ0QW, PZDL, PQSAPP & 
+    & , PBLEND, PFBLEND, PUCURR, PVCURR &
+    & , YDCST, YDEXC &
+    & , PU10M, PV10M, P10NU, P10NV, PUST &
+    ! Dummy fields for LWIND=true
+    & , ZT2M_DL, ZD2M_DL, ZQ2M_DL, PRPLRG &
+    & , LWIND )
 
 ELSE
   LWIND=.TRUE.
