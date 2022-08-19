@@ -292,6 +292,10 @@ IF (LLINIT) THEN
 !       - Preliminatry value for lakes
       ZZ0MTI5(JL,9) = 1.E-4_JPRB
     ENDIF
+    IF (KTILES .GT. 9) THEN
+      ZZ0MTI5(JL,10) = 1.E-4_JPRB
+    ENDIF
+
   ENDDO
 
   DO JTILE=1,KTILES
@@ -442,6 +446,17 @@ IF (LEFLAKE) THEN
     PZ0QTI5(JL,JTILE) = 1.E-4_JPRB
   ENDDO
 ENDIF
+
+IF (KTILES.GT.9) THEN
+  JTILE=10
+!   - Urban
+  DO JL=KIDIA,KFDIA
+    PZ0MTI5(JL,JTILE)=1.E-4_JPRB
+    PZ0HTI5(JL,JTILE)=1.E-4_JPRB
+    PZ0QTI5(JL,JTILE)=1.E-4_JPRB
+  ENDDO
+ENDIF
+
 !*        7.   COMPUTE PRELIMINARY AERODYNAMIC RESISTANCE FOR COMPUTATION
 !*             OF APPARENT SURFACE HUMIDITY IN VDFSURF
 
@@ -561,6 +576,17 @@ ENDDO
 
 !*         5.    SETTING OF ROUGHNESS LENGTHS
 !                ----------------------------
+
+IF (KTILES.GT.9) THEN
+  JTILE = 10
+!   - Urban
+  DO JL=KIDIA,KFDIA
+    PZ0QTI(JL,JTILE) = 0.0_JPRB
+    PZ0HTI(JL,JTILE) = 0.0_JPRB
+    PZ0MTI(JL,JTILE) = 0.0_JPRB
+  ENDDO
+ENDIF
+
 IF (LEFLAKE) THEN
   JTILE = 9
 !   - Lake
@@ -765,6 +791,10 @@ IF (LLINIT) THEN
   ENDDO
 
   DO JL=KIDIA,KFDIA
+    IF (KTILES.GT.9) THEN
+!       - Urban
+      PZ0MTI(JL,10) = 0.0_JPRB
+    ENDIF
     IF (LEFLAKE) THEN
 !       - Preliminatry value for lake
       PZ0MTI(JL,9) = 0.0_JPRB
