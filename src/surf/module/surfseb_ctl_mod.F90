@@ -59,6 +59,7 @@ USE YOS_URB   , ONLY : TURB
 !    I. Sandu              24-02-2014  Lambda skin values by vegetation type instead of tile
 !    E. Dutra              10/10/2014  net longwave tiled 
 !    S. Boussetta          15/04/2018  increase lambda skin for wettile to 20
+!    J. McNorton           24/08/2022  urban tile
 
 !  INTERFACE: 
 

@@ -72,6 +72,7 @@ USE YOS_URB   , ONLY : TURB
 !     Modified    P. Viterbo   24/05/2004   Change surface units
 !     Modified    G. Balsamo   10/01/2006   Include Van Genuchten Hydro.
 !     Modified    G. Balsamo   03/07/2006   Add soil type
+!     Modified    J. McNorton  24/08/2022   urban tile
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -113,7 +114,7 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 !                -------- ----------
 
 IF (LHOOK) CALL DR_HOOK('SRFRCG_MOD:SRFRCG',0,ZHOOK_HANDLE)
-ASSOCIATE(RLMLT=>YDCST%RLMLT, &
+ASSOCIATE(RLMLT=>YDCST%RLMLT, LEURBAN=>YDURB%LEURBAN,&
  & LEVGEN=>YDSOIL%LEVGEN, RDAT=>YDSOIL%RDAT, RGH2O=>YDSOIL%RGH2O, &
  & RRCSICE=>YDSOIL%RRCSICE, RRCSOIL=>YDSOIL%RRCSOIL, RRCSOILM=>YDSOIL%RRCSOILM, &
  & RTF1=>YDSOIL%RTF1, RTF2=>YDSOIL%RTF2, RTF3=>YDSOIL%RTF3, RTF4=>YDSOIL%RTF4, &
@@ -169,7 +170,7 @@ DO JL=KIDIA,KFDIA
     ENDDO
 
 !          URBAN TOP-LAYER
-    IF (KTILES .GT. 9) THEN
+    IF(LEURBAN)THEN
      IF(LEVGEN)THEN
        ZRCSOIL=RRCSOILM(JS)*(1-PCUR(JL))+RURBVHC*PCUR(JL)
      ELSE

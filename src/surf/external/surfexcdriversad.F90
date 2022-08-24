@@ -3,7 +3,7 @@ SUBROUTINE SURFEXCDRIVERSAD  ( YDSURF, &
  & , PTSTEP, PRVDIFTS &
  & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF &
 ! input data, non-tiled - trajectory
- & , KTVL   , KTVH    , PCVL   , PCVH &
+ & , KTVL   , KTVH    , PCVL   , PCVH , PCUR &
  & , PLAIL  , PLAIH   &
  & , PUMLEV5, PVMLEV5 , PTMLEV5, PQMLEV5, PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST   , PTSKM1M5, PCHAR  , PSSRFL5, PTICE5 , PTSNOW5  &
@@ -102,8 +102,9 @@ USE SURFEXCDRIVERSAD_CTL_MOD
 !      PRVDIFTS :    Semi-implicit factor for vertical diffusion discretization
 !      PCVL     :    Low vegetation fraction
 !      PCVH     :    High vegetation fraction
-!      PLAIL     :    Low vegetation LAI
-!      PLAIH     :    High vegetation LAI
+!      PCUR     :    Urban fraction
+!      PLAIL    :    Low vegetation LAI
+!      PLAIH    :    High vegetation LAI
 
 !  Logical:
 !      LDNOPERT :    TRUE when no perturbations is required for surface arrays
@@ -221,6 +222,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSOTY(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PCUR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUMLEV5(:) 
@@ -326,6 +328,10 @@ ENDIF
 
 IF(UBOUND(PCVH,1) < KLON) THEN
   CALL ABORT_SURF('SURFEXCDRIVER: PCVH TOO SHORT!')
+ENDIF
+
+IF(UBOUND(PCUR,1) < KLON) THEN
+  CALL ABORT_SURF('SURFEXCDRIVER: PCUR TOO SHORT!')
 ENDIF
 
 IF(UBOUND(PLAIL,1) < KLON) THEN
@@ -788,14 +794,14 @@ CALL SURFEXCDRIVERSAD_CTL( &
  &   KIDIA    , KFDIA, KLON, KLEVS, KTILES, KSTEP &
  & , PTSTEP   , PRVDIFTS &
  & , LDNOPERT , LDKPERTS, LDSURF2, LDREGSF &
- & , KTVL     , KTVH    , PCVL   , PCVH &
+ & , KTVL     , KTVH    , PCVL   , PCVH, PCUR &
  & , PLAIL    , PLAIH &
  & , PUMLEV5  , PVMLEV5 , PTMLEV5, PQMLEV5 , PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST     , PTSKM1M5, PCHAR  , PSSRFL5 , PTICE5 , PTSNOW5  &
  & , PWLMX5   &
  & , PTSAM1M5 , PWSAM1M5 , KSOTY &
  & , PFRTI    , PALBTI5  &
- & , YSURF%YCST, YSURF%YEXC, YSURF%YVEG, YSURF%YSOIL, YSURF%YFLAKE & 
+ & , YSURF%YCST, YSURF%YEXC, YSURF%YVEG, YSURF%YSOIL, YSURF%YFLAKE, YSURF%YURB & 
  & , PUSTRTI5 , PVSTRTI5, PAHFSTI5 , PEVAPTI5,PTSKTI5 &
  & , PZ0M5    , PZ0H5    &
  & , PSSRFLTI5, PQSTI5   , PDQSTI5 , PCPTSTI5 &

@@ -80,9 +80,10 @@ USE YOMLOG1S , ONLY : LWRLKE
 !        S. Boussetta/G.Balsamo May 2010  Include CTESSEL switch LECTESSEL
 !        G.Balsamo/S. Boussetta June 2011 Include switch LEAGS (for modularity CO2&Evap)
 !        R. Hogan             14-01-2019  Changed LE4ALB to NALBEDOSCHEME
-!        A. Agusti-Panareda 18-11-2020 Include LEAIRCO2COUP to use variable air CO2 in photosynthesis
-!        A. Agusti-Panareda 06-07-2021 Include LEFARQUHAR switch for Farquhar photosynthesis model
-!        A. Agusti-Panareda (Jul 2021):Add LEC4MAP flag for C4 photosynthesis
+!        A. Agusti-Panareda 18-11-2020    Include LEAIRCO2COUP to use variable air CO2 in photosynthesis
+!        A. Agusti-Panareda 06-07-2021    Include LEFARQUHAR switch for Farquhar photosynthesis model
+!        A. Agusti-Panareda (Jul 2021):   Add LEC4MAP flag for C4 photosynthesis
+!        J. McNorton        24-08-2022    Urban tile
 !     ------------------------------------------------------------------
 #endif
 
