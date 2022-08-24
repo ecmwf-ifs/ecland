@@ -1,7 +1,7 @@
 MODULE SUSURB_MOD
 CONTAINS
 !SUBROUTINE SUSURB(LD_LURBAN,LD_LURBUI,YDURB)
-SUBROUTINE SUSURB(YDURB)
+SUBROUTINE SUSURB(LD_LEURBAN,YDURB)
     ! (C) Copyright 2021- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
@@ -32,6 +32,7 @@ SUBROUTINE SUSURB(YDURB)
 
 !     REFERENCE.
 !     Urban scheme based on Macdonald 1998, Harman 2004, Oleson 2008 and Porson 2010
+!     Original    J. McNorton      Aug 2022
 
 !     MODIFICATIONS
 !     -------------
@@ -44,6 +45,7 @@ USE YOS_URB   , ONLY : TURB
 
 IMPLICIT NONE
 
+LOGICAL,        INTENT(IN)      :: LD_LEURBAN
 TYPE(TURB),     INTENT(INOUT)   :: YDURB
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -113,7 +115,7 @@ REAL (KIND = JPRB):: r_venti   ! Resistance vent. internal
 REAL (KIND = JPRB):: r_bulk    ! Resistance vent. wall
 
 IF (LHOOK) CALL DR_HOOK('SUSURB_MOD:SUSURB',0,ZHOOK_HANDLE)
-ASSOCIATE( &
+ASSOCIATE( LEURBAN=>YDURB%LEURBAN, &
  & RBUIZ0M=>YDURB%RBUIZ0M,RWALTHK=>YDURB%RWALTHK,RROOTHK=>YDURB%RROOTHK, &
  & RROATHK=>YDURB%RROATHK,RWALALB=>YDURB%RWALALB,RROOALB=>YDURB%RROOALB, &
  & RROAALB=>YDURB%RROAALB,RWALEMIS=>YDURB%RWALEMIS,RROOEMIS=>YDURB%RROOEMIS, &
@@ -148,7 +150,7 @@ REXPDR  = 0.15_JPRB             ! Exponential decay of recirculation
 
 ! Material properties
 
-RBUIZ0M = 0.005_JPRB            ! Rough. len. for mom. of building materials
+RBUIZ0M = 0.05_JPRB            ! Rough. len. for mom. of building materials
 RWALTHK = 0.15_JPRB             ! Thickness of wall (m) (not currently used)
 RROOTHK = 0.15_JPRB             ! Thickness of roof (m) (not currently used)
 RROATHK = 0.15_JPRB             ! Thickness of road (m) (not currently used)
@@ -167,7 +169,7 @@ RROATC  = 20.0_JPRB             ! Thermal conductivity of road (W m-1 K-1)(with 
 
 ! Mapped variables which are currently set as a single value
 RHGT    = 8.0_JPRB             ! Average building height (m) (estimated. from london see UK https://buildingheights.emu-analytics.net)
-RHWR    = 0.5_JPRB              ! Height-to-roadwidth (aspect) ratio
+RHWR    = 1.0_JPRB              ! Height-to-roadwidth (aspect) ratio
 RWRR    = 0.5_JPRB              ! Road-to-building+road ratio (width)
 
 RSOIEMIS= 0.95_JPRB             ! Emissivity of soil (not currently used)
@@ -187,6 +189,7 @@ RAIRVHC = RAIRRHO*1.005E+03_JPRB ! Heat capactiy of (moist) air (K m-3K-1) - Che
 
 ! Switches
 !LURBUI = LD_LURBUI              ! Building heat ON/OFF (not currently used)
+LEURBAN=LD_LEURBAN
 
 ! MOISTURE VARIABLES
 
@@ -260,28 +263,27 @@ RURBSRES = 0.001_JPRB
 
 !==============================================================================
  
- 
- 
 ! CALCULATE ROUGHNESS LENGTH AND HEAT COEFFICIENT BASED ON HGT, HWR and WRR
 
  ! CANYON
  !
  ! The canyon roughness is dependant on building height, road width and canyon width
  ! The formulation here is mainly based on Harman 2004 and Porson 2010
- !
+ ! Macdonald 1998 - (eq. 23, 26)
 
-
- sc_hwr  = 0.5_JPRB*(RHWR/2.0_JPRB*ATAN(1.0_JPRB))
- d_h     = max(1.0_JPRB-RWRR*(RCDA**(RWRR-1.0_JPRB)),0.0_JPRB)
- disp    = 1.4_JPRB
  width   = RHGT/RHWR
  z0x     = 0.1_JPRB * RBUIZ0M
+! d_h     = 1.0_JPRB-RWRR*RCDA**(-(1.0_JPRB-RWRR))
+! d_h     = max(d_h, 0.0_JPRB)
+! d_h = max([1.0-(1.0-WRR)*RCDA^(WRR),0])
+ d_h     = 1.0_JPRB-(1.0_JPRB-RWRR)*RCDA**(RWRR)
+ disp    = max(d_h*RHGT,0.1_JPRB)
 
-
- RCANZTM = (RCDG*(1.0_JPRB-d_h)*sc_hwr*RWRR/RVKSQ)**(-0.5_JPRB)
- RCANZTM = (1.0_JPRB-d_h)*EXP(-RCANZTM)
+ RCANZTM = -((0.5_JPRB*0.55_JPRB*RCDG*(1.0_JPRB-d_h)*2.0_JPRB*RHWR*RWRR)/RVKSQ)**(-0.5_JPRB)
+ RCANZTM = (1.0_JPRB-d_h)*EXP(RCANZTM)
  RCANZTM = RCANZTM*RHGT
  RCANZTM = max(RCANZTM, RBUIZ0M)
+
 
 ! ----- Bulk Resistance Calculations -----
  pi      = 4.0_JPRB*ATAN(1.0_JPRB)
@@ -385,7 +387,6 @@ RURBSRES = 0.001_JPRB
   fdr = fdr*uct/(RCDA*(RHGT - l_dow))
   fdw = (l_dow*fdw+(RHGT-l_dow)*fdr)/RHGT ! Both recirc. and vent.
  
-
  !!!! Flow regime = Skimming
  
  ELSE IF (RHWR >= 2.0_JPRB/3.0_JPRB) THEN
@@ -446,7 +447,7 @@ fdw = SQRT(fdw**2.0_JPRB + can_wall**2.0_JPRB)
  r_recirc = ((r_3*r_4*swi)/((r_3*r_4)+(r_3*swi)+(r_4*swi))) + r_5
  r_venti  = ((r_6*r_8)/(r_6+r_8)) + r_7
  r_bulk   = 1.0_JPRB/((1.0_JPRB/r_recirc) + (1.0_JPRB/r_venti)) ! Porson eq A11
- 
+
  RCANRES = r_bulk
  RCANZTH = RHGT*(RMODZ+RCANZTM)/(RHGT*EXP( RVKSQ*r_bulk/LOG(RMODW/RCANZTM + 1 ))) ! Porson eq 18
 ! RCANZTH = MAX( RCANZTH, 1.0E-10_JPRB ) ! Porson limit
@@ -457,7 +458,6 @@ fdw = SQRT(fdw**2.0_JPRB + can_wall**2.0_JPRB)
  RCANHC  = 1.0_JPRB/( (1.0_JPRB/RVKSQ)*LOG((RMODW+RCANZTM)/RCANZTM)*LOG((RMODW+RCANZTM)/RCANZTH)  ) ! Porson eq 19
  
  ! ROOF
-
 
  RROOZTM = RCANZTM
 
@@ -471,11 +471,11 @@ fdw = SQRT(fdw**2.0_JPRB + can_wall**2.0_JPRB)
 
 ! r_inert = r_venti for computational efficiency
  r_venti = (1.0_JPRB-swi)*LOG(RMODW/RROOZTM + 1.0_JPRB)/RVKSQ ! Porson eq A10
-
  r_bulk = r_recirc + r_venti ! Porson eq A12
 
  RROORES = r_bulk
  RROOZTH = RHGT*(RMODZ+RROOZTM)/( RHGT*EXP(RVKSQ*r_bulk/LOG(RMODW/RROOZTM+1.0_JPRB)) ) ! Porson eq 18
+
 
  !RROOZTH = MAX(RROOZTH, 1.0E-10_JPRB) ! Porson limit
  IF ( RHWR < (1.0_JPRB/3.0_JPRB) ) THEN   ! Porson limit
@@ -487,23 +487,17 @@ RROOHC  = 1.0_JPRB/( (1.0_JPRB/RVKSQ)*LOG((RMODW+RROOZTM)/RCANZTM)*LOG((RMODW+RR
 !URBAN PROPERTIES
 RURBRES = (1.0_JPRB/(1.0_JPRB+RWRR))*RROORES + (RWRR/(1.0_JPRB+RWRR))*RCANRES
 RURBZTM = (1.0_JPRB/(1.0_JPRB+RWRR))*RROOZTM + (RWRR/(1.0_JPRB+RWRR))*RCANZTM
-!RURBZTM = 1.9_JPRB
 RURBZTH = (1.0_JPRB/(1.0_JPRB+RWRR))*RROOZTH + (RWRR/(1.0_JPRB+RWRR))*RCANZTH
-!RURBZTH = 1.0E-2_JPRB
 RURBHC  = (1.0_JPRB/(1.0_JPRB+RWRR))*RROOHC  + (RWRR/(1.0_JPRB+RWRR))*RCANHC
 
+!RURBZTH=1.0E-6_JPRB
+
 RCANTC  = 2.0_JPRB*RHWR*RWALTC    + RROATC
-!RCANTC  = (RHWR/(RHWR+1.0_JPRB))*RWALTC + (1.0_JPRB/(RHWR+1.0_JPRB))*RROATC
-
 RCANVHC = 2.0_JPRB*RHWR*RWALVHC   + RROAVHC
-!RCANVHC  = (RHWR/(RHWR+1.0_JPRB))*RWALVHC + (1.0_JPRB/(RHWR+1.0_JPRB))*RROAVHC
 
-!RURBTC  = (1.0_JPRB-RWRR)*RROOTC  + RWRR*RCANTC
 RURBTC  = (RWRR/(1.0_JPRB+RWRR))*RCANTC + (1.0_JPRB/(1.0_JPRB+RWRR))*RROOTC
 RURBTC1 = RURBTC*0.00001_JPRB
 
-
-!RURBVHC = (1-RWRR)*RROOVHC + RWRR*RCANVHC
 RURBVHC  = (RWRR/(1.0_JPRB+RWRR))*RCANVHC + (1.0_JPRB/(1.0_JPRB+RWRR))*RROOVHC
 
 !==============================================================================

@@ -307,6 +307,7 @@ USE ABORT_SURF_MOD
 !                                   SEA STATE EFFECTS
 !     E. Dutra      10/10/2014      net longwave tiled 
 !     G. Balsamo    05-02-2015      soil and lake tendencies updates for fractional ice
+!     J. McNorton   24/08/2022      urban tile
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -518,7 +519,7 @@ REAL(KIND=JPRB) :: ZTSFCIN(KLON),ZTSFLIN(KLON),ZROFS(KLON)
 IF (LHOOK) CALL DR_HOOK('SURFTSTP_CTL_MOD:SURFTSTP_CTL',0,ZHOOK_HANDLE)
 ASSOCIATE(RTT=>YDCST%RTT, &
  & LELWTL=>YDEXC%LELWTL, &
- & LEFLAKE=>YDFLAKE%LEFLAKE, RH_ICE_MIN_FLK=>YDFLAKE%RH_ICE_MIN_FLK, &
+ & LEFLAKE=>YDFLAKE%LEFLAKE, LEURBAN=>YDURB%LEURBAN, RH_ICE_MIN_FLK=>YDFLAKE%RH_ICE_MIN_FLK, &
  & LOCMLTKE=>YDMLM%LOCMLTKE, &
  & LEOCML=>YDOCEAN_ML%LEOCML, &
  & LESN09=>YDSOIL%LESN09,LESNML=>YDSOIL%LESNML, LEVGEN=>YDSOIL%LEVGEN, RALFMINPSN=>YDSOIL%RALFMINPSN, &
@@ -612,7 +613,7 @@ ELSE
   & ZSLRFLTI, PSSRFLTI,PFRTI  ,PAHFSTI,PEVAPTI,            &
   & ZSSFC  ,ZSSFL   ,PEVAPSNW,                           &
   & ZTSFC  ,ZTSFL   ,PUSRF  ,PVSRF   ,PTSRF,             &
-  & YDCST  ,YDVEG   ,YDSOIL ,YDFLAKE, YDEXC,             &
+  & YDCST  ,YDVEG   ,YDSOIL ,YDFLAKE, YDURB, YDEXC,             &
   & ZSN(:,1)    ,ZTSN(:,1)    ,ZASN   ,ZRSN(:,1)   ,ZGSN   ,ZMSN,       &
   & ZEMSSN ,ZTSFCIN,ZTSFLIN,                             &
   & PDHTSS , PDHSSS )
@@ -629,7 +630,7 @@ ELSE
   & PSNM1M(:,1) ,PTSNM1M(:,1) ,PASNM1M,PRSNM1M(:,1),PTSAM1M,PHLICEM1M,       &
   & PSLRFL ,PSSRFLTI,PFRTI  ,PAHFSTI,PEVAPTI,                 &
   & ZSSFC  ,ZSSFL   ,PEVAPSNW ,                               &
-  & YDCST  ,YDVEG   ,YDSOIL ,YDFLAKE,                         &
+  & YDCST  ,YDVEG   ,YDSOIL ,YDFLAKE, YDURB,                  &
   & ZSN(:,1)    ,ZTSN(:,1)    ,ZASN   ,ZRSN(:,1)   ,ZGSN   ,ZMSN   ,         &
   & ZEMSSN ,                                                  &  
   & PDHTSS , PDHSSS )
@@ -691,7 +692,7 @@ ENDDO
   ! CHANGE THROUGHFALL AT THE SURFACE (SRFWEXC_VG ACCOUNTS FOR ROF FROM SUB-URB LAYER)
   !   ROUGH ESTIMATE RUNOFF OF 0.3 - Drainage estimate will need to be revised or updated based on mapping
   ! Likely to be an underestimate - Paul & Meyer 2001 suggest 55% runoff on fully urban surfaces 
-IF (KTILES .GT. 9) THEN
+IF (LEURBAN) THEN
  DO JL=KIDIA,KFDIA
   ZTSFC(JL)=ZTSFC(JL)*(1.0_JPRB-(0.3_JPRB*PFRTI(JL,10)))
   ZTSFL(JL)=ZTSFL(JL)*(1.0_JPRB-(0.3_JPRB*PFRTI(JL,10)))
