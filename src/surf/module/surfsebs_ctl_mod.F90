@@ -6,7 +6,7 @@ SUBROUTINE SURFSEBS_CTL(KIDIA,KFDIA,KLON,KTILES,KTVL,KTVH,&
  & PSNS,PRSN,PHLICE, & 
  & PSLRFL,PTSKRAD,PEMIS,PASL,PBSL,PAQL,PBQL,&
  & PTHKICE,PSNTICE,&
- & YDCST,YDEXC,YDVEG,YDFLAKE,YDSOIL,&
+ & YDCST,YDEXC,YDVEG,YDFLAKE,YDURB,YDSOIL,&
  !out
  & PJS,PJQ,PSSK,PTSK,PSSH,PSLH,PSTR,PG0,&
  & PSL,PQL, &
@@ -20,6 +20,7 @@ USE YOS_EXC   , ONLY : TEXC
 USE YOS_VEG   , ONLY : TVEG
 USE YOS_FLAKE , ONLY : TFLAKE
 USE YOS_SOIL  , ONLY : TSOIL
+USE YOS_URB   , ONLY : TURB
 ! (C) Copyright 2003- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
@@ -57,6 +58,7 @@ USE YOS_SOIL  , ONLY : TSOIL
 !    G. Balsamo/A. Beljaars 09-08-2013 snow scheme stability fix
 !    I. Sandu              24-02-2014  Lambda skin values by vegetation type instead of tile
 !    E. Dutra              10/10/2014  net longwave tiled 
+!    J. McNorton           24/08/2022  urban tile
 
 !  INTERFACE: 
 
@@ -160,6 +162,7 @@ TYPE(TCST),         INTENT(IN)  :: YDCST
 TYPE(TEXC),         INTENT(IN)  :: YDEXC
 TYPE(TVEG),         INTENT(IN)  :: YDVEG
 TYPE(TFLAKE),       INTENT(IN)  :: YDFLAKE
+TYPE(TURB),         INTENT(IN)  :: YDURB
 TYPE(TSOIL),        INTENT(IN)  :: YDSOIL
 
 REAL(KIND=JPRB),    INTENT(OUT) :: PJS(:,:)
@@ -207,7 +210,7 @@ ASSOCIATE(RCPD=>YDCST%RCPD, RLSTT=>YDCST%RLSTT, RLVTT=>YDCST%RLVTT, &
  & LELWDD=>YDEXC%LELWDD, LELWTL=>YDEXC%LELWTL, &
  & RH_ICE_MIN_FLK=>YDFLAKE%RH_ICE_MIN_FLK, &
  & RHOCI=>YDSOIL%RHOCI, RHOICE=>YDSOIL%RHOICE, RQSNCR=>YDSOIL%RQSNCR, &
- & RVLAMSK=>YDVEG%RVLAMSK, RVLAMSKS=>YDVEG%RVLAMSKS, RVTRSR=>YDVEG%RVTRSR)
+ & RVLAMSK=>YDVEG%RVLAMSK, RVLAMSKS=>YDVEG%RVLAMSKS, RVTRSR=>YDVEG%RVTRSR,RURBTC=>YDURB%RURBTC)
 ZDELTA=RVTMP2              ! moisture coeff. in cp  
 ZLARGE=1.E10_JPRB          ! large number to impose Tsk=SST
 ZLARGESN=50._JPRB          ! large number to constrain Tsk variations in case
@@ -358,7 +361,7 @@ DO JT=1,KTILES
       ENDIF
     ENDDO
     ZFRSR=1.0_JPRB-RVTRSR(3)
-  CASE(8,10)
+  CASE(8)
     DO JL=KIDIA,KFDIA
       IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
         ZLAMSK(JL,JT)=RVLAMSKS(8)
@@ -369,6 +372,10 @@ DO JT=1,KTILES
    CASE(9)
     DO JL=KIDIA,KFDIA
       ZLAMSK(JL,JT)=ZLARGE
+    ENDDO
+   CASE(10)
+    DO JL=KIDIA,KFDIA
+      ZLAMSK(JL,JT)=RURBTC
     ENDDO
   END SELECT
 

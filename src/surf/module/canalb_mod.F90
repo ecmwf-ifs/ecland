@@ -28,6 +28,7 @@ SUBROUTINE CANALB(KIDIA,KFDIA,YDURB,PMU0,PCANALB)
 !     REFERENCE.
 !     Albedo scheme based Masson 2000 shadowing, Harman 2004 matrix exchanges 
 !     and Porson 2010 formulation
+!     Original    J. McNorton      Aug 2022
 
 !     MODIFICATIONS
 !     -------------

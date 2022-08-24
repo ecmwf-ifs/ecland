@@ -13,7 +13,7 @@ SUBROUTINE SURFTSTPSAD_CTL(KIDIA , KFDIA , KLON  , KLEVS , KLEVSN,&
  & PRSFC5  , PRSFL5  ,&
  & PSLRFL5 , PSSFC5  , PSSFL5   ,&
  & PCVL    , PCVH    , PWLMX5   , PEVAPSNW5, &
- & YDCST   , YDVEG   , YDSOIL   , YDFLAKE, &
+ & YDCST   , YDVEG   , YDSOIL   , YDFLAKE, YDURB,&
 !-TENDENCIES OUTPUT
  & PTSNE15 , PTSAE15 , PTIAE15  ,&
 !-perturbations
@@ -36,6 +36,7 @@ USE YOS_CST   ,ONLY : TCST
 USE YOS_VEG   ,ONLY : TVEG
 USE YOS_SOIL  ,ONLY : TSOIL
 USE YOS_FLAKE ,ONLY : TFLAKE
+USE YOS_URB   ,ONLY : TURB
 
 USE SRFSN_SSRABSS_MOD
 USE SRFSN_SSRABSSAD_MOD
@@ -170,6 +171,7 @@ USE SRFRCGSAD_MOD
 
 !     Modifications
 !     -------------
+!     J. McNorton           24/08/2022  urban tile
 
 !     ------------------------------------------------------------------
 #endif
@@ -219,6 +221,7 @@ TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
 TYPE(TSOIL)       ,INTENT(IN)    :: YDSOIL
 TYPE(TFLAKE)      ,INTENT(IN)    :: YDFLAKE
+TYPE(TURB)        ,INTENT(IN)    :: YDURB
 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PTSNE15(:,:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PTSAE15(:,:)
@@ -354,7 +357,7 @@ ELSE
    & PSLRFL5 ,PSSRFLTI5 ,PFRTI     ,PAHFSTI5 ,PEVAPTI5,  &
    & ZSSFC5  ,ZSSFL5    ,PEVAPSNW5 ,&
    & ZTSFC5  ,ZTSFL5    ,&
-   & YDCST   ,YDVEG     ,YDSOIL    ,YDFLAKE  ,&
+   & YDCST   ,YDVEG     ,YDSOIL    ,YDFLAKE  ,YDURB,&
    & ZTSN5(KIDIA:KFDIA,1)   ,ZGSN5 )
 ENDIF
 !     ------------------------------------------------------------------
@@ -377,7 +380,7 @@ CALL SRFTS(KIDIA , KFDIA , KLON , KLEVS , &
  & PFRTI   ,PAHFSTI5  ,PEVAPTI5 ,&
  & PSLRFL5 ,PSSRFLTI5 ,ZGSN5 ,&
  & ZCTSA5  ,ZTSA5     ,LDLAND,&
- & YDCST   ,YDSOIL    ,YDFLAKE)  
+ & YDCST   ,YDSOIL    ,YDFLAKE, YDURB)  
 
 ! sea-ice
 IF (LDSI) THEN
@@ -497,7 +500,7 @@ CALL SRFTSAD(KIDIA    ,KFDIA    ,KLON   ,KLEVS  , &
  & PFRTI   ,PAHFSTI5  ,PEVAPTI5 ,&
  & PSLRFL5 ,PSSRFLTI5 ,ZGSN5    ,&
  & ZCTSA5  ,ZTSA5     ,LDLAND   ,&
- & YDCST   , YDSOIL   ,YDFLAKE  ,&  
+ & YDCST   , YDSOIL   ,YDFLAKE  , YDURB ,&  
  & PTSAM1M ,PWSAM1M   ,&
  & PAHFSTI ,PEVAPTI   ,&
  & PSLRFL  ,PSSRFLTI  ,ZGSN     , &
@@ -563,7 +566,7 @@ ELSE ! Single-layer
    & PSLRFL5 ,PSSRFLTI5,PFRTI    ,PAHFSTI5 ,PEVAPTI5,&
    & ZSSFC5  ,ZSSFL5   ,PEVAPSNW5,&
    & ZTSFC5  ,ZTSFL5   ,&
-   & YDCST   ,YDVEG    ,YDSOIL   ,YDFLAKE  ,&
+   & YDCST   ,YDVEG    ,YDSOIL   ,YDFLAKE  ,YDURB,&
    & ZTSN5(KIDIA:KFDIA,1)   ,ZGSN5    ,&
    & PSNM1M(KIDIA:KFDIA,1)  ,PTSNM1M(KIDIA:KFDIA,1)  ,PTSAM1M ,&
    & PSLRFL  ,PSSRFLTI ,PAHFSTI ,PEVAPTI,&

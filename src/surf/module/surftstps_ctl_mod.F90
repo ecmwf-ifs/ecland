@@ -12,7 +12,7 @@ SUBROUTINE SURFTSTPS_CTL(KIDIA , KFDIA , KLON  , KLEVS , KLEVSN, &
  & PRSFC   ,PRSFL,&
  & PSLRFL  ,PSSFC  ,PSSFL,&
  & PCVL    ,PCVH   ,PWLMX   ,PEVAPSNW,&
- & YDCST   ,YDVEG  ,YDSOIL  ,YDFLAKE,&
+ & YDCST   ,YDVEG  ,YDSOIL  ,YDFLAKE,YDURB,&
 !-TENDENCIES OUTPUT
  & PTSNE1 , PTSAE1 , PTIAE1)
 
@@ -24,6 +24,7 @@ USE YOS_CST   ,ONLY : TCST
 USE YOS_VEG   ,ONLY : TVEG
 USE YOS_SOIL  ,ONLY : TSOIL
 USE YOS_FLAKE ,ONLY : TFLAKE
+USE YOS_URB   ,ONLY : TURB
 
 USE SRFSN_LWIMPS_MOD
 USE SRFSN_LWIMPMLS_MOD
@@ -148,6 +149,7 @@ USE SRFRCGS_MOD
 !     M. Janiskova              E.C.M.W.F.     27-07-2011  
 
 !     Modifications
+!     J. McNorton           24/08/2022  urban tile
 !     -------------
 
 !     ------------------------------------------------------------------
@@ -196,6 +198,7 @@ TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
 TYPE(TSOIL)       ,INTENT(IN)    :: YDSOIL
 TYPE(TFLAKE)      ,INTENT(IN)    :: YDFLAKE
+TYPE(TURB)        ,INTENT(IN)    :: YDURB
 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PTSNE1(:,:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PTSAE1(:,:)
@@ -332,7 +335,7 @@ ELSE
    & PSLRFL ,PSSRFLTI,PFRTI  ,PAHFSTI,PEVAPTI,      &
    & ZSSFC  ,ZSSFL   ,PEVAPSNW,                     &
    & ZTSFC  ,ZTSFL   ,                              &
-   & YDCST  ,YDVEG   ,YDSOIL ,YDFLAKE ,             &
+   & YDCST  ,YDVEG   ,YDSOIL ,YDFLAKE , YDURB,      &
    & ZTSN(KIDIA:KFDIA,1)   ,ZGSN )
   
 ENDIF
@@ -356,7 +359,7 @@ CALL SRFTS(KIDIA  , KFDIA  , KLON   , KLEVS  , &
  & PFRTI  , PAHFSTI,PEVAPTI ,&
  & PSLRFL ,PSSRFLTI, ZGSN   ,&
  & ZCTSA  , ZTSA   , LDLAND ,&
- & YDCST  , YDSOIL , YDFLAKE)  
+ & YDCST  , YDSOIL , YDFLAKE, YDURB)  
 
 ! sea-ice
 IF (LDSI) THEN

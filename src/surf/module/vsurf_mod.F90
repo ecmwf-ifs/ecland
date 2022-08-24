@@ -63,7 +63,7 @@ USE COTWORESTRESS_MOD
 !     A. Agusti-Panareda May 2021  Pass soil temperature to photosynthesis 
 !     A. Agusti-Panareda June 2021 Pass photosynthetic pathway for low vegetation (c3/c4)
 !     S. Boussetta     21/06/2022   Added Ronda (Ronda et al. 2002, J. App. Met.) Soil moisture stress function
-
+!     J. McNorton      24/08/2022  urban tile
 !     PURPOSE
 !     -------
 
@@ -242,7 +242,7 @@ ASSOCIATE(RCPD=>YDCST%RCPD, RETV=>YDCST%RETV, RLSTT=>YDCST%RLSTT, &
  & LEAGS=>YDVEG%LEAGS, LECTESSEL=>YDVEG%LECTESSEL, RCEPSW=>YDVEG%RCEPSW, &
  & LEFARQUHAR=>YDVEG%LEFARQUHAR, LEAIRCO2COUP=>YDVEG%LEAIRCO2COUP, &
  & RVHSTR=>YDVEG%RVHSTR, RVLAI=>YDVEG%RVLAI, RVROOTSA=>YDVEG%RVROOTSA, &
- & RVRSMIN=>YDVEG%RVRSMIN, RURBRES=>YDURB%RURBRES)
+ & RVRSMIN=>YDVEG%RVRSMIN, LEURBAN=>YDURB%LEURBAN, RURBRES=>YDURB%RURBRES)
 
 
 ! This is needed as unitialized values end up being passed around otherwise
@@ -340,7 +340,7 @@ ENDDO
 
 !           bare ground fraction
     ZBARE=PFRTI(JL,8)
-    IF (KTILES .GT. 9) THEN
+    IF (LEURBAN) THEN
      ZBARE=PFRTI(JL,8)+PFRTI(JL,9)
     ENDIF
 !           soil moisture stress function : F2
@@ -525,7 +525,7 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
   DO JL=KIDIA,KFDIA
 !           bare ground fraction
     ZBARE=PFRTI(JL,8)
-    IF (KTILES .GT. 9) THEN
+    IF (LEURBAN) THEN
      ZBARE=PFRTI(JL,8)+PFRTI(JL,9)
     ENDIF
 !           soil moisture stress function : F2
@@ -680,7 +680,7 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
     DO JL=KIDIA,KFDIA 
 !           bare ground fraction
       ZBARE=PFRTI(JL,8)
-      IF ( KTILES .GT. 9 ) THEN
+      IF (LEURBAN) THEN
        ZBARE=PFRTI(JL,8)+PFRTI(JL,9)
       ENDIF
       IF (LEVGEN) THEN
