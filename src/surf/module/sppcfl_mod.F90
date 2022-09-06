@@ -147,7 +147,7 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 ! New t2m pp in stable conditions
 REAL(KIND=JPRD)   :: ZFRAC_MOISTGRAD, ZFRAC_TEMPGRAD, ZLIMFUNC
-REAL(KIND=JPRB)   :: ZSCALE = 0.3_JPRB, ZLIMVAL = 0.75_JPRB
+REAL(KIND=JPRB)   :: ZSCALE = 0.5_JPRB, ZLIMVAL = 0.6_JPRB
 REAL(KIND=JPRD)   :: ZPI
 !
 !CGL       ZLIMVAL determines limit behavior for very stable
