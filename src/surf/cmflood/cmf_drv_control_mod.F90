@@ -20,6 +20,7 @@ MODULE CMF_DRV_CONTROL_MOD
 !** shared variables in module
 USE PARKIND1,                ONLY: JPIM, JPRB, JPRM
 USE YOS_CMF_INPUT,           ONLY: LOGNAM
+USE YOS_CMF_MAP,             ONLY: REGIONALL, REGIONTHIS
 IMPLICIT NONE
 !** local variables
 SAVE
@@ -35,21 +36,31 @@ CONTAINS
 SUBROUTINE CMF_DRV_INPUT
 ! Read setting from namelist ("input_flood.nam" as default)
 ! -- Called from CMF_DRV_INIT
-USE YOS_CMF_INPUT,           ONLY: LLOGOUT, LOGNAM, CLOGOUT, CSETFILE, LSEALEV, LOUTPUT
+USE YOS_CMF_INPUT,           ONLY: LLOGOUT, LOGNAM, CLOGOUT, CSETFILE, LSEALEV, LDAMOUT, LLEVEE, LOUTPUT
 USE CMF_CTRL_NMLIST_MOD,     ONLY: CMF_CONFIG_NMLIST, CMF_CONFIG_CHECK
 USE CMF_CTRL_TIME_MOD,       ONLY: CMF_TIME_NMLIST
 USE CMF_CTRL_FORCING_MOD,    ONLY: CMF_FORCING_NMLIST
 USE CMF_CTRL_BOUNDARY_MOD,   ONLY: CMF_BOUNDARY_NMLIST
 USE CMF_CTRL_RESTART_MOD,    ONLY: CMF_RESTART_NMLIST
+USE CMF_CTRL_DAMOUT_MOD,     ONLY: CMF_DAMOUT_NMLIST
+USE CMF_CTRL_LEVEE_MOD,      ONLY: CMF_LEVEE_NMLIST
 USE CMF_CTRL_OUTPUT_MOD,     ONLY: CMF_OUTPUT_NMLIST
 USE CMF_CTRL_MAPS_MOD,       ONLY: CMF_MAPS_NMLIST
 USE CMF_UTILS_MOD,           ONLY: INQUIRE_FID
 IMPLICIT NONE
+!* local
+CHARACTER(LEN=8)              :: CREG                 !! 
 !================================================
 
 !*** 0a. Set log file & namelist
 ! Preset in YOS_INPUT:  LLOGOUT=.TRUE.   CLOGOUT='./log_CaMa.txt'
 ! It can be modified in MAIN program before DRV_INPUT
+
+IF (REGIONALL>=2 )then 
+  WRITE(CREG,'(I0)') REGIONTHIS                                    !! Distributed Log Output for MPI run
+  CLOGOUT=TRIM(CLOGOUT)//'-'//TRIM(CREG)                           !! Change suffix of output file for each calculation node
+ENDIF
+
 IF( LLOGOUT )THEN
   LOGNAM=INQUIRE_FID()
   OPEN(LOGNAM,FILE=CLOGOUT,FORM='FORMATTED')  
@@ -83,6 +94,14 @@ ENDIF
 
 CALL CMF_RESTART_NMLIST
 
+IF( LDAMOUT )THEN
+  CALL CMF_DAMOUT_NMLIST
+ENDIF
+
+IF( LLEVEE )THEN
+  CALL CMF_LEVEE_NMLIST
+ENDIF
+
 IF( LOUTPUT )THEN
   CALL CMF_OUTPUT_NMLIST
 ENDIF
@@ -107,15 +126,19 @@ END SUBROUTINE CMF_DRV_INPUT
 SUBROUTINE CMF_DRV_INIT
 ! Initialize CaMa-Flood
 ! -- Called from CMF_DRV_INIT
-USE YOS_CMF_INPUT,           ONLY: LRESTART, LSTOONLY, LOUTPUT, LSEALEV
+USE YOS_CMF_INPUT,           ONLY: LRESTART, LSTOONLY, LOUTPUT, LSEALEV, LDAMOUT, LLEVEE, LOUTINI
+! init routines
 USE CMF_CTRL_TIME_MOD,       ONLY: CMF_TIME_INIT
 USE CMF_CTRL_MAPS_MOD,       ONLY: CMF_RIVMAP_INIT,  CMF_TOPO_INIT
 USE CMF_CTRL_VARS_MOD,       ONLY: CMF_PROG_INIT,    CMF_DIAG_INIT
 USE CMF_CTRL_FORCING_MOD,    ONLY: CMF_FORCING_INIT
 USE CMF_CTRL_BOUNDARY_MOD,   ONLY: CMF_BOUNDARY_INIT
-USE CMF_CTRL_OUTPUT_MOD,     ONLY: CMF_OUTPUT_INIT
+USE CMF_CTRL_OUTPUT_MOD,     ONLY: CMF_OUTPUT_INIT,  CMF_OUTPUT_WRITE
 USE CMF_CTRL_RESTART_MOD,    ONLY: CMF_RESTART_INIT
-USE CMF_CALC_FLDSTG_MOD,     ONLY: CMF_CALC_FLDSTG
+USE CMF_CTRL_DAMOUT_MOD,     ONLY: CMF_DAMOUT_INIT
+USE CMF_CTRL_LEVEE_MOD,      ONLY: CMF_LEVEE_INIT
+! import
+USE CMF_CTRL_PHYSICS_MOD,    ONLY: CMF_PHYSICS_FLDSTG
 USE CMF_OPT_OUTFLW_MOD,      ONLY: CMF_CALC_OUTPRE
 USE CMF_UTILS_MOD,           ONLY: INQUIRE_FID
 !$ USE OMP_LIB    
@@ -144,6 +167,11 @@ CALL CMF_RIVMAP_INIT
 !*** 2b. Set topography 
 CALL CMF_TOPO_INIT
 
+!*** 2c. Optional levee scheme initialization
+IF( LLEVEE )THEN
+  CALL CMF_LEVEE_INIT
+ENDIF
+
 !================================================
 WRITE(LOGNAM,*) "CMF::DRV_INIT: (3) Set output & forcing modules"
 
@@ -168,27 +196,46 @@ CALL CMF_PROG_INIT
 !*** 4b. Initialize (allocate) diagnostic arrays
 CALL CMF_DIAG_INIT
 
+!v4.03 CALC_FLDSTG for zero storage restart
+CALL CMF_PHYSICS_FLDSTG
+
+!*** 4c. Restart file
 IF( LRESTART )THEN
   CALL CMF_RESTART_INIT
 ENDIF
+
+!*** 4d. Optional reservoir initialization
+IF( LDAMOUT )THEN
+  CALL CMF_DAMOUT_INIT
+ENDIF
+
 !================================================
 WRITE(LOGNAM,*) "CMF::DRV_INIT: (5) set flood stage at initial condition"
 
-!*** 5a. Set flood stage
-CALL CMF_CALC_FLDSTG
+!** v4.03 CALC_FLDSTG moved to the top of CTRL_PHYSICS for strict restart configulation (Hatono & Yamazaki)
 
-!*** 5b. reconstruct previous t-step flow 
+!*** 5 reconstruct previous t-step flow (if needed)
 IF( LRESTART .AND. LSTOONLY )THEN
-  CALL CMF_CALC_OUTPRE
+  !** v4.03 CALC_FLDSTG for storagy only restart (v4.03)
+  CALL CMF_PHYSICS_FLDSTG
 ENDIF
+
+!*** save initial storage if LOUTINI specified
+IF ( LOUTINI .AND. LOUTPUT ) THEN
+  CALL CMF_OUTPUT_WRITE
+ENDIF
+
 !================================================
 
 !*** get initialization end time time
 CALL CPU_TIME(ZTT1)
 !$ ZTT1=OMP_GET_WTIME()
 
-WRITE(LOGNAM,*) "CMF::DRV_INIT: initialization finished in:",ZTT1-ZTT0,' Seconds'
+WRITE(LOGNAM,*) "CMF::DRV_INIT: initialization finished:"
+WRITE(LOGNAM,*) "Elapsed cpu time (Init)", ZTT1-ZTT0,"Seconds"
 WRITE(LOGNAM,*) "CMF::DRV_INIT: end"
+WRITE(LOGNAM,*) "***********************************"
+
 
 END SUBROUTINE CMF_DRV_INIT
 !####################################################################
@@ -228,5 +275,6 @@ CLOSE(LOGNAM)
 
 END SUBROUTINE CMF_DRV_END
 !####################################################################
+
 
 END MODULE CMF_DRV_CONTROL_MOD

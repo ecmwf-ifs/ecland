@@ -15,7 +15,9 @@ list(APPEND cmflood_src
     cmf_calc_pthout_mod.F90
     cmf_calc_stonxt_mod.F90
     cmf_ctrl_boundary_mod.F90
+    cmf_ctrl_damout_mod.F90
     cmf_ctrl_forcing_mod.F90
+    cmf_ctrl_levee_mod.F90
     cmf_ctrl_maps_mod.F90
     cmf_ctrl_nmlist_mod.F90
     cmf_ctrl_output_mod.F90
