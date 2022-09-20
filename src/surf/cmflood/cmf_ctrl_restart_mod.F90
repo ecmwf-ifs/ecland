@@ -1,4 +1,4 @@
-MODULE CMF_CTRL_RESTART_MOD
+MODULE CMF_CTRL_RESTART_MOD     !!!tentative version 7/21
 !==========================================================
 !* PURPOSE: Control CaMa-Flood restart
 !
@@ -18,9 +18,9 @@ MODULE CMF_CTRL_RESTART_MOD
 ! See the License for the specific language governing permissions and limitations under the License.
 !==========================================================
 ! shared variables in module
-USE PARKIND1,                ONLY: JPIM, JPRB, JPRD, JPRM
-USE YOS_CMF_INPUT,           ONLY: LOGNAM
-USE YOS_CMF_INPUT,           ONLY: CSUFBIN, CSUFPTH, CSUFCDF
+USE PARKIND1,                ONLY: JPIM, JPRB, JPRM, JPRD
+USE YOS_CMF_INPUT,           ONLY: LOGNAM,  LSTOONLY, LDAMOUT, LLEVEE, LPTHOUT, LGDWDLY
+USE YOS_CMF_INPUT,           ONLY: CSUFBIN, CSUFPTH,  CSUFCDF
 IMPLICIT NONE
 !============================
 SAVE
@@ -30,12 +30,14 @@ CHARACTER(LEN=256)              :: CRESTSTO               ! input restart file n
 CHARACTER(LEN=256)              :: CRESTDIR               ! output restart file directory
 CHARACTER(LEN=256)              :: CVNREST                ! output restart prefix
 LOGICAL                         :: LRESTCDF               ! true: netCDF restart file
+LOGICAL                         :: LRESTDBL               ! true: binary restart in double precision
 INTEGER(KIND=JPIM)              :: IFRQ_RST               ! 0: only at last time, (1,2,3,...,24) hourly restart, 30: monthly restart
 !
-NAMELIST/NRESTART/ CRESTSTO,CRESTDIR,CVNREST,LRESTCDF,IFRQ_RST
+NAMELIST/NRESTART/ CRESTSTO,CRESTDIR,CVNREST,LRESTCDF,LRESTDBL,IFRQ_RST
 !
 CONTAINS 
 !####################################################################
+!! changed 12/12
 ! -- CMF_RESTART_NMLIST : set restart configulation info from namelist
 ! -- CMF_RESTART_INIT   : Read  restart file
 ! -- CMF_RESTART_WRITE  : Write restart file
@@ -61,6 +63,7 @@ CRESTSTO="restart"   ! input restart file name
 CRESTDIR="./"        ! output restart file directory
 CVNREST ="restart"   ! output restart file prefix
 LRESTCDF=.FALSE.     ! true: netCDF restart file
+LRESTDBL=.FALSE. ! true: binary restart double precision
 IFRQ_RST=0           ! 0: only end of simulation, [1,2,3,6,12,24] at selected hour, 30: monthly
 
 !*** 3. read namelist
@@ -87,10 +90,10 @@ END SUBROUTINE CMF_RESTART_NMLIST
 SUBROUTINE CMF_RESTART_INIT
 ! read restart file
 ! -- call from CMF_DRV_INIT
-USE YOS_CMF_INPUT,  ONLY: LSTOONLY
 USE YOS_CMF_PROG,   ONLY: D2RIVSTO,    D2FLDSTO,    D2RIVOUT,    D2FLDOUT,    D2GDWSTO, &
                         & D2RIVOUT_PRE,D2FLDOUT_PRE,D2RIVDPH_PRE,D2FLDSTO_PRE,&
-                        & D1PTHFLW,    D1PTHFLW_PRE
+                        & D1PTHFLW,    D1PTHFLW_PRE, &
+                        & D2DAMSTO,    D2LEVSTO      !!! added
 IMPLICIT NONE
 ! ===========
 D2RIVSTO(:,:)=0._JPRB
@@ -107,6 +110,13 @@ D2GDWSTO(:,:)=0._JPRB
 
 D1PTHFLW(:,:)=0._JPRB
 D1PTHFLW_PRE(:,:)=0._JPRB
+
+IF( LDAMOUT ) then
+  D2DAMSTO(:,:)=0._JPRB   !!! added LDAMOUT
+ENDIF
+IF( LLEVEE ) then
+  D2LEVSTO(:,:)=0._JPRB   !!! added LLEVEE
+ENDIF
 
 IF ( LRESTCDF ) THEN
   CALL READ_REST_CDF
@@ -125,12 +135,12 @@ CONTAINS
 !+
 !==========================================================
 SUBROUTINE READ_REST_BIN
-USE YOS_CMF_INPUT,           ONLY: TMPNAM,  NX,NY,  LSTOONLY, LPTHOUT, LGDWDLY
+USE YOS_CMF_INPUT,           ONLY: TMPNAM,  NX,NY
 USE YOS_CMF_MAP,             ONLY: NPTHOUT, NPTHLEV
 USE CMF_UTILS_MOD,           ONLY: INQUIRE_FID, MAP2VEC
 IMPLICIT NONE
-!==========
-REAL(KIND=JPRM)                 :: R2TEMP(NX,NY)
+!*** LOCAL
+INTEGER(KIND=JPIM)              :: RIREC
 REAL(KIND=JPRM)                 :: R1PTH(NPTHOUT,NPTHLEV)
 CHARACTER(LEN=256)              :: CFILE
 !================================================
@@ -138,40 +148,36 @@ CFILE=TRIM(CRESTSTO)
 WRITE(LOGNAM,*)'READ_REST: read restart binary: ', TRIM(CFILE)
 
 TMPNAM=INQUIRE_FID()
-OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NX*NY)
 
-IF ( .not. LSTOONLY )THEN           !! default restart with previous t-step outflw
-  READ(TMPNAM,REC=1) R2TEMP
-   CALL MAP2VEC(R2TEMP,D2RIVSTO)
-  READ(TMPNAM,REC=2) R2TEMP
-   CALL MAP2VEC(R2TEMP,D2FLDSTO)
-  READ(TMPNAM,REC=3) R2TEMP
-   CALL MAP2VEC(R2TEMP,D2RIVOUT_PRE)
-   D2RIVOUT=D2RIVOUT_PRE
-  READ(TMPNAM,REC=4) R2TEMP
-   CALL MAP2VEC(R2TEMP,D2FLDOUT_PRE)
-   D2FLDOUT=D2FLDOUT_PRE
-  READ(TMPNAM,REC=5) R2TEMP
-   CALL MAP2VEC(R2TEMP,D2RIVDPH_PRE)
-  READ(TMPNAM,REC=6) R2TEMP
-   CALL MAP2VEC(R2TEMP,D2FLDSTO_PRE)
-
-  IF ( LGDWDLY ) THEN
-    READ(TMPNAM,REC=7) R2TEMP
-     CALL MAP2VEC(R2TEMP,D2GDWSTO)
-  ENDIF
-
-ELSE                                 !!  storage only restart
-  READ(TMPNAM,REC=1) R2TEMP
-   CALL MAP2VEC(R2TEMP,D2RIVSTO)
-  READ(TMPNAM,REC=2) R2TEMP
-   CALL MAP2VEC(R2TEMP,D2FLDSTO)
-
-  IF ( LGDWDLY ) THEN
-    READ(TMPNAM,REC=3) R2TEMP
-     CALL MAP2VEC(R2TEMP,D2GDWSTO)
-  ENDIF
+IF( LRESTDBL )THEN
+  OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=8*NX*NY)
+ELSE
+  OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NX*NY)
 ENDIF
+
+RIREC=0
+CALL READ_BIN_MAP(D2RIVSTO,TMPNAM,RIREC)
+CALL READ_BIN_MAP(D2FLDSTO,TMPNAM,RIREC)
+
+!! additional restart data for optional schemes
+IF ( .not. LSTOONLY )THEN           !! default restart with previous t-step outflw
+  CALL READ_BIN_MAP(D2RIVOUT_PRE,TMPNAM,RIREC)
+  CALL READ_BIN_MAP(D2FLDOUT_PRE,TMPNAM,RIREC)
+  CALL READ_BIN_MAP(D2RIVDPH_PRE,TMPNAM,RIREC)
+  CALL READ_BIN_MAP(D2FLDSTO_PRE,TMPNAM,RIREC)
+  D2RIVOUT(:,:)=D2RIVOUT_PRE(:,:)
+  D2FLDOUT(:,:)=D2FLDOUT_PRE(:,:)
+ENDIF
+IF ( LGDWDLY ) THEN
+  CALL READ_BIN_MAP(D2GDWSTO,TMPNAM,RIREC)
+ENDIF
+IF ( LDAMOUT ) THEN      !!! added LDAMOUT
+  CALL READ_BIN_MAP(D2DAMSTO,TMPNAM,RIREC)
+ENDIF
+IF ( LLEVEE ) THEN      !!! added LLEVEE
+  CALL READ_BIN_MAP(D2LEVSTO,TMPNAM,RIREC)
+ENDIF
+
 CLOSE(TMPNAM)
 
 
@@ -180,15 +186,45 @@ IF( LPTHOUT )THEN
     CFILE=TRIM(CRESTSTO)//'.pth'
     WRITE(LOGNAM,*)'READ_REST: read restart binary: ', TRIM(CFILE)
 
-    OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NPTHOUT*NPTHLEV)
-    READ(TMPNAM,REC=1) R1PTH
-    D1PTHFLW_PRE(:,:)=R1PTH(:,:)
-    CLOSE(TMPNAM)
+    IF( LRESTDBL )THEN
+      OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=8*NPTHOUT*NPTHLEV)
+      READ(TMPNAM,REC=1) D1PTHFLW_PRE
+      CLOSE(TMPNAM)
+    ELSE
+      OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NPTHOUT*NPTHLEV)
+      READ(TMPNAM,REC=1) R1PTH
+      D1PTHFLW_PRE(:,:)=R1PTH(:,:)
+      CLOSE(TMPNAM)
+    ENDIF
   ENDIF
 ENDIF
 
 END SUBROUTINE READ_REST_BIN
-!==========================================================
+!======
+SUBROUTINE READ_BIN_MAP(D2VAR,TNAM,IREC)
+USE CMF_UTILS_MOD,      ONLY: MAP2VEC, MAP2VECD
+USE YOS_CMF_INPUT,      ONLY: NX, NY
+USE YOS_CMF_MAP,        ONLY: NSEQMAX
+IMPLICIT NONE
+REAL(KIND=JPRB)            :: D2VAR(NSEQMAX,1)
+INTEGER(KIND=JPIM)         :: TNAM, IREC
+!* local
+REAL(KIND=JPRM)            :: R2TEMP(NX,NY)
+REAL(KIND=JPRB)            :: D2TEMP(NX,NY)
+!=================
+IREC=IREC+1
+
+!=== Double Precision Restart ===
+IF( LRESTDBL )THEN
+  READ(TNAM,REC=IREC) D2TEMP
+  CALL MAP2VECD(D2TEMP,D2VAR)
+!=== Single Precision Restart ===
+ELSE
+  READ(TNAM,REC=IREC) R2TEMP
+  CALL MAP2VEC(R2TEMP,D2VAR)
+ENDIF
+!=================
+END SUBROUTINE READ_BIN_MAP
 !+
 !+
 !+
@@ -196,9 +232,9 @@ END SUBROUTINE READ_REST_BIN
 SUBROUTINE READ_REST_CDF
 #ifdef UseCDF_CMF
 USE NETCDF
-USE YOS_CMF_INPUT,  ONLY: NX, NY,  LSTOONLY, LPTHOUT, LGDWDLY
-USE YOS_CMF_MAP,    ONLY: NPTHOUT, NPTHLEV
-USE CMF_UTILS_MOD,  ONLY: NCERROR, MAP2VECD
+USE YOS_CMF_INPUT,    ONLY: NX, NY
+USE YOS_CMF_MAP,      ONLY: NPTHOUT, NPTHLEV
+USE CMF_UTILS_MOD,    ONLY: NCERROR, MAP2VECD
 IMPLICIT NONE
 ! local variables
 INTEGER(KIND=JPIM)    ::  NCID,VARID
@@ -240,9 +276,21 @@ IF( .NOT. LSTOONLY )THEN
 ENDIF
 
 IF ( LGDWDLY ) THEN
-  CALL NCERROR( NF90_INQ_VARID(NCID,'GDWSTO',VARID))
+  CALL NCERROR( NF90_INQ_VARID(NCID,'gdwsto',VARID))
   CALL NCERROR( NF90_GET_VAR(NCID,VARID,R2TEMP,(/1,1,1/),(/NX,NY,1/) ) )
   CALL MAP2VECD(R2TEMP,D2GDWSTO)
+ENDIF
+
+IF ( LDAMOUT ) THEN    !!! added
+  CALL NCERROR( NF90_INQ_VARID(NCID,'damsto',VARID))
+  CALL NCERROR( NF90_GET_VAR(NCID,VARID,R2TEMP,(/1,1,1/),(/NX,NY,1/) ) )
+  CALL MAP2VECD(R2TEMP,D2DAMSTO)
+ENDIF
+
+IF ( LLEVEE ) THEN    !!! added
+  CALL NCERROR( NF90_INQ_VARID(NCID,'levsto',VARID))
+  CALL NCERROR( NF90_GET_VAR(NCID,VARID,R2TEMP,(/1,1,1/),(/NX,NY,1/) ) )
+  CALL MAP2VECD(R2TEMP,D2LEVSTO)
 ENDIF
 
 IF ( LPTHOUT .AND. .NOT. LSTOONLY ) THEN
@@ -267,11 +315,12 @@ END SUBROUTINE CMF_RESTART_INIT
 SUBROUTINE CMF_RESTART_WRITE
 ! write restart files
 ! -- called CMF_from DRV_ADVANCE
-USE YOS_CMF_INPUT,      ONLY: TMPNAM, NX, NY, LPTHOUT,   LGDWDLY
+USE YOS_CMF_INPUT,      ONLY: TMPNAM, NX, NY
 USE YOS_CMF_TIME,       ONLY: KSTEP,  NSTEPS, JYYYYMMDD, JHHMM, JDD, JHOUR, JMIN
 USE YOS_CMF_MAP,        ONLY: NPTHOUT,     NPTHLEV
 USE YOS_CMF_PROG,       ONLY: D2RIVSTO,    D2FLDSTO,    D2RIVOUT_PRE,D2FLDOUT_PRE, &
-                            & D1PTHFLW_PRE,D2RIVDPH_PRE,D2FLDSTO_PRE,D2GDWSTO
+                            & D1PTHFLW_PRE,D2RIVDPH_PRE,D2FLDSTO_PRE,D2GDWSTO, &
+                            & D2DAMSTO,    D2LEVSTO
 USE CMF_UTILS_MOD,      ONLY: INQUIRE_FID
 IMPLICIT NONE
 !* local variable
@@ -305,7 +354,7 @@ IF( IREST==1 )THEN
   IF( LRESTCDF )THEN
     CALL WRTE_REST_CDF  !! netCDF restart write
   ELSE
-    CALL WRTE_REST_BIN  !! binary restart write
+    CALL WRTE_REST_BIN
   ENDIF
 END IF 
 
@@ -315,13 +364,17 @@ CONTAINS
 !+ WRTE_REST_CDF
 !==========================================================
 SUBROUTINE WRTE_REST_BIN
-USE CMF_UTILS_MOD,      ONLY: VEC2MAP
 USE YOS_CMF_TIME,       ONLY: JYYYYMMDD, JHOUR
+USE YOS_CMF_MAP,        ONLY: REGIONTHIS
+#ifdef UseMPI_CMF
+USE CMF_CTRL_MPI_MOD,   ONLY: CMF_MPI_REDUCE_R1PTH, CMF_MPI_REDUCE_D1PTH
+#endif
 IMPLICIT NONE
 ! local variable 
-REAL(KIND=JPRM)            :: R2TEMP(NX,NY)
-REAL(KIND=JPRM)            :: R1PTH(NPTHOUT,NPTHLEV)
+INTEGER(KIND=JPIM)         :: RIREC
 CHARACTER(LEN=256)         :: CFILE,CDATE
+REAL(KIND=JPRM)            :: R1PTH(NPTHOUT,NPTHLEV)
+REAL(KIND=JPRB)            :: D1PTH(NPTHOUT,NPTHLEV)
 !================================================
 !*** set file nam
 WRITE(CDATE,'(I8.8,I2.2)') JYYYYMMDD,JHOUR
@@ -330,38 +383,105 @@ WRITE(LOGNAM,*) 'WRTE_REST_BIN: restart file:',CFILE
 
 !*** write restart data (2D map)
 TMPNAM=INQUIRE_FID()
-OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NX*NY)
-  CALL VEC2MAP(D2RIVSTO,R2TEMP)
-   WRITE(TMPNAM,REC=1) R2TEMP
-  CALL VEC2MAP(D2FLDSTO,R2TEMP)
-   WRITE(TMPNAM,REC=2) R2TEMP
-  CALL VEC2MAP(D2RIVOUT_PRE,R2TEMP)
-   WRITE(TMPNAM,REC=3) R2TEMP
-  CALL VEC2MAP(D2FLDOUT_PRE,R2TEMP)
-   WRITE(TMPNAM,REC=4) R2TEMP
-  CALL VEC2MAP(D2RIVDPH_PRE,R2TEMP)
-   WRITE(TMPNAM,REC=5) R2TEMP
-  CALL VEC2MAP(D2FLDSTO_PRE,R2TEMP)
-   WRITE(TMPNAM,REC=6) R2TEMP
-  IF ( LGDWDLY ) THEN
-    CALL VEC2MAP(D2GDWSTO,R2TEMP)
-     WRITE(TMPNAM,REC=7) R2TEMP
+
+IF( LRESTDBL )THEN
+  IF ( REGIONTHIS==1 ) OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=8*NX*NY)
+ELSE
+  IF ( REGIONTHIS==1 ) OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NX*NY)
+ENDIF
+
+RIREC=0
+  CALL WRTE_BIN_MAP(D2RIVSTO,TMPNAM,RIREC)
+  CALL WRTE_BIN_MAP(D2FLDSTO,TMPNAM,RIREC)
+
+!!================
+!! additional restart data for optional schemes (only write required vars)
+  IF ( .not. LSTOONLY )THEN           !! default restart with previous t-step outflw
+    CALL WRTE_BIN_MAP(D2RIVOUT_PRE,TMPNAM,RIREC)
+    CALL WRTE_BIN_MAP(D2FLDOUT_PRE,TMPNAM,RIREC)
+    CALL WRTE_BIN_MAP(D2RIVDPH_PRE,TMPNAM,RIREC)
+    CALL WRTE_BIN_MAP(D2FLDSTO_PRE,TMPNAM,RIREC)
   ENDIF
+
+  IF ( LGDWDLY ) THEN
+    CALL WRTE_BIN_MAP(D2GDWSTO,TMPNAM,RIREC)
+  ENDIF
+  IF ( LDAMOUT ) THEN   !!! ADDED
+    CALL WRTE_BIN_MAP(D2DAMSTO,TMPNAM,RIREC)
+  ENDIF
+  IF ( LLEVEE ) THEN   !!! ADDED
+    CALL WRTE_BIN_MAP(D2LEVSTO,TMPNAM,RIREC)
+  ENDIF
+
 CLOSE(TMPNAM)
 
 !*** write restart data (1D bifucation chanenl)
 IF( LPTHOUT )THEN
+
   CFILE=TRIM(CRESTDIR)//TRIM(CVNREST)//TRIM(CDATE)//TRIM(CSUFBIN)//'.pth'
   WRITE(LOGNAM,*) 'WRTE_REST: WRITE RESTART BIN:',CFILE
 
-  OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NPTHOUT*NPTHLEV)
-  R1PTH(:,:)=REAL(D1PTHFLW_PRE(:,:))
-  WRITE(TMPNAM,REC=1) R1PTH
-  CLOSE(TMPNAM)
+  !! Double Precision Restart
+  IF( LRESTDBL )THEN
+    D1PTH(:,:)=D1PTHFLW_PRE(:,:)
+#ifdef UseMPI_CMF
+    CALL CMF_MPI_REDUCE_D1PTH(D1PTH)
+#endif
+    IF ( REGIONTHIS==1 )THEN
+      OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=8*NPTHOUT*NPTHLEV)
+      WRITE(TMPNAM,REC=1) D1PTH
+      CLOSE(TMPNAM)
+    ENDIF
+  !! Single Precision Restart
+  ELSE
+    R1PTH(:,:)=REAL(D1PTHFLW_PRE(:,:))
+#ifdef UseMPI_CMF
+    CALL CMF_MPI_REDUCE_R1PTH(R1PTH)
+#endif
+    IF ( REGIONTHIS==1 )THEN
+      OPEN(TMPNAM,FILE=CFILE,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NPTHOUT*NPTHLEV)
+      WRITE(TMPNAM,REC=1) R1PTH
+      CLOSE(TMPNAM)
+    ENDIF
+  ENDIF
 ENDIF
 
 END SUBROUTINE WRTE_REST_BIN
+!=================
+SUBROUTINE WRTE_BIN_MAP(D2VAR,TNAM,IREC)
+USE CMF_UTILS_MOD,      ONLY: VEC2MAP,    VEC2MAPD
+USE YOS_CMF_MAP,        ONLY: REGIONTHIS, NSEQMAX
+#ifdef UseMPI_CMF
+USE CMF_CTRL_MPI_MOD,   ONLY: CMF_MPI_REDUCE_R2MAP, CMF_MPI_REDUCE_D2MAP
+#endif
+IMPLICIT NONE
+REAL(KIND=JPRB)            :: D2VAR(NSEQMAX,1)
+INTEGER(KIND=JPIM)         :: TNAM,IREC
+!* local
+REAL(KIND=JPRM)            :: R2TEMP(NX,NY)
+REAL(KIND=JPRB)            :: D2TEMP(NX,NY)
+!=================
+IREC=IREC+1
+
+!! Double Precision Restart
+IF( LRESTDBL )THEN
+  CALL VEC2MAPD(D2VAR,D2TEMP)  
+#ifdef UseMPI_CMF
+    CALL CMF_MPI_REDUCE_D2MAP(D2TEMP)
+#endif
+  IF ( REGIONTHIS==1 ) WRITE(TNAM,REC=IREC) D2TEMP
+!! Single Precision Restart
+ELSE
+  CALL VEC2MAP(D2VAR,R2TEMP)  
+#ifdef UseMPI_CMF
+    CALL CMF_MPI_REDUCE_R2MAP(R2TEMP)
+#endif
+  IF ( REGIONTHIS==1 ) WRITE(TNAM,REC=IREC) R2TEMP
+ENDIF
+!=================
+END SUBROUTINE WRTE_BIN_MAP
 !==========================================================
+!+
 !+
 !+
 !==========================================================
@@ -371,15 +491,18 @@ USE NETCDF
 USE YOS_CMF_INPUT,      ONLY: DMIS
 USE YOS_CMF_TIME,       ONLY: KMINNEXT, KMINSTART, ISYYYY,ISMM,ISDD, ISHOUR, ISMIN
 USE YOS_CMF_TIME,       ONLY: JYYYYMMDD,JHOUR
-USE YOS_CMF_MAP,        ONLY: D1LON,    D1LAT
+USE YOS_CMF_MAP,        ONLY: D1LON,    D1LAT,     REGIONTHIS
 USE CMF_UTILS_MOD,      ONLY: NCERROR,  VEC2MAPD
+#ifdef UseMPI_CMF
+USE CMF_CTRL_MPI_MOD,   ONLY: CMF_MPI_REDUCE_D2MAP, CMF_MPI_REDUCE_D1PTH
+#endif
 IMPLICIT NONE
 !* local variable
 CHARACTER(LEN=256)         :: CFILE, CDATE, CTIME, CVAR
 INTEGER(KIND=JPIM)         :: NCID,  VARID, LATID, LONID, TIMEID, JF, &
-                              NPTHOUTID,    NPTHLEVID,    STATUS
+                              NPTHOUTID,    NPTHLEVID,    STATUS, IOUT
 REAL(KIND=JPRB)            :: XTIME ! seconds since start of the run ! 
-REAL(KIND=JPRB)            :: R2TEMP(NX,NY)
+REAL(KIND=JPRB)            :: D2TEMP(NX,NY)
 !================================================
 !*** 1. set file name & tim
 XTIME=REAL( (KMINNEXT-KMINSTART),JPRB) *60._JPRB
@@ -391,139 +514,193 @@ WRITE(LOGNAM,*) 'WRTE_REST:create RESTART NETCDF:',CFILE
 
 !============================
 !*** 2. create netCDF file
-CALL NCERROR( NF90_CREATE(CFILE,NF90_NETCDF4,NCID),'CREATING FILE:'//TRIM(CFILE) )
+IF( REGIONTHIS==1 )THEN   !! write restart only on master node
 
-!! dimensions 
-CALL NCERROR( NF90_DEF_DIM(NCID, 'time', NF90_UNLIMITED, TIMEID) )
-CALL NCERROR( NF90_DEF_DIM(NCID, 'lat', NY, LATID) )
-CALL NCERROR( NF90_DEF_DIM(NCID, 'lon', NX, LONID) )
-
-IF ( LPTHOUT ) THEN
-  CALL NCERROR( NF90_DEF_DIM(NCID, 'NPTHOUT', NPTHOUT, NPTHOUTID) )
-  CALL NCERROR( NF90_DEF_DIM(NCID, 'NPTHLEV', NPTHLEV, NPTHLEVID) )
-ENDIF 
-
-!! dimentions 
-CALL NCERROR( NF90_DEF_VAR(NCID, 'lat', NF90_FLOAT, (/LATID/), VARID) )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name','latitude') )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units','degrees_north') )
-
-CALL NCERROR( NF90_DEF_VAR(NCID, 'lon', NF90_FLOAT, (/LONID/), VARID) )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name','longitude') )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units','degrees_east') )
-
-CALL NCERROR( NF90_DEF_VAR(NCID, 'time', NF90_DOUBLE, (/TIMEID/), VARID) ) 
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name','time') )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',CTIME) )
-
-!! variables
-CALL NCERROR( NF90_DEF_VAR(NCID, 'rivsto', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
-                           VARID,DEFLATE_LEVEL=6), 'Creating Variable')
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"river storage" ) )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)),'in here?' )
-
- 
-CALL NCERROR( NF90_DEF_VAR(NCID, 'fldsto', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
-                           VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"flood plain storage" ) )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
-
-
-CALL NCERROR( NF90_DEF_VAR(NCID, 'rivout_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/),&
-                           VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"river outflow prev" ) )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
-
-CALL NCERROR( NF90_DEF_VAR(NCID, 'fldout_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
-                           VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"floodplain outflow prev" ) )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
-
-CALL NCERROR( NF90_DEF_VAR(NCID, 'rivdph_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
-                           VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"river depth prev" ) )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m") )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
-
-CALL NCERROR( NF90_DEF_VAR(NCID, 'fldsto_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
-                           VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"floodplain storage prev" ) )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
-CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
-
-!! optional variables
-IF ( LPTHOUT ) THEN
-  CALL NCERROR( NF90_DEF_VAR(NCID, 'pthflw_pre', NF90_DOUBLE, (/NPTHOUTID,NPTHLEVID,TIMEID/),&
-                             VARID,DEFLATE_LEVEL=6) ) 
-  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"floodpath outflow pre" ) )
-  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
-ENDIF
-
-IF ( LGDWDLY ) THEN
-  CALL NCERROR( NF90_DEF_VAR(NCID, 'GDWSTO', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
-                           VARID,DEFLATE_LEVEL=6), 'Creating Variable GDWSTO')  
-  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"ground water storage" ) )
+  CALL NCERROR( NF90_CREATE(CFILE,NF90_NETCDF4,NCID),'CREATING FILE:'//TRIM(CFILE) )
+  
+  !! dimensions 
+  CALL NCERROR( NF90_DEF_DIM(NCID, 'time', NF90_UNLIMITED, TIMEID) )
+  CALL NCERROR( NF90_DEF_DIM(NCID, 'lat', NY, LATID) )
+  CALL NCERROR( NF90_DEF_DIM(NCID, 'lon', NX, LONID) )
+  
+  IF ( LPTHOUT ) THEN
+    CALL NCERROR( NF90_DEF_DIM(NCID, 'NPTHOUT', NPTHOUT, NPTHOUTID) )
+    CALL NCERROR( NF90_DEF_DIM(NCID, 'NPTHLEV', NPTHLEV, NPTHLEVID) )
+  ENDIF 
+  
+  !! dimentions 
+  CALL NCERROR( NF90_DEF_VAR(NCID, 'lat', NF90_FLOAT, (/LATID/), VARID) )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name','latitude') )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units','degrees_north') )
+  
+  CALL NCERROR( NF90_DEF_VAR(NCID, 'lon', NF90_FLOAT, (/LONID/), VARID) )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name','longitude') )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units','degrees_east') )
+  
+  CALL NCERROR( NF90_DEF_VAR(NCID, 'time', NF90_DOUBLE, (/TIMEID/), VARID) ) 
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name','time') )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',CTIME) )
+  
+  !! variables
+  CALL NCERROR( NF90_DEF_VAR(NCID, 'rivsto', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                             VARID,DEFLATE_LEVEL=6), 'Creating Variable')
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"river storage" ) )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)),'in here?' )
+  
+   
+  CALL NCERROR( NF90_DEF_VAR(NCID, 'fldsto', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                             VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"flood plain storage" ) )
   CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
   CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+  
+  IF ( .not. LSTOONLY )THEN           !! default restart with previous t-step outflw
+    CALL NCERROR( NF90_DEF_VAR(NCID, 'rivout_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/),&
+                               VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"river outflow prev" ) )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+    
+    CALL NCERROR( NF90_DEF_VAR(NCID, 'fldout_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                               VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"floodplain outflow prev" ) )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+    
+    CALL NCERROR( NF90_DEF_VAR(NCID, 'rivdph_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                               VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"river depth prev" ) )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m") )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+    
+    CALL NCERROR( NF90_DEF_VAR(NCID, 'fldsto_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                               VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"floodplain storage prev" ) )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+  
+    !! optional variables
+    IF ( LPTHOUT ) THEN
+      CALL NCERROR( NF90_DEF_VAR(NCID, 'pthflw_pre', NF90_DOUBLE, (/NPTHOUTID,NPTHLEVID,TIMEID/),&
+                                 VARID,DEFLATE_LEVEL=6) ) 
+      CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"floodpath outflow pre" ) )
+      CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
+    ENDIF
+  ENDIF
+  
+  IF ( LGDWDLY ) THEN
+    CALL NCERROR( NF90_DEF_VAR(NCID, 'gdwsto', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                             VARID,DEFLATE_LEVEL=6), 'Creating Variable gdwsto')  
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"ground water storage" ) )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+  ENDIF
+  
+  IF ( LDAMOUT ) THEN    !!! added
+    CALL NCERROR( NF90_DEF_VAR(NCID, 'damsto', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                             VARID,DEFLATE_LEVEL=6), 'Creating Variable dasmto')  
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"dam reservoir storage" ) )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+  ENDIF
+  
+  IF ( LLEVEE ) THEN    !!! added
+    CALL NCERROR( NF90_DEF_VAR(NCID, 'levsto', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                             VARID,DEFLATE_LEVEL=6), 'Creating Variable levsto')  
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"storage exceeds levee protection" ) )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+  ENDIF
+
+  CALL NCERROR( NF90_ENDDEF(NCID) )
+  !============================
+  !*** 2. write data
+  
+  !! dimentions (time,lon,lat)
+  CALL NCERROR( NF90_INQ_VARID(NCID,'time',VARID))
+  CALL NCERROR( NF90_PUT_VAR(NCID,VARID,XTIME) )
+  
+  CALL NCERROR ( NF90_INQ_VARID(NCID,'lon',VARID),'getting id' )
+  CALL NCERROR( NF90_PUT_VAR(NCID,VARID,D1LON))
+  
+  CALL NCERROR ( NF90_INQ_VARID(NCID,'lat',VARID),'getting id' )
+  CALL NCERROR( NF90_PUT_VAR(NCID,VARID,D1LAT))
+
 ENDIF
 
-CALL NCERROR( NF90_ENDDEF(NCID) )
-
-!============================
-!*** 2. write data
-
-!! dimentions (time,lon,lat)
-CALL NCERROR( NF90_INQ_VARID(NCID,'time',VARID))
-CALL NCERROR( NF90_PUT_VAR(NCID,VARID,XTIME) )
-
-CALL NCERROR ( NF90_INQ_VARID(NCID,'lon',VARID),'getting id' )
-CALL NCERROR( NF90_PUT_VAR(NCID,VARID,D1LON))
-
-CALL NCERROR ( NF90_INQ_VARID(NCID,'lat',VARID),'getting id' )
-CALL NCERROR( NF90_PUT_VAR(NCID,VARID,D1LAT))
-
 !! write restart variables
-DO JF=1,7
+DO JF=1,9
+  IOUT=0
   SELECT CASE(JF)
     CASE (1)
-        CVAR='rivsto'
-        CALL VEC2MAPD(D2RIVSTO,R2TEMP)
+      CVAR='rivsto'
+      CALL VEC2MAPD(D2RIVSTO,D2TEMP)
+      IOUT=1
     CASE (2)
-        CVAR='fldsto'
-        CALL VEC2MAPD(D2FLDSTO,R2TEMP)
+      CVAR='fldsto'
+      CALL VEC2MAPD(D2FLDSTO,D2TEMP)
+      IOUT=1
     CASE (3)
-        CVAR='rivout_pre'
-        CALL VEC2MAPD(D2RIVOUT_PRE,R2TEMP)
+      CVAR='rivout_pre'
+      CALL VEC2MAPD(D2RIVOUT_PRE,D2TEMP)
+      IF( .not. LSTOONLY ) IOUT=1
     CASE (4)
-        CVAR='fldout_pre'
-        CALL VEC2MAPD(D2FLDOUT_PRE,R2TEMP)
-    CASE (5)
-        CVAR='rivdph_pre'
-        CALL VEC2MAPD(D2RIVDPH_PRE,R2TEMP)
+      CVAR='fldout_pre'
+      CALL VEC2MAPD(D2FLDOUT_PRE,D2TEMP)
+      IF( .not. LSTOONLY ) IOUT=1
+   CASE (5)
+      CVAR='rivdph_pre'
+      CALL VEC2MAPD(D2RIVDPH_PRE,D2TEMP)
+      IF( .not. LSTOONLY ) IOUT=1
     CASE (6)
-        CVAR='fldsto_pre'
-        CALL VEC2MAPD(D2FLDSTO_PRE,R2TEMP)
-    CASE (7)
-        CVAR='GDWSTO'
-        CALL VEC2MAPD(D2GDWSTO,R2TEMP)
+      CVAR='fldsto_pre'
+      CALL VEC2MAPD(D2FLDSTO_PRE,D2TEMP)
+      IF( .not. LSTOONLY ) IOUT=1
+   CASE (7)
+      CVAR='gdwsto'
+      CALL VEC2MAPD(D2GDWSTO,D2TEMP)
+      IF( LGDWDLY ) IOUT=1
+    CASE (8)  !!! LDAMOUT
+      CVAR='damsto'
+      IF( LDAMOUT ) CALL VEC2MAPD(D2DAMSTO,D2TEMP)  !! D2DAMSTO only allocated for LDAMOUT
+      IF( LDAMOUT ) IOUT=1
+    CASE (9)  !!! LLEVEE
+      CVAR='levsto'
+      IF( LLEVEE ) CALL VEC2MAPD(D2LEVSTO,D2TEMP)  !! D2DAMSTO only allocated for LDAMOUT
+      IF( LLEVEE ) IOUT=1
   END SELECT
-  STATUS = NF90_INQ_VARID(NCID,TRIM(CVAR),VARID)
-  IF ( STATUS .EQ. 0 ) THEN
-    CALL NCERROR( NF90_PUT_VAR(NCID,VARID,R2TEMP,(/1,1,1/),(/NX,NY,1/)) )
+
+#ifdef UseMPI_CMF
+  CALL CMF_MPI_REDUCE_D2MAP(D2TEMP)
+#endif
+
+  IF( IOUT==1 )THEN
+    IF( REGIONTHIS==1 )THEN
+      STATUS = NF90_INQ_VARID(NCID,TRIM(CVAR),VARID)  !! check VARID is defined above, write restart only when STATUS=0
+      IF ( STATUS .EQ. 0 ) THEN
+        CALL NCERROR( NF90_PUT_VAR(NCID,VARID,D2TEMP,(/1,1,1/),(/NX,NY,1/)) )
+      ENDIF
+    ENDIF
   ENDIF
 ENDDO
 
 IF ( LPTHOUT ) THEN
-  CALL NCERROR( NF90_INQ_VARID(NCID,'pthflw_pre',VARID))
-  CALL NCERROR( NF90_PUT_VAR(NCID,VARID,D1PTHFLW_PRE(:,:),(/1,1,1/),(/NPTHOUT,NPTHLEV,1/)) )
+  IF ( .not. LSTOONLY )THEN
+#ifdef UseMPI_CMF
+    CALL CMF_MPI_REDUCE_D1PTH(D1PTHFLW_PRE)
+#endif
+    IF( REGIONTHIS==1 )THEN
+      CALL NCERROR( NF90_INQ_VARID(NCID,'pthflw_pre',VARID))
+      CALL NCERROR( NF90_PUT_VAR(NCID,VARID,D1PTHFLW_PRE(:,:),(/1,1,1/),(/NPTHOUT,NPTHLEV,1/)) )
+    ENDIF
+  ENDIF
 ENDIF
 
-CALL NCERROR( NF90_SYNC(NCID) )
-CALL NCERROR( NF90_CLOSE(NCID) )
+IF( REGIONTHIS==1 )THEN
+  CALL NCERROR( NF90_SYNC(NCID) )
+  CALL NCERROR( NF90_CLOSE(NCID) )
+ENDIF
 
 WRITE(LOGNAM,*) 'WRTE_REST: WRITE RESTART NETCDF:',CFILE
 

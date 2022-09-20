@@ -30,12 +30,11 @@ CONTAINS
 SUBROUTINE CMF_DRV_ADVANCE(KSTEPS)
 USE YOS_CMF_INPUT,           ONLY: LOUTPUT, LSEALEV, IFRQ_OUT
 USE YOS_CMF_TIME,            ONLY: KSTEP, JYYYYMMDD, JHHMM, JHOUR, JMIN
-
 !
 USE CMF_CTRL_TIME_MOD,       ONLY: CMF_TIME_NEXT, CMF_TIME_UPDATE
-USE CMF_CTRL_PHYSICS_MOD,    ONLY: CMF_ADVANCE_PHYSICS
+USE CMF_CTRL_PHYSICS_MOD,    ONLY: CMF_PHYSICS_ADVANCE, CMF_PHYSICS_FLDSTG
 USE CMF_CTRL_RESTART_MOD,    ONLY: CMF_RESTART_WRITE
-USE CMF_CTRL_OUTPUT_MOD,     ONLY: CMF_OUTPUT_WRITE, LOUTCDF
+USE CMF_CTRL_OUTPUT_MOD,     ONLY: CMF_OUTPUT_WRITE
 USE CMF_CALC_DIAG_MOD,       ONLY: CMF_DIAG_AVERAGE, CMF_DIAG_RESET
 USE CMF_CTRL_BOUNDARY_MOD,   ONLY: CMF_BOUNDARY_UPDATE
 !$ USE OMP_LIB
@@ -45,7 +44,7 @@ SAVE
 INTEGER(KIND=JPIM)              :: KSTEPS             !! Number of timesteps to advance 
 !* Local variables 
 INTEGER(KIND=JPIM)              :: ISTEP              !! Time Step
-REAL(KIND=JPRB)                 :: ZTT0, ZTT1         !! Time elapsed related 
+REAL(KIND=JPRB)                 :: ZTT0, ZTT1, ZTT2   !! Time elapsed related 
 !$ INTEGER(KIND=JPIM)           :: NTHREADS           !! OpenMP thread number
 !==========================================================
 
@@ -61,13 +60,7 @@ DO ISTEP=1,KSTEPS
   !*** 0. get start CPU time
   CALL CPU_TIME(ZTT0)
   !$ ZTT0=OMP_GET_WTIME()
-  
-  !============================
-  !*** 0.1 Write initial conditions in netcdf mode
-  IF ( KSTEP == 0 .AND. LOUTPUT .AND. LOUTCDF ) THEN
-    CALL CMF_OUTPUT_WRITE
-  ENDIF
-   
+
   !============================
   !*** 1. Set next time
   CALL CMF_TIME_NEXT               !! set KMINNEXT, JYYYYMMDD, JHHMM
@@ -79,7 +72,10 @@ DO ISTEP=1,KSTEPS
 
   !============================
   !*** 2. Advance model integration 
-  CALL CMF_ADVANCE_PHYSICS
+  CALL CMF_PHYSICS_ADVANCE
+
+  CALL CPU_TIME(ZTT1)
+  !$ ZTT1=OMP_GET_WTIME()
 
   !============================
   !*** 3. Write output file (when needed)
@@ -104,11 +100,10 @@ DO ISTEP=1,KSTEPS
 
   !============================
   !*** 6. Check CPU time 
-  CALL CPU_TIME(ZTT1)
-  !$ ZTT1=OMP_GET_WTIME()
+  CALL CPU_TIME(ZTT2)
+  !$ ZTT2=OMP_GET_WTIME()
   WRITE(LOGNAM,*) "CMF::DRV_ADVANCE END: KSTEP, time (end of Tstep):", KSTEP, JYYYYMMDD, JHHMM
-  WRITE(LOGNAM,*) "Elapsed cpu time", ZTT1-ZTT0,"Seconds"
-  CALL FLUSH(LOGNAM)
+  WRITE(LOGNAM,'(a,f8.1,a,f8.1,a)') "Elapsed cpu time", ZTT2-ZTT0,"Sec. // File output ", ZTT2-ZTT1, "Sec"
 
 ENDDO
 !*** END:time step loop
