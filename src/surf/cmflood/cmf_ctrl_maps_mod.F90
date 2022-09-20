@@ -37,6 +37,8 @@ CHARACTER(LEN=256)              :: CRIVMAN         !! river manning coefficient
 CHARACTER(LEN=256)              :: CPTHOUT         !! bifurcation channel table
 CHARACTER(LEN=256)              :: CGDWDLY         !! Groundwater Delay Parameter
 CHARACTER(LEN=256)              :: CMEANSL         !! mean sea level
+!* MPI parallelization
+CHARACTER(LEN=256)              :: CMPIREG         !! MPI region map
 !* netCDF map
 LOGICAL                         :: LMAPCDF         !! true for netCDF map input
 CHARACTER(LEN=256)              :: CRIVCLINC       !! river map netcdf
@@ -44,8 +46,8 @@ CHARACTER(LEN=256)              :: CRIVPARNC       !! river parameter netcdf (WI
 CHARACTER(LEN=256)              :: CMEANSLNC       !! mean sea level netCDF
 
 NAMELIST/NMAP/     CNEXTXY,  CGRAREA,  CELEVTN,  CNXTDST, CRIVLEN, CFLDHGT, &
-                   CRIVWTH,  CRIVHGT,  CRIVMAN,  CPTHOUT, CGDWDLY, CMEANSL,          &
-                   LMAPCDF,  CRIVCLINC,CRIVPARNC,CMEANSLNC
+                   CRIVWTH,  CRIVHGT,  CRIVMAN,  CPTHOUT, CGDWDLY, CMEANSL, &
+                   CMPIREG,  LMAPCDF,  CRIVCLINC,CRIVPARNC,CMEANSLNC
 
 
 CONTAINS
@@ -87,6 +89,8 @@ CPTHOUT="./bifprm.txt"
 CGDWDLY="NONE"
 CMEANSL="NONE"
 
+CMPIREG="NONE"
+
 LMAPCDF=.FALSE.
 CRIVCLINC="NONE"
 CRIVPARNC="NONE"
@@ -123,6 +127,9 @@ ELSE
   IF( LMEANSL )THEN
     WRITE(LOGNAM,*) "CMEANSL:   ", TRIM(CMEANSL)
   ENDIF
+#ifdef UseMPI_CMF
+    WRITE(LOGNAM,*) "CMPIREG:   ", TRIM(CMPIREG)
+#endif
 ENDIF
 
 CLOSE(NSETFILE)
@@ -141,9 +148,9 @@ SUBROUTINE CMF_RIVMAP_INIT
 ! read & set river network map 
 ! -- call from CMF_DRV_INIT
 USE YOS_CMF_INPUT,      ONLY: TMPNAM, NX,NY,NLFP, LPTHOUT
-USE YOS_CMF_MAP,        ONLY: I2NEXTX,I2NEXTY, I2RIVSEQ,I2REGION, REGIONALL,REGIONTHIS, &
+USE YOS_CMF_MAP,        ONLY: I2NEXTX,I2NEXTY, I2REGION, REGIONALL,REGIONTHIS, &
                             & I1SEQX, I1SEQY,  I1NEXT,  I2VECTOR, D1LON,    D1LAT,      &
-                            & NSEQRIV,  NSEQALL,  NSEQMAX,  RIVSEQMAX
+                            & NSEQRIV,  NSEQALL,  NSEQMAX
 USE CMF_UTILS_MOD,      ONLY: INQUIRE_FID
 IMPLICIT NONE
 !================================================
@@ -154,7 +161,6 @@ WRITE(LOGNAM,*) 'CMF::RIVMAP_INIT: river network initialization'
 ! *** 1. ALLOCATE ARRAYS
 ALLOCATE( I2NEXTX(NX,NY) )
 ALLOCATE( I2NEXTY(NX,NY) )
-ALLOCATE( I2RIVSEQ(NX,NY) )
 ALLOCATE( I2REGION(NX,NY) )
 ALLOCATE( D1LON(NX) )
 ALLOCATE( D1LAT(NY) )
@@ -171,8 +177,7 @@ ELSE
 ENDIF
 
 !*** 2b. calculate river sequence & regions
-WRITE(LOGNAM,*) 'CMF::RIVMAP_INIT: calc rivseq & region'
-CALL CALC_RIVSEQ
+WRITE(LOGNAM,*) 'CMF::RIVMAP_INIT: calc region'
 CALL CALC_REGION
 
 !============================
@@ -183,12 +188,6 @@ CALL CALC_1D_SEQ                                  !! 2D map to 1D vector convers
 
 WRITE(LOGNAM,*) '  NSEQRIV=',NSEQRIV
 WRITE(LOGNAM,*) '  NSEQALL=',NSEQALL
-
-! for MPI, nor used in v395
-!IF( REGIONTHIS==1 )THEN
-!  WRITE(LOGNAM,*) 'INIT_MAP: NSEQMAX=',NSEQMAX
-!  WRITE(LOGNAM,*) 'INIT_MAP: RIVSEQMAX=',RIVSEQMAX
-!ENDIF
 
 !*** 3c. Write Map Data                                       !! used for combining mpi distributed output into one map
 IF( REGIONTHIS==1 )THEN
@@ -209,13 +208,14 @@ IF( LPTHOUT )THEN
   CALL READ_BIFPARAM
 ENDIF
 
+DEALLOCATE( I2NEXTX,I2NEXTY,I2REGION )
+
 WRITE(LOGNAM,*) 'CMF::RIVMAP_INIT: end'
 
 CONTAINS
 !==========================================================
 !+ READ_MAP_BIN
 !+ READ_MAP_CDF
-!+ CALC_RIVSEQ
 !+ CALC_REGION
 !+ CALC_1D_SEQ
 !+ READ_BIFPRM
@@ -226,7 +226,7 @@ USE YOS_CMF_INPUT,      ONLY: WEST,EAST,NORTH,SOUTH
 USE CMF_UTILS_MOD,      ONLY: INQUIRE_FID, CONV_ENDI
 IMPLICIT NONE
 !* local variables
-INTEGER(KIND=JPIM)         :: IX,IY
+INTEGER(KIND=JPIM),SAVE    :: IX,IY
 !==========================================================
 !*** read river map
 WRITE(LOGNAM,*)'RIVMAP_INIT: nextxy binary: ',TRIM(CNEXTXY)
@@ -242,13 +242,17 @@ IF ( LMAPEND )THEN
 ENDIF
 
 !*** calculate lat, lon
-IF( WEST>-180._JPRB .and. EAST<360._JPRB .and. SOUTH>=-180._JPRB .and. NORTH<=180._JPRB )THEN
+IF( WEST>=-180._JPRB .and. EAST<=360._JPRB .and. SOUTH>=-180._JPRB .and. NORTH<=180._JPRB )THEN  !! bugfix_v396a
+  !$OMP PARALLEL DO
   DO IX=1,NX
     D1LON(IX)=WEST +(DBLE(IX)-0.5D0)*(EAST-WEST)  /DBLE(NX)
   ENDDO
+  !$OMP END PARALLEL DO
+  !$OMP PARALLEL DO
   DO IY=1,NY
     D1LAT(IY)=NORTH-(DBLE(IY)-0.5D0)*(NORTH-SOUTH)/DBLE(NY)
   ENDDO
+  !$OMP END PARALLEL DO
 ENDIF
 
 END SUBROUTINE READ_MAP_BIN
@@ -292,189 +296,71 @@ END SUBROUTINE READ_MAP_CDF
 !+
 !+
 !==========================================================
-SUBROUTINE CALC_RIVSEQ
-IMPLICIT NONE
-!* local variables
-INTEGER(KIND=JPIM) :: IX, IY, JX, JY
-INTEGER(KIND=JPIM) :: SEQNOW, NEXT
-!================================================
-WRITE(LOGNAM,*) 'RIVMAP_INIT: calculate river sequence'
-I2RIVSEQ(:,:)=1
-DO IY=1, NY
-  DO IX=1, NX
-    IF( I2NEXTX(IX,IY)>0 )THEN
-      JX=I2NEXTX(IX,IY)
-      JY=I2NEXTY(IX,IY)
-      I2RIVSEQ(JX,JY)=0
-    ELSEIF( I2NEXTX(IX,IY)==-9999 )THEN
-      I2RIVSEQ(IX,IY)=-9999
-    ENDIF
-  END DO
-END DO
-
-SEQNOW=0
-NEXT=1
-DO WHILE(NEXT>0 )
-  SEQNOW=SEQNOW+1
-  NEXT=0
-  DO IY=1, NY
-    DO IX=1, NX
-      IF( I2RIVSEQ(IX,IY)==SEQNOW )THEN
-        IF( I2NEXTX(IX,IY)>0 )THEN
-          JX=I2NEXTX(IX,IY)
-          JY=I2NEXTY(IX,IY)
-          IF( I2RIVSEQ(JX,JY)<=SEQNOW )THEN
-            NEXT=NEXT+1
-            I2RIVSEQ(JX,JY)=SEQNOW+1
-          ENDIF
-        ENDIF
-      ENDIF
-    END DO
-  ENDDO
-END DO
-RIVSEQMAX=SEQNOW
-WRITE(LOGNAM,*) '  RIVSEQMAX = ', RIVSEQMAX
-
-END SUBROUTINE CALC_RIVSEQ
-!==========================================================
-!+
-!+
-!+
-!==========================================================
-SUBROUTINE CALC_REGION    !! evenly allocate pixels to mpi nodes (not used in v395)
+SUBROUTINE CALC_REGION    !! evenly allocate pixels to mpi nodes (updated in v4.03. MPI region given from file)
 USE YOS_CMF_INPUT,           ONLY: IMIS
 IMPLICIT NONE
 !* local variables
-INTEGER(KIND=JPIM),ALLOCATABLE  :: I2BASIN(:,:)
-INTEGER(KIND=JPIM),ALLOCATABLE  :: I2UPGRID(:,:)
-INTEGER(KIND=JPIM),ALLOCATABLE  :: BASINGRID(:)
 INTEGER(KIND=JPIM),ALLOCATABLE  :: REGIONGRID(:)
-INTEGER(KIND=JPIM),ALLOCATABLE  :: BASINREGION(:)
 !
-INTEGER(KIND=JPIM)              :: IX,IY,   JX,JY,   KX,KY, ISEQ, UPG
-INTEGER(KIND=JPIM)              :: IBASIN,  BASINMAX
-INTEGER(KIND=JPIM)              :: IREGION, JREGION, GRIDMIN
+INTEGER(KIND=JPIM),SAVE              :: IX,IY
+INTEGER(KIND=JPIM),SAVE         :: IREGION
+!$OMP THREADPRIVATE               (IX)
 !================================================
 WRITE(LOGNAM,*) 'RIVMAP_INIT: region code'
 
-ALLOCATE(I2BASIN(NX,NY))
-ALLOCATE(I2UPGRID(NX,NY))
-
-WRITE(LOGNAM,*)'  calculate upstream grid number'
-I2UPGRID(:,:)=0
+!*** read MPI region map
+REGIONALL=1
+I2REGION(:,:)=IMIS
+!$OMP PARALLEL DO
 DO IY=1, NY
   DO IX=1, NX
-    IF( I2RIVSEQ(IX,IY)==1 ) THEN
-      JX=IX
-      JY=IY
-      I2UPGRID(JX,JY)=1
-      UPG=I2UPGRID(JX,JY)
-      DO WHILE( I2NEXTX(JX,JY)>0 )  !! IF RIVER REACHES MOUTH, END LOOP
-        KX=I2NEXTX(JX,JY)
-        KY=I2NEXTY(JX,JY)
-        JX=KX
-        JY=KY
-        IF( I2UPGRID(JX,JY)==0 )THEN               !! GRIDS FIRSTLY CHECKED
-          I2UPGRID(JX,JY)=UPG+1
-          UPG=I2UPGRID(JX,JY)
-        ELSE                                       !! GRIDS ALREADY CHECKED
-          I2UPGRID(JX,JY)=I2UPGRID(JX,JY)+UPG
-        ENDIF
-      END DO
+    IF( I2NEXTX(IX,IY)/=IMIS ) THEN
+      I2REGION(IX,IY)=1
     ENDIF
   END DO
 END DO
+!$OMP END PARALLEL DO
 
-WRITE(LOGNAM,*)'  calculate basin'
-I2BASIN(:,:)=0
-IBASIN=0
-DO ISEQ=RIVSEQMAX, 1, -1
+!! Use MPI: read MPI region map, allocate regions to MPI nodes
+#ifdef UseMPI_CMF
+  WRITE(LOGNAM,*)'RIVMAP_INIT: read MPI region: ',TRIM(CNEXTXY)
+  TMPNAM=INQUIRE_FID()
+  OPEN(TMPNAM,FILE=CMPIREG,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NX*NY)
+  READ(TMPNAM,REC=1) I2REGION
+  CLOSE(TMPNAM)
+  
+  REGIONALL=1
+!$OMP PARALLEL DO REDUCTION(max:REGIONALL)
   DO IY=1, NY
     DO IX=1, NX
-      IF( I2RIVSEQ(IX,IY)==ISEQ .AND. I2NEXTX(IX,IY)<0 .AND. I2RIVSEQ(IX,IY)/=IMIS )THEN
-        IBASIN=IBASIN+1
-        I2BASIN(IX,IY)=IBASIN
-      ENDIF
+      REGIONALL=MAX( REGIONALL, I2REGION(IX,IY) )
     END DO
   END DO
-END DO
-BASINMAX=IBASIN
+!$OMP END PARALLEL DO
+#endif
 
-DO IY=1, NY
-  DO IX=1, NX
-    JX=IX
-    JY=IY
-    DO WHILE( I2BASIN(JX,JY)==0 .and. I2NEXTX(JX,JY)>0 )
-      KX=I2NEXTX(JX,JY)
-      KY=I2NEXTY(JX,JY)
-      JX=KX
-      JY=KY
-    END DO
-    IBASIN=I2BASIN(JX,JY)
-    JX=IX
-    JY=IY
-    DO WHILE( I2BASIN(JX,JY)==0 .and. I2NEXTX(JX,JY)>0  )
-      I2BASIN(JX,JY)=IBASIN
-      KX=I2NEXTX(JX,JY)
-      KY=I2NEXTY(JX,JY)
-      JX=KX
-      JY=KY
-    END DO
-  END DO
-END DO
-ALLOCATE(BASINGRID(BASINMAX))
-ALLOCATE(BASINREGION(BASINMAX))
+
+WRITE(LOGNAM,*)'RIVMAP_INIT: count number of grid in each region: '
 ALLOCATE(REGIONGRID(REGIONALL))
-
-WRITE(LOGNAM,*)'  allocate basin to cpu (MPI)'
+REGIONGRID(:)=0
+!! OMP reduction operation for array might not be available in some environment
 DO IY=1, NY
   DO IX=1, NX
-    IF( I2NEXTX(IX,IY)<0 .and. I2NEXTX(IX,IY)/=IMIS )THEN
-      IBASIN=I2BASIN(IX,IY)
-      BASINGRID(IBASIN)=I2UPGRID(IX,IY)
+    IF( I2REGION(IX,IY)>0 ) THEN
+      IREGION=I2REGION(IX,IY)
+      REGIONGRID(IREGION)=REGIONGRID(IREGION)+1
     ENDIF
   END DO
-END DO
-
-
-REGIONGRID(:)=0
-JREGION=1
-DO IBASIN=1, BASINMAX
-  GRIDMIN=NX*NY
-  DO IREGION=1, REGIONALL
-    IF( REGIONGRID(IREGION) < GRIDMIN )THEN
-      GRIDMIN=REGIONGRID(IREGION)
-      JREGION=IREGION
-    ENDIF
-  END DO
-  BASINREGION(IBASIN)=JREGION
-  REGIONGRID(JREGION)=REGIONGRID(JREGION)+BASINGRID(IBASIN)
-!   write(*,*)IBASIN,BASINGRID(IBASIN),JREGION
 END DO
 
 NSEQMAX=0
 DO IREGION=1, REGIONALL
-  IF( REGIONTHIS==1 )THEN
-    WRITE(LOGNAM,*) 'CALC_REGION: ', IREGION, REGIONGRID(IREGION)
-  ENDIF
-!   WRITE(*,*) 'CALC_REGION: ', IREGION, REGIONGRID(IREGION)
-  NSEQMAX=MAX(NSEQMAX,REGIONGRID(IREGION))
+  NSEQMAX=MAX(NSEQMAX,REGIONGRID(IREGION))  !! maximum nseqall among all MPI region
 END DO
 
-DO IY=1, NY
-  DO IX=1, NX
-    IF( I2BASIN(IX,IY)>0 .and. I2NEXTX(IX,IY)/=-9999 )THEN
-      IBASIN=I2BASIN(IX,IY)
-      I2REGION(IX,IY)=BASINREGION(IBASIN)
-    ENDIF
-  END DO
-END DO
-
-DEALLOCATE(BASINGRID)
-DEALLOCATE(BASINREGION)
-DEALLOCATE(REGIONGRID)
-DEALLOCATE(I2BASIN)
-DEALLOCATE(I2UPGRID)
+WRITE(LOGNAM,*) 'CALC_REGION: REGIONALL= ', REGIONALL
+WRITE(LOGNAM,*) 'CALC_REGION: NSEQMAX='   , NSEQMAX
+WRITE(LOGNAM,*) 'CALC_REGION: NSEQALL='   , NSEQALL
 
 END SUBROUTINE CALC_REGION
 !==========================================================
@@ -483,12 +369,18 @@ END SUBROUTINE CALC_REGION
 !+
 !==========================================================
 SUBROUTINE CALC_1D_SEQ
+! OpenMP is not used, because results of this subroutine highly depents on calculation order
 USE YOS_CMF_INPUT,           ONLY: IMIS
 IMPLICIT NONE
 !* local variables
-INTEGER(KIND=JPIM)              :: IX,IY,JX,JY,ISEQ
+INTEGER(KIND=JPIM)              :: IX,IY,JX,JY,ISEQ,JSEQ,ISEQ1,ISEQ2,AGAIN
+
+INTEGER(KIND=JPIM),ALLOCATABLE  :: NUPST(:,:), UPNOW(:,:)
 !================================================
 WRITE(LOGNAM,*) 'RIVMAP_INIT: convert 2D map to 1D sequence'
+
+ALLOCATE( NUPST(NX,NY) )
+ALLOCATE( UPNOW(NX,NY) )
 
 ALLOCATE( I1SEQX(NSEQMAX) )
 ALLOCATE( I1SEQY(NSEQMAX) )
@@ -499,19 +391,60 @@ I1SEQY(:)=0
 I1NEXT(:)=0
 I2VECTOR(:,:)=0
 
+! count number of upstream 
+NUPST(:,:)=0
+UPNOW(:,:)=0
+DO IY=1, NY
+  DO IX=1, NX
+    IF( I2NEXTX(IX,IY).GT.0 .and. I2REGION(IX,IY)==REGIONTHIS )THEN
+      JX=I2NEXTX(IX,IY)
+      JY=I2NEXTY(IX,IY)
+      NUPST(JX,JY)=NUPST(JX,JY)+1
+    ENDIF
+  END DO
+END DO
+
+! register upmost grid in 1d sequence
 ISEQ=0
 DO IY=1, NY
   DO IX=1, NX
     IF( I2NEXTX(IX,IY).GT.0 .and. I2REGION(IX,IY)==REGIONTHIS )THEN
-      ISEQ=ISEQ+1
-      I1SEQX(ISEQ)=IX
-      I1SEQY(ISEQ)=IY
-      I2VECTOR(IX,IY)=ISEQ
+      IF( NUPST(IX,IY)==UPNOW(IX,IY) )THEN
+        ISEQ=ISEQ+1
+        I1SEQX(ISEQ)=IX
+        I1SEQY(ISEQ)=IY
+        I2VECTOR(IX,IY)=ISEQ
+      ENDIF
     ENDIF
   END DO
 END DO
-NSEQRIV=ISEQ
+ISEQ1=1
+ISEQ2=ISEQ
 
+AGAIN=1
+DO WHILE( AGAIN==1 )
+  AGAIN=0
+  JSEQ=ISEQ2
+  DO ISEQ=ISEQ1, ISEQ2
+    IX=I1SEQX(ISEQ)
+    IY=I1SEQY(ISEQ)
+    JX=I2NEXTX(IX,IY)
+    JY=I2NEXTY(IX,IY)
+    UPNOW(JX,JY)=UPNOW(JX,JY)+1
+    IF( UPNOW(JX,JY)==NUPST(JX,JY) .and. I2NEXTX(JX,JY)>0 )THEN !! if all upstream calculated, register to 1D sequence
+      JSEQ=JSEQ+1
+      I1SEQX(JSEQ)=JX
+      I1SEQY(JSEQ)=JY
+      I2VECTOR(JX,JY)=JSEQ
+      AGAIN=1
+    ENDIF
+  END DO
+  ISEQ1=ISEQ2+1
+  ISEQ2=JSEQ
+END DO
+NSEQRIV=JSEQ
+
+ISEQ=NSEQRIV
 DO IY=1, NY
   DO IX=1, NX
     IF( I2NEXTX(IX,IY).LT.0 .AND. I2NEXTX(IX,IY).NE.IMIS .AND. I2REGION(IX,IY)==REGIONTHIS )THEN
@@ -532,9 +465,11 @@ DO ISEQ=1, NSEQALL
     JY=I2NEXTY(IX,IY)
     I1NEXT(ISEQ)=I2VECTOR(JX,JY)
   ELSE
-    I1NEXT(ISEQ)=-9
+    I1NEXT(ISEQ)=I2NEXTX(IX,IY)
   ENDIF
 END DO
+
+DEALLOCATE(NUPST,UPNOW)
       
 END SUBROUTINE CALC_1D_SEQ
 !==========================================================
@@ -542,7 +477,7 @@ END SUBROUTINE CALC_1D_SEQ
 !+
 !+
 !==========================================================
-SUBROUTINE READ_BIFPARAM    !! evenly allocate pixels to mpi nodes (not used in v395)
+SUBROUTINE READ_BIFPARAM    !! evenly allocate pixels to mpi nodes (not used in vcurrent version)
 USE YOS_CMF_INPUT,      ONLY: PMANRIV, PMANFLD
 USE YOS_CMF_MAP,        ONLY: NPTHOUT, NPTHLEV, PTH_UPST, PTH_DOWN,&
                             & PTH_DST, PTH_ELV, PTH_WTH,  PTH_MAN
@@ -582,14 +517,14 @@ DO IPTH=1, NPTHOUT
       IF( PWTH>0 )then
         PTH_ELV(IPTH,ILEV)=PELV - PDPH
       ELSE
-        PTH_ELV(IPTH,ILEV)=1.D20
+        PTH_ELV(IPTH,ILEV)=1.E20
       ENDIF
     ELSE
       PWTH=PTH_WTH(IPTH,ILEV)
       IF( PWTH>0 )then
         PTH_ELV(IPTH,ILEV)=PELV + ILEV - 2.0    !! ILEV=2: bank top level 
       ELSE
-        PTH_ELV(IPTH,ILEV)=1.D20
+        PTH_ELV(IPTH,ILEV)=1.E20
       ENDIF
     ENDIF
   END DO
@@ -623,13 +558,12 @@ SUBROUTINE CMF_TOPO_INIT
 ! read & set topography map 
 ! -- call from CMF_DRV_INIT
 USE YOS_CMF_INPUT,  ONLY: TMPNAM,   NX,NY,NLFP, LMAPEND,  &
-                        & LFPLAIN,  LMEANSL,  LGDWDLY,  LSLPMIX, &
-                        & LSLOPEMOUTH
+                        & LFPLAIN,  LMEANSL,  LGDWDLY,  LSLPMIX, LSLOPEMOUTH
 USE YOS_CMF_MAP,    ONLY: D2NXTDST, D2GRAREA, D2ELEVTN, D2RIVLEN, &
                         & D2RIVWTH, D2RIVHGT, D2FLDHGT, D2RIVELV, &
                         & D2FLDGRD, D2RIVMAN, D2RIVSTOMAX, D2FLDSTOMAX,  &
                         & DFRCINC,  NSEQALL,  NSEQMAX, D2MEANSL, D2DWNELV, &
-                        & D2GDWDLY, I2MASK, D2ELEVSLOPE
+                        & D2GDWDLY, I2MASK
 IMPLICIT NONE
 !================================================
 WRITE(LOGNAM,*) ""
@@ -661,7 +595,7 @@ D2RIVMAN(:,:)  =0._JPRB
 D2MEANSL(:,:)  =0._JPRB
 D2DWNELV(:,:)  =0._JPRB
 D2GDWDLY(:,:)  =0._JPRB
-I2MASK(:,:)    =0._JPIM     !! mask for calculation (only for IFS slopemix in v395)
+I2MASK(:,:)    =0._JPIM     !! mask for calculation (only for IFS slopemix)
 
 !============================
 ! *** 2. Read topo map
@@ -683,7 +617,7 @@ IF ( LFPLAIN ) THEN
   D2RIVSTOMAX(:,:) = D2RIVLEN(:,:) * D2RIVWTH(:,:) * D2RIVHGT(:,:)
 ELSE
   WRITE(LOGNAM,*) 'TOPO_INIT: no floodplain (rivstomax=1.D18)'
-  D2RIVSTOMAX(:,:) = 1.D18
+  D2RIVSTOMAX(:,:) = 1.E18
 ENDIF
 D2RIVELV(:,:) = D2ELEVTN(:,:) - D2RIVHGT(:,:)
 
@@ -794,11 +728,9 @@ ENDIF
 IF( LSLPMIX )THEN
   WRITE(LOGNAM,*)'TOPO_INIT: LSLPMIX only used in IFS, not availabke with binary map'
 ENDIF
-
 IF( LSLOPEMOUTH )THEN
   WRITE(LOGNAM,*)'TOPO_INIT: LSLOPEMOUTH only used in IFS, not availabke with binary map'
 ENDIF
-
 
 ! ==========
 
@@ -824,6 +756,7 @@ SUBROUTINE READ_TOPO_CDF
 #ifdef UseCDF_CMF
 USE NETCDF 
 USE CMF_UTILS_MOD,            ONLY: NCERROR,MAP2VEC
+USE YOS_CMF_MAP,              ONLY: D2ELEVSLOPE     !! only used in ECMWF
 IMPLICIT NONE
 !* local variables
 INTEGER(KIND=JPIM)               :: NCID,VARID,STATUS
@@ -865,6 +798,8 @@ DO ILEV=1,NLFP
   D2FLDHGT(:,:,ILEV)=D2TEMP(:,:)
 ENDDO
 
+CALL NCERROR( NF90_CLOSE(NCID))
+
 IF ( LSLOPEMOUTH ) THEN
   ALLOCATE( D2ELEVSLOPE(NSEQMAX,1) )
   WRITE(LOGNAM,*)'TOPO_INIT: elevslope:',TRIM(CRIVPARNC)
@@ -877,8 +812,6 @@ IF ( LSLOPEMOUTH ) THEN
   ENDIF 
   CALL MAP2VEC(R2TEMP,D2ELEVSLOPE)
 ENDIF
-
-CALL NCERROR( NF90_CLOSE(NCID))
 
 !!========== 
 !! PAR FILE (river channel / groundwater parameters)
@@ -941,19 +874,21 @@ END SUBROUTINE READ_TOPO_CDF
 SUBROUTINE SET_FLDSTG
 IMPLICIT NONE
 !* local variables
-INTEGER(KIND=JPIM)  ::  ISEQ, I
-REAL(KIND=JPRB)     ::  DSTONOW
-REAL(KIND=JPRB)     ::  DSTOPRE
-REAL(KIND=JPRB)     ::  DHGTPRE
-REAL(KIND=JPRB)     ::  DWTHINC
+INTEGER(KIND=JPIM),SAVE  ::  ISEQ, I
+REAL(KIND=JPRB),SAVE     ::  DSTONOW
+REAL(KIND=JPRB),SAVE     ::  DSTOPRE
+REAL(KIND=JPRB),SAVE     ::  DHGTPRE
+REAL(KIND=JPRB),SAVE     ::  DWTHINC
+!$OMP THREADPRIVATE               (I,DSTONOW,DSTOPRE,DHGTPRE,DWTHINC)
 !================================================
-D2FLDSTOMAX(:,:,:) = 0.D0
-D2FLDGRD(:,:,:)    = 0.D0
+D2FLDSTOMAX(:,:,:) = 0._JPRB
+D2FLDGRD(:,:,:)    = 0._JPRB
 DFRCINC=dble(NLFP)**(-1.)
 !
+!$OMP PARALLEL DO
 DO ISEQ=1, NSEQALL
   DSTOPRE = D2RIVSTOMAX(ISEQ,1)
-  DHGTPRE = 0.D0
+  DHGTPRE = 0._JPRB
   DWTHINC = D2GRAREA(ISEQ,1) * D2RIVLEN(ISEQ,1)**(-1.) * DFRCINC
   DO I=1, NLFP
     DSTONOW = D2RIVLEN(ISEQ,1) * ( D2RIVWTH(ISEQ,1) + DWTHINC*(DBLE(I)-0.5) ) * (D2FLDHGT(ISEQ,1,I)-DHGTPRE)
@@ -963,6 +898,8 @@ DO ISEQ=1, NSEQALL
     DHGTPRE = D2FLDHGT(ISEQ,1,I)
   END DO
 END DO
+!$OMP END PARALLEL DO
+
 !
 END SUBROUTINE SET_FLDSTG
 !==========================================================
