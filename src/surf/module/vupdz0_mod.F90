@@ -48,7 +48,7 @@ USE YOS_URB   , ONLY : TURB
 !     Modified   I. Sandu and G. Balsamo 21/01/2015 gradual change of roughness for exposed snow
 !     Modified   J. Bidlot 15/12/2018 to use PZ0WN to initialise Z0 over the oceans for step 0
 !     Modified   J. Bidlot 15/02/2021 Sea state effect in Z0H and Z0Q over the oceans (under LWCOU2W and LWCOUHMF switches).
-
+!     Modified   J. Bidlot 21/09/2022 to use PZ0WN to update Z0 and u* over the oceans (under LWCOU2W switch)
 !     PURPOSE
 !     -------
 
@@ -173,6 +173,7 @@ INTEGER(KIND=JPIM) :: JL,JTILE
 
 REAL(KIND=JPRB) :: Z1DZ0Q, ZCON2, ZIPBL, ZNLEV, ZPRH1,&
  & ZPRQ, ZPRQ0, ZROWQ, ZROWT, &
+ & ZZ0N, &
  & ZWST2, &
  & ZXLNQ,ZZCDN,ZCDFC  
 REAL(KIND=JPRB) :: Z0M, Z0H, Z0Q, Z0WHQ
@@ -326,6 +327,27 @@ IF (LLINIT) THEN
   ENDDO
 ENDIF
 
+
+!* DETERMINE the friction velocity u*
+! Over the oceans, update u* based on solving iteratively the neutral wind profile if Charnock was updated by the wave model.
+JTILE=1
+IF( LWCOU2W ) THEN
+  DO JL=KIDIA,KFDIA
+    ZZ0N=PZ0WN(ZDUA(JL),PGEOMLEV(JL), PCHAR(JL), RG, RNUM, RKAP)
+    ZUST2(JL,JTILE)=(ZDUA(JL)*RKAP/LOG(1.0_JPRB+PGEOMLEV(JL)/(RG*ZZ0N)))**2
+  ENDDO
+ELSE
+  DO JL=KIDIA,KFDIA
+    ZUST2(JL,JTILE)=SQRT(PUSTRTI(JL,JTILE)**2+PVSTRTI(JL,JTILE)**2)/ZRHO(JL)
+  ENDDO
+ENDIF
+! For all other tiles, get it from the surface stress
+DO JTILE=2,KTILES
+  DO JL=KIDIA,KFDIA
+    ZUST2(JL,JTILE)=SQRT(PUSTRTI(JL,JTILE)**2+PVSTRTI(JL,JTILE)**2)/ZRHO(JL)
+  ENDDO
+ENDDO
+
 !*         4.      STABILITY PARAMETERS AND FREE CONVECTION
 !                  VELOCITY SCALE
 !
@@ -340,7 +362,6 @@ DO JTILE=1,KTILES
     ZROWQ=PEVAPTI(JL,JTILE)
     ZROWT=PAHFSTI(JL,JTILE)/RCPD
     PBUOMTI(JL,JTILE)=RG*(-RETV*ZROWQ-ZROWT/PTSKTI(JL,JTILE))/ZRHO(JL)
-    ZUST2(JL,JTILE)=SQRT(PUSTRTI(JL,JTILE)**2+PVSTRTI(JL,JTILE)**2)/ZRHO(JL)
 
 !     APPLY W* CORRECTION
 
