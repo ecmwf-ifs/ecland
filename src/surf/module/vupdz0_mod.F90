@@ -169,11 +169,11 @@ TYPE(TURB)        ,INTENT(IN)    :: YDURB
 !*    LOCAL STORAGE
 !     ----- -------
 
-INTEGER(KIND=JPIM) :: JL,JTILE
+INTEGER(KIND=JPIM) :: JL,JTILE, ITER
 
 REAL(KIND=JPRB) :: Z1DZ0Q, ZCON2, ZIPBL, ZNLEV, ZPRH1,&
  & ZPRQ, ZPRQ0, ZROWQ, ZROWT, &
- & ZZ0N, &
+ & ZZ, ZZETA, Z0OL, ZPHIM1, ZPHIM0, &
  & ZWST2, &
  & ZXLNQ,ZZCDN,ZCDFC  
 REAL(KIND=JPRB) :: Z0M, Z0H, Z0Q, Z0WHQ
@@ -328,26 +328,6 @@ IF (LLINIT) THEN
 ENDIF
 
 
-!* DETERMINE the friction velocity u*
-! Over the oceans, update u* based on solving iteratively the neutral wind profile if Charnock was updated by the wave model.
-JTILE=1
-IF( LWCOU2W ) THEN
-  DO JL=KIDIA,KFDIA
-    ZZ0N=PZ0WN(ZDUA(JL),PGEOMLEV(JL), PCHAR(JL), RG, RNUM, RKAP)
-    ZUST2(JL,JTILE)=(ZDUA(JL)*RKAP/LOG(1.0_JPRB+PGEOMLEV(JL)/(RG*ZZ0N)))**2
-  ENDDO
-ELSE
-  DO JL=KIDIA,KFDIA
-    ZUST2(JL,JTILE)=SQRT(PUSTRTI(JL,JTILE)**2+PVSTRTI(JL,JTILE)**2)/ZRHO(JL)
-  ENDDO
-ENDIF
-! For all other tiles, get it from the surface stress
-DO JTILE=2,KTILES
-  DO JL=KIDIA,KFDIA
-    ZUST2(JL,JTILE)=SQRT(PUSTRTI(JL,JTILE)**2+PVSTRTI(JL,JTILE)**2)/ZRHO(JL)
-  ENDDO
-ENDDO
-
 !*         4.      STABILITY PARAMETERS AND FREE CONVECTION
 !                  VELOCITY SCALE
 !
@@ -356,12 +336,16 @@ ENDDO
 !                  The value is choosen from Fig. 1 on page 37 of the ECMWF 
 !                  seminar proceedings on "Atmopshere-surface interaction", 
 !                  ie charqacteristic for 1 m/s in unstable situations. 
+
+!* DETERMINE the friction velocity u*
+
 ZCDFC=2.E-3_JPRB
 DO JTILE=1,KTILES
   DO JL=KIDIA,KFDIA
     ZROWQ=PEVAPTI(JL,JTILE)
     ZROWT=PAHFSTI(JL,JTILE)/RCPD
     PBUOMTI(JL,JTILE)=RG*(-RETV*ZROWQ-ZROWT/PTSKTI(JL,JTILE))/ZRHO(JL)
+    ZUST2(JL,JTILE)=SQRT(PUSTRTI(JL,JTILE)**2+PVSTRTI(JL,JTILE)**2)/ZRHO(JL)
 
 !     APPLY W* CORRECTION
 
@@ -374,6 +358,43 @@ DO JTILE=1,KTILES
     PZDLTI(JL,JTILE)=-PGEOMLEV(JL)*RKAP*PBUOMTI(JL,JTILE)/(RG*ZUST(JL,JTILE)**3)
   ENDDO
 ENDDO
+
+! Over the oceans, if coupled to the wave model, update u* based on solving iteratively the neutral wind profile
+! because Charnock was updated by the wave model using the neutral wind profile.
+! and then update with the stability effects.
+IF( LWCOU2W ) THEN
+  JTILE = 1
+  DO JL=KIDIA,KFDIA
+    Z0M = PZ0WN(ZDUA(JL), PGEOMLEV(JL), PCHAR(JL), RG, RNUM, RKAP)
+
+!   Iterate once to update PZDLTI and Z0M
+    DO ITER = 1,2
+      ZZ = PGEOMLEV(JL)/RG + Z0M
+      ZZETA = ZZ/PZDLTI(JL,JTILE)
+      Z0OL = Z0M/PZDLTI(JL,JTILE)
+      IF ( ZZETA >  0.0_JPRB) THEN
+        ZPHIM1 = PHIMS(ZZETA)
+        ZPHIM0 = PHIMS(Z0OL)
+      ELSE
+        ZPHIM1 = PHIMU(ZZETA)
+        ZPHIM0 = PHIMU(Z0OL)
+      ENDIF
+      ZUST2(JL,JTILE) = ( ZDUA(JL)*RKAP/(LOG(ZZ/Z0M) - ZPHIM1 + ZPHIM0) )**2
+
+!       APPLY W* CORRECTION
+      IF (PBUOMTI(JL,JTILE)  >  0.0_JPRB) THEN
+        ZWST2=(PBUOMTI(JL,JTILE)*ZIPBL)**ZCON2
+        ZUST2(JL,JTILE)=ZUST2(JL,JTILE)+ZCDFC*ZWST2
+      ENDIF
+
+      ZUST(JL,JTILE)=MAX(SQRT(ZUST2(JL,JTILE)),REPUST)
+      PZDLTI(JL,JTILE)=-PGEOMLEV(JL)*RKAP*PBUOMTI(JL,JTILE)/(RG*ZUST(JL,JTILE)**3)
+      Z0M = RNUM/UST(JL,JTILE) + PZ0SEA(RG,PCHAR(JL),ZUST2(JL,JTILE))
+    ENDDO
+
+  ENDDO
+ENDIF
+
 
 !*         5.    SETTING OF ROUGHNESS LENGTHS 
 !                ----------------------------
