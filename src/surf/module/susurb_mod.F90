@@ -84,6 +84,7 @@ REAL (KIND = JPRB):: zref      ! Reference height
 REAL (KIND = JPRB):: pi
 REAL (KIND = JPRB):: l_rec     ! Recirc. region length 
 REAL (KIND = JPRB):: width     ! Canyon Width
+REAL (KIND = JPRB):: wrr       ! Road/(road+Building)
 
 REAL (KIND = JPRB):: lrw       ! rescaling resistance over edge recirc.
 REAL (KIND = JPRB):: ltw       ! rescaling resistance over edge recirc.
@@ -170,7 +171,7 @@ RROATC  = 20.0_JPRB             ! Thermal conductivity of road (W m-1 K-1)(with 
 ! Mapped variables which are currently set as a single value
 RHGT    = 8.0_JPRB             ! Average building height (m) (estimated. from london see UK https://buildingheights.emu-analytics.net)
 RHWR    = 1.0_JPRB              ! Height-to-roadwidth (aspect) ratio
-RWRR    = 0.5_JPRB              ! Road-to-building+road ratio (width)
+RWRR    = 1.0_JPRB              ! Road-to-building ratio (width)
 
 RSOIEMIS= 0.95_JPRB             ! Emissivity of soil (not currently used)
 RSOITMP = 280.0_JPRB            ! Constant sub-soil temperature (K) (not currently used)
@@ -276,10 +277,14 @@ RURBSRES = 0.001_JPRB
 ! d_h     = 1.0_JPRB-RWRR*RCDA**(-(1.0_JPRB-RWRR))
 ! d_h     = max(d_h, 0.0_JPRB)
 ! d_h = max([1.0-(1.0-WRR)*RCDA^(WRR),0])
- d_h     = 1.0_JPRB-(1.0_JPRB-RWRR)*RCDA**(RWRR)
- disp    = max(d_h*RHGT,0.1_JPRB)
 
- RCANZTM = -((0.5_JPRB*0.55_JPRB*RCDG*(1.0_JPRB-d_h)*2.0_JPRB*RHWR*RWRR)/RVKSQ)**(-0.5_JPRB)
+! d_h     = 1.0_JPRB-(1.0_JPRB-RWRR)*RCDA**(RWRR)
+ wrr     = RWRR/(1.0_JPRB+RWRR) ! ROAD-TO-ROAD+BUILDING
+ d_h     = 1.0_JPRB-(1.0_JPRB-wrr)*RCDA**(wrr)
+
+ disp    = max(d_h*RHGT,0.1_JPRB)
+! RCANZTM = -((0.5_JPRB*0.55_JPRB*RCDG*(1.0_JPRB-d_h)*2.0_JPRB*RHWR*RWRR)/RVKSQ)**(-0.5_JPRB)
+ RCANZTM = -((0.5_JPRB*0.55_JPRB*RCDG*(1.0_JPRB-d_h)*2.0_JPRB*RHWR*wrr)/RVKSQ)**(-0.5_JPRB)
  RCANZTM = (1.0_JPRB-d_h)*EXP(RCANZTM)
  RCANZTM = RCANZTM*RHGT
  RCANZTM = max(RCANZTM, RBUIZ0M)
@@ -499,6 +504,12 @@ RURBTC  = (RWRR/(1.0_JPRB+RWRR))*RCANTC + (1.0_JPRB/(1.0_JPRB+RWRR))*RROOTC
 RURBTC1 = RURBTC*0.00001_JPRB
 
 RURBVHC  = (RWRR/(1.0_JPRB+RWRR))*RCANVHC + (1.0_JPRB/(1.0_JPRB+RWRR))*RROOVHC
+
+PRINT*, 'EMISS', RURBEMIS
+PRINT*, 'ZTM', RURBZTM
+PRINT*, 'ZTH', RURBZTH
+PRINT*, 'TC', RURBTC
+PRINT*, 'VHC', RURBVHC
 
 !==============================================================================
 
