@@ -505,12 +505,6 @@ RURBTC1 = RURBTC*0.00001_JPRB
 
 RURBVHC  = (RWRR/(1.0_JPRB+RWRR))*RCANVHC + (1.0_JPRB/(1.0_JPRB+RWRR))*RROOVHC
 
-PRINT*, 'EMISS', RURBEMIS
-PRINT*, 'ZTM', RURBZTM
-PRINT*, 'ZTH', RURBZTH
-PRINT*, 'TC', RURBTC
-PRINT*, 'VHC', RURBVHC
-
 !==============================================================================
 
 END ASSOCIATE
