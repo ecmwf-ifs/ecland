@@ -78,8 +78,9 @@ SUBROUTINE VOSKIN(KIDIA,KFDIA,KLON, &
 !     Modification of the stability function for stable condition and 
 !     Langmuir circulation effect 
 !     N.Semane+P.Bechtold 04-10-2012 Add PRPLRG factor for small planet
-!     A. Beljaars+P.Bechtold 28-12-2020 Saunders cst half+T depend viscosity
+!     A. Beljaars+P.Bechtold 28-12-2020 T depend viscosity
 !     R.Forbes 15-01-2021 corrected zeroing of ZDCOOL/ZDWARM to outside if test
+!     J. Bidlot T depend thermal expansion coefficient sea water 
 !
 !     -----------------------------------------------------------------------
 
