@@ -264,6 +264,10 @@ ZURBF=0.0_JPRB
 
 !*         2.      PRE-COMPUTATION OF TILE INDEPENDENT ARRAYS
 !                  
+
+
+write(0,*) 'debile in vupdz0_mod ',LLCURR
+
 DO JL=KIDIA,KFDIA
   ZRHO(JL)=PAPHMS(JL)/( RD*PTMLEV(JL)*(1.0_JPRB+RETV*PQMLEV(JL)) )
   IF(LLCURR) THEN
