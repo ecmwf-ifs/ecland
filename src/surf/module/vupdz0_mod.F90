@@ -234,17 +234,6 @@ ENDIF
 
 ZCON2  =2.0_JPRB/3._JPRB
 
-! Constants for Andreas z0h computation for snow
-zat_sn=-0.0061586_JPRD 
-zbt_sn=-0.12756_JPRD
-zct_sn=-0.66267_JPRD
-zdt_sn=0.25344_JPRD
-zaq_sn=-0.0054869_JPRB
-zbq_sn=-0.12027_JPRB
-zcq_sn=-0.68407_JPRB
-zdq_sn=0.48260_JPRB
-
-
 !     PBL HEIGHT FOR W* - EFFECT
 
 ZIPBL=RPARZI
