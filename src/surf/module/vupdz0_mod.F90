@@ -279,7 +279,7 @@ IF (LLINIT) THEN
 !       - Low Vegetation
     PZ0MTI(JL,4)=RVZ0M(KTVL(JL))
 !       - Exposed snow
-! blend between roughness of low vegetation and soil and roughness of ice caps, when snow depth below 50cm 
+! blend between roughness of low vegetation and soil and roughness of ice caps, when snow depth below 25cm 
     ZMLOW=PCVL(JL)/(1.0_JPRB-PCVH(JL))*RVZ0M(KTVL(JL))+(1.0_JPRB-PCVL(JL)-PCVH(JL))/(1.0_JPRB-PCVH(JL))*RVZ0M(0)
     PZ0MTI(JL,5)=ZSNWGHT(JL)*RVZ0M(12)+(1.0_JPRB-ZSNWGHT(JL))*ZMLOW
 !       - High vegetation

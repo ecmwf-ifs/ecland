@@ -7,6 +7,7 @@ SUBROUTINE SURFEXCDRIVERSTL_CTL( &
 ! input data, non-tiled
  & , KTVL, KTVH, PCVL, PCVH, PCUR &
  & , PLAIL, PLAIH &
+ & , PSNM5 , PRSN5 &
  & , PUMLEV5, PVMLEV5 , PTMLEV5, PQMLEV5, PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST   , PTSKM1M5, PCHAR  , PSSRFL5, PTICE5 , PTSNOW5  &
  & , PWLMX5 &
@@ -163,6 +164,8 @@ USE VEVAPSTL_MOD
 !  PTICE5      PTICE         Ice temperature, top slab                 K
 !  PTSNOW5     PTSNOW        Snow temperature                          K
 !  PWLMX5      ---           Maximum interception layer capacity       kg/m**2
+!  PSNM5       ---           SNOW MASS (per unit area)                      kg/m**2
+!  PRSN5       ---          SNOW DENSITY                                   kg/m**3
 
 !*      Reals with tile index (In/Out):
 !  Trajectory  Perturbation  Description                               Unit
@@ -248,6 +251,8 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVH(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCUR(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIL(KLON) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(KLON) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSNM5(:,:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PRSN5(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUMLEV5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PVMLEV5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTMLEV5(:)
@@ -389,6 +394,8 @@ REAL(KIND=JPRB) :: ZQSSN5, ZCOR5, ZCDRO5
 REAL(KIND=JPRB) :: ZQSSN, ZCOR, ZCONS1, ZZ0MWMO, ZZ0HWMO
 REAL(KIND=JPRB) :: ZDIV15, ZDIV25, Z3S5, Z4S5, Z3S, Z4S
 REAL(KIND=JPRB) :: ZCONS2
+REAL(KIND=JPRB) :: ZDSN5(KLON), ZDSN(KLON)
+
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 LOGICAL         :: LLAND, LLSICE, LLHISSR(KLON)
 #include "fcsttre.h"
@@ -420,6 +427,8 @@ IF ( KSTEP == 0) THEN
   ENDDO
 ENDIF
 
+! Total snow depth (m) 
+ZDSN5(KIDIA:KFDIA) = SUM( PSNM5(KIDIA:KFDIA,:) / PRSN5(KIDIA:KFDIA,:),DIM=2) 
 
 !*         1.2  UPDATE Z0
 
@@ -427,7 +436,7 @@ IF (LDNOPERT) THEN
   CALL VUPDZ0S(KIDIA,KFDIA,KLON,KTILES,KSTEP,&
    & KTVL, KTVH, PCVL, PCVH,PCUR,&
    & PUMLEV5 , PVMLEV5 ,&
-   & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5,&
+   & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5, ZDSN5,&
    & PUSTRTI5, PVSTRTI5, PAHFSTI5, PEVAPTI5 ,&
    & PTSKTI5 , PCHAR   , PFRTI   ,&
    & YDCST   , YDEXC   ,YDVEG    ,YDFLAKE   , YDURB  , &
@@ -447,7 +456,7 @@ ELSE
   CALL VUPDZ0STL(KIDIA,KFDIA,KLON,KTILES,KSTEP,&
    & KTVL, KTVH, PCVL, PCVH,PCUR,&
    & PUMLEV5 , PVMLEV5 ,&
-   & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5,&
+   & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5, ZDSN5,&
    & PUSTRTI5, PVSTRTI5, PAHFSTI5, PEVAPTI5 ,&
    & PTSKTI5 , PCHAR   , PFRTI   ,&
    & YDCST   , YDEXC   ,YDVEG    ,YDFLAKE   , YDURB   ,&

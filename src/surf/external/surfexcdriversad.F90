@@ -1,10 +1,11 @@
 SUBROUTINE SURFEXCDRIVERSAD  ( YDSURF, &
- &   KIDIA , KFDIA, KLON, KLEVS, KTILES, KSTEP &
+ &   KIDIA , KFDIA, KLON, KLEVS, KLEVSN, KTILES, KSTEP &
  & , PTSTEP, PRVDIFTS &
  & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF &
 ! input data, non-tiled - trajectory
  & , KTVL   , KTVH    , PCVL   , PCVH , PCUR &
  & , PLAIL  , PLAIH   &
+ & , PSNM5  , PRSN5 &
  & , PUMLEV5, PVMLEV5 , PTMLEV5, PQMLEV5, PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST   , PTSKM1M5, PCHAR  , PSSRFL5, PTICE5 , PTSNOW5  &
  & , PWLMX5 &
@@ -93,6 +94,7 @@ USE SURFEXCDRIVERSAD_CTL_MOD
 !      KFDIA    :    End point in arrays
 !      KLON     :    Length of arrays
 !      KLEVS    :    Number of soil layers
+!      KLEVSN   :    Number of snow layers
 !      KTILES   :    Number of tiles
 !      KSTEP    :    Time step index
 !      KTVL     :    Dominant low vegetation type
@@ -144,6 +146,8 @@ USE SURFEXCDRIVERSAD_CTL_MOD
 !  PTICE5      PTICE         Ice temperature, top slab                 K
 !  PTSNOW5     PTSNOW        Snow temperature                          K
 !  PWLMX5      ---           Maximum interception layer capacity       kg/m**2
+!     PSNM5    ---  :       SNOW MASS (per unit area)                      kg/m**2
+!     PRSN5    ---  :        SNOW DENSITY                                   kg/m**3
 
 !*      Reals with tile index (In/Out):
 !  Trajectory  Perturbation  Description                               Unit
@@ -210,6 +214,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS
+INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVSN
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTILES
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSTEP
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEP
@@ -227,6 +232,8 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVH(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCUR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSNM5(:,:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PRSN5(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUMLEV5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PVMLEV5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTMLEV5(:)
@@ -903,6 +910,20 @@ IF(UBOUND(PBUOMTI,2) < KTILES) THEN
   CALL ABORT_SURF('SURFPPS:: SECOND DIMENSION OF PBUOMTI TOO SHORT!')
 ENDIF
 
+IF(UBOUND(PSNM5,1) < KLON) THEN
+  CALL ABORT_SURF('SURFEXCDRIVER: PSNM5 TOO SHORT!')
+ENDIF
+
+IF(UBOUND(PSNM5,2) < KLEVSN) THEN
+  CALL ABORT_SURF('SURFEXCDRIVER: PSNM5 LEVEL TOO SHORT!')
+ENDIF
+IF(UBOUND(PRSN5,1) < KLON) THEN
+  CALL ABORT_SURF('SURFEXCDRIVER: PRSN5 TOO SHORT!')
+ENDIF
+
+IF(UBOUND(PRSN5,2) < KLEVSN) THEN
+  CALL ABORT_SURF('SURFEXCDRIVER: PRSN5 LEVEL TOO SHORT!')
+ENDIF
 
 CALL SURFEXCDRIVERSAD_CTL( &
  &   KIDIA    , KFDIA, KLON, KLEVS, KTILES, KSTEP &
@@ -910,6 +931,7 @@ CALL SURFEXCDRIVERSAD_CTL( &
  & , LDNOPERT , LDKPERTS, LDSURF2, LDREGSF &
  & , KTVL     , KTVH    , PCVL   , PCVH, PCUR &
  & , PLAIL    , PLAIH &
+ & , PSNM5    , PRSN5 &
  & , PUMLEV5  , PVMLEV5 , PTMLEV5, PQMLEV5 , PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST     , PTSKM1M5, PCHAR  , PSSRFL5 , PTICE5 , PTSNOW5  &
  & , PWLMX5   &
