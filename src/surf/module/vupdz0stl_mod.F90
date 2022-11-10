@@ -61,7 +61,7 @@ USE YOS_URB   , ONLY : TURB
 !    G. Balsamo            16/10/2008  lake tile
 !    M. Janiskova          21/01/2015  stability param.consistent with NL
 !    J. Bidlot             15/12/2018  to use PZ0WN to initialise Z0M over the oceans for step 0
-!    J. Bidlot             15/02/2021 Sea state effect in Z0H and Z0Q over the oceans (under LWCOU2W and LWCOUHMF switches).
+!    J. Bidlot             15/02/2021 Sea state effect in Z0H and Z0Q over the oceans
 !    J. McNorton           24/08/2022  urban tile
 
 !     PURPOSE
@@ -226,7 +226,6 @@ ASSOCIATE(RCPD=>YDCST%RCPD, RD=>YDCST%RD, RETV=>YDCST%RETV, RG=>YDCST%RG, &
  & RNUH=>YDEXC%RNUH, RNUM=>YDEXC%RNUM, RNUQ=>YDEXC%RNUQ, RPARZI=>YDEXC%RPARZI, &
  & RZ0ICE=>YDEXC%RZ0ICE, &
  & LEFLAKE=>YDFLAKE%LEFLAKE,LEURBAN=>YDURB%LEURBAN, &
- & LWCOU2W=>YDEXC%LWCOU2W, LWCOUHMF=>YDEXC%LWCOUHMF, &
  & RVZ0H=>YDVEG%RVZ0H, RVZ0M=>YDVEG%RVZ0M, &
  & RURBZTM=>YDURB%RURBZTM,RURBZTH=>YDURB%RURBZTH)
 
@@ -430,37 +429,21 @@ ENDDO
 
 JTILE=1
 !   - Ocean open water
-! Momentum:
 DO JL=KIDIA,KFDIA
   ZDIV65(JL) = 1.0_JPRB/ZUST5(JL,JTILE)
   PZ0MTI (JL,JTILE) = -RNUM*ZDIV65(JL)*ZDIV65(JL)*ZUST(JL,JTILE) &
    & + (ZRGI*PCHAR(JL))*ZUST2(JL,JTILE)
   PZ0MTI5(JL,JTILE) =  RNUM*ZDIV65(JL)+(ZRGI*PCHAR(JL))*ZUST25(JL,JTILE)
+  Z0H               = RNUH*ZDIV65(JL)
+  PZ0HTI5(JL,JTILE) = SQRT(Z0H*PZ0MTI5(JL,JTILE))
+  PZ0HTI (JL,JTILE) = 0.5_JPRB * Z0H * (-ZUST(JL,JTILE)*ZDIV65(JL)*PZ0MTI5(JL,JTILE) &
+                  & + PZ0MTI (JL,JTILE)) / PZ0HTI5(JL,JTILE)
+
+  Z0Q               = RNUQ*ZDIV65(JL)
+  PZ0QTI5(JL,JTILE) = SQRT(Z0Q*PZ0MTI5(JL,JTILE))
+  PZ0QTI (JL,JTILE) = 0.5_JPRB * Z0Q * (-ZUST(JL,JTILE)*ZDIV65(JL)*PZ0MTI5(JL,JTILE) &
+                  & + PZ0MTI (JL,JTILE)) / PZ0QTI5(JL,JTILE)
 ENDDO
-
-! Heat and moisture:
-IF( LWCOU2W .AND. LWCOUHMF) THEN
-  ! With sea state effect:
-  DO JL=KIDIA,KFDIA
-    Z0H               = RNUH*ZDIV65(JL)
-    PZ0HTI5(JL,JTILE) = SQRT(Z0H*PZ0MTI5(JL,JTILE))
-    PZ0HTI (JL,JTILE) = 0.5_JPRB * Z0H * (-ZUST(JL,JTILE)*ZDIV65(JL)*PZ0MTI5(JL,JTILE) &
-                    & + PZ0MTI (JL,JTILE)) / PZ0HTI5(JL,JTILE)
-
-    Z0Q               = RNUQ*ZDIV65(JL)
-    PZ0QTI5(JL,JTILE) = SQRT(Z0Q*PZ0MTI5(JL,JTILE))
-    PZ0QTI (JL,JTILE) = 0.5_JPRB * Z0Q * (-ZUST(JL,JTILE)*ZDIV65(JL)*PZ0MTI5(JL,JTILE) &
-                    & + PZ0MTI (JL,JTILE)) / PZ0QTI5(JL,JTILE)
-  ENDDO
-ELSE
-  ! Purely diffusive
-  DO JL=KIDIA,KFDIA
-    PZ0HTI (JL,JTILE) = -RNUH*ZDIV65(JL)*ZDIV65(JL)*ZUST(JL,JTILE)
-    PZ0HTI5(JL,JTILE) =  RNUH*ZDIV65(JL)
-    PZ0QTI (JL,JTILE) = -RNUQ*ZDIV65(JL)*ZDIV65(JL)*ZUST(JL,JTILE)
-    PZ0QTI5(JL,JTILE) =  RNUQ*ZDIV65(JL)
-  ENDDO
-ENDIF
 
 JTILE = 2
 !   - Sea ice
