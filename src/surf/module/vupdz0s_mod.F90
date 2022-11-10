@@ -48,7 +48,7 @@ USE YOS_URB   , ONLY : TURB
 !                G. Balsamo       16/10/2008 lake tile
 !                M. Janiskova     21/01/2015 stability param.consistent with NL
 !                J. Bidlot        15/12/2018  to use PZ0WN to initialise Z0M over the oceans for step 0
-!                J. Bidlot        15/02/2021 Sea state effect in Z0H and Z0Q over the oceans (under LWCOU2W and LWCOUHMF switches)
+!                J. Bidlot        15/02/2021 Sea state effect in Z0H and Z0Q over the oceans
 !                J. McNorton      24/08/2022 urban tile
 
 !     PURPOSE
@@ -159,7 +159,6 @@ REAL(KIND=JPRB) :: ZUST(KLON,KTILES), ZUST2(KLON,KTILES)
 REAL(KIND=JPRB) :: ZRHO(KLON), ZDU2(KLON), ZDUA(KLON), ZDIV6(KLON)
 REAL(KIND=JPRB) :: Z1DZ0Q, ZCON2, ZIPBL, ZNLEV, ZPRH1,&
  & ZPRQ, ZPRQ0, ZROWQ, ZROWT, ZUST4, ZWST2, ZXLNQ,&
- & ZLEV, ZLEVD, ZZETA, Z0OL, ZPHIM1, ZPHIM0, ZNN, Z1, Z2, Z3, &
  & ZZCDN
 REAL(KIND=JPRB) :: Z0S, Z1S, Z2S, Z3S, Z4S, Z5S, Z6S, Z7S, Z8S
 REAL(KIND=JPRB) :: ZEXP1, ZEXP2
@@ -197,7 +196,6 @@ ASSOCIATE(RCPD=>YDCST%RCPD, RD=>YDCST%RD, RETV=>YDCST%RETV, RG=>YDCST%RG, &
  & RNUH=>YDEXC%RNUH, RNUM=>YDEXC%RNUM, RNUQ=>YDEXC%RNUQ, RPARZI=>YDEXC%RPARZI, &
  & RZ0ICE=>YDEXC%RZ0ICE, &
  & LEFLAKE=>YDFLAKE%LEFLAKE,LEURBAN=>YDURB%LEURBAN, &
- & LWCOU2W=>YDEXC%LWCOU2W, LWCOUHMF=>YDEXC%LWCOUHMF, &
  & RVZ0H=>YDVEG%RVZ0H, RVZ0M=>YDVEG%RVZ0M, &
  & RURBZTM=>YDURB%RURBZTM,RURBZTH=>YDURB%RURBZTH)
 
@@ -338,59 +336,6 @@ DO JTILE=1,KTILES
   ENDDO
 ENDDO
 
-! Over the oceans, if coupled to the wave model, update u* based on solving iteratively the neutral wind profile
-! because Charnock was updated by the wave model using the neutral wind profile.
-! and then update with the stability effects.
-IF( LWCOU2W ) THEN
-  JTILE = 1
-  DO JL=KIDIA,KFDIA
-!    Wave model update only makes sense if there was wind
-    IF ( ZDUA(JL) > 4.0_JPRB ) THEN
-      Z1 = ZUST(JL,JTILE)
-      Z2 = ZUST2(JL,JTILE)
-      Z3 = PZDLTI(JL,JTILE)
-
-      Z0M = PZ0WN(ZDUA(JL), PGEOMLEV(JL), PCHAR(JL), RG, RNUM, RKAP)
-
-      ZLEV = PGEOMLEV(JL)/RG
-      ZLEVD = 1.0_JPRB/ZLEV
-!     Iterate once to update PZDLTI and Z0M
-      DO ITER = 1,2
-        ZZETA = (1.0_JPRB+Z0M*ZLEVD)*PZDLTI(JL,JTILE)
-        Z0OL = (Z0M*ZLEVD)*PZDLTI(JL,JTILE)
-        IF ( ZZETA >  0.0_JPRB) THEN
-          ZPHIM1 = PHIMS(ZZETA)
-          ZPHIM0 = PHIMS(Z0OL)
-        ELSE
-          ZPHIM1 = PHIMU(ZZETA)
-          ZPHIM0 = PHIMU(Z0OL)
-        ENDIF
-        ZNN = LOG(1.0_JPRB+ZLEV/Z0M) - ZPHIM1 + ZPHIM0
-        IF ( ZNN > 0.0_JPRB ) THEN
-          ZUST2(JL,JTILE) = ( ZDUA(JL)*RKAP/ZNN )**2
-
-!         APPLY W* CORRECTION
-          IF (PBUOMTI(JL,JTILE)  >  0.0_JPRB) THEN
-            ZWST2=(PBUOMTI(JL,JTILE)*ZIPBL)**ZCON2
-            ZUST2(JL,JTILE)=ZUST2(JL,JTILE)+ZCDFC*ZWST2
-          ENDIF
-
-          ZUST(JL,JTILE)=MAX(SQRT(ZUST2(JL,JTILE)),REPUST)
-          PZDLTI(JL,JTILE)=-PGEOMLEV(JL)*RKAP*PBUOMTI(JL,JTILE)/(RG*ZUST(JL,JTILE)**3)
-          Z0M = RNUM/ZUST(JL,JTILE) + PZ0SEA(RG,PCHAR(JL),ZUST2(JL,JTILE))
-        ELSE
-          ZUST(JL,JTILE) = Z1
-          ZUST2(JL,JTILE) = Z2
-          PZDLTI(JL,JTILE) = Z3
-          EXIT
-        ENDIF
-      ENDDO
-    ENDIF
-
-  ENDDO
-ENDIF
-
-
 
 !*         5.    SETTING OF ROUGHNESS LENGTHS
 !                ----------------------------
@@ -400,26 +345,11 @@ JTILE=1
 DO JL=KIDIA,KFDIA
   ZDIV6(JL) = 1.0_JPRB/ZUST(JL,JTILE)
   PZ0MTI(JL,JTILE) = RNUM*ZDIV6(JL) + (ZRGI*PCHAR(JL))*ZUST2(JL,JTILE)
+  Z0H              = RNUH*ZDIV6(JL)
+  PZ0HTI(JL,JTILE) = SQRT(Z0H*PZ0MTI(JL,JTILE))
+  Z0Q              = RNUQ*ZDIV6(JL)
+  PZ0QTI(JL,JTILE) = SQRT(Z0Q*PZ0MTI(JL,JTILE))
 ENDDO
-
-! Heat and moisture:
-IF( LWCOU2W .AND. LWCOUHMF) THEN
-  ! Sea state effect:
-!!can be simplified following 
-!!Peter A.E.M. Janssen, Jean-Raymond Bidlot, 2018: Progress in Operational Wave Forecasting,
-!!Procedia IUTAM 26, 14-29. IUTAM Symposium on Wind Waves,
-  DO JL=KIDIA,KFDIA
-    Z0H              = RNUH*ZDIV6(JL)
-    PZ0HTI(JL,JTILE) = SQRT(Z0H*PZ0MTI(JL,JTILE))
-    Z0Q              = RNUQ*ZDIV6(JL)
-    PZ0QTI(JL,JTILE) = SQRT(Z0Q*PZ0MTI(JL,JTILE))
-  ENDDO
-ELSE
-  DO JL=KIDIA,KFDIA
-    PZ0HTI(JL,JTILE) = RNUH*ZDIV6(JL)
-    PZ0QTI(JL,JTILE) = RNUQ*ZDIV6(JL)
-  ENDDO
-ENDIF
 
 JTILE = 2
 !   - Sea ice
