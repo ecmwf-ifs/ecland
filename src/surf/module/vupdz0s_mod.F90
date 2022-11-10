@@ -341,6 +341,10 @@ ENDDO
 ! Over the oceans, if coupled to the wave model, update u* based on solving iteratively the neutral wind profile
 ! because Charnock was updated by the wave model using the neutral wind profile.
 ! and then update with the stability effects.
+!!!debile
+write(0,*) 'debile in vupdz0s LWCOU2W ',LWCOU2W
+write(*,*) 'debile in vupdz0s LWCOU2W ',LWCOU2W
+
 IF( LWCOU2W ) THEN
   JTILE = 1
   DO JL=KIDIA,KFDIA
