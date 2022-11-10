@@ -175,7 +175,6 @@ INTEGER(KIND=JPIM) :: JL,JTILE, ITER
 
 REAL(KIND=JPRB) :: Z1DZ0Q, ZCON2, ZIPBL, ZNLEV, ZPRH1,&
  & ZPRQ, ZPRQ0, ZROWQ, ZROWT, &
- & ZLEV, ZLEVD, ZZETA, Z0OL, ZPHIM1, ZPHIM0, ZNN, Z1, Z2, Z3, &
  & ZWST2, &
  & ZXLNQ,ZZCDN,ZCDFC  
 REAL(KIND=JPRB) :: Z0M, Z0H, Z0Q, Z0WHQ
@@ -350,59 +349,6 @@ DO JTILE=1,KTILES
     PZDLTI(JL,JTILE)=-PGEOMLEV(JL)*RKAP*PBUOMTI(JL,JTILE)/(RG*ZUST(JL,JTILE)**3)
   ENDDO
 ENDDO
-
-! Over the oceans, if coupled to the wave model, update u* based on solving iteratively the neutral wind profile
-! because Charnock was updated by the wave model using the neutral wind profile.
-! and then update with the stability effects.
-IF( LWCOU2W ) THEN
-  JTILE = 1
-  DO JL=KIDIA,KFDIA
-!    Wave model update only makes sense if there was wind
-    IF ( ZDUA(JL) > 4.0_JPRB ) THEN
-      Z1 = ZUST(JL,JTILE)
-      Z2 = ZUST2(JL,JTILE)
-      Z3 = PZDLTI(JL,JTILE)
-
-      Z0M = PZ0WN(ZDUA(JL), PGEOMLEV(JL), PCHAR(JL), RG, RNUM, RKAP)
-
-      ZLEV = PGEOMLEV(JL)/RG
-      ZLEVD = 1.0_JPRB/ZLEV
-!     Iterate once to update PZDLTI and Z0M
-      DO ITER = 1,2
-        ZZETA = (1.0_JPRB+Z0M*ZLEVD)*PZDLTI(JL,JTILE)
-        Z0OL = (Z0M*ZLEVD)*PZDLTI(JL,JTILE)
-        IF ( ZZETA >  0.0_JPRB) THEN
-          ZPHIM1 = PHIMS(ZZETA)
-          ZPHIM0 = PHIMS(Z0OL)
-        ELSE
-          ZPHIM1 = PHIMU(ZZETA)
-          ZPHIM0 = PHIMU(Z0OL)
-        ENDIF
-        ZNN = LOG(1.0_JPRB+ZLEV/Z0M) - ZPHIM1 + ZPHIM0
-        IF ( ZNN > 0.0_JPRB ) THEN
-          ZUST2(JL,JTILE) = ( ZDUA(JL)*RKAP/ZNN )**2
-
-!         APPLY W* CORRECTION
-          IF (PBUOMTI(JL,JTILE)  >  0.0_JPRB) THEN
-            ZWST2=(PBUOMTI(JL,JTILE)*ZIPBL)**ZCON2
-            ZUST2(JL,JTILE)=ZUST2(JL,JTILE)+ZCDFC*ZWST2
-          ENDIF
-
-          ZUST(JL,JTILE)=MAX(SQRT(ZUST2(JL,JTILE)),REPUST)
-          PZDLTI(JL,JTILE)=-PGEOMLEV(JL)*RKAP*PBUOMTI(JL,JTILE)/(RG*ZUST(JL,JTILE)**3)
-          Z0M = RNUM/ZUST(JL,JTILE) + PZ0SEA(RG,PCHAR(JL),ZUST2(JL,JTILE))
-        ELSE
-          ZUST(JL,JTILE) = Z1
-          ZUST2(JL,JTILE) = Z2
-          PZDLTI(JL,JTILE) = Z3
-          EXIT
-        ENDIF
-      ENDDO
-    ENDIF
-
-  ENDDO
-ENDIF
-
 
 !*         5.    SETTING OF ROUGHNESS LENGTHS 
 !                ----------------------------
