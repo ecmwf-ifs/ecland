@@ -185,6 +185,7 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 REAL(KIND=JPRB) :: ZLICE(KLON),ZLWAT(KLON)
 REAL(KIND=JPRD) :: ZDUMMY
+REAL(KIND=JPRD) :: zat_sn, zbt_sn,  zct_sn , zdt_sn, zaq_sn, zbq_sn, zcq_sn, zdq_sn, Rstar
 REAL(KIND=JPRB) :: ZURBF, ZPCVL, ZPCVH, ZPCVB
 
 
