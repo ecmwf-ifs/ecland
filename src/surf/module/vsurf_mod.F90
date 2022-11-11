@@ -681,7 +681,7 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
 !           bare ground fraction
       ZBARE=PFRTI(JL,8)
       IF (LEURBAN) THEN
-       ZBARE=PFRTI(JL,8)+PFRTI(JL,9)
+       ZBARE=PFRTI(JL,8)+PFRTI(JL,10)
       ENDIF
       IF (LEVGEN) THEN
          JS=KSOTY(JL)
