@@ -1,6 +1,6 @@
 MODULE SURFSEBS_CTL_MOD
 CONTAINS
-SUBROUTINE SURFSEBS_CTL(KIDIA,KFDIA,KLON,KTILES,KTVL,KTVH,&
+SUBROUTINE SURFSEBS_CTL(KIDIA,KFDIA,KLON,KTILES,LDSICE,KTVL,KTVH,&
  & PTMST,PSSKM1M,PTSKM1M,PQSKM1M,PDQSDT,PRHOCHU,PRHOCQU,&
  & PALPHAL,PALPHAS,PSSRFL,PFRTI,PTSRF,&
  & PSNS,PRSN,PHLICE, & 
@@ -133,6 +133,7 @@ INTEGER(KIND=JPIM), INTENT(IN)  :: KLON
 INTEGER(KIND=JPIM), INTENT(IN)  :: KTILES
 INTEGER(KIND=JPIM), INTENT(IN)  :: KTVL(KLON) 
 INTEGER(KIND=JPIM), INTENT(IN)  :: KTVH(KLON)
+LOGICAL, INTENT(IN)  :: LDSICE(KLON)
 REAL(KIND=JPRB),    INTENT(IN)  :: PTMST
 
 REAL(KIND=JPRB),    INTENT(IN)  :: PSSKM1M(:,:)
@@ -199,7 +200,7 @@ REAL(KIND=JPRB) ::    ZDELTA,ZLAM,&
  & ZCOEF1,ZLARGE,ZLARGESN,ZFRSR,ZRTTMEPS,ZIZZ,ZLARGEWT  
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
-REAL(KIND=JPRB) :: ZLICE(KLON),ZLWAT(KLON),ZSNOW,ZSNOWHVEG,ZSNOW_GLACIER
+REAL(KIND=JPRB) :: ZLICE(KLON),ZLWAT(KLON),ZSNOW,ZSNOWHVEG,ZSNOW_GLACIER,ZSNOW_SICE
 REAL(KIND=JPRB) :: ZTSKMEAN,ZDLWDTSTAR
 
 !      1. Initialize constants
@@ -219,6 +220,7 @@ ZLARGEWT=20._JPRB          ! 1/lamdaSK(w)+1/lamdaSK(tvh)
 ZRTTMEPS=RTT-0.2_JPRB      ! slightly below zero to start snow melt
 ZSNOW=7._JPRB
 ZSNOW_GLACIER=8._JPRB
+ZSNOW_SICE=10._JPRB
 ZSNOWHVEG=20._JPRB
 
 !* FIND LAKE POINTS WITH ICE COVER 
@@ -287,25 +289,25 @@ DO JT=1,KTILES
       ZLAMSK(JL,JT)=ZLARGE
     ENDDO
   CASE(2) ! Sea ice with possibly a snow layer on top of it
-     IF (LNEMOLIMTHK) THEN
-        DO JL=KIDIA,KFDIA
-           IF (PSNTICE(JL) > 0.0_JPRB) THEN
-              ! For now use same conductivity as snow on land
-              ! Possible refinement: take fractional snow cover for thin layers of snow into account
-              IF (PTSKM1M(JL,JT) >= PTSRF(JL,JT).AND.PTSKM1M(JL,JT) > ZRTTMEPS) THEN
-                 ZLAMSK(JL,JT)=ZLARGESN
-              ELSE
-                 ZLAMSK(JL,JT)=ZSNOW ! Snow tile!!
-              ENDIF
-           ELSE
-              IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
-                 ZLAMSK(JL,JT)=RVLAMSKS(12)
-              ELSE
-                 ZLAMSK(JL,JT)=RVLAMSK(12)
-              ENDIF
-           ENDIF
-        ENDDO
-     ELSE
+  !*   IF (LNEMOLIMTHK) THEN
+  !*      DO JL=KIDIA,KFDIA
+  !*         IF (PSNTICE(JL) > 0.0_JPRB) THEN
+  !*            ! For now use same conductivity as snow on land
+  !*            ! Possible refinement: take fractional snow cover for thin layers of snow into account
+  !*            IF (PTSKM1M(JL,JT) >= PTSRF(JL,JT).AND.PTSKM1M(JL,JT) > ZRTTMEPS) THEN
+  !*               ZLAMSK(JL,JT)=ZLARGESN
+  !*            ELSE
+  !*               ZLAMSK(JL,JT)=ZSNOW ! Snow tile!!
+  !*            ENDIF
+  !*         ELSE
+  !*            IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
+  !*               ZLAMSK(JL,JT)=RVLAMSKS(12)
+  !*            ELSE
+  !*               ZLAMSK(JL,JT)=RVLAMSK(12)
+  !*            ENDIF
+  !*         ENDIF
+  !*      ENDDO
+  !*   ELSE
         DO JL=KIDIA,KFDIA
            IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
               ZLAMSK(JL,JT)=RVLAMSKS(12)
@@ -313,7 +315,7 @@ DO JT=1,KTILES
               ZLAMSK(JL,JT)=RVLAMSK(12)
            ENDIF
         ENDDO
-     ENDIF
+  !*   ENDIF
   CASE(3)
     DO JL=KIDIA,KFDIA
       !IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
@@ -337,6 +339,8 @@ DO JT=1,KTILES
     DO JL=KIDIA,KFDIA
       IF (PTSKM1M(JL,JT) >= PTSRF(JL,JT).AND.PTSKM1M(JL,JT) > ZRTTMEPS) THEN
         ZLAMSK(JL,JT)=ZLARGESN
+      ELSEIF(LDSICE(JL))THEN
+        ZLAMSK(JL,JT)=ZSNOW_SICE
       ELSEIF (SUM(PSNS(JL,:),DIM=1)>9000.0_JPRB) THEN
         ZLAMSK(JL,JT)=ZSNOW_GLACIER
       ELSE
