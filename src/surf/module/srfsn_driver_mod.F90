@@ -344,7 +344,7 @@ CALL SRFSN_VGRID(KIDIA,KFDIA,KLON,KLEVSN,LLNOSNOW,PSDOR,&
                  ZZSSNM1M,PRSNM1M,&
                  YDSOIL%RLEVSNMIN,YDSOIL%RLEVSNMAX,&
                  YDSOIL%RLEVSNMIN_GL,YDSOIL%RLEVSNMAX_GL,&
-                 ZDSNOUT,KLEVSNA)
+                 ZDSNOUT,KLEVSNA,LDLAND)
 
 !     ------------------------------------------------------------------
 !*         1.1b REGRID FIELDS IF VERTICAL DISCRETIZATION CHANGED

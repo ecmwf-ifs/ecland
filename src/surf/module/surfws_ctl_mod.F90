@@ -243,7 +243,7 @@ CALL SRFSN_VGRID(KIDIA,KFDIA,KLON,KLEVSN, LLNOSNOW, &
                & PSSN,PRSN,                         &
                & ZLEVMIN,ZLEVMAX, &
                & ZLEVMIN_GL,ZLEVMAX_GL, &
-               & ZDSN,KLEVSNA)
+               & ZDSN,KLEVSNA,LDLAND)
 
 DO JL=KIDIA,KFDIA
   DO JK=1, KLEVSN
