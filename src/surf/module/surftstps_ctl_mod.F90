@@ -304,7 +304,7 @@ IF (YDSOIL%LESNML) THEN
               &  PSNM1M,PRSNM1M,&
               &  YDSOIL%RLEVSNMIN,YDSOIL%RLEVSNMAX,&
               &  YDSOIL%RLEVSNMIN_GL,YDSOIL%RLEVSNMAX_GL,&
-              &  ZDSNOUT,KLEVSNA, .TRUE.)
+              &  ZDSNOUT,KLEVSNA,LDLAND,.TRUE.)
 
 ! 2.2 Regrid snowML fields based on vertical grid
   CALL SRFSN_REGRID(KIDIA,KFDIA,KLON,YDSOIL%NLEVSN,LLNOSNOW,&
