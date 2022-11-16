@@ -242,10 +242,6 @@ ENDDO
 !*              (ASSUME NEUTRAL STRATIFICATION)
 
 
-!!!debile
-write(*,*) 'debile vupdz0s ',PCHAR
-
-
 IF (LLINIT) THEN
   DO JL=KIDIA,KFDIA
     ZDUA(JL) = SQRT(ZDU2(JL)) 
