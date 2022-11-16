@@ -36,7 +36,7 @@ SUBROUTINE SURFTSTP_CTL(KIDIA , KFDIA , KLON  , KLEVS , KTILES,&
  & PWSEMEAN,PWSFMEAN  ,&
  & YDCST   ,YDEXC   ,YDSOIL  ,YDVEG   ,YDFLAKE  ,&
  & YDURB   ,YDAGS   ,YDMLM   ,YDOCEAN_ML,&
- & LNEMOLIMTHK, PTHKICE, &
+ & LNEMOICETHK, PTHKICE, &
 !-DIAGNOSTICS OUTPUT
  & PTSDFL  , PROFD , PROFS,&
  & PWFSD   , PMELT , PFWEV, PENES,&
@@ -480,7 +480,7 @@ TYPE(TFLAKE)      ,INTENT(IN)    :: YDFLAKE
 TYPE(TURB)        ,INTENT(IN)    :: YDURB
 TYPE(TAGS)        ,INTENT(IN)    :: YDAGS
 TYPE(TMLM)        ,INTENT(IN)    :: YDMLM
-LOGICAL           ,INTENT(IN)    :: LNEMOLIMTHK
+LOGICAL           ,INTENT(IN)    :: LNEMOICETHK
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTHKICE(:)
 TYPE(TOCEAN_ML)   ,INTENT(INOUT) :: YDOCEAN_ML
 
@@ -755,7 +755,7 @@ IF (LDSI) THEN
    & KIDIA  , KFDIA  , KLON   , KLEVS  , KLEVI  , &
    & PTSPHY , PFRTI  , PTIAM1M, PAHFSTI, PEVAPTI, ZGSN,&
    & ZSLRFLTI(:,2) ,PSSRFLTI, LDSICE , LDNH   ,&
-   & LNEMOLIMTHK, PTHKICE, &
+   & LNEMOICETHK, PTHKICE, &
    & YDCST  ,YDSOIL  ,&
    & ZTIA   ,PDHTIS)  
 ELSE
@@ -869,7 +869,7 @@ DO JL =KIDIA,KFDIA
          !*ZHLICE(JL)= MIN(PFRTI(JL,2)/10.0_JPRB,0.1_JPRB)
       ! We use ZHLML mixed layer depth and ZHLICE ice thickness as container for snow
       ! depth and ice thickness over sea-ice respectively
-         IF ( LNEMOLIMTHK ) THEN
+         IF ( LNEMOICETHK ) THEN
            ZHLICE(JL) = MAX(PTHKICE(JL), 0.28_JPRB)
          ELSE
            ZHLICE(JL)= MIN(PFRTI(JL,2)/10.0_JPRB,0.1_JPRB)
