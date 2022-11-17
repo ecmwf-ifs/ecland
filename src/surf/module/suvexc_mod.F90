@@ -101,7 +101,7 @@ RKAP   =0.4_JPRB
 RZ0ICE =0.001_JPRB/PRPLRG
 
 ! Simplified physics constant
-RCHAR  =0.0155_JPRB
+RCHAR  =0.018_JPRB
 
 ! Other constants
 
