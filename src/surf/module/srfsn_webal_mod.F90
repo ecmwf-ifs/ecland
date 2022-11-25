@@ -229,7 +229,8 @@ DO JL=KIDIA,KFDIA
       ZICE(JK)    = PSSNM1M(JL,JK) - PWSNM1M(JL,JK) ! Ice (Kg m-2)
       ! Limit thermally active snow depth to 1 meter of snow (for glaciers in particular)
       ZDSN(JK)    = MIN(RDSNMAX, (PSSNM1M(JL,JK) / PRSNM1M(JL,JK))) ! read snow depth (m)
-      ZSNHC(JK)   = (ZIHCAP*PRSNM1M(JL,JK) * MIN(RDSNMAX, (ZICE(JK)/PRSNM1M(JL,JK))) + ZWHCAP*PWSNM1M(JL,JK) ) * ZTMST
+      !*ZSNHC(JK)   = (ZIHCAP*PRSNM1M(JL,JK) * MIN(RDSNMAX, (ZICE(JK)/PRSNM1M(JL,JK))) + ZWHCAP*PWSNM1M(JL,JK) ) * ZTMST
+      ZSNHC(JK)   = (ZIHCAP*PRSNM1M(JL,JK) * MIN(RDSNMAX, ZDSN(JK))) * ZTMST
       ! heat conductivity from water vapor transport into the snowpack
       ZSNVCOND=(SNHCONDPOV/PAPRS(JL))*MAX(0._JPRB,(SNHCONDAV-SNHCONDBV/(PTSNM1M(JL,JK)-SNHCONDCV)))
       ! snow heat conductivity 
