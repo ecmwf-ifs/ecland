@@ -346,7 +346,7 @@ PEMSSN(KIDIA:KFDIA) = 0._JPRB
 !*             
 !             -----------------------------------------------------------
 
-CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,&
+CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,ZFRSN,&
               &ZRSNM1M,ZSSNM1M,ZTSNM1M,ZWSNM1M,PWSN,&
               &ZSNOWF,PUSRF,PVSRF,PTSRF,&
               &YDSOIL,YDCST,PRSN,PDHTSS)
