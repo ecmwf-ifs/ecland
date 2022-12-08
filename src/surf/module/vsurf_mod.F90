@@ -64,6 +64,8 @@ USE COTWORESTRESS_MOD
 !     A. Agusti-Panareda June 2021 Pass photosynthetic pathway for low vegetation (c3/c4)
 !     S. Boussetta     21/06/2022   Added Ronda (Ronda et al. 2002, J. App. Met.) Soil moisture stress function
 !     J. McNorton      24/08/2022  urban tile
+!     S. Boussetta     21/06/2022  Added LAI scaling by Cveg for Rc canopy resistance computaioin
+
 !     PURPOSE
 !     -------
 
@@ -218,7 +220,7 @@ REAL(KIND=JPRB) ::  ZEPSILON
 
 REAL(KIND=JPRB) ::  ZTSOIL(KLON)
 REAL(KIND=JPRB) ::  ZCOR, ZEPSF3, ZF, ZF1H, ZF1L, ZF2H, ZF2L, ZF2B, ZF21H, ZF21L, ZF21B, &
- & ZF3H, ZF3L, ZHSTRH, ZHSTRL, ZLAIH, ZLAIL, ZQSAIR, &
+ & ZF3H, ZF3L, ZHSTRH, ZHSTRL, ZLAIH, ZLAIL, ZLAIHSC, ZLAILSC, ZQSAIR, &
  & ZRSMINH, ZRSMINL, ZRSMINB, ZRVA, ZRVB, ZSRFL, ZWROOTH, ZWROOTL, &
  & ZQWEVAP, ZWPWP, ZQWEVAPBARE, ZBARE, ZWPBARE,&
  & ZSALIN, ZRCLU
@@ -242,7 +244,7 @@ ASSOCIATE(RCPD=>YDCST%RCPD, RETV=>YDCST%RETV, RLSTT=>YDCST%RLSTT, &
  & LEAGS=>YDVEG%LEAGS, LECTESSEL=>YDVEG%LECTESSEL, RCEPSW=>YDVEG%RCEPSW, &
  & LEFARQUHAR=>YDVEG%LEFARQUHAR, LEAIRCO2COUP=>YDVEG%LEAIRCO2COUP, &
  & RVHSTR=>YDVEG%RVHSTR, RVLAI=>YDVEG%RVLAI, RVROOTSA=>YDVEG%RVROOTSA, &
- & RVRSMIN=>YDVEG%RVRSMIN, LEURBAN=>YDURB%LEURBAN, RURBRES=>YDURB%RURBRES)
+ & RVRSMIN=>YDVEG%RVRSMIN, RVCOV=>YDVEG%RVCOV,LEURBAN=>YDURB%LEURBAN, RURBRES=>YDURB%RURBRES)
 
 
 ! This is needed as unitialized values end up being passed around otherwise
@@ -338,6 +340,18 @@ ENDDO
     ZLAIL=PLAIL(JL)
     ZLAIH=PLAIH(JL)
 
+!   scaled leaf area index with cveg9= (rvcov)
+    IF(RVCOV(KTVL(JL)) /= 0.0_JPRB) THEN
+     ZLAILSC=PLAIL(JL)/RVCOV(KTVL(JL))
+    ELSE
+     ZLAILSC=PLAIL(JL)
+    ENDIF
+    IF(RVCOV(KTVH(JL)) /= 0.0_JPRB) THEN
+     ZLAIHSC=PLAIH(JL)/RVCOV(KTVH(JL))
+    ELSE
+     ZLAIHSC=PLAIH(JL)
+    ENDIF   
+
 !           bare ground fraction
     ZBARE=PFRTI(JL,8)
     IF (LEURBAN) THEN
@@ -404,17 +418,29 @@ ENDDO
     ZF3L=MAX(ZEPSF3,MIN(1.0_JPRB,ZF3L))
     ZF3H=MAX(ZEPSF3,MIN(1.0_JPRB,ZF3H))
 
-    IF(ZLAIL /= 0.0_JPRB) THEN
-      PWETL(JL)=ZRSMINL/(ZLAIL*ZF1L*ZF2L*ZF3L)
+!    IF(ZLAIL /= 0.0_JPRB) THEN
+!      PWETL(JL)=ZRSMINL/(ZLAIL*ZF1L*ZF2L*ZF3L)
+!    ELSE
+!      PWETL(JL) =1.0E+6_JPRB
+!    ENDIF
+!   Use scaled LAI for canopy resistance computation
+    IF(ZLAILSC /= 0.0_JPRB) THEN
+      PWETL(JL)=ZRSMINL/(ZLAILSC*ZF1L*ZF2L*ZF3L)
     ELSE
       PWETL(JL) =1.0E+6_JPRB
     ENDIF
 
-
     PWETLU(JL)=ZRCLU/(ZF1L*ZF3L) !Pot. Evap. Canopy resist. calc.
 
-    IF(ZLAIH /= 0.0_JPRB) THEN
-      PWETH(JL)=ZRSMINH/(ZLAIH*ZF1H*ZF2H*ZF3H)
+!    IF(ZLAIH /= 0.0_JPRB) THEN
+!      PWETH(JL)=ZRSMINH/(ZLAIH*ZF1H*ZF2H*ZF3H)
+!    ELSE
+!      PWETH(JL)=1.0E+6_JPRB
+!    ENDIF
+
+!   Use scaled LAI for canopy resistance computation
+    IF(ZLAIHSC /= 0.0_JPRB) THEN
+      PWETH(JL)=ZRSMINH/(ZLAIHSC*ZF1H*ZF2H*ZF3H)
     ELSE
       PWETH(JL)=1.0E+6_JPRB
     ENDIF   
