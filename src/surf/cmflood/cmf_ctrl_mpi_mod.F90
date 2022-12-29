@@ -37,16 +37,29 @@ CONTAINS
 ! -- CMF_DRV_END      : Finalize          CaMa-Flood
 !
 !####################################################################
-SUBROUTINE CMF_MPI_INIT
+SUBROUTINE CMF_MPI_INIT(ICOMM_CMF)
 IMPLICIT NONE
+
+#ifdef IFS_CMF
+INTEGER(KIND=JPIM),OPTIONAL,INTENT(IN)  :: ICOMM_CMF
+#endif
 !================================================
 !*** 0. MPI specific setting
 REGIONTHIS=1
+
+#ifdef IFS_CMF
+MPI_COMM_CAMA=ICOMM_CMF
+CALL MPI_COMM_SIZE(MPI_COMM_CAMA, Nproc, ierr)
+CALL MPI_COMM_RANK(MPI_COMM_CAMA, Nid, ierr)
+
+#else
 CALL MPI_Init(ierr)
 
 MPI_COMM_CAMA=MPI_COMM_WORLD
+
 CALL MPI_Comm_size(MPI_COMM_CAMA, Nproc, ierr)
 CALL MPI_Comm_rank(MPI_COMM_CAMA, Nid, ierr)
+#endif
 
 REGIONALL =Nproc
 REGIONTHIS=Nid+1
