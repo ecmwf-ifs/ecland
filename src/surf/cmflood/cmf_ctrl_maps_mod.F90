@@ -44,10 +44,11 @@ LOGICAL                         :: LMAPCDF         !! true for netCDF map input
 CHARACTER(LEN=256)              :: CRIVCLINC       !! river map netcdf
 CHARACTER(LEN=256)              :: CRIVPARNC       !! river parameter netcdf (WIDTH,HEIGHT, Manning, ground wateer delay)
 CHARACTER(LEN=256)              :: CMEANSLNC       !! mean sea level netCDF
+CHARACTER(LEN=256)              :: CMPIREGNC       !! MPI region map netcdf
 
 NAMELIST/NMAP/     CNEXTXY,  CGRAREA,  CELEVTN,  CNXTDST, CRIVLEN, CFLDHGT, &
                    CRIVWTH,  CRIVHGT,  CRIVMAN,  CPTHOUT, CGDWDLY, CMEANSL, &
-                   CMPIREG,  LMAPCDF,  CRIVCLINC,CRIVPARNC,CMEANSLNC
+                   CMPIREG,  LMAPCDF,  CRIVCLINC,CRIVPARNC,CMEANSLNC,CMPIREGNC
 
 
 CONTAINS
@@ -95,6 +96,7 @@ LMAPCDF=.FALSE.
 CRIVCLINC="NONE"
 CRIVPARNC="NONE"
 CMEANSLNC="NONE"
+CMPIREGNC="NONE"
 
 !*** 3. read namelist
 REWIND(NSETFILE)
@@ -108,6 +110,9 @@ IF( LMAPCDF )THEN
   IF( LMEANSL ) THEN
     WRITE(LOGNAM,*) "CMEANSLNC: ", TRIM(CMEANSLNC)
   ENDIF
+#ifdef UseMPI_CMF
+    WRITE(LOGNAM,*) "CMPIREGNC:   ", TRIM(CMPIREGNC)
+#endif
 ELSE
   WRITE(LOGNAM,*)   "CNEXTXY:   ", TRIM(CNEXTXY)
   WRITE(LOGNAM,*)   "CGRAREA:   ", TRIM(CGRAREA)
@@ -298,8 +303,15 @@ END SUBROUTINE READ_MAP_CDF
 !==========================================================
 SUBROUTINE CALC_REGION    !! evenly allocate pixels to mpi nodes (updated in v4.03. MPI region given from file)
 USE YOS_CMF_INPUT,           ONLY: IMIS
+#ifdef UseCDF_CMF
+USE CMF_UTILS_MOD,           ONLY: NCERROR
+USE NETCDF
+#endif
 IMPLICIT NONE
 !* local variables
+#ifdef UseCDF_CMF
+INTEGER(KIND=JPIM)              :: NCID,VARID
+#endif
 INTEGER(KIND=JPIM),ALLOCATABLE  :: REGIONGRID(:)
 !
 INTEGER(KIND=JPIM),SAVE              :: IX,IY
@@ -323,11 +335,22 @@ END DO
 
 !! Use MPI: read MPI region map, allocate regions to MPI nodes
 #ifdef UseMPI_CMF
-  WRITE(LOGNAM,*)'RIVMAP_INIT: read MPI region: ',TRIM(CNEXTXY)
-  TMPNAM=INQUIRE_FID()
-  OPEN(TMPNAM,FILE=CMPIREG,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NX*NY)
-  READ(TMPNAM,REC=1) I2REGION
-  CLOSE(TMPNAM)
+  IF ( LMAPCDF ) THEN
+#ifdef UseCDF_CMF
+    CALL NCERROR (NF90_OPEN(CMPIREGNC,NF90_NOWRITE,NCID),'opening '//TRIM(CMPIREGNC) )
+
+    CALL NCERROR ( NF90_INQ_VARID(NCID, 'mpireg',VARID),'getting id' )
+    CALL NCERROR ( NF90_GET_VAR(NCID,VARID,I2REGION),'reading data' )
+
+    CALL NCERROR (NF90_CLOSE(NCID))
+#endif
+  ELSE
+    WRITE(LOGNAM,*)'RIVMAP_INIT: read MPI region: ',TRIM(CNEXTXY)
+    TMPNAM=INQUIRE_FID()
+    OPEN(TMPNAM,FILE=CMPIREG,FORM='UNFORMATTED',ACCESS='DIRECT',RECL=4*NX*NY)
+    READ(TMPNAM,REC=1) I2REGION
+    CLOSE(TMPNAM)
+  ENDIF
   
   REGIONALL=1
 !$OMP PARALLEL DO REDUCTION(max:REGIONALL)

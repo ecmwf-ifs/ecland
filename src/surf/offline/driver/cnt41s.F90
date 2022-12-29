@@ -22,11 +22,17 @@ USE CMF_DRV_ADVANCE_MOD, ONLY: CMF_DRV_ADVANCE
 USE YOS_CMF_INPUT,       ONLY: NXIN,NYIN,DT
 USE MPL_MODULE
 
+
 USE YOMLOG1S , ONLY: NDIMCDF
 USE YOMDPHY  , ONLY: NLALO ,NLAT     ,NLON, NPOI, NPOIP
 USE YOMGPD1S , ONLY: VFPGLOB, VFCLAKE, VFCLAKEF,  VFITM
 USE OMP_LIB
 USE MPL_MODULE
+
+#ifdef UseMPI_CMF
+USE YOS_CMF_MAP, ONLY : REGIONALL, MPI_COMM_CAMA
+#endif
+
 #ifdef DOC
 
 !**** *CNT41S*  - Controls integration job at level 4
@@ -70,6 +76,7 @@ USE MPL_MODULE
 !        E. Dutra : Added coupling to Cama-Flood 
 !        E. Dutra : Dec 2019 2-way coupling with Cama-Flood 
 !        G. Balsamo: Oct 2021 MPI compatible for Cama-Flood 1-way
+!        I. Ayan-Miguez: Dec 2022: Added CaMa-Flood MPI coupling 
 
 #endif
 !     ------------------------------------------------------------------
@@ -84,7 +91,7 @@ REAL (KIND=JPRB),ALLOCATABLE :: ZBUFFO(:,:,:),ZFLD(:,:),ZBUFFI(:,:,:),ZTMP(:)
 REAL (KIND=JPRB),ALLOCATABLE :: ZD1STSRO2(:), ZD1STRO2(:), ZD1STIEVAPU2(:), ZVFPGLOB(:)
 REAL (KIND=JPRD) :: ZFDPD
 REAL(KIND=JPHOOK)  :: ZHOOK_HANDLE
-INTEGER(KIND=JPIM) :: MYPROC, NPROC
+INTEGER(KIND=JPIM) :: MYPROC, NPROC, NPROC_CMF
 
 #include "dattim.intfb.h"
 #include "updtim1s.intfb.h"
@@ -120,6 +127,11 @@ DCMFCOM(:,:)=0._JPRB
 IF (LECMF1WAY) THEN
   CALL MPL_GATHERV(PRECVBUF=ZVFPGLOB(:),KROOT=1,PSENDBUF=VFPGLOB(:),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:gaussianIndex")
   IF( MYPROC == 1 ) THEN
+#ifdef UseMPI_CMF
+    NPROC_CMF=REGIONALL
+#else
+    NPROC_CMF=1
+#endif
   ! Sanity checks
     IF (NDIMCDF == 2)THEN
       IF (NLAT .NE. NYIN .OR. NLON .NE. NXIN ) THEN
@@ -143,7 +155,8 @@ IF (LECMF1WAY) THEN
       ENDIF
       WRITE(NULOUT,*)"Coupling with CMF using 1D: NXIN,NYIN:",NXIN,NYIN
     ENDIF
-  ENDIF ! MYPROC == 1  
+  ENDIF ! MYPROC == 1 
+  CALL MPL_BROADCAST(NPROC_CMF, KROOT=1, KTAG=100, CDSTRING='CNT41S:NPROC_CMF')
 ENDIF
 
 !*       1.    MAIN TIME LOOP.
@@ -226,17 +239,22 @@ DO NSTEP=NSTART,NSTOP
           ZBUFFO(JLL,1,3)=ZBUFFO(JLL,1,3)+(-ZD1STIEVAPU2(JL))*TSTEP*0.001_JPRB   ! m of water
         ENDDO
       ENDIF
+
+#ifdef UseMPI_CMF
+      IF ( MYPROC .LE. MIN(NPROC, NPROC_CMF) ) THEN
+        CALL MPL_BROADCAST(ZBUFFO(:,:,:), KROOT=1, KTAG=100, KCOMM=MPI_COMM_CAMA, CDSTRING='CNT41S:ZBUFFO')
+      ENDIF
+#endif
     ENDIF
-  
-    
+   
     !* Coupling: 
     IF ( MOD(NSTEP*TSTEP,TCOUPFREQ) .EQ. 0 .AND. NSTEP .NE. NSTART ) THEN
       ZTT1C = OMP_GET_WTIME()
       WRITE(NULOUT,*)' CMF_COUPLING: CALLING DRV_PUT & DRV_ADVANCE:',ISTEPADV
       !*  Send runoff to CaMa-Flood 
       !    -------------------------
-      IF ( MYPROC == 1 ) THEN
-        !*  - Must be MYPROC== 1 only, and data is global
+      IF ( MYPROC .LE. MIN(NPROC, NPROC_CMF) ) THEN 
+        !*  - Must be MYPROC <= 16 only, and data is global
         CALL CMF_FORCING_PUT(ZBUFFO(:,:,:))
  
         !*  Advance model 
