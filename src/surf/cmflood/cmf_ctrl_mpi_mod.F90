@@ -19,7 +19,11 @@ MODULE CMF_CTRL_MPI_MOD
 ! See the License for the specific language governing permissions and limitations under the License.
 !==========================================================
 !** shared variables in module
+!#ifdef IFS_CMF
+USE MPL_MODULE
+!#else
 USE MPI
+!#endif
 USE PARKIND1,                ONLY: JPIM, JPRB, JPRM, JPRD
 USE YOS_CMF_INPUT,           ONLY: LOGNAM
 USE YOS_CMF_MAP,             ONLY: REGIONALL, REGIONTHIS, MPI_COMM_CAMA
@@ -49,8 +53,8 @@ REGIONTHIS=1
 
 #ifdef IFS_CMF
 MPI_COMM_CAMA=ICOMM_CMF
-CALL MPI_COMM_SIZE(MPI_COMM_CAMA, Nproc, ierr)
-CALL MPI_COMM_RANK(MPI_COMM_CAMA, Nid, ierr)
+REGIONALL=MPL_NPROC(MPI_COMM_CAMA)
+REGIONTHIS=MPL_MYRANK(MPI_COMM_CAMA)
 
 #else
 CALL MPI_Init(ierr)
@@ -59,10 +63,10 @@ MPI_COMM_CAMA=MPI_COMM_WORLD
 
 CALL MPI_Comm_size(MPI_COMM_CAMA, Nproc, ierr)
 CALL MPI_Comm_rank(MPI_COMM_CAMA, Nid, ierr)
-#endif
 
-REGIONALL =Nproc
+REGIONALL=Nproc
 REGIONTHIS=Nid+1
+#endif
 
 ! For BUGFIX: Check MPI  / OpenMPI is working or not.
 ! Write to standard output (log file is not opened yet)
@@ -177,7 +181,12 @@ REAL(KIND=JPRD)                 :: DT_LOC, DT_OUT
 !*** MPI: use same DT in all node
 DT_LOC=DT_MIN
 
+#ifdef IFS_CMF
+DT_OUT=DT_LOC
+CALL MPL_ALLREDUCE(DT_OUT,CDOPER='MIN',KCOMM=MPI_COMM_CAMA,KERROR=ierr)
+#else
 CALL MPI_AllReduce(DT_LOC, DT_OUT, 1, MPI_DOUBLE_PRECISION, MPI_MIN, MPI_COMM_CAMA,ierr)
+#endif
 DT_MIN=DT_OUT
 WRITE(LOGNAM,'(A,2F10.2)') "ADPSTP (MPI_AllReduce): DT_LOC->DTMIN", DT_LOC, DT_MIN
 
