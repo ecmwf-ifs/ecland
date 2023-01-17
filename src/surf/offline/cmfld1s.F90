@@ -19,16 +19,34 @@ USE YOS_CMF_TIME,            ONLY: NSTEPS
 USE CMF_DRV_CONTROL_MOD,     ONLY: CMF_DRV_INPUT,   CMF_DRV_INIT,    CMF_DRV_END
 USE CMF_DRV_ADVANCE_MOD,     ONLY: CMF_DRV_ADVANCE
 USE CMF_CTRL_FORCING_MOD,    ONLY: CMF_FORCING_GET, CMF_FORCING_PUT
+!** parallelization options**
 !$ USE OMP_LIB
+#ifdef UseMPI_CMF
+USE MPL_MODULE
+USE CMF_CTRL_MPI_MOD,        ONLY: CMF_MPI_INIT, CMF_MPI_END
+#endif
+!****************************
 IMPLICIT NONE
+
 !** local variables
 INTEGER(KIND=JPIM)              :: ISTEP              ! total time step
 INTEGER(KIND=JPIM)              :: ISTEPADV           ! time step to be advanced within DRV_ADVANCE
 REAL(KIND=JPRB),ALLOCATABLE     :: ZBUFF(:,:,:)       ! Buffer to store forcing runoff
 !================================================
+!*** 0. MPI Initialization
+
+#ifdef UseMPI_CMF
+#ifdef IFS_CMF
+CALL MPL_INIT()
+CALL CMF_MPI_INIT(MPI_COMM_WORLD)
+#else
+CALL CMF_MPI_INIT()
+#endif
+#endif
 
 !*** 1a. Namelist handling
 CALL CMF_DRV_INPUT
+
 !*** 1b. INITIALIZATION
 CALL CMF_DRV_INIT
 
@@ -57,6 +75,10 @@ ENDDO
 DEALLOCATE(ZBUFF)
 CALL CMF_DRV_END
 
+!*** 3b. MPI specific finalization
+#ifdef UseMPI_CMF
+CALL CMF_MPI_END
+#endif
 
 !================================================
 
