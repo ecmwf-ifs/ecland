@@ -1,7 +1,7 @@
 MODULE SURFWS_MASSADJ_MOD
 CONTAINS
 
-SUBROUTINE SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,    &
+SUBROUTINE SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,LDLAND,&
                        &   KLEVSNA, ZTHRESWS,             &
                        &  PDSN,PDSNREAL,PSNDEPTH,PSNDEPTHR,&
                        &  PRSN, PSSN, PRSNMAX, PDSNTOT,   &
@@ -100,6 +100,7 @@ IMPLICIT NONE
 INTEGER(KIND=JPIM), INTENT(IN)  :: KLON, KIDIA, KFDIA
 INTEGER(KIND=JPIM), INTENT(IN)  :: KLEVSN
 INTEGER(KIND=JPIM), INTENT(IN)  :: KLEVSNA(:)
+LOGICAL,            INTENT(IN)  :: LDLAND(:)
 
 REAL(KIND=JPRB),    INTENT(IN)  :: PDSN(:,:), PDSNREAL(:,:), PSNDEPTH(:, :), PSNDEPTHR(:, :)
 REAL(KIND=JPRB),    INTENT(IN)  :: PRSN(:), PSSN(:)
@@ -202,7 +203,7 @@ DO JL=KIDIA, KFDIA
   
 ! 2.3.2 snow density: recompute profiles spanning top snow density value:
 !       Looking for value which minimizes the error in mass:
-    IF ( PSSN(JL) < ZSNPERT ) THEN
+    IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN
       ZRSNWSTST(JL,:) = PRSNWS(JL,:)
       ZRSNTOPSTORE    = PRSNTOP(JL)
       ZRSNTOPTST      = PRSNTOP(JL)
@@ -334,7 +335,7 @@ DO JL=KIDIA, KFDIA
 ! 2.3.3 Update the liquid water part.
 ! We diagnose slw using the diagnostic formulation used in srfsn_lwimp for each
 ! layer
-    IF ( PSSN(JL) < ZSNPERT ) THEN
+    IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN
       DO JK=1, KLEVSNA(JL)
       ! SNOW LIQUID WATER CAPACITY
         ZLWC     = FLWC( PSSNWS(JL, JK), PRSNWS(JL, JK) )

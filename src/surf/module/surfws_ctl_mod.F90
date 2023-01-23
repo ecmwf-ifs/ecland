@@ -229,11 +229,7 @@ DO JL=KIDIA,KFDIA
     LLNOSNOW(JL)=.FALSE.
   ENDIF
 
-  IF (LSMASK(JL) == 1._JPRB) THEN
-    LDLAND(JL) = .TRUE.
-  ELSE
-    LDLAND(JL) = .FALSE.
-  ENDIF
+  LDLAND(JL) = LSMASK(JL) > 0.5_JPRB
 ENDDO
 
 !******************************************************************
@@ -354,7 +350,7 @@ IF (NSNMLWS == 1_JPIM) THEN
 
 ELSE IF (NSNMLWS == 2_JPIM) THEN
   CALL SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN,INCL, PMU0,PSDOR,  & ! Input
-               & PTSA(:,1), PTSKIN, &
+               & PTSA(:,1), PTSKIN,LDLAND, &
                & ZDSNTOT, ZSNDEPTH,               &
                & ZSNPERT,                & ! Input
                & ZDSNREAL,ZTSN, ZRSN, ZSSN, ZWSN,PALBSN,            & ! Input
@@ -395,7 +391,7 @@ CALL SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN,               &
                  & ZTSNWS, ZRSNWS, YDCST, YDSOIL)
 
 
-CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,         &
+CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,LDLAND,  &
                  &  KLEVSNA,ZTHRESWS,                   &
                  &  ZDSN,ZDSNREAL,ZSNDEPTH,ZSNDEPTHREAL,&
                  &  ZRSN, ZSSN, ZRSNMAX, ZDSNTOT,       &
