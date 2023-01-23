@@ -2,7 +2,7 @@ MODULE SURFWS_INIT_SL_MOD
 CONTAINS
 
 SUBROUTINE SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN, NCL, PMU0,PSDOR,              &  ! Input
-                     &  PTSOIL, PTSKIN, &
+                     &  PTSOIL, PTSKIN,LDLAND, &
                      &  ZDSNTOT, ZSNDEPTH,                  &       
                      &  ZSNPERT,                                           &  ! Input
                      &  ZDSNR,PTSN, PRSN, PSSN, PWSN,PASN,                 &  ! Input
@@ -126,6 +126,7 @@ INTEGER(KIND=JPIM), INTENT(IN) :: KFDIA
 INTEGER(KIND=JPIM), INTENT(IN) :: KLON
 INTEGER(KIND=JPIM), INTENT(IN) :: KLEVSN
 INTEGER(KIND=JPIM), INTENT(IN) :: NCL
+LOGICAL,            INTENT(IN) :: LDLAND(:)
 
 REAL(KIND=JPRB), INTENT(IN)    :: ZDSNTOT(:), PTSN(:), PRSN(:), PSSN(:), PWSN(:)
 REAL(KIND=JPRB), INTENT(IN)    :: ZSNDEPTH(:,:)
@@ -525,7 +526,7 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
 !*******************************************************************************
   DO JL=KIDIA, KFDIA
     IF (PMU0(JL) > ZEPSILON ) THEN ! Daytime
-    IF ( PSSN(JL) < ZSNPERT ) THEN ! seasonal snow
+    IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN ! seasonal snow
       IF ( ZDSNTOT(JL) < 0.15_JPRB ) THEN 
         ZTCENTRA=ZTCENTRADAY2
         ZTCENTRB=ZTCENTRBDAY2
@@ -619,7 +620,7 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
         ZTCONSTSTD=ZTCONSTSTDDAY5G
     ENDIF
     ELSEIF (PMU0(JL)<=ZEPSILON) THEN !nighttime
-    IF ( PSSN(JL) < ZSNPERT ) THEN ! seasonal snow
+    IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN ! seasonal snow
       IF ( ZDSNTOT(JL) < 0.15_JPRB ) THEN 
         ZTCENTRA=ZTCENTRANIGHT2
         ZTCENTRB=ZTCENTRBNIGHT2
@@ -718,6 +719,12 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
     PTCONSTSTD(JL,1:NCL)=ZTCONSTSTD(1:NCL)
 
 ! Assign density depending on snow depth::
+    ! Initialise arrays, to avoid undesired effects.
+    ZRMLRA(1:KLON)=ZRMLRA2(1:KLON)
+    ZRMLRB(1:KLON)=ZRMLRB2(1:KLON)
+    ZRMLRC(1:KLON)=ZRMLRC2(1:KLON)
+    ZRMLRD(1:KLON)=ZRMLRD2(1:KLON)
+    ZRMLRE(1:KLON)=ZRMLRE2(1:KLON)
     IF ( ZDSNTOT(JL) < 0.15_JPRB ) THEN 
       ZRCENTRA=ZRCENTRA2
       ZRCENTRB=ZRCENTRB2
@@ -905,7 +912,7 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
 
 !*****************************************
 ! 2.1 Initialize warm start (WS) variables
-    IF ( PSSN(JL) < ZSNPERT ) THEN
+    IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL)) THEN
         PTSNWS(JL, 1)          = MIN(RTT,PTSKIN(JL))
         PTSNWS(JL, 2:KLEVSN-1) = PTSN(JL)
         PTSNWS(JL, KLEVSN)     = MIN(RTT,PTSOIL(JL))
@@ -945,7 +952,7 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
           ENDIF
         ENDIF
 
-    ELSE ! Glacier ini
+    ELSE ! Glacier or sea-ice ini
         KLEVSNA(JL)=KLEVSN !KSNACC+1
 
         PTSNWS(JL, 1)        = MIN(RTT,PTSKIN(JL))
