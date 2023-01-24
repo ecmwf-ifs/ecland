@@ -48,9 +48,7 @@ USE YOS_URB   , ONLY : TURB
 !     Modified   I. Sandu and G. Balsamo 21/01/2015 gradual change of roughness for exposed snow
 !     Modified   J. Bidlot 15/12/2018 to use PZ0WN to initialise Z0 over the oceans for step 0
 !     Modified   J. Bidlot 15/02/2021 Sea state effect in Z0H and Z0Q over the oceans (under LWCOU2W and LWCOUHMF switches).
-!     Modified   J. Bidlot 21/09/2022 to use PZ0WN to update Z0 and u* over the oceans (under LWCOU2W switch)
 !     Modified   J. McNorton 24/08/2022 urban tile
-
 !     PURPOSE
 !     -------
 
@@ -319,7 +317,6 @@ IF (LLINIT) THEN
     ENDDO
   ENDDO
 ENDIF
-
 
 !*         4.      STABILITY PARAMETERS AND FREE CONVECTION
 !                  VELOCITY SCALE
