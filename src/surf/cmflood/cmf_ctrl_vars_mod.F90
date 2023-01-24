@@ -52,6 +52,7 @@ ALLOCATE( D2PROG(NSEQMAX,1,ND2PROG)     )
 
 ALLOCATE( D1PTHFLW(NPTHOUT,NPTHLEV)     )
 ALLOCATE( D1PTHFLW_PRE(NPTHOUT,NPTHLEV) )
+D1PTHFLW_PRE(:,:)=0._JPRB
 
  !! dammy variable for unused variable (depending on conffigulation)
 ALLOCATE( D2DAMMY(NSEQMAX,1) ) 
