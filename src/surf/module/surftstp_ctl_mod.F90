@@ -686,6 +686,12 @@ ZSNPERT=9000.0_JPRB ! permanent snow threshold
 KLMAX=KLEVSN ! permanent snow max index
 IF ( .NOT. LESNML ) KLMAX=1
 DO JL=KIDIA,KFDIA
+  IF (YDSOIL%LESNICE) THEN
+    IF (.NOT. LDLAND(JL)) THEN
+      ZRSN(JL,1:KLEVSN)=330.0_JPRB ! Fix snow density for snow over ice during coupling step.
+    ENDIF
+  ENDIF
+
   IF ( SUM(PSNM1M(JL,:)) >=ZSNPERT ) THEN
     ZASN(JL)=RALFMINPSN
     IF (.NOT. YDSOIL%LESNWBCON ) THEN 
