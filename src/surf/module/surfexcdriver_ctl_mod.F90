@@ -627,22 +627,12 @@ DO JTILE=1,KTILES
   ENDDO
 ENDDO
 
-!*         Put average tile Z0M on all tiles
-!          Only for land tiles (i.e. not on ocean, sea ice and lake)
-!*DO JTILE=1,KTILES
-DO JTILE=3,8
-   DO JL=KIDIA,KFDIA
-     ZZ0MTI(JL,JTILE)=PZ0M(JL)
-   ENDDO
- ENDDO
-! Account for ktiles>9
-IF (KTILES > 9)THEN
-  DO JTILE=10,KTILES
-    DO JL=KIDIA,KFDIA
-      ZZ0MTI(JL,JTILE)=PZ0M(JL)
-    ENDDO
+!*         Put dominant tile Z0M on all tiles
+DO JTILE=1,KTILES
+  DO JL=KIDIA,KFDIA
+    ZZ0MTI(JL,JTILE)=PZ0M(JL)
   ENDDO
-ENDIF
+ENDDO
 
 !     ------------------------------------------------------------------
 
