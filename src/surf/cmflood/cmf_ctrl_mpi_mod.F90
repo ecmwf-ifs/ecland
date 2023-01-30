@@ -19,11 +19,13 @@ MODULE CMF_CTRL_MPI_MOD
 ! See the License for the specific language governing permissions and limitations under the License.
 !==========================================================
 !** shared variables in module
-!#ifdef IFS_CMF
+
+#ifdef IFS_CMF
 USE MPL_MODULE
-!#else
+#else
 USE MPI
-!#endif
+#endif
+
 USE PARKIND1,                ONLY: JPIM, JPRB, JPRM, JPRD
 USE YOS_CMF_INPUT,           ONLY: LOGNAM
 USE YOS_CMF_MAP,             ONLY: REGIONALL, REGIONTHIS, MPI_COMM_CAMA
@@ -104,13 +106,16 @@ REAL(KIND=JPRM),INTENT(INOUT)   :: R2MAP(NX,NY)
 REAL(KIND=JPRM)                 :: R2TMP(NX,NY)
 !================================================
 ! gather to master node
-  R2TMP(:,:)=RMIS
-  CALL MPI_Reduce(R2MAP,R2TMP,NX*NY,MPI_REAL4,MPI_MIN,0,MPI_COMM_CAMA,ierr)
-  R2MAP(:,:)=R2TMP(:,:)
+#ifdef IFS_CMF
+CALL MPL_ALLREDUCE(R2MAP,CDOPER='MIN',KCOMM=MPI_COMM_CAMA,KERROR=ierr)
+#else
+R2TMP(:,:)=RMIS
+CALL MPI_AllReduce(R2MAP,R2TMP,NX*NY,MPI_REAL4,MPI_MIN,MPI_COMM_CAMA,ierr)
+R2MAP(:,:)=R2TMP(:,:)
+#endif
+
 END SUBROUTINE CMF_MPI_REDUCE_R2MAP
 !####################################################################
-
-
 
 
 !####################################################################
@@ -124,9 +129,13 @@ REAL(KIND=JPRM),INTENT(INOUT)   :: R1PTH(NPTHOUT,NPTHLEV)
 REAL(KIND=JPRM)                 :: R1PTMP(NPTHOUT,NPTHLEV)
 !================================================
 ! gather to master node
-  R1PTMP(:,:)=RMIS
-  CALL MPI_Reduce(R1PTH,R1PTMP,NPTHOUT*NPTHLEV,MPI_REAL4,MPI_MIN,0,MPI_COMM_CAMA,ierr)
-  R1PTH(:,:)=R1PTMP(:,:)
+#ifdef IFS_CMF
+CALL MPL_ALLREDUCE(R1PTH,CDOPER='MIN',KCOMM=MPI_COMM_CAMA,KERROR=ierr)
+#else
+R1PTMP(:,:)=RMIS
+CALL MPI_AllReduce(R1PTH,R1PTMP,NPTHOUT*NPTHLEV,MPI_REAL4,MPI_MIN,MPI_COMM_CAMA,ierr)
+R1PTH(:,:)=R1PTMP(:,:)
+#endif
 END SUBROUTINE CMF_MPI_REDUCE_R1PTH
 !####################################################################
 
@@ -142,9 +151,17 @@ REAL(KIND=JPRB),INTENT(INOUT)   :: D2MAP(NX,NY)
 REAL(KIND=JPRB)                 :: D2TMP(NX,NY)
 !================================================
 ! gather to master node
-  D2TMP(:,:)=DMIS
-  CALL MPI_Reduce(D2MAP,D2TMP,NX*NY,MPI_REAL8,MPI_MIN,0,MPI_COMM_CAMA,ierr)
-  D2MAP(:,:)=D2TMP(:,:)
+#ifdef IFS_CMF
+CALL MPL_ALLREDUCE(D2MAP,CDOPER='MIN',KCOMM=MPI_COMM_CAMA,KERROR=ierr)
+#else
+D2TMP(:,:)=DMIS
+#ifdef SinglePrec_CMF
+CALL MPI_AllReduce(D2MAP,D2TMP,NX*NY,MPI_REAL4,MPI_MIN,MPI_COMM_CAMA,ierr)
+#else
+CALL MPI_AllReduce(D2MAP,D2TMP,NX*NY,MPI_REAL8,MPI_MIN,MPI_COMM_CAMA,ierr)
+#endif
+D2MAP(:,:)=D2TMP(:,:)
+#endif
 END SUBROUTINE CMF_MPI_REDUCE_D2MAP
 !####################################################################
 
@@ -160,13 +177,19 @@ REAL(KIND=JPRB),INTENT(INOUT)   :: D1PTH(NPTHOUT,NPTHLEV)
 REAL(KIND=JPRB)                 :: D1PTMP(NPTHOUT,NPTHLEV)
 !================================================
 ! gather to master node
-  D1PTMP(:,:)=DMIS
-  CALL MPI_Reduce(D1PTH,D1PTMP,NPTHOUT*NPTHLEV,MPI_REAL8,MPI_MIN,0,MPI_COMM_CAMA,ierr)
-  D1PTH(:,:)=D1PTMP(:,:)
+#ifdef IFS_CMF
+CALL MPL_ALLREDUCE(D1PTH,CDOPER='MIN',KCOMM=MPI_COMM_CAMA,KERROR=ierr)
+#else
+D1PTMP(:,:)=DMIS
+#ifdef SinglePrec_CMF
+CALL MPI_AllReduce(D1PTH,D1PTMP,NPTHOUT*NPTHLEV,MPI_REAL4,MPI_MIN,MPI_COMM_CAMA,ierr)
+#else
+CALL MPI_AllReduce(D1PTH,D1PTMP,NPTHOUT*NPTHLEV,MPI_REAL8,MPI_MIN,MPI_COMM_CAMA,ierr)
+#endif
+D1PTH(:,:)=D1PTMP(:,:)
+#endif
 END SUBROUTINE CMF_MPI_REDUCE_D1PTH
 !####################################################################
-
-
 
 
 !####################################################################
