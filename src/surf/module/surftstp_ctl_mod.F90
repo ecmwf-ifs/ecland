@@ -688,7 +688,8 @@ IF ( .NOT. LESNML ) KLMAX=1
 DO JL=KIDIA,KFDIA
   IF (YDSOIL%LESNICE) THEN
     IF (.NOT. LDLAND(JL)) THEN
-      ZRSN(JL,1:KLEVSN)=330.0_JPRB ! Fix snow density for snow over ice during coupling step.
+      !*ZRSN(JL,1:KLEVSN)=330.0_JPRB ! Fix snow density for snow over ice during coupling step.
+      ZSN(JL,1:KLEVSN)=PSNM1M(JL,1:KLEVSN) ! Fix snow mass for snow over ice in between coupling steps with ocean model.
     ENDIF
   ENDIF
 
