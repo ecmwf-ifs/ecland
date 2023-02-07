@@ -97,7 +97,7 @@ END SUBROUTINE CMF_MPI_END
 
 
 !####################################################################
-SUBROUTINE CMF_MPI_REDUCE_R2MAP(R2MAP)
+SUBROUTINE CMF_MPI_AllReduce_R2MAP(R2MAP)
 USE YOS_CMF_INPUT,           ONLY: RMIS, NX,NY
 IMPLICIT NONE
 !* input/output
@@ -114,12 +114,12 @@ CALL MPI_AllReduce(R2MAP,R2TMP,NX*NY,MPI_REAL4,MPI_MIN,MPI_COMM_CAMA,ierr)
 R2MAP(:,:)=R2TMP(:,:)
 #endif
 
-END SUBROUTINE CMF_MPI_REDUCE_R2MAP
+END SUBROUTINE CMF_MPI_AllReduce_R2MAP
 !####################################################################
 
 
 !####################################################################
-SUBROUTINE CMF_MPI_REDUCE_R1PTH(R1PTH)
+SUBROUTINE CMF_MPI_AllReduce_R1PTH(R1PTH)
 USE YOS_CMF_INPUT,           ONLY: RMIS
 USE YOS_CMF_MAP,             ONLY: NPTHOUT, NPTHLEV
 IMPLICIT NONE
@@ -136,12 +136,12 @@ R1PTMP(:,:)=RMIS
 CALL MPI_AllReduce(R1PTH,R1PTMP,NPTHOUT*NPTHLEV,MPI_REAL4,MPI_MIN,MPI_COMM_CAMA,ierr)
 R1PTH(:,:)=R1PTMP(:,:)
 #endif
-END SUBROUTINE CMF_MPI_REDUCE_R1PTH
+END SUBROUTINE CMF_MPI_AllReduce_R1PTH
 !####################################################################
 
 
 !####################################################################
-SUBROUTINE CMF_MPI_REDUCE_D2MAP(D2MAP)
+SUBROUTINE CMF_MPI_AllReduce_D2MAP(D2MAP)
 ! only used in netCDF restart file. (cannot be compiled due to a bug in MacOS mpif90)
 USE YOS_CMF_INPUT,           ONLY: DMIS, NX,NY
 IMPLICIT NONE
@@ -162,12 +162,12 @@ CALL MPI_AllReduce(D2MAP,D2TMP,NX*NY,MPI_REAL8,MPI_MIN,MPI_COMM_CAMA,ierr)
 #endif
 D2MAP(:,:)=D2TMP(:,:)
 #endif
-END SUBROUTINE CMF_MPI_REDUCE_D2MAP
+END SUBROUTINE CMF_MPI_AllReduce_D2MAP
 !####################################################################
 
 
 !####################################################################
-SUBROUTINE CMF_MPI_REDUCE_D1PTH(D1PTH)
+SUBROUTINE CMF_MPI_AllReduce_D1PTH(D1PTH)
 USE YOS_CMF_INPUT,           ONLY: DMIS
 USE YOS_CMF_MAP,             ONLY: NPTHOUT, NPTHLEV
 IMPLICIT NONE
@@ -188,8 +188,55 @@ CALL MPI_AllReduce(D1PTH,D1PTMP,NPTHOUT*NPTHLEV,MPI_REAL8,MPI_MIN,MPI_COMM_CAMA,
 #endif
 D1PTH(:,:)=D1PTMP(:,:)
 #endif
-END SUBROUTINE CMF_MPI_REDUCE_D1PTH
+END SUBROUTINE CMF_MPI_AllReduce_D1PTH
 !####################################################################
+
+
+
+!####################################################################
+SUBROUTINE CMF_MPI_AllReduce_P2MAP(P2MAP)
+! only used in netCDF restart file. (cannot be compiled due to a bug in MacOS mpif90)
+USE YOS_CMF_INPUT,           ONLY: DMIS, NX,NY
+IMPLICIT NONE
+!* input/output
+REAL(KIND=JPRD),INTENT(INOUT)   :: P2MAP(NX,NY)
+!* local variable
+REAL(KIND=JPRD)                 :: P2TMP(NX,NY)
+!================================================
+! gather to master node
+#ifdef IFS_CMF
+CALL MPL_ALLREDUCE(P2MAP,CDOPER='MIN',KCOMM=MPI_COMM_CAMA,KERROR=ierr)
+#else
+P2TMP(:,:)=DMIS
+CALL MPI_AllReduce(P2MAP,P2TMP,NX*NY,MPI_REAL8,MPI_MIN,MPI_COMM_CAMA,ierr)
+P2MAP(:,:)=P2TMP(:,:)
+#endif
+END SUBROUTINE CMF_MPI_AllReduce_P2MAP
+!####################################################################
+
+
+!####################################################################
+SUBROUTINE CMF_MPI_AllReduce_P1PTH(P1PTH)
+USE YOS_CMF_INPUT,           ONLY: DMIS
+USE YOS_CMF_MAP,             ONLY: NPTHOUT, NPTHLEV
+IMPLICIT NONE
+!* input/output
+REAL(KIND=JPRD),INTENT(INOUT)   :: P1PTH(NPTHOUT,NPTHLEV)
+!* local variable
+REAL(KIND=JPRD)                 :: P1PTMP(NPTHOUT,NPTHLEV)
+!================================================
+! gather to master node
+#ifdef IFS_CMF
+CALL MPL_ALLREDUCE(P1PTH,CDOPER='MIN',KCOMM=MPI_COMM_CAMA,KERROR=ierr)
+#else
+P1PTMP(:,:)=DMIS
+CALL MPI_AllReduce(P1PTH,P1PTMP,NPTHOUT*NPTHLEV,MPI_REAL8,MPI_MIN,MPI_COMM_CAMA,ierr)
+P1PTH(:,:)=P1PTMP(:,:)
+#endif
+END SUBROUTINE CMF_MPI_AllReduce_P1PTH
+!####################################################################
+
+
 
 
 !####################################################################
