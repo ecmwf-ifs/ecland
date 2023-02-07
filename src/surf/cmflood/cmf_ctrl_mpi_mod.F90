@@ -66,7 +66,7 @@ MPI_COMM_CAMA=MPI_COMM_WORLD
 CALL MPI_Comm_size(MPI_COMM_CAMA, Nproc, ierr)
 CALL MPI_Comm_rank(MPI_COMM_CAMA, Nid, ierr)
 
-REGIONALL=Nproc
+REGIONALL =Nproc
 REGIONTHIS=Nid+1
 #endif
 
@@ -118,6 +118,8 @@ END SUBROUTINE CMF_MPI_AllReduce_R2MAP
 !####################################################################
 
 
+
+
 !####################################################################
 SUBROUTINE CMF_MPI_AllReduce_R1PTH(R1PTH)
 USE YOS_CMF_INPUT,           ONLY: RMIS
@@ -166,32 +168,6 @@ END SUBROUTINE CMF_MPI_AllReduce_D2MAP
 !####################################################################
 
 
-!####################################################################
-SUBROUTINE CMF_MPI_AllReduce_D1PTH(D1PTH)
-USE YOS_CMF_INPUT,           ONLY: DMIS
-USE YOS_CMF_MAP,             ONLY: NPTHOUT, NPTHLEV
-IMPLICIT NONE
-!* input/output
-REAL(KIND=JPRB),INTENT(INOUT)   :: D1PTH(NPTHOUT,NPTHLEV)
-!* local variable
-REAL(KIND=JPRB)                 :: D1PTMP(NPTHOUT,NPTHLEV)
-!================================================
-! gather to master node
-#ifdef IFS_CMF
-CALL MPL_ALLREDUCE(D1PTH,CDOPER='MIN',KCOMM=MPI_COMM_CAMA,KERROR=ierr)
-#else
-D1PTMP(:,:)=DMIS
-#ifdef SinglePrec_CMF
-CALL MPI_AllReduce(D1PTH,D1PTMP,NPTHOUT*NPTHLEV,MPI_REAL4,MPI_MIN,MPI_COMM_CAMA,ierr)
-#else
-CALL MPI_AllReduce(D1PTH,D1PTMP,NPTHOUT*NPTHLEV,MPI_REAL8,MPI_MIN,MPI_COMM_CAMA,ierr)
-#endif
-D1PTH(:,:)=D1PTMP(:,:)
-#endif
-END SUBROUTINE CMF_MPI_AllReduce_D1PTH
-!####################################################################
-
-
 
 !####################################################################
 SUBROUTINE CMF_MPI_AllReduce_P2MAP(P2MAP)
@@ -215,17 +191,57 @@ END SUBROUTINE CMF_MPI_AllReduce_P2MAP
 !####################################################################
 
 
+
+
+!####################################################################
+SUBROUTINE CMF_MPI_AllReduce_D1PTH(D1PTH)
+USE YOS_CMF_INPUT,           ONLY: DMIS
+USE YOS_CMF_MAP,             ONLY: NPTHOUT, NPTHLEV, PTH_UPST, PTH_DOWN
+IMPLICIT NONE
+!* input/output
+REAL(KIND=JPRB),INTENT(INOUT)   :: D1PTH(NPTHOUT,NPTHLEV)
+!* local variable
+REAL(KIND=JPRB)                 :: D1PTMP(NPTHOUT,NPTHLEV)
+REAL(KIND=JPIM)                 :: IPTH
+!================================================
+! gather to master node
+DO IPTH=1,NPTHOUT
+  IF (PTH_UPST(IPTH)<=0 .OR. PTH_DOWN(IPTH)<=0 ) THEN
+    D1PTH(IPTH,:)=DMIS
+  ENDIF
+END DO
+#ifdef IFS_CMF
+CALL MPL_ALLREDUCE(D1PTH,CDOPER='MIN',KCOMM=MPI_COMM_CAMA,KERROR=ierr)
+#else
+D1PTMP(:,:)=DMIS
+#ifdef SinglePrec_CMF
+CALL MPI_AllReduce(D1PTH,D1PTMP,NPTHOUT*NPTHLEV,MPI_REAL4,MPI_MIN,MPI_COMM_CAMA,ierr)
+#else
+CALL MPI_AllReduce(D1PTH,D1PTMP,NPTHOUT*NPTHLEV,MPI_REAL8,MPI_MIN,MPI_COMM_CAMA,ierr)
+#endif
+D1PTH(:,:)=D1PTMP(:,:)
+#endif
+END SUBROUTINE CMF_MPI_AllReduce_D1PTH
+!####################################################################
+
+
 !####################################################################
 SUBROUTINE CMF_MPI_AllReduce_P1PTH(P1PTH)
 USE YOS_CMF_INPUT,           ONLY: DMIS
-USE YOS_CMF_MAP,             ONLY: NPTHOUT, NPTHLEV
+USE YOS_CMF_MAP,             ONLY: NPTHOUT, NPTHLEV, PTH_UPST, PTH_DOWN
 IMPLICIT NONE
 !* input/output
 REAL(KIND=JPRD),INTENT(INOUT)   :: P1PTH(NPTHOUT,NPTHLEV)
 !* local variable
 REAL(KIND=JPRD)                 :: P1PTMP(NPTHOUT,NPTHLEV)
+REAL(KIND=JPIM)                 :: IPTH
 !================================================
 ! gather to master node
+DO IPTH=1,NPTHOUT
+  IF (PTH_UPST(IPTH)<=0 .OR. PTH_DOWN(IPTH)<=0 ) THEN
+    P1PTH(IPTH,:)=DMIS
+  ENDIF
+END DO
 #ifdef IFS_CMF
 CALL MPL_ALLREDUCE(P1PTH,CDOPER='MIN',KCOMM=MPI_COMM_CAMA,KERROR=ierr)
 #else
@@ -235,7 +251,6 @@ P1PTH(:,:)=P1PTMP(:,:)
 #endif
 END SUBROUTINE CMF_MPI_AllReduce_P1PTH
 !####################################################################
-
 
 
 
