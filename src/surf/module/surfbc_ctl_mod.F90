@@ -312,7 +312,7 @@ IF (LEFLAKE) THEN
        ! To be re-checked when moving to fraction land-sea mask.
           ZFRTIT=MIN(MAX(RCIMIN,PCI(JL)),1.0_JPRB)
           PFRTI(JL,1)=1.0_JPRB-ZFRTIT
-          PFRTI(JL,2)=ZFRTIT*(1.0_JPRB-ZCVS(JL))   !MIN(MAX(RCIMIN,PCI(JL)-ZCVS(JL)),1.0_JPRB)
+          PFRTI(JL,2)=ZFRTIT*(1.0_JPRB-ZCVS(JL))
           PFRTI(JL,5)=ZCVS(JL)*ZFRTIT
         ELSE
           PFRTI(JL,2)=MIN(MAX(RCIMIN,PCI(JL)),1.0_JPRB)
