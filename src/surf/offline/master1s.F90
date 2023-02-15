@@ -38,11 +38,20 @@ MYPROC=MPL_MYRANK()
 
 #ifdef UseMPI_CMF
 ! Create a communicator for CaMa-Flood
-! CaMa-Flood only works up to 16 MPI processes
-IF (MYPROC .LE. MIN(NPROC,16.0_JPIM)) THEN 
-  ICOL_CMF=1
+! CaMa-Flood only works up to 16 MPI processes or with 30 MPI processes.
+
+IF (NPROC .LT. 30) THEN
+  IF (MYPROC .LE. MIN(NPROC,16.0_JPIM)) THEN 
+    ICOL_CMF=1
+  ELSE
+    ICOL_CMF=-1
+  ENDIF
 ELSE
-  ICOL_CMF=-1
+  IF (MYPROC .LE. 30) THEN
+    ICOL_CMF=1
+  ELSE
+    ICOL_CMF=-1
+  ENDIF
 ENDIF
 
 CALL MPL_COMM_SPLIT(MPI_COMM_WORLD, ICOL_CMF, INT(MYPROC), ICOMM_CMF, IERR_CMF)
