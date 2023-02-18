@@ -80,7 +80,7 @@ SUBROUTINE VOSKIN(KIDIA,KFDIA,KLON, &
 !     N.Semane+P.Bechtold 04-10-2012 Add PRPLRG factor for small planet
 !     A. Beljaars+P.Bechtold 28-12-2020 T depend viscosity
 !     R.Forbes 15-01-2021 corrected zeroing of ZDCOOL/ZDWARM to outside if test
-!     J. Bidlot T depend thermal expansion coefficient sea water 
+!     J. Bidlot Temperature dependent thermal expansion coefficient for sea water 
 !
 !     -----------------------------------------------------------------------
 
@@ -213,7 +213,7 @@ IF (LEOCWA .OR. LEOCCO) THEN
     ZUST(JL)=MAX(SQRT(ZUST2),ZEPUST)
 
 !     Ocean buoyancy 
-    ZALPHA(JL)=MAX(1.E-5_JPRB, 2.1E-5_JPRB*MAX(PSST(JL)-ZT0+3.2_JPRB,0._JPRB)**0.79_JPRB)
+    ZALPHA(JL)=MAX(1.0E-5_JPRB, 2.1E-5_JPRB*MAX(PSST(JL)-ZT0+3.2_JPRB,0._JPRB)**0.79_JPRB)
   ENDDO
 ENDIF
 
