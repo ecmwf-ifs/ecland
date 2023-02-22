@@ -86,8 +86,12 @@ USE SRFWDIF_MOD
 USE SRFWINC_MOD
 USE SRFWNG_MOD
 USE SRFVEGEVOL_MOD
-USE FLAKE_DRIVER_MOD 
+USE FLAKE_DRIVER_MOD
+#ifdef WITH_OIFS_RM
 USE OCEAN_ML_DRIVER_MOD   !KPP
+#else
+!!OIFS_rm USE OCEAN_ML_DRIVER_MOD   !KPP
+#endif
 USE OCEAN_ML_DRIVER_V2_MOD   !MIXED_LAYER_PJ
 
 USE ABORT_SURF_MOD
@@ -893,6 +897,7 @@ ENDDO
 
 !*        4.8     Ocean Mixed layer
 
+#ifndef OIFS
 IF(LEOCML) THEN
   CALL OCEAN_ML_DRIVER &
  & ( KIDIA    ,KFDIA    ,KLON     ,KLEVO    ,KSTART   ,&
@@ -906,6 +911,21 @@ IF(LEOCML) THEN
  &   PDIFM    ,PDIFT    ,PDIFS    ,PTRI0    ,PTRI1    ,&
  &   PSWDK_SAVE, YDCST  ,YDOCEAN_ML )
 ENDIF
+#else
+! ! OIFS_rm IF(LEOCML) THEN
+! ! OIFS_rm   CALL OCEAN_ML_DRIVER &
+! ! OIFS_rm  & ( KIDIA    ,KFDIA    ,KLON     ,KLEVO    ,KSTART   ,&
+! ! OIFS_rm  &   KSTEP    ,LDOCN_KPP,LDSICE   ,PSSRFLTI(:,1),ZSLRFLTI(:,1),&
+! ! OIFS_rm  &   PAHFSTI(:,1), PEVAPTI(:,1),PUSTRTI(:,1), PVSTRTI(:,1),&
+! ! OIFS_rm  &   PUSTRC   ,PVSTRC   ,ZRSFC    ,ZRSFL    ,ZSSFC    ,&
+! ! OIFS_rm  &   ZSSFL    ,PGEMU    ,PZO      ,PHO      ,PHO_INV  ,&
+! ! OIFS_rm  &   PDO      ,POCDEPTH ,PUO0     ,PVO0     ,PUOC     ,&
+! ! OIFS_rm  &   PVOC     ,PTO0     ,PSO0     ,PUOE1    ,PVOE1    ,&
+! ! OIFS_rm  &   PTOE1    ,PSOE1    ,PADVT    ,PADVS    ,PTSPHY   ,&
+! ! OIFS_rm  &   PDIFM    ,PDIFT    ,PDIFS    ,PTRI0    ,PTRI1    ,&
+! ! OIFS_rm  &   PSWDK_SAVE, YDCST  ,YDOCEAN_ML )
+! ! OIFS_rm ENDIF
+#endif
 
 IF(LOCMLTKE) THEN
   CALL OCEAN_ML_DRIVER_V2 &
