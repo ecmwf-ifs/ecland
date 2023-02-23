@@ -10,6 +10,9 @@ MODULE CMF_CTRL_MPI_MOD
 !
 ! (C) D.Yamazaki (U-Tokyo)  Oct 2021
 !
+! Modifications:
+! -- I. Ayan-Miguez (BSC) Feb 2023: Adapted to work coupled with IFS and OSM
+!
 ! Licensed under the Apache License, Version 2.0 (the "License");
 !   You may not use this file except in compliance with the License.
 !   You may obtain a copy of the License at: http://www.apache.org/licenses/LICENSE-2.0
