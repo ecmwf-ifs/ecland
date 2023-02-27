@@ -306,7 +306,6 @@ IF (LLINIT) THEN
       PZ0MTI(JL,5)=ZSNWGHT(JL)*RVZ0M(12)+(1.0_JPRB-ZSNWGHT(JL))*ZMLOW
     ENDIF
 
-
 !       - High vegetation
     PZ0MTI(JL,6)=RVZ0M(KTVH(JL))
 !       - Sheltered snow
