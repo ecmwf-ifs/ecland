@@ -176,7 +176,7 @@ TYPE(TOCEAN_ML),    INTENT(IN)  :: YDOCEAN_ML
 REAL(KIND=JPRB) ::    ZCVW(KLON)   ,ZCVS(KLON) , ZFRAUX(KLON)
 REAL(KIND=JPRB) ::    ZLICE(KLON), ZPCVL,ZPCVH,ZPCVB,ZPCVLK
 REAL(KIND=JPRB) ::    ZTHRESH, ZEPS, ZSUM(KLON), ZSUM2(KLON)
-! ARDU: Total ice fraction in the grid cell (the ice fraction can be covered by snow)
+!Total ice fraction in the grid cell (the ice fraction can be covered by snow)
 REAL(KIND=JPRB) ::    ZFRTIT
 REAL(KIND=JPRB) ::    ZEPSILON, TMP1, TMP2
 
