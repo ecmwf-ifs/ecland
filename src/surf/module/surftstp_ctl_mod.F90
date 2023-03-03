@@ -897,7 +897,7 @@ ENDDO
 
 !*        4.8     Ocean Mixed layer
 
-#ifndef OIFS
+#ifdef WITH_OIFS_RM
 IF(LEOCML) THEN
   CALL OCEAN_ML_DRIVER &
  & ( KIDIA    ,KFDIA    ,KLON     ,KLEVO    ,KSTART   ,&
