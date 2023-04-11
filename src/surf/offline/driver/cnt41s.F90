@@ -28,6 +28,7 @@ USE YOMDPHY  , ONLY: NLALO ,NLAT     ,NLON, NPOI, NPOIP
 USE YOMGPD1S , ONLY: VFPGLOB, VFCLAKE, VFCLAKEF,  VFITM
 USE OMP_LIB
 USE MPL_MODULE
+USE YOS_CMF_INPUT,           ONLY: LOGNAM
 
 #ifdef UseMPI_CMF
 USE YOS_CMF_MAP, ONLY : REGIONALL, MPI_COMM_CAMA
@@ -87,7 +88,7 @@ INTEGER (KIND=JPIM) :: ZYYYYMMDD,ZHHMM
 INTEGER (KIND=JPIM) :: JL,JLL,ISTEPADV,IMAX,IMIN
 REAL (KIND=JPRD) :: ZJUL
 REAL (KIND=JPRD) :: ZTT0,ZTT1,ZTT2,ZTT1C,ZTT2C
-REAL (KIND=JPRB),ALLOCATABLE :: ZBUFFO(:,:,:),ZFLD(:,:),ZBUFFI(:,:,:),ZTMP(:)
+REAL (KIND=JPRB),ALLOCATABLE :: ZBUFFO(:,:,:),ZFLD(:,:),ZBUFFI(:,:,:),ZBUFFIAUX(:),ZTMP(:)
 REAL (KIND=JPRB),ALLOCATABLE :: ZD1STSRO2(:), ZD1STRO2(:), ZD1STIEVAPU2(:), ZVFPGLOB(:), ZBUFFOAUX(:,:)
 REAL (KIND=JPRD) :: ZFDPD
 REAL(KIND=JPHOOK)  :: ZHOOK_HANDLE
@@ -106,7 +107,9 @@ MYPROC = MPL_MYRANK()
 NPROC  = MPL_NPROC()
 
 ALLOCATE(ZBUFFO(NXIN,NYIN,3))
+ALLOCATE(ZBUFFOAUX(NPOI,3))
 ALLOCATE(ZBUFFI(NXIN,NYIN,1))
+ALLOCATE(ZBUFFIAUX(NPOI))
 ALLOCATE(ZFLD(NXIN,NYIN))
 ALLOCATE(ZTMP(NXIN*NYIN))
 ALLOCATE(ZD1STSRO2(NLALO))
@@ -114,16 +117,17 @@ ALLOCATE(ZD1STRO2(NLALO))
 ALLOCATE(ZD1STIEVAPU2(NLALO))
 ALLOCATE(ZVFPGLOB(NLALO))
 ALLOCATE(DCMFCOM(NLALO,1))
-ALLOCATE(ZBUFFOAUX(NPOI,3))
+
 ZBUFFO(:,:,:)=0._JPRB
+ZBUFFOAUX(:,:)=0._JPRB
 ZBUFFI(:,:,:)=0._JPRB
+ZBUFFIAUX(:)=0._JPRB
 ZFLD(:,:)=0._JPRB
 ZD1STSRO2(:)=0._JPRB
 ZD1STRO2(:)=0._JPRB
 ZD1STIEVAPU2(:)=0._JPRB
 ZVFPGLOB(:)=0._JPRB
 DCMFCOM(:,:)=0._JPRB
-ZBUFFOAUX(:,:)=0._JPRB
 
 IF (LECMF1WAY) THEN
   CALL MPL_ALLGATHERV(PRECVBUF=ZVFPGLOB(:),PSENDBUF=VFPGLOB(:),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:gaussianIndex")
@@ -240,17 +244,19 @@ DO NSTEP=NSTART,NSTOP
       ZTT1C = OMP_GET_WTIME()
       WRITE(NULOUT,*)' CMF_COUPLING: CALLING DRV_PUT & DRV_ADVANCE:',ISTEPADV
 
-      ! Gather the runoffs to send to CaMa-Flood
-      CALL MPL_ALLGATHERV(PRECVBUF=ZD1STSRO2(:),PSENDBUF=ZBUFFOAUX(:,1),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SRO")
-      CALL MPL_ALLGATHERV(PRECVBUF=ZD1STRO2(:),PSENDBUF=ZBUFFOAUX(:,2),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SSRO")
-      CALL MPL_ALLGATHERV(PRECVBUF=ZD1STIEVAPU2(:),PSENDBUF=ZBUFFOAUX(:,3),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:LakeEVAP")
+      IF (NDIMCDF .NE. 2)THEN
+        ! Gather the runoffs to send to CaMa-Flood
+        CALL MPL_ALLGATHERV(PRECVBUF=ZD1STSRO2(:),PSENDBUF=ZBUFFOAUX(:,1),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SRO")
+        CALL MPL_ALLGATHERV(PRECVBUF=ZD1STRO2(:),PSENDBUF=ZBUFFOAUX(:,2),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SSRO")
+        CALL MPL_ALLGATHERV(PRECVBUF=ZD1STIEVAPU2(:),PSENDBUF=ZBUFFOAUX(:,3),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:LakeEVAP")
 
-      DO JL=1,NLALO
-        JLL=INT(ZVFPGLOB(JL))
-        ZBUFFO(JLL,1,1)= ZD1STSRO2(JL)   
-        ZBUFFO(JLL,1,2)=ZD1STRO2(JL)  
-        ZBUFFO(JLL,1,3)=ZD1STIEVAPU2(JL)   
-      ENDDO
+        DO JL=1,NLALO
+          JLL=INT(ZVFPGLOB(JL))
+          ZBUFFO(JLL,1,1)= ZD1STSRO2(JL)   
+          ZBUFFO(JLL,1,2)=ZD1STRO2(JL)  
+          ZBUFFO(JLL,1,3)=ZD1STIEVAPU2(JL)   
+        ENDDO
+      ENDIF
 
       !*  Send runoff to CaMa-Flood 
       !    -------------------------
@@ -267,49 +273,58 @@ DO NSTEP=NSTART,NSTOP
         IF (LECMF2LAKEC .NE. 0) THEN
           CALL CMF_FORCING_COM(ZBUFFI(:,:,:))
         ENDIF
-      ENDIF 
+      ENDIF
+
       !* All NPROC need to wait for Cama to finish 
       CALL MPL_BARRIER()
       
-      !!* Following need to be adapted for MPI ! 
       !* Transfor into HTESSEL structure
       !* -------
-      IF (NDIMCDF == 2)THEN
-        ZTMP = RESHAPE(ZBUFFI(:,:,1),(/NXIN*NYIN/))
-        DCMFCOM(:,1) = PACK(ZTMP,LMASK(:))
-      ELSE
-        DO JL=1,NLALO
-          JLL=INT(ZVFPGLOB(JL))
-          DCMFCOM(JL,1) = ZBUFFI(JLL,1,1)
-        ENDDO
-      ENDIF
+
       IF (LECMF2LAKEC==0) THEN
         ! no coupling 
         VFCLAKEF(:) = VFCLAKE(:)
-      ELSEIF (LECMF2LAKEC==1) THEN 
-        ! replace lake cover by flood plain fraction over land 
-        DO JL=1,NLALO
-          IF ( VFITM(JL) > 0.5_JPRB ) THEN
-            ! Update lake fraction only over land points
-            VFCLAKEF(JL) = MAX(0._JPRB,MIN(0.99_JPRB,DCMFCOM(JL,1)))
+      ELSE 
+        IF (MYPROC == 1) THEN
+          IF (NDIMCDF == 2)THEN
+            ZTMP = RESHAPE(ZBUFFI(:,:,1),(/NXIN*NYIN/))
+            DCMFCOM(:,1) = PACK(ZTMP,LMASK(:))
+          ELSE
+            DO JL=1,NLALO
+              JLL=INT(ZVFPGLOB(JL))
+              DCMFCOM(JL,1) = ZBUFFI(JLL,1,1)
+            ENDDO
           ENDIF
-        ENDDO
-      ELSEIF (LECMF2LAKEC==2) THEN 
-        ! add flooplain fraction to lake cover over land 
-        DO JL=1,NLALO
-          IF ( VFITM(JL) > 0.5_JPRB ) THEN
-            ! Update lake fraction only over land points
-            VFCLAKEF(JL) = MAX(0._JPRB,MIN(0.99_JPRB,VFCLAKE(JL)+DCMFCOM(JL,1)))
-          ENDIF
-        ENDDO
-      ELSE
-        WRITE(NULOUT,*) "LECMF2LAKEC can be only 0,1 or 2 but it is",LECMF2LAKEC
-        CALL ABOR1('LECMF2LAKEC can only be 0,1 or 2')
+        ENDIF
+
+        CALL MPL_SCATTERV(PRECVBUF=ZBUFFIAUX(:),KROOT=1,PSENDBUF=DCMFCOM(:,1),KSENDCOUNTS=NPOIP(:),CDSTRING="CNT41S:ZBUFFI")
+
+        IF (LECMF2LAKEC==1) THEN 
+          ! replace lake cover by flood plain fraction over land 
+          DO JL=1,NPOI
+            IF ( VFITM(JL) > 0.5_JPRB ) THEN
+              ! Update lake fraction only over land points
+              VFCLAKEF(JL) = MAX(0._JPRB,MIN(0.99_JPRB,ZBUFFIAUX(JL)))
+            ENDIF
+          ENDDO
+        ELSEIF (LECMF2LAKEC==2) THEN 
+          ! add flooplain fraction to lake cover over land 
+          DO JL=1,NPOI
+            IF ( VFITM(JL) > 0.5_JPRB ) THEN
+              ! Update lake fraction only over land points
+              VFCLAKEF(JL) = MAX(0._JPRB,MIN(0.99_JPRB,VFCLAKE(JL)+ZBUFFIAUX(JL)))
+            ENDIF
+          ENDDO
+        ELSE
+          WRITE(NULOUT,*) "LECMF2LAKEC can be only 0,1 or 2 but it is",LECMF2LAKEC
+          CALL ABOR1('LECMF2LAKEC can only be 0,1 or 2')
+        ENDIF
       ENDIF
-      
       !* Reset fluxes 
       ZBUFFO(:,:,:) = 0._JPRB
       ZBUFFOAUX(:,:)= 0._JPRB
+      ZBUFFI(:,:,:) = 0._JPRB
+      ZBUFFIAUX(:)  = 0._JPRB
       ZTT2C = OMP_GET_WTIME()
          
       WRITE(NULOUT,'(a22,f8.3)') 'CMF_COUPLING CWALsec: ',ZTT2C-ZTT1C    
@@ -330,6 +345,8 @@ IF (ALLOCATED(ZFLD))    DEALLOCATE(ZFLD)
 IF (ALLOCATED(DCMFCOM)) DEALLOCATE(DCMFCOM)
 IF (ALLOCATED(ZTMP))    DEALLOCATE(ZTMP)
 IF (ALLOCATED(ZBUFFOAUX)) DEALLOCATE(ZBUFFOAUX)
+IF (ALLOCATED(ZBUFFI)) DEALLOCATE(ZBUFFI)
+IF (ALLOCATED(ZBUFFIAUX)) DEALLOCATE(ZBUFFIAUX)
 
 IF ( IDBGS1 > 0 ) THEN
   ZTT2 = OMP_GET_WTIME()
