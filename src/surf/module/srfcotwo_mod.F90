@@ -397,22 +397,15 @@ ZFSN(JL)=1._JPRB-ZCVS*(1._JPRB-exp(-2._JPRB*MAX(PDSN(JL),0._JPRB)))
 ZRQ10=2.5665_JPRB-0.05308_JPRB*ZTSOIL+0.00238_JPRB*ZTSOIL*ZTSOIL-0.00004_JPRB*ZTSOIL*ZTSOIL*ZTSOIL
 !ZRQ10=RQ10 previously fixed to 2.
 ZRQ10=MAX(ZRQ10,ZEPSR)
-  IF ((PLAT(JL)*180._JPRB/RPI) .GT. 25._JPRB) THEN
-     ZCH4S=RVCH4S(1)
-  ELSEIF ((PLAT(JL)*180._JPRB/RPI) .LT. -25._JPRB) THEN
-     ZCH4S=RVCH4S(3)
-  ELSE
-     ZCH4S=RVCH4S(2)
-  ENDIF
 
   ICTYPE=1
   IF (KCO2TYP(JL).EQ.4) THEN
       ICTYPE = 2
   ENDIF 
 
-! Correct scaling factor to fit climatology
- ZCH4S=ZCH4S*2.0_JPRB
-
+! Correct scaling factor to fit growth rate for 2018 (typical year)
+   ZCH4S= 0.01534782289664492_JPRB
+  
   DO JVT=1,NVTILES
 ! ! For low temperature season respiration should be lower (Q10 higher) (McDowell et al.Tree Physiology 20, 2000) 
 
