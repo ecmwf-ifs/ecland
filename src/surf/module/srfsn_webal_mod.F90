@@ -230,8 +230,7 @@ DO JL=KIDIA,KFDIA
       ! Limit thermally active snow depth to 1 meter of snow (for glaciers in particular)
       ZDSN(JK)    = MIN(RDSNMAX, (PSSNM1M(JL,JK) / PRSNM1M(JL,JK))) ! read snow depth (m)
       !*ZSNHC(JK)   = (ZIHCAP*PRSNM1M(JL,JK) * MIN(RDSNMAX, (ZICE(JK)/PRSNM1M(JL,JK))) + ZWHCAP*PWSNM1M(JL,JK) ) * ZTMST
-      !*ZSNHC(JK)   = (ZIHCAP*PRSNM1M(JL,JK) * MIN(RDSNMAX, ZDSN(JK))) * ZTMST
-      ZSNHC(JK)   = (ZIHCAP*PRSNM1M(JL,JK) * MAX(10E-4, MIN(RDSNMAX, (ZICE(JK)/PRSNM1M(JL,JK)))) + ZWHCAP*PWSNM1M(JL,JK) ) * ZTMST
+      ZSNHC(JK)   = (ZIHCAP*PRSNM1M(JL,JK) * MIN(RDSNMAX, ZDSN(JK))) * ZTMST
       ! heat conductivity from water vapor transport into the snowpack
       ZSNVCOND=(SNHCONDPOV/PAPRS(JL))*MAX(0._JPRB,(SNHCONDAV-SNHCONDBV/(PTSNM1M(JL,JK)-SNHCONDCV)))
       ! snow heat conductivity 
@@ -247,16 +246,9 @@ DO JL=KIDIA,KFDIA
     ENDDO
     ! Divided by two to decrease heat flux between snow and soil (accounting for litter,organic etc). 
     ! This needs to be in double-precision to avoid some problematic computation between small numbers 
-    IF (KLACT==1)THEN
-      zdepth_fr=REAL(ZDSN(KLACT)/PFRSN(JL),KIND=JPRD)
-      ZSNCONDH(KLACT+1)=REAL(PFRSN(JL),KIND=JPRD)*&
-                       &(REAL(zdepth_fr,KIND=JPRD)*REAL(ZSNCOND(KLACT),KIND=JPRD)+ZSOILDEPTH1*PSURFCOND(JL))/&
-                       &MAX(ZEPSILON, REAL(zdepth_fr+ZSOILDEPTH1,KIND=JPRD)*REAL(zdepth_fr+ZSOILDEPTH1,KIND=JPRD))
-    ELSE
-      ZSNCONDH(KLACT+1)=REAL(PFRSN(JL),KIND=JPRD)*&
-                       &(REAL(ZDSN(KLACT),KIND=JPRD)*REAL(ZSNCOND(KLACT),KIND=JPRD)+ZSOILDEPTH1*PSURFCOND(JL))/&
-                       &MAX(ZEPSILON, REAL(ZDSN(KLACT)+ZSOILDEPTH1,KIND=JPRD)*REAL(ZDSN(KLACT)+ZSOILDEPTH1,KIND=JPRD))
-    ENDIF
+     ZSNCONDH(KLACT+1)=REAL(PFRSN(JL),KIND=JPRD)*&
+                      &(REAL(ZDSN(KLACT),KIND=JPRD)*REAL(ZSNCOND(KLACT),KIND=JPRD)+ZSOILDEPTH1*PSURFCOND(JL))/&
+                      &MAX(ZEPSILON, REAL(ZDSN(KLACT)+ZSOILDEPTH1,KIND=JPRD)*REAL(ZDSN(KLACT)+ZSOILDEPTH1,KIND=JPRD))
     ! ZSNCONDH(KLACT+1)=PFRSN(JL)*1._JPRB*(ZDSN(KLACT)*ZSNCOND(KLACT)+ZSOILDEPTH1*PSURFCOND(JL))/&
     !              &MAX(ZEPSILON, (ZDSN(KLACT)+ZSOILDEPTH1)*(ZDSN(KLACT)+ZSOILDEPTH1))
 
