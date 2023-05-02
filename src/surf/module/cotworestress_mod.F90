@@ -464,6 +464,8 @@ PAVGPAR(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
 
 IF (LEFARQUHAR) THEN 
 
+  !$loki remove
+
   ! Farquhar photosynthesis model
   !
   CALL FARQUHAR(KIDIA, KFDIA, KLON, LDLAND, KVTYPE, KCO2TYP, YDAGS, YDAGF, &
@@ -482,6 +484,8 @@ IF (LEFARQUHAR) THEN
         PWET(JL) =0._JPRB
      ENDIF
   ENDDO
+
+  !$loki end remove
 
 ELSE
 
