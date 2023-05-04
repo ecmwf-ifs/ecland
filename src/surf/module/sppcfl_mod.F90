@@ -200,14 +200,8 @@ DO JL=KIDIA,KFDIA
   Z2MP =Z2M+PZ0MSM(JL)
 
   Z10MP =Z10M+PZ0MM(JL)
-  IF (Z10MP/ZL  >  RCHBHDL) THEN
-    Z10MP=RCHBHDL*ZL+PZ0MM(JL) !remove max 
-  ENDIF
 
   ZWIND =PBLEND(JL)+PZ0MM(JL)
-  IF (ZWIND/ZL  >  RCHBHDL) THEN
-    ZWIND=RCHBHDL*ZL+PZ0MM(JL)
-  ENDIF
 
 ! We use different z0m and z/L for scalars and wind,
 ! Scalars
