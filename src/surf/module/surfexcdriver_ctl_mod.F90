@@ -40,7 +40,7 @@ SUBROUTINE SURFEXCDRIVER_CTL(CDCONF &
  & , PDHVEGS, PEXDIAG, PDHCO2S &
  & , PRPLRG &
 ! LIM switch
- & , LSICOUP &
+ & , LSICOUP, LBLEND &
  & , YDCST, YDEXC, YDVEG, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB & 
  & )
 
@@ -267,7 +267,7 @@ USE VLAMSK_MOD
 !       PWETLU       Canopy resistance of low vegetation , unstressed 
 !       PWETH        Canopy resistance of high vegetation  
 !       PWETHS       Canopy resistance of high vegetation snow cover  
-
+!       LBLEND       Option to make blending heigh function of z0m (Logical)
 
 
 !     EXTERNALS.
@@ -429,6 +429,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTIS(:,:,:)
 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRPLRG
 LOGICAL           ,INTENT(IN)    :: LSICOUP  
+LOGICAL           ,INTENT(IN)    :: LBLEND  
 
 !canopy / bare soild resistances 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETB(:)
@@ -995,13 +996,27 @@ ENDDO
 !          SURFACE ROUGHNESS LENGTH. THE LOCAL ONES ARE FOR
 !          WMO-TYPE WIND STATIONS I.E. OPEN TERRAIN WITH GRASS
 
+
 ZBLENDWMO=40._JPRB/PRPLRG
 ZZ0MWMO=0.03_JPRB/PRPLRG
 DO JL=KIDIA,KFDIA
-  IF (PZ0M(JL)  >  ZZ0MWMO) THEN
-    PZ0MW(JL)=ZZ0MWMO
-    PBLENDPP(JL)=ZBLENDWMO
-  ELSE
+  ! Only apply blending height over land
+  IF ( ( PFRTI(JL,1)+PFRTI(JL,2) ) <=  0.5_JPRB) THEN ! Land
+    IF (PZ0M(JL)  >  ZZ0MWMO) THEN
+      PZ0MW(JL)=ZZ0MWMO
+      IF ( (LBLEND) .AND. (PZ0M(JL)  <=  MAXVAL(RVZ0M)) ) THEN
+        ! Scale the blending height with the roughness length
+        PBLENDPP(JL)=(PZ0M(JL) - ZZ0MWMO)*(ZBLENDWMO - PGEOMLEV(JL)*ZRG)/(MAXVAL(RVZ0M) - ZZ0MWMO)&
+                      + PGEOMLEV(JL)*ZRG
+      ELSE
+        ! Set blending height to constant
+        PBLENDPP(JL)=ZBLENDWMO
+      END IF
+    ELSE ! z0m < ZZ0MWMO
+      PZ0MW(JL)=PZ0M(JL)
+      PBLENDPP(JL)=PGEOMLEV(JL)*ZRG
+    ENDIF
+  ELSE ! Ocean
     PZ0MW(JL)=PZ0M(JL)
     PBLENDPP(JL)=PGEOMLEV(JL)*ZRG
   ENDIF
