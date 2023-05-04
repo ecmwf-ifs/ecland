@@ -38,7 +38,7 @@ SUBROUTINE SURFEXCDRIVER    (YDSURF, CDCONF &
  & , PDHTLS, PDHTSS, PDHTTS, PDHTIS &
  & , PDHVEGS, PEXDIAG, PDHCO2S &
  & , PRPLRG &
- & , LSICOUP &
+ & , LSICOUP, LBLEND &
  & )
 
 USE PARKIND1, ONLY : JPIM, JPRB, JPRD
@@ -113,6 +113,7 @@ USE SURFEXCDRIVER_CTL_MOD
 !      KCO2TYP :    Type of photosynthetic pathway for low vegetation (c3/c4)
 !      KTVH     :    Dominant high vegetation type
 !      KSOTY    :    SOIL TYPE                                        (1-7)
+!      LBLEND   :    Option to make blending heigh function of z0m (Logical)
 
 !    *KDHVCO2S*     Number of variables for CO2
 !    *KDHFCO2S*     Number of fluxes for CO2
@@ -405,7 +406,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETLU(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETH(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETHS(:)
 
-LOGICAL           ,INTENT(IN)    :: LSICOUP
+LOGICAL           ,INTENT(IN)    :: LSICOUP, LBLEND
 !ifndef INTERFACE
 
 TYPE(TSURF), POINTER :: YSURF
@@ -1011,7 +1012,7 @@ CALL SURFEXCDRIVER_CTL(CDCONF &
  & , PDHTLS, PDHTSS, PDHTTS, PDHTIS &
  & , PDHVEGS, PEXDIAG, PDHCO2S &
  & , PRPLRG &
- & , LSICOUP &
+ & , LSICOUP, LBLEND &
  & , YSURF%YCST, YSURF%YEXC, YSURF%YVEG, YSURF%YAGS, YSURF%YAGF, YSURF%YSOIL, YSURF%YFLAKE, YSURF%YURB & 
  & )
 IF (LHOOK) CALL DR_HOOK('SURFEXCDRIVER',1,ZHOOK_HANDLE)

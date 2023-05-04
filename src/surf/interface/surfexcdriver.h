@@ -38,7 +38,7 @@ SUBROUTINE SURFEXCDRIVER    (YDSURF, CDCONF &
  & , PDHTLS, PDHTSS, PDHTTS, PDHTIS &
  & , PDHVEGS, PEXDIAG, PDHCO2S &
  & , PRPLRG &
- & , LSICOUP &
+ & , LSICOUP, LBLEND &
  & )
 
 USE PARKIND1, ONLY : JPIM, JPRB
@@ -392,6 +392,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTIS(:,:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRPLRG
 
 LOGICAL           ,INTENT(IN)    :: LSICOUP
+LOGICAL           ,INTENT(IN)    :: LBLEND
 
 !------------------------------------------------------------------------
 
