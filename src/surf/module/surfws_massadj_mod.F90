@@ -157,7 +157,7 @@ KFILLING  = 1._JPIM
 ! 2.3.1 snow density: recompute profiles spanning bottom snow density value:
 !       Looking for value which minimizes the error in mass:
 DO JL=KIDIA, KFDIA
-  IF (PDSNTOT(JL) >= ZTHRESWS) THEN
+  IF (PDSNTOT(JL) >= ZTHRESWS .and. LDLAND(JL)) THEN
     ZRSNWSTST(JL,1:KLEVSN)=PRSNWS(JL,1:KLEVSN)
     ZERRORTST = 0._JPRB
     ZRBOTTOMTST=PRSNWS(JL, KLEVSNA(JL))
@@ -284,7 +284,7 @@ DO JL=KIDIA, KFDIA
         ICOUNT = ICOUNT + 1_JPIM
       END DO
   
-    ELSE ! Glacier filling:
+    ELSEIF ( PSSN(JL) >= ZSNPERT .AND. LDLAND(JL) ) THEN ! Glacier filling
          ! We fill/remove density (mass) from the first three layers, the active
          ! ones here so why 1:KLEVSNA(JL)-2 over glacier. The remaining mass is
          ! put in the accumulation layer KLEVSNA(JL)-1
