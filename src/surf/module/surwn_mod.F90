@@ -224,9 +224,6 @@ ELSEIF (NSW == 6) THEN
       IM=MOD(JM+5,NMONTH)+1
       YDSW%RALBICE_AR(IM,JW)=ZALBICE6(IM,JW)
       YDSW%RALBICE_AN(JM,JW)=YDSW%RALBICE_AR(IM,JW)
-      if (jm==6 .or. jm==7 .or. jm==8)then
-        YDSW%RALBICE_AN(JM,JW)=YDSW%RALBICE_AR(IM,JW) + 0.03_JPRB
-      endif
     ENDDO
   ENDDO
 
