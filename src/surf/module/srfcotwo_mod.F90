@@ -404,8 +404,9 @@ ZRQ10=MAX(ZRQ10,ZEPSR)
   ENDIF 
 
 ! Correct scaling factor to fit growth rate for 2018 (typical year) for climate.v021
-  !climate.v020   ZCH4S= 0.01534782289664492_JPRB
-     ZCH4S=  0.006856304357453001_JPRB
+  !climate.v020 with GIEMS+CAMA wetland cover
+   ZCH4S= 0.01534782289664492_JPRB
+
   
   DO JVT=1,NVTILES
 ! ! For low temperature season respiration should be lower (Q10 higher) (McDowell et al.Tree Physiology 20, 2000) 
