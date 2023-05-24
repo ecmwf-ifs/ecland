@@ -373,8 +373,8 @@ DO JL=KIDIA,KFDIA
       write(*,*) 'SWE-1',PSSNM1M(JL,:)
       write(*,*) 'SWE',PSSN(JL,:)
       write(*,*) 'Snow frac,heat,pg0',PFRSN(JL),PHFLUX(JL),PGSN(JL)
-      
-      CALL ABORT_SURF('Very snow cold temperature')
+      PTSN(JL,:) = PTSNM1M(JL,:)
+      !CALL ABORT_SURF('Very snow cold temperature')
     ENDIF 
     
     
