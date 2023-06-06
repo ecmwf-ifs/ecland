@@ -1,0 +1,47 @@
+INTERFACE
+SUBROUTINE SUSDP_DFLT    (YDSURF, PTVL, PTVH, PSLT, PSSDP2)
+
+!     ------------------------------------------------------------------
+!**   *SUSDP_DFLT* - COMPUTES DEFAULT VALUES FOR THE CALIBRATED SURFACE SPATIALLY DISTRIBUTED PARAMETERS
+
+!     PURPOSE
+!     -------
+!     COMPUTES DEFAULT VALUES FOR CALIBRATED SPATIALLY DISTRIBUTED FIELDS
+
+!     INTERFACE
+!     ---------
+!     *SUSDP_DFLT* IS CALLED BY *SUGRIDG*
+
+!     INPUT PARAMETERS:
+!     *PTVL*         LOW VEGETATION TYPE (REAL)
+!     *PTVH*         HIGH VEGETATION TYPE (REAL)
+!     *PSLT*         SOIL TYPE (REAL)                               (1-7)
+!     
+!     OUTPUT PARAMETERS:
+!     *PSSDP2*       OBJECT WITH 2D SURFACE SPATIALLY DISTRIBUTED PARAMETERS
+
+!     METHOD
+!     ------
+!     IT IS NOT ROCKET SCIENCE, BUT CHECK DOCUMENTATION
+
+!     Original I. Ayan-Miguez May 2023
+!     ------------------------------------------------------------------
+
+USE PARKIND1, ONLY : JPIM, JPRB
+USE, INTRINSIC :: ISO_C_BINDING
+
+IMPLICIT NONE
+
+! Declaration of arguments
+
+TYPE(C_PTR)       ,INTENT(IN)    :: YDSURF
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTVL(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTVH(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSLT(:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PSSDP2(:,:) 
+
+
+!     ------------------------------------------------------------------
+
+END SUBROUTINE SUSDP_DFLT
+END INTERFACE
