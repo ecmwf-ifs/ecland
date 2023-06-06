@@ -86,6 +86,7 @@ INTEGER(KIND=JPIM) :: LECMF2LAKEC ! 2 way coupling with cama-flood updated lake 
                                   ! 0 == OFF
                                   ! 1 == lake cover with flood fraction
                                   ! 2 == add flood fraction to lake cover 
+LOGICAL :: LESSDP_CALIB ! Activate calibration of Surface Spatially Distributed Parameters
 
 !
 !     REFERENCE.
@@ -105,6 +106,7 @@ INTEGER(KIND=JPIM) :: LECMF2LAKEC ! 2 way coupling with cama-flood updated lake 
 !     R. Hogan     ECMWF   14-01-2019  Replace LE4ALB with NALBEDOSCHEME
 !     A. Agusti-Panareda ECMWF 18-11-2020 Include LEAIRCO2COUP (use variable air CO2 in photosynthesis)
 !     A. Agusti-Panareda ECMWF 02-06-2021 Include photosynthesis parameters that are optimized with observations
+!     I. Ayan-Miguez June 2023 Include LESSDP_CALIB (activate calibrated surface spatially distributed parameters)
 !     ------------------------------------------------------------------
 
 !  NAME     TYPE     PURPOSE
