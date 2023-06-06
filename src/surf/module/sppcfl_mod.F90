@@ -36,6 +36,7 @@ USE YOS_EXC    ,ONLY : TEXC
 !                H. Hersbach ECMWF 04/12/2009 Add 10m neutral wind and friction velocity
 !     N.Semane+P.Bechtold 04-10-2012 Add PRPLRG factor for small planet
 !     F. Vana  05-Mar-2015  Support for single precision
+!     A. van Niekerk 05/2023 Remove limiter for 10m wind
 
 !     PURPOSE
 !     -------
