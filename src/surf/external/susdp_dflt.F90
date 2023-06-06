@@ -1,0 +1,69 @@
+SUBROUTINE SUSDP_DFLT    (YDSURF, PTVL, PTVH, PSLT, PSSDP2)
+
+!     ------------------------------------------------------------------
+!**   *SUSDP_DFLT* - COMPUTES DEFAULT VALUES FOR THE CALIBRATED SURFACE SPATIALLY DISTRIBUTES PARAMETERS
+
+!     PURPOSE
+!     -------
+!     COMPUTES DEFAULT VALUES FOR CALIBRATED SPATIALLY DISTRIBUTED FIELDS
+
+!     INTERFACE
+!     ---------
+!     *SUSDP_DFLT* IS CALLED BY *SUGRIDG* 
+
+!     INPUT PARAMETERS:
+!     *PTVL*         LOW VEGETATION TYPE (REAL)
+!     *PTVH*         HIGH VEGETATION TYPE (REAL)
+!     *PSLT*         SOIL TYPE (REAL)                               (1-7)
+!     
+!     OUTPUT PARAMETERS:
+!     *PSSDP2*      OBJECT WITH SPATIALLY DISTRIB. FIELDS     
+
+!     METHOD
+!     ------
+!     IT IS NOT ROCKET SCIENCE, BUT CHECK DOCUMENTATION
+
+!     Original  I. Ayan-Miguez May 2023
+!     ------------------------------------------------------------------
+
+USE PARKIND1, ONLY : JPIM, JPRB, JPRD
+USE, INTRINSIC :: ISO_C_BINDING
+
+!ifndef INTERFACE
+
+USE YOMHOOK,  ONLY : LHOOK, DR_HOOK, JPHOOK
+USE YOS_SURF, ONLY : TSURF, GET_SURF
+
+USE ABORT_SURF_MOD
+USE SUSDP_DFLT_CTL_MOD
+!endif INTERFACE
+
+IMPLICIT NONE
+
+! Declaration of arguments
+
+TYPE(C_PTR)       ,INTENT(IN)    :: YDSURF
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTVL(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTVH(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSLT(:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PSSDP2(:,:) 
+
+!ifndef INTERFACE
+
+TYPE(TSURF), POINTER :: YSURF
+REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+INTEGER(KIND=JPIM) :: JL
+IF (LHOOK) CALL DR_HOOK('SUSDP_DFLT',0,ZHOOK_HANDLE)
+
+YSURF => GET_SURF(YDSURF)
+
+CALL SUSDP_DFLT_CTL   (PTVL, PTVH, PSLT, PSSDP2, YSURF%YVEG)  
+
+IF (LHOOK) CALL DR_HOOK('SUSDP_DFLT',1,ZHOOK_HANDLE)
+
+!endif INTERFACE
+
+!     ------------------------------------------------------------------
+
+END SUBROUTINE SUSDP_DFLT
