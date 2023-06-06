@@ -9,7 +9,8 @@ USE YOEPHY   , ONLY : LERADS   ,LESICE   ,LESURF   ,LEVDIF ,RTHRFRTI,&
      &                LEFLAKE  ,LEOCML   ,LELAIV  ,LECTESSEL, LEAGS, RLAIINT, &
      &                LWCOU    ,LWCOU2W  ,LWCOUHMF, &
      &                LEFARQUHAR, LEC4MAP, LEAIRCO2COUP, LEOPTSURF, &
-     &                LECLIM10D,LESNML   ,LESNICE,LEURBAN ,LEINTWIND, NSNMLWS, LECMF1WAY,LECMF2LAKEC
+     &                LECLIM10D,LESNML   ,LESNICE,LEURBAN ,LEINTWIND, NSNMLWS, LECMF1WAY,LECMF2LAKEC, &
+     &                LESSDP_CALIB
 USE YOMLOG1S , ONLY : LWRLKE
 
 #ifdef DOC
@@ -84,6 +85,7 @@ USE YOMLOG1S , ONLY : LWRLKE
 !        A. Agusti-Panareda 06-07-2021    Include LEFARQUHAR switch for Farquhar photosynthesis model
 !        A. Agusti-Panareda (Jul 2021):   Add LEC4MAP flag for C4 photosynthesis
 !        J. McNorton        24-08-2022    Urban tile
+!        I. Ayan-Miguez June 2023: Add LESSDP_CALIB switch to activate calibration of surface spatially distributed parameters
 !     ------------------------------------------------------------------
 #endif
 
@@ -135,6 +137,7 @@ RTHRFRTI=0.0_JPRB
 LEINTWIND=.FALSE.
 NSNMLWS=1_JPIM
 LECMF1WAY=.FALSE.
+LESSDP_CALIB=.FALSE.
 !     ------------------------------------------------------------------
 
 
@@ -171,6 +174,7 @@ WRITE(UNIT=KULOUT,FMT='('' LEAIRCO2COUP = '',L5)') LEAIRCO2COUP
 WRITE(UNIT=KULOUT,FMT='('' LECLIM10D = '',L5)') LECLIM10D
 WRITE(UNIT=KULOUT,FMT='('' RLAIINT = '',f4.2)') RLAIINT
 WRITE(UNIT=KULOUT,FMT='('' LECMF1WAY = '',L5)') LECMF1WAY
+WRITE(UNIT=KULOUT,FMT='('' LESSDP_CALIB = '',L5)') LESSDP_CALIB
 
 !     ------------------------------------------------------------------
 IF ( .NOT. LEFLAKE ) THEN
