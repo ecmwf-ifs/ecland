@@ -640,16 +640,18 @@ DO JL=KIDIA,KFDIA
     PGSN(JL) = ZGSN - ZGSNRES(KLACT) + PSNOTRS(JL,KLACT+1)
     PGSN5(JL)= ZGSN5- ZGSNRES5(KLACT)+ PSNOTRS5(JL,KLACT+1)
 
-    IF (ANY(PTSN5(JL,:)<100._JPRB)) THEN
-      write(*,*) 'Very snow cold temperature'
-      write(*,*) 'Tsn-1',PTSNM1M5(JL,:)
-      write(*,*) 'Tsn',PTSN5(JL,:)
-      write(*,*) 'SWE-1',PSSNM1M5(JL,:)
-      
-      PTSN5(JL,:) = PTSNM1M5(JL,:)
-      !CALL ABORT_SURF('Very snow cold temperature')
-    ENDIF 
-    
+    DO JK=1,KLEVSN
+      IF ((PTSN5(JL,JK)<100._JPRB)) THEN
+        write(*,*) 'Very cold snow temperature, webalstl'
+        write(*,*) 'Tsn-1',PTSNM1M5(JL,:)
+        write(*,*) 'Tsn',PTSN5(JL,:)
+        write(*,*) 'SWE-1',PSSNM1M5(JL,:)
+        PTSN(JL,JK)=0._JPRB
+        PTSN5(JL,JK)=100.0_JPRB
+        !*CALL ABORT_SURF('Very snow cold temperature')
+      ENDIF
+    ENDDO 
+
   ENDIF 
 ENDDO
   
