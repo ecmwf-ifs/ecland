@@ -243,6 +243,7 @@ REAL(KIND=JPRB) :: ZTMPHC, ZTMPCOND, ZSNCONDH1, ZSNCONDH2, ZCONSLWC, ZLN10
 
 INTEGER(KIND=JPIM) :: JL,JK,KLACT, JS
 REAL(KIND=JPRB) :: ZZLIQF5
+REAL(KIND=JPRB) :: ZTSN55(KLEVSN)
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 !! INCLUDE FUNCTIONS
@@ -541,16 +542,19 @@ DO JL=KIDIA,KFDIA
 
     PGSN5(JL) = ZGSN5 - ZGSNRES5(KLACT) + PSNOTRS5(JL,KLACT+1)
     
-       IF (ANY(PTSN5(JL,:)<100._JPRB)) THEN
-         write(*,*) 'Very cold snow temperature'
-         write(*,*) 'Tsn-1',PTSNM1M5(JL,:)
-         write(*,*) 'Tsn',PTSN5(JL,:)
-         write(*,*) 'SWE-1',PSSNM1M5(JL,:)
-         
-         PTSN5(JL,:) = PTSNM1M5(JL,:)
-         !CALL ABORT_SURF('Very snow cold temperature')
-       ENDIF 
-    
+    ZTSN55(1:KLEVSN)=PTSN5(JL,1:KLEVSN)
+    DO JK=1,KLEVSN
+      IF ((PTSN5(JL,JK)<100._JPRB)) THEN
+        write(*,*) 'Very cold snow temperature, webalsad'
+        write(*,*) 'Tsn-1',PTSNM1M5(JL,:)
+        write(*,*) 'Tsn',PTSN5(JL,:)
+        write(*,*) 'SWE-1',PSSNM1M5(JL,:)
+
+        PTSN5(JL,JK)=100.0_JPRB
+        !*CALL ABORT_SURF('Very cold snow temperature')
+      ENDIF
+    ENDDO 
+
   ENDIF 
 !ENDDO
                            
@@ -604,6 +608,15 @@ DO JL=KIDIA,KFDIA
     ZLIQF(0:KLEVSN)     = 0._JPRB
     ZWCAP               = 0._JPRB
     ZQ(1:KLEVSN)        = 0._JPRB
+
+    ! The code does not abort for very cold temperatures
+    ! In TL, reset Tsn5(t+1) to constant value and perturb to 0.
+    DO JK=KLEVSN,1,-1
+      IF ((ZTSN55(JK)<100._JPRB)) THEN
+        PTSN(JL,JK)=0.0_JPRB
+      ENDIF
+    ENDDO
+
   ! 0. Final values
 
     ZGSN                = ZGSN + PGSN(JL)
