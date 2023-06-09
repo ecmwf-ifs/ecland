@@ -368,13 +368,13 @@ DO JL=KIDIA,KFDIA
       !*CALL ABORT_SURF('ALL SNOW MELTED')
     ENDIF
     IF (ANY(PTSN(JL,:)<100._JPRB)) THEN
-      write(*,*) 'Very cold snow temperature, webal'
-      write(*,*) 'Tsn-1',PTSNM1M(JL,:)
-      write(*,*) 'Tsn',PTSN(JL,:)
-      write(*,*) 'SWE-1',PSSNM1M(JL,:)
-      write(*,*) 'SWE',PSSN(JL,:)
-      write(*,*) 'Snow frac,heat,pg0',PFRSN(JL),PHFLUX(JL),PGSN(JL)
-      PTSN(JL,:) = PTSNM1M(JL,:)
+      write(NULERR,*) 'Very cold snow temperature, webal'
+      write(NULERR,*) 'Tsn-1',PTSNM1M(JL,:)
+      write(NULERR,*) 'Tsn',PTSN(JL,:)
+      write(NULERR,*) 'SWE-1',PSSNM1M(JL,:)
+      write(NULERR,*) 'SWE',PSSN(JL,:)
+      write(NULERR,*) 'Snow frac,heat,pg0',PFRSN(JL),PHFLUX(JL),PGSN(JL)
+
       WHERE (PTSN(JL,:)<100._JPRB)
           PTSN(JL,:)=100.0_JPRB
       ENDWHERE
