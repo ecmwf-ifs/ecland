@@ -15,6 +15,7 @@ USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_SOIL , ONLY : TSOIL 
 USE YOS_CST  , ONLY : TCST
 USE EC_LUN   , ONLY : NULERR
+
 USE ABORT_SURF_MOD
 
 ! (C) Copyright 2015- ECMWF.
@@ -363,18 +364,21 @@ DO JL=KIDIA,KFDIA
 
     
     IF (ANY(PTSN(JL,:)>RTT+ZEPSILON)) THEN
-      write(*,*) 'All snow melted...'
-      CALL ABORT_SURF('ALL SNOW MELTED')
+      write(*,*) 'Tsn above zero C'
+      !*CALL ABORT_SURF('ALL SNOW MELTED')
     ENDIF
     IF (ANY(PTSN(JL,:)<100._JPRB)) THEN
-      write(*,*) 'Very snow cold temperature'
+      write(*,*) 'Very cold snow temperature, webal'
       write(*,*) 'Tsn-1',PTSNM1M(JL,:)
       write(*,*) 'Tsn',PTSN(JL,:)
       write(*,*) 'SWE-1',PSSNM1M(JL,:)
       write(*,*) 'SWE',PSSN(JL,:)
       write(*,*) 'Snow frac,heat,pg0',PFRSN(JL),PHFLUX(JL),PGSN(JL)
       PTSN(JL,:) = PTSNM1M(JL,:)
-      !CALL ABORT_SURF('Very snow cold temperature')
+      WHERE (PTSN(JL,:)<100._JPRB)
+          PTSN(JL,:)=100.0_JPRB
+      ENDWHERE
+      !* CALL ABORT_SURF('Very snow cold temperature')
     ENDIF 
     
     
