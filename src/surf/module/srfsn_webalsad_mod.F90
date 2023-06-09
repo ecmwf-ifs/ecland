@@ -28,6 +28,7 @@ USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
 
 USE YOS_SOIL , ONLY : TSOIL 
 USE YOS_CST  , ONLY : TCST
+USE EC_LUN   , ONLY : NULERR
 
 USE ABORT_SURF_MOD
 
@@ -545,10 +546,10 @@ DO JL=KIDIA,KFDIA
     ZTSN55(1:KLEVSN)=PTSN5(JL,1:KLEVSN)
     DO JK=1,KLEVSN
       IF ((PTSN5(JL,JK)<100._JPRB)) THEN
-        write(*,*) 'Very cold snow temperature, webalsad'
-        write(*,*) 'Tsn-1',PTSNM1M5(JL,:)
-        write(*,*) 'Tsn',PTSN5(JL,:)
-        write(*,*) 'SWE-1',PSSNM1M5(JL,:)
+        write(NULERR,*) 'Very cold snow temperature, webalsad'
+        write(NULERR,*) 'Tsn-1',PTSNM1M5(JL,:)
+        write(NULERR,*) 'Tsn',PTSN5(JL,:)
+        write(NULERR,*) 'SWE-1',PSSNM1M5(JL,:)
 
         PTSN5(JL,JK)=100.0_JPRB
         !*CALL ABORT_SURF('Very cold snow temperature')
