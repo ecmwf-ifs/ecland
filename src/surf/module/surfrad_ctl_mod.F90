@@ -625,19 +625,36 @@ DO JSW=1,KSW
       ZADTI5 = MIN(0.98_JPRB, MAX(0.02_JPRB, ZADTI5)) ! Security
     ENDIF
     ZAPTI5 = ZADTI5 ! Direct albedo = Diffuse albedo
-
     IF (.NOT. LDLAND(JL) .AND. LESNICE) THEN ! Snow over sea-ice
       ZADTI5=ZADTI2
       ZAPTI5=ZAPTI2
     ENDIF
 
+! SNOW UNDER HIGH-VEG
+    IF ( LESN09 ) THEN
+      IHIGH_VEG_TYPE = NINT(PTVH(JL))
+    ELSE
+      ! Note that RALB_SNOW_FOREST(0,:) contains the default
+      ! snow/forest albedos
+      IHIGH_VEG_TYPE = 0
+    ENDIF
+
+    IF (JSW <= NUVVIS) THEN
+      ZADTI7=RALB_SNOW_FOREST(IHIGH_VEG_TYPE,1) ! UV/Vis
+    ELSE
+      ZADTI7=RALB_SNOW_FOREST(IHIGH_VEG_TYPE,2) ! Near-IR
+    END IF
+    ZAPTI7 = ZADTI7 ! Direct albedo = Diffuse albedo
+
     !UPDATE FOR URBAN SNOW AS A FUNCTION OF SNOW COVER (Jarvi et al. 2014 - upto 0.85)
     ! Assume linear relationship from 0.18-0.85
     IF (LEURBAN) THEN
+    IF (KTILES .GT. 9) THEN
      IF (PCUR(JL) .GT. 0.0_JPRB) THEN
       ZAPTI5 = ZAPTI5*(1.0_JPRB-PCUR(JL))+(PCUR(JL)*MAX(0.18_JPRB+0.67_JPRB*(PFRTI(JL,5)+PFRTI(JL,7)),ZAPTI10))
       ZADTI5 = ZAPTI5
      ENDIF
+    ENDIF
     ENDIF
 
 !! SNOW UNDER HIGH-VEG
