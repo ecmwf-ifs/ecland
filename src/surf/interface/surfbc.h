@@ -6,7 +6,8 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
  & PGEMU  ,PSNM1M ,PWLM1M ,PRSNM1M, LESNICE,&  
  & LDLAND ,LDSICE ,LDLAKE ,LDNH, LDOCN_KPP,&
  & KTVL   ,KCO2TYP, KTVH   ,KSOTY,&
- & PCVL   ,PCVH, PCUR,PLAIL, PLAIH,  PWLMX  ,PFRTI)
+ & PCVL   ,PCVH, PCUR,PLAIL, PLAIH,  PWLMX  ,PFRTI, &
+ & PCSN)
 
 ! (C) Copyright 1999- ECMWF.
 !
@@ -72,6 +73,7 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !            2 : ICE                    6 : DRY SNOW-FREE HIGH-VEG
 !            3 : WET SKIN               7 : SNOW UNDER HIGH-VEG
 !            4 : DRY SNOW-FREE LOW-VEG  8 : BARE SOIL
+!     *PCSN*         SNOW COVER FRACTION (diagnostic)                (0-1)
 
 !     OUTPUT PARAMETERS (INTEGER):
 !     *KTVL*         LOW VEGETATION TYPE
@@ -146,6 +148,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PLAIH(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWLMX(:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PFRTI(:,:) 
 
+REAL(KIND=JPRB),    INTENT(OUT) :: PCSN(:)
 
 !     ------------------------------------------------------------------
 
