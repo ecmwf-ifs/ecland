@@ -11,7 +11,7 @@ SUBROUTINE CALLPAR1S (CDCONF &
      & , PTSPHY &
 !-----------------------------------------------------------------------
 ! - INPUT .
-     & , PGEOM1 , PAPRS &
+     & , PSSDP2, PGEOM1 , PAPRS &
      & , PU     , PV     , PT     , PQ   , PC &
      & , PSNS &
      & , PASN ,   PRSN ,  PTSN, PWSN &
@@ -379,6 +379,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KDHFBIOS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHVVEGS 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHFVEGS
 
+REAL(KIND=JPRB),INTENT(IN)       :: PSSDP2(:,:)
 
 REAL(KIND=JPRB) :: PGEOM1(KLON,KLEV),PAPRS(KLON,0:KLEV)
 REAL(KIND=JPRB) :: PU(KLON,KLEV), PV(KLON,KLEV), &
@@ -934,6 +935,7 @@ ZEXDIAG(KIDIA:KFDIA,12)=GELAM(KIDIA:KFDIA) ! Longitude
  & ZCHAR , ZCHARHQ, ZUCURR , ZVCURR,&
  & PTL,&                         ! skin temp at latest rad timestep
  & PCFLX,&
+ & PSSDP2,&
  !-OUTPUT
  & PZ0M ,PZ0H ,&
  & PVDIS , PFTLHEV,&
