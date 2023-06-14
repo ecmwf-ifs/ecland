@@ -211,6 +211,7 @@ REAL(KIND=JPRB) :: ZSNOTRS(KLON,KLEVSN+1) ! Solar rad abs in each snow layer
 REAL(KIND=JPRB) :: ZFF              ! Frozen soil fraction
 LOGICAL          :: LLNOSNOW(KLON)       ! FALSE to compute snow 
 LOGICAL          :: LSNOWLANDONLY(KLON)  ! TRUE to compute snow only over land 
+
 REAL(KIND=JPRB) :: ZTBOTTOM(KLON)   ! Temperature bottom boundary condition
 
 INTEGER(KIND=JPRB) :: JL,JK
@@ -385,8 +386,8 @@ PEMSSN(KIDIA:KFDIA) = 0._JPRB
 !*             
 !             -----------------------------------------------------------
 
-CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,LSNOWLANDONLY,ZFRSN,&
-              &ZRSNM1M,ZSSNM1M,ZTSNM1M,ZWSNM1M,PWSN,&
+CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,LSNOWLANDONLY,&
+              &ZFRSN,ZRSNM1M,ZSSNM1M,ZTSNM1M,ZWSNM1M,PWSN,&
               &ZSNOWF,PUSRF,PVSRF,PTSRF,&
               &YDSOIL,YDCST,PRSN,PDHTSS)
  
