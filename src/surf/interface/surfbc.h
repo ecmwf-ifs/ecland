@@ -1,6 +1,6 @@
 INTERFACE
 SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
- & PTVL   , PCO2TYP,PTVH   ,PSOTY  ,PSDOR,PCVLC  ,PCVHC, PCURC, &
+ & PSSDP2, PTVL   , PCO2TYP,PTVH   ,PSOTY  ,PSDOR,PCVLC  ,PCVHC, PCURC, &
  & PLAILC  ,PLAIHC, PLAILI, PLAIHI,&
  & PLSM   ,PCI    ,PCLAKE ,PHLICE,&
  & PGEMU  ,PSNM1M ,PWLM1M ,PRSNM1M, LESNICE,&  
@@ -94,6 +94,7 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !     E. Dutra/G. Balsamo 01-05-2008    Add lake tile
 !     Y. Takaya        07-10-2008       Add flag for ocean mixed layer model
 !     S. Boussetta/G.Balsamo May 2009 Add lai
+!     I. Ayan-Miguez June 2023        Add object with spatailly distributed parameters
 !     ------------------------------------------------------------------
 
 USE PARKIND1, ONLY : JPIM, JPRB
@@ -105,6 +106,7 @@ IMPLICIT NONE
 ! Declaration of arguments
 
 TYPE(C_PTR)       ,INTENT(IN)    :: YDSURF
+REAL(KIND=JPRB)   ,OPTIONAL, INTENT(IN)    :: PSSDP2(:,:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON 
