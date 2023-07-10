@@ -9,6 +9,7 @@ SUBROUTINE SURFTSTP    (YDSURF, KIDIA , KFDIA , KLON  , KLEVS , KTILES,&
  & KDHVWLS , KDHFWLS,&
  & KDHVBIOS, KDHFBIOS, KDHVVEGS, KDHFVEGS,&                  !CTESSEL
  & KTVL , KTVH , KVEG , KSOTY,&
+ & PSSDP2, &
  & PTSPHY , PSDOR , PFRTI,&
  & PSST, PUSTRTI , PVSTRTI,&
  & PAHFSTI, PEVAPTI, PSSRFLTI,PSLRFLTI,&
@@ -270,12 +271,14 @@ USE ISO_C_BINDING
 !     Y. Takaya    *ECMWF* 08-10-07 Implement an ocean mixed layer model
 !     E. Dutra             09-11-16 snow 2009 cleaning 
 !     E. Dutra             10/10/2014      net longwave tiled 
+!     I. Ayan-Miguez       June 2023 Add object with spatially distributed parameters
 
 IMPLICIT NONE
 
 ! Declaration of arguments
 
 TYPE(C_PTR)       ,INTENT(IN)    :: YDSURF
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON 
