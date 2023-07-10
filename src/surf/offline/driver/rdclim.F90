@@ -442,9 +442,19 @@ DO IVAR=1,NVARS2D
        IF ( STATUS /= 0 ) THEN
          WRITE(NULOUT,*) 'CFLAKEF not found, set == to CLAKE'
          VFCLAKEF(1:NPOI)=VFCLAKE(1:NPOI)
+         IF (NPROC>1 .AND. NDIMCDF == 2)THEN
+           ZREALD(:)=ZZREALD(:)
+         ELSE
+           ZREALD(:)=UNPACK(VFCLAKEF(1:NPOI),LMASK(ISTP:IENP),RMISS)
+         ENDIF
        ELSE
          VFCLAKEF(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
          LCLAKEF=.TRUE.
+         IF (NPROC>1 .AND. NDIMCDF == 2)THEN
+           ZREALD(:)=ZZREALD(:)
+         ELSE
+           ZREALD(:)=UNPACK(VFCLAKEF(1:NPOI),LMASK(ISTP:IENP),RMISS)
+         ENDIF          VFCLAKEF(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
        ENDIF
     CASE('Ctype')
       IF (LEC4MAP) THEN
