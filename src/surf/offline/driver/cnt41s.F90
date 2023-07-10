@@ -204,58 +204,42 @@ DO NSTEP=NSTART,NSTOP
   CALL STEPO1S
   
   IF (LECMF1WAY) THEN
-    !* Accumulate runoff fields
-    !* Needs to be re-written for MPI 
-    IF (NDIMCDF == 2)THEN
-      !* Temporary check to avoid MPI with CaMa-Flood coupling active
-      !* Need to be implemented 
-      IF (NPROC > 1 ) THEN
-          WRITE(NULOUT,*) "NPROC > 1 doest not work with LECMF1WAY=True and 2D grid : Aborting"
-          CALL ABOR1("NPROC > 1 doest not work with LECMF1WAY=True and 2D grid : Aborting")
-      ENDIF
-      ! Surface runoff
-      ZFLD = RESHAPE( UNPACK(D1STSRO2(:,1),LMASK(:),0._JPRB),&
-                      (/NXIN,NYIN/))*TSTEP*0.001_JPRB   ! m of water
-      ZBUFFO(:,:,1) = ZBUFFO(:,:,1) + ZFLD
-      ! Sub-surface runoff
-      ZFLD = RESHAPE( UNPACK((D1STRO2(:,1)-D1STSRO2(:,1)),LMASK(:),0._JPRB),&
-                      (/NXIN,NYIN/))*TSTEP*0.001_JPRB   ! m of water
-      ZBUFFO(:,:,2) = ZBUFFO(:,:,2) + ZFLD
-      ! Lake/open water evaporation
-      !! Actual water open water evaporation 
-      !ZFLD = RESHAPE( UNPACK((-D1STIEVAP2(:,9,1)-D1STIEVAP2(:,1,1)),LMASK(:),0._JPRB),&
-      !                (/NXIN,NYIN/))*TSTEP*0.001_JPRB   ! m of water
-      !! Estimate of potential water evaporation 
-      ZFLD = RESHAPE( UNPACK((-D1STIEVAPU2(:,9,1)),LMASK(:),0._JPRB),&
-                      (/NXIN,NYIN/))*TSTEP*0.001_JPRB   ! m of water
-      ZBUFFO(:,:,3) = ZBUFFO(:,:,3) + ZFLD
-
-    ELSE
-    ! Accumulation of runoffs and potential water evaporation
-      DO JL=1,NPOI
-        ZBUFFOAUX(JL,1)=ZBUFFOAUX(JL,1)+ D1STSRO2(JL,1)*TSTEP*0.001_JPRB   ! m of water
-        ZBUFFOAUX(JL,2)=ZBUFFOAUX(JL,2)+(D1STRO2(JL,1)-D1STSRO2(JL,1))*TSTEP*0.001_JPRB   ! m of water
-        ZBUFFOAUX(JL,3)=ZBUFFOAUX(JL,3)+(-D1STIEVAPU2(JL,9,1))*TSTEP*0.001_JPRB   ! m of water
-      ENDDO
-    ENDIF
-   
+    !* Accumulate runoff fields and potential water evaporation
+    DO JL=1,NPOI
+      ZBUFFOAUX(JL,1)=ZBUFFOAUX(JL,1)+ D1STSRO2(JL,1)*TSTEP*0.001_JPRB   ! m of water
+      ZBUFFOAUX(JL,2)=ZBUFFOAUX(JL,2)+(D1STRO2(JL,1)-D1STSRO2(JL,1))*TSTEP*0.001_JPRB   ! m of water
+      ZBUFFOAUX(JL,3)=ZBUFFOAUX(JL,3)+(-D1STIEVAPU2(JL,9,1))*TSTEP*0.001_JPRB   ! m of water
+    ENDDO        
+      
     !* Coupling: 
     IF ( MOD(NSTEP*TSTEP,TCOUPFREQ) .EQ. 0 .AND. NSTEP .NE. NSTART ) THEN
       ZTT1C = OMP_GET_WTIME()
       WRITE(NULOUT,*)' CMF_COUPLING: CALLING DRV_PUT & DRV_ADVANCE:',ISTEPADV
 
-      IF (NDIMCDF .NE. 2)THEN
-        ! Gather the runoffs to send to CaMa-Flood
-        CALL MPL_ALLGATHERV(PRECVBUF=ZD1STSRO2(:),PSENDBUF=ZBUFFOAUX(:,1),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SRO")
-        CALL MPL_ALLGATHERV(PRECVBUF=ZD1STRO2(:),PSENDBUF=ZBUFFOAUX(:,2),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SSRO")
-        CALL MPL_ALLGATHERV(PRECVBUF=ZD1STIEVAPU2(:),PSENDBUF=ZBUFFOAUX(:,3),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:LakeEVAP")
+      ! Gather the runoffs to send to CaMa-Flood
+      CALL MPL_ALLGATHERV(PRECVBUF=ZD1STSRO2(:),PSENDBUF=ZBUFFOAUX(:,1),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SRO")
+      CALL MPL_ALLGATHERV(PRECVBUF=ZD1STRO2(:),PSENDBUF=ZBUFFOAUX(:,2),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SSRO")
+      CALL MPL_ALLGATHERV(PRECVBUF=ZD1STIEVAPU2(:),PSENDBUF=ZBUFFOAUX(:,3),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:LakeEVAP")
 
+      IF (NDIMCDF .NE. 2)THEN
         DO JL=1,NLALO
           JLL=INT(ZVFPGLOB(JL))
           ZBUFFO(JLL,1,1)= ZD1STSRO2(JL)   
           ZBUFFO(JLL,1,2)=ZD1STRO2(JL)  
           ZBUFFO(JLL,1,3)=ZD1STIEVAPU2(JL)   
         ENDDO
+      ELSE
+        ! Surface runoff
+        ZBUFFO(:,:,1) = RESHAPE( UNPACK(ZD1STSRO2(:),LMASK(:),0._JPRB),&
+                     (/NXIN,NYIN/))
+        
+        ! Sub-surface runoff
+        ZBUFFO(:,:,2) = RESHAPE( UNPACK(ZD1STRO2(:),LMASK(:),0._JPRB),&
+                       (/NXIN,NYIN/))
+        
+        ! Estimate of potential water evaporation 
+        ZBUFFO(:,:,3) = RESHAPE( UNPACK(ZD1STIEVAPU2(:),LMASK(:),0._JPRB),&
+                      (/NXIN,NYIN/))       
       ENDIF
 
       !*  Send runoff to CaMa-Flood 
