@@ -156,8 +156,9 @@ ALLOCATE (ZBUF(NPOI))
 
 CALL MPL_BARRIER()  
 
-NVARS2D=4
-CVARS2D(1:NVARS2D)=(/'lvegcov', 'hvegcov','lrvz0m ', 'hrvz0m ', 'lrvz0h ', 'hrvz0h '/)
+NVARS2D=13
+CVARS2D(1:NVARS2D)=(/'lvegcov', 'hvegcov', 'hlamsk ', 'llamsk ', 'hlamsks ', 'llamsks ', 'hvegrsm ', 'lvegrsm ', &
+        & 'lrvz0m ', 'hrvz0m ', 'lrvz0h ', 'hrvz0h ', 'bvegrsm '/)
 
 DO IVAR=1,NVARS2D
    CVAR=TRIM(CVARS2D(IVAR))
@@ -190,6 +191,48 @@ DO IVAR=1,NVARS2D
          GPD_SDP2(1:NPOI, SSDP2D_ID%NRVCOVH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
+     CASE('hlamsk ')
+       IF ( STATUS /= 0 ) THEN 
+         WRITE(NULOUT,*) CVAR, 'Not calibrated'
+       ELSE
+         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVLAMSKH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+         WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
+       ENDIF
+     CASE('llamsk ')
+       IF ( STATUS /= 0 ) THEN 
+         WRITE(NULOUT,*) CVAR, 'Not calibrated'
+       ELSE
+         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVLAMSKL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+         WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
+       ENDIF
+     CASE('hlamsks ')
+       IF ( STATUS /= 0 ) THEN 
+         WRITE(NULOUT,*) CVAR, 'Not calibrated'
+       ELSE
+         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVLAMSKSH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+         WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
+       ENDIF
+     CASE('llamsks ')
+       IF ( STATUS /= 0 ) THEN 
+         WRITE(NULOUT,*) CVAR, 'Not calibrated'
+       ELSE
+         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVLAMSKSL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+         WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
+       ENDIF
+     CASE('hvegrsm ')
+       IF ( STATUS /= 0 ) THEN 
+         WRITE(NULOUT,*) CVAR, 'Not calibrated'
+       ELSE
+         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVRSMINH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+         WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
+       ENDIF
+     CASE('lvegrsm ')
+       IF ( STATUS /= 0 ) THEN 
+         WRITE(NULOUT,*) CVAR, 'Not calibrated'
+       ELSE
+         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVRSMINL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+         WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
+       ENDIF
      CASE('lrvz0m ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
@@ -216,6 +259,13 @@ DO IVAR=1,NVARS2D
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
          GPD_SDP2(1:NPOI, SSDP2D_ID%NRVZ0HH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+         WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
+       ENDIF
+     CASE('bvegrsm ')
+       IF ( STATUS /= 0 ) THEN 
+         WRITE(NULOUT,*) CVAR, 'Not calibrated'
+       ELSE
+         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVRSMINB2D)=PACK(ZBUF,LMASK(ISTP:IENP))
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE DEFAULT
