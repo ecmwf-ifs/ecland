@@ -14,7 +14,7 @@ SUBROUTINE VSURF(KIDIA,KFDIA,KLON,KTILES,KLEVS,KTILE,&
  & PEVAP ,&
  & PAN,PAG,PRD ,PPWLIQ ,&
  & PDHVEGS, PEXDIAG, &
- & YDCST, YDVEG, YDEXC, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB)
+ & PSSDP2, YDCST, YDVEG, YDEXC, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB)
   
 USE PARKIND1 , ONLY : JPIM, JPRB
 USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
@@ -28,7 +28,7 @@ USE YOS_SOIL , ONLY : TSOIL
 USE YOS_FLAKE, ONLY : TFLAKE
 USE YOS_URB  , ONLY : TURB
 USE COTWORESTRESS_MOD
-
+USE YOMSURF_SSDP_MOD
 ! (C) Copyright 1990- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
@@ -59,13 +59,15 @@ USE COTWORESTRESS_MOD
 !     S. Boussetta/G.Balsamo June 2010 Add soil moisture scaling factor for Reco
 !     S. Boussetta/G.Balsamo June 2011 modularisation of Ags call
 !     A. Beljaars      26/02/2014   compute unstressed evaporation
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
 !     A. Agusti-Panareda Nov 2020  couple atm CO2 tracer with photosynthesis 
 !     A. Agusti-Panareda May 2021  Pass soil temperature to photosynthesis 
 !     A. Agusti-Panareda June 2021 Pass photosynthetic pathway for low vegetation (c3/c4)
 !     S. Boussetta     21/06/2022  Added Ronda (Ronda et al. 2002, J. App. Met.) SM stress function
 !     J. McNorton      24/08/2022  urban tile
 !     S. Boussetta     21/06/2022  Added LAI scaling by Cveg for Rc canopy resistance computaioin
-
+!     I. Ayan-Miguez July 2023 Added PSSDP2 object for spatially distributed parameters
 !     PURPOSE
 !     -------
 
@@ -199,6 +201,7 @@ REAL(KIND=JPRB)   ,INTENT(INOUT) :: PWETHS(:)
 !ZLIQ is passed to compute soil moisture scaling factor in Reco (CO2 routine) CTESSEL
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PPWLIQ(KLON,KLEVS)
 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
 TYPE(TEXC)        ,INTENT(IN)    :: YDEXC
@@ -221,7 +224,7 @@ REAL(KIND=JPRB) ::  ZEPSILON
 REAL(KIND=JPRB) ::  ZTSOIL(KLON)
 REAL(KIND=JPRB) ::  ZCOR, ZEPSF3, ZF, ZF1H, ZF1L, ZF2H, ZF2L, ZF2B, ZF21H, ZF21L, ZF21B, &
  & ZF3H, ZF3L, ZHSTRH, ZHSTRL, ZLAIH, ZLAIL, ZLAIHSC, ZLAILSC, ZQSAIR, &
- & ZRSMINH, ZRSMINL, ZRSMINB, ZRVA, ZRVB, ZSRFL, ZWROOTH, ZWROOTL, &
+ & ZRSMINH, ZRSMINL, ZRVA, ZRVB, ZSRFL, ZWROOTH, ZWROOTL, &
  & ZQWEVAP, ZWPWP, ZQWEVAPBARE, ZBARE, ZWPBARE,&
  & ZSALIN, ZRCLU
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -244,7 +247,9 @@ ASSOCIATE(RCPD=>YDCST%RCPD, RETV=>YDCST%RETV, RLSTT=>YDCST%RLSTT, &
  & LEAGS=>YDVEG%LEAGS, LECTESSEL=>YDVEG%LECTESSEL, RCEPSW=>YDVEG%RCEPSW, &
  & LEFARQUHAR=>YDVEG%LEFARQUHAR, LEAIRCO2COUP=>YDVEG%LEAIRCO2COUP, &
  & RVHSTR=>YDVEG%RVHSTR, RVLAI=>YDVEG%RVLAI, RVROOTSA=>YDVEG%RVROOTSA, &
- & RVRSMIN=>YDVEG%RVRSMIN, RVCOV=>YDVEG%RVCOV,LEURBAN=>YDURB%LEURBAN, RURBRES=>YDURB%RURBRES)
+ & RVCOV=>YDVEG%RVCOV,LEURBAN=>YDURB%LEURBAN,&
+ & RVRSMINL2D=>PSSDP2(:,SSDP2D_ID%NRVRSMINL2D), RVRSMINH2D=>PSSDP2(:,SSDP2D_ID%NRVRSMINH2D), &
+ & RVRSMINB2D=>PSSDP2(:,SSDP2D_ID%NRVRSMINB2D), RURBRES=>YDURB%RURBRES)
 
 
 ! This is needed as unitialized values end up being passed around otherwise
@@ -254,7 +259,8 @@ ZDMAXT(:)=0.0_JPRB
 ZRVA=5000._JPRB
 ZRVB=10._JPRB
 ZEPSF3=0.00001_JPRB ! security value for exponential sat-deficit dependence
-ZRSMINB=50._JPRB  ! bare soil minimum resistance
+
+!ZRSMINB=50._JPRB  ! bare soil minimum resistance
 ZRCLU=50._JPRB    ! unstressed canopy resis. for pot. evap. over grassland (50 s/m)
 
 ZEPSILON=EPSILON(ZEPSILON)
@@ -333,8 +339,8 @@ ENDDO
 
   DO JL=KIDIA,KFDIA
 
-    ZRSMINL=RVRSMIN(KTVL(JL))
-    ZRSMINH=RVRSMIN(KTVH(JL))
+    ZRSMINL=RVRSMINL2D(JL)
+    ZRSMINH=RVRSMINH2D(JL)
 
 !           leaf area index  : ZLAI
     ZLAIL=PLAIL(JL)
@@ -447,7 +453,7 @@ ENDDO
     ENDIF   
 
     PWETHS(JL)=PWETH(JL)
-    PWETB(JL)=ZRSMINB/ZF2B
+    PWETB(JL)=RVRSMINB2D(JL)/ZF2B
 
     PEXDIAG(JL,1)=PWETL(JL)
     PEXDIAG(JL,2)=ZF1L
@@ -733,7 +739,7 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
          ZF21B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQ(JL,1)-ZWPWP)*ZQWEVAP))
          ZF2B=2_JPRB*ZF21B-(ZF21B*ZF21B)
       ENDIF
-      ZWET(JL)=ZRSMINB/ZF2B
+      ZWET(JL)=RVRSMINB2D(JL)/ZF2B
 ! check on dew-fall conditions
 ! we want ZET output 
 !      IF (PQMLEV(JL) > PQS(JL)) ZWET(JL)=0.0_JPRB
