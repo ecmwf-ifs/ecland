@@ -11,7 +11,7 @@ SUBROUTINE CALLPAR1S (CDCONF &
      & , PTSPHY &
 !-----------------------------------------------------------------------
 ! - INPUT .
-     & , PSSDP2, PGEOM1 , PAPRS &
+     & , PSSDP2, PSSDP3, PGEOM1 , PAPRS &
      & , PU     , PV     , PT     , PQ   , PC &
      & , PSNS &
      & , PASN ,   PRSN ,  PTSN, PWSN &
@@ -380,6 +380,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KDHVVEGS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHFVEGS
 
 REAL(KIND=JPRB),INTENT(IN)       :: PSSDP2(:,:)
+REAL(KIND=JPRB),INTENT(IN)       :: PSSDP3(:,:,:)
 
 REAL(KIND=JPRB) :: PGEOM1(KLON,KLEV),PAPRS(KLON,0:KLEV)
 REAL(KIND=JPRB) :: PU(KLON,KLEV), PV(KLON,KLEV), &
@@ -1101,7 +1102,7 @@ IF ( LESURF ) THEN
      & KDHVWLS , KDHFWLS,&
      & KDHVBIOS, KDHFBIOS, KDHVVEGS, KDHFVEGS, &              !CTESSEL
      & ITVL  , ITVH, IVEG, ISOTY, &
-     & PSSDP2, &
+     & PSSDP2, PSSDP3, &
      & PTSPHY , PSDOR , ZFRTI,&
      & PSST, PUSTRTI, PVSTRTI,&
      & PAHFSTI, PEVAPTI, ZFRSOTI, PSLRFLTI,&

@@ -1,7 +1,7 @@
 MODULE SRFWEXC_VG_MOD
 CONTAINS
 SUBROUTINE SRFWEXC_VG(KIDIA,KFDIA,KLON,KLEVS,KTILES,&
- & PTMST,KTVL,KTVH,KSOTY,PSDOR,PFRTI,PEVAPTI,&
+ & PSSDP3,PTMST,KTVL,KTVH,KSOTY,PSDOR,PFRTI,PEVAPTI,&
  & PWSAM1M,PTSAM1M,PCUR,&
  & PTSFC,PTSFL,PMSN,PEMSSN,PEINTTI,PEVAPSNW,&
  & YDSOIL,YDVEG,YDURB,&
@@ -15,6 +15,7 @@ USE YOS_THF   , ONLY : RHOH2O
 USE YOS_SOIL  , ONLY : TSOIL
 USE YOS_VEG   , ONLY : TVEG
 USE YOS_URB   , ONLY : TURB
+USE YOMSURF_SSDP_MOD
 
 ! (C) Copyright 1993- ECMWF.
 !
@@ -130,6 +131,9 @@ USE YOS_URB   , ONLY : TURB
 !     G. Balsamo    ECMWF    15-09-2009      protect surf-runoff for occasional overshooting
 !     G. Balsamo    ECMWF    12-05-2010      cleaning and unit fix in VIC
 !     F. Vana                05-Mar-2015     Support for single precision
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
+!     I. Ayan-Miguez (BSC) July 2023         Add PSSDP3 object for spatially distributed parameters
 !     J. McNorton            24/08/2022      urban tile
 !     ------------------------------------------------------------------
 
@@ -172,6 +176,8 @@ REAL(KIND=JPRB),    INTENT(OUT)  :: PROS(:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PCFW(:,:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PRHSW(:,:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PSAWGFL(:,:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSDP3(:,:,:)
+
 
 !*         0.2    DECLARATION OF LOCAL VARIABLES.
 !                 ----------- -- ----- ----------
@@ -205,7 +211,7 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SRFWEXC_VG_MOD:SRFWEXC_VG',0,ZHOOK_HANDLE)
 ASSOCIATE(LESSRO=>YDSOIL%LESSRO, RDAW=>YDSOIL%RDAW, RDMAXM=>YDSOIL%RDMAXM, &
  & RDMINM=>YDSOIL%RDMINM, RLAMBDAM=>YDSOIL%RLAMBDAM, RMFACM=>YDSOIL%RMFACM, &
- & RMVGALPHA=>YDSOIL%RMVGALPHA, RPSFR=>YDSOIL%RPSFR, &
+ & RMVGALPHA3D=>PSSDP3(:,:,SSDP3D_ID%NRMVGALPHA3D), RPSFR=>YDSOIL%RPSFR, &
  & RSIGORMAX=>YDSOIL%RSIGORMAX, RSIGORMIN=>YDSOIL%RSIGORMIN, &
  & RSIMP=>YDSOIL%RSIMP, RSRDEP=>YDSOIL%RSRDEP, RTF1=>YDSOIL%RTF1, &
  & RTF2=>YDSOIL%RTF2, RTF3=>YDSOIL%RTF3, RTF4=>YDSOIL%RTF4, &
@@ -322,7 +328,7 @@ DO JL=KIDIA,KFDIA
     ZMFAC=RMFACM(JS)
     ZRMFAC=1./ZMFAC
     ZWCONS=RWCONSM(JS)
-    ZALPHA=RMVGALPHA(JS)
+    ZALPHA=RMVGALPHA3D(JL,1_JPIM)
     IF (ZW.LE.(1.001_JPRB*RWRESTM(JS))) THEN
       ZK=0.0_JPRB
       ZD=ZDMIN
@@ -495,6 +501,7 @@ DO JK=2,KLEVS
 !           HYDRAULIC PROPERTIES.
 
 !           VAN GENUCHTEN
+      ZALPHA=RMVGALPHA3D(JL,JK)
       IF (JK < KLEVS) THEN
         JS=KSOTY(JL)
         ZW=MAX(MAX(PWSAM1M(JL,JK),PWSAM1M(JL,JK+1)),RWRESTM(JS))
@@ -510,7 +517,6 @@ DO JK=2,KLEVS
       ZMFAC=RMFACM(JS)
       ZRMFAC=1./ZMFAC
       ZWCONS=RWCONSM(JS)
-      ZALPHA=RMVGALPHA(JS)
       IF (ZW.LE.(1.001*RWRESTM(JS))) THEN
       ZD=ZDMIN
       IF ( LEURBAN ) THEN
