@@ -27,7 +27,7 @@ USE YOMGPD1S , ONLY : VFZ0F    ,VFALBF   ,&
      &            VFADVT ,VFADVS  ,VFTRI0   ,VFTRI1   ,VFSWDK_SAVE,&  !KPP
      &            VDANDAYVT,VDANFMVT , &
      &            VDRESPBSTR,VDRESPBSTR2,VDBIOMASS_LAST,&
-     &            VDBLOSSVT,VDBGAINVT, GPD_SDP2
+     &            VDBLOSSVT,VDBGAINVT, GPD_SDP2, GPD_SDP3
 
 USE YOMGF1S  , ONLY : UNLEV0   ,VNLEV0   ,TNLEV0   ,QNLEV0   , CNLEV0  ,&
      &            PNLP0    ,UNLEV1   ,VNLEV1   ,TNLEV1   ,QNLEV1   , PNLP1, &
@@ -331,7 +331,7 @@ DO IST = 1, NPOI, NPROMA
      & , TDT &
 !-----------------------------------------------------------------------
 ! - INPUT .
-     & , GPD_SDP2(IST:IEND,:), ZAPHIF(IST:IEND) , ZAPRS(IST:IEND,:) &
+     & , GPD_SDP2(IST:IEND,:), GPD_SDP3(IST:IEND,:,:), ZAPHIF(IST:IEND) , ZAPRS(IST:IEND,:) &
      & , UNLEV0(IST:IEND) , VNLEV0(IST:IEND) , TNLEV0(IST:IEND) , QNLEV0(IST:IEND), CNLEV0(IST:IEND,:) &
      & , FSNNU0(IST:IEND,:) &
      & , ASNNU0(IST:IEND) , RSNNU0(IST:IEND,:) , TSNNU0(IST:IEND,:),WSNNU0(IST:IEND,:) &

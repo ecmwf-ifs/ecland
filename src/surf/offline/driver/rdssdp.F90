@@ -5,7 +5,7 @@ USE PARKIND1  ,ONLY : JPIM     ,JPRB
 USE YOMDIM1S  ,ONLY : NPROMA
 USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
 USE YOMSURF_SSDP_MOD
-USE YOMGPD1S , ONLY : GPD_SDP2
+USE YOMGPD1S , ONLY : GPD_SDP2, GPD_SDP3
 #ifdef DOC
 
 !**** *RDSSDP  * - Reading netCDF file containing surface climate fields from surf_param.nc file
@@ -76,7 +76,7 @@ REAL(KIND=JPRB),ALLOCATABLE :: ZBUF(:)
 INTEGER                     :: NILON,NILAT,IERR,NVARID,NILEV
 INTEGER                     :: NDIM, NVARS
 CHARACTER*100               :: CNAME
-INTEGER(KIND=JPIM)          :: NMX,NMY,IVAR,JD,DIMLEN,STATUS
+INTEGER(KIND=JPIM)          :: NMX,NMY,IVAR,JVT,JD,DIMLEN,STATUS
 INTEGER(KIND=JPIM)          :: NVARS3D, NVARS2D
 CHARACTER(LEN=20)           :: CVARS3D(40), CVARS2D(70), CVAR
 INTEGER(KIND=JPIM)          :: MYPROC, NPROC, ISTP, IENP
@@ -157,8 +157,8 @@ ALLOCATE (ZBUF(NPOI))
 CALL MPL_BARRIER()  
 
 NVARS2D=13
-CVARS2D(1:NVARS2D)=(/'lvegcov', 'hvegcov', 'hlamsk ', 'llamsk ', 'hlamsks ', 'llamsks ', 'hvegrsm ', 'lvegrsm ', &
-        & 'lrvz0m ', 'hrvz0m ', 'lrvz0h ', 'hrvz0h ', 'bvegrsm '/)
+CVARS2D(1:NVARS2D)=(/'lvegcov', 'hvegcov', 'hlamsk ', 'llamsk ', 'hlamsks', 'llamsks', 'hvegrsm', 'lvegrsm', &
+        & 'lrvz0m ', 'hrvz0m ', 'lrvz0h ', 'hrvz0h ', 'bvegrsm'/)
 
 DO IVAR=1,NVARS2D
    CVAR=TRIM(CVARS2D(IVAR))
@@ -272,6 +272,41 @@ DO IVAR=1,NVARS2D
          WRITE(NULOUT,*) CVAR, ' Not defined in RDSSDP'
          CALL ABORT()
    END SELECT
+ENDDO
+
+NVARS3D=1
+CVARS3D(1:NVARS3D)=(/'vgalpha '/)
+
+DO IVAR=1,NVARS3D
+  CVAR=TRIM(CVARS3D(IVAR))
+  IF( MYPROC == 1) THEN
+    STATUS = NF90_INQ_VARID(NCID, CVAR, NVARID)
+    IF ( STATUS /= 0 ) THEN
+      WRITE(NULOUT,'(A)') CVAR//' NOT PRESENT IN surf_param.nc FILE'
+    ELSE
+      CALL NCERROR( NF90_GET_VAR(NCID,NVARID,ZREAL3D,ISTART3,ICOUNT3),'READING '//CVAR)
+    ENDIF
+  ENDIF
+  DO JVT=1,NILEV
+    IF( MYPROC == 1) THEN
+      CALL MINMAX(CVAR,ZREAL3D(:,JVT),NMX,NMY,LMASK,NULOUT)
+    ENDIF
+    CALL MPL_BROADCAST(STATUS,KROOT=1,KTAG=100,CDSTRING='STATUS')
+    CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL3D(:,JVT),KSENDCOUNTS=NPOIP(:),CDSTRING='RDSSDP3D: '//CVAR)
+ 
+    SELECT CASE(CVAR)
+    CASE('vgalpha')
+      IF ( STATUS /= 0 ) THEN
+        WRITE(NULOUT,*) CVAR, JVT, 'Not calibrated'
+      ELSE
+        GPD_SDP3(1:NPOI, JVT, SSDP3D_ID%NRMVGALPHA3D)=PACK(ZBUF,LMASK(ISTP:IENP))
+        WRITE(NULOUT,*) CVAR, JVT, 'Calibrated value from surf_param.nc'
+      ENDIF
+    CASE DEFAULT
+      WRITE(NULOUT,*) CVAR, JVT, ' Not defined in RDSSDP'
+      CALL ABORT()
+    END SELECT
+  ENDDO
 ENDDO
 
 DEALLOCATE (ZREAL2D)
