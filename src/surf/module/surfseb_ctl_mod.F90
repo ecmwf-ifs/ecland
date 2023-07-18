@@ -62,8 +62,8 @@ USE YOMSURF_SSDP_MOD
 !    S. Boussetta          15/04/2018  increase lambda skin for wettile to 20
 !    M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
 !                                              use of parameter values defined in namelist
-!    J. McNorton           24/08/2022  urban tile
 !    I. Ayan-Miguez        July 2023 Added PSSDP2 object for spatially distributed parameters
+!    J. McNorton           24/08/2022  urban tile
 
 !  INTERFACE: 
 

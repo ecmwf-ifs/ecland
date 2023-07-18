@@ -6,7 +6,7 @@ SUBROUTINE SURFBC_CTL(KIDIA, KFDIA, KLON, KTILES,KLEVSN, &
  & LDLAND, LDSICE, LDLAKE, LDNH, LDOCN_KPP, &      
  & KTVL, KCO2TYP, KTVH, KSOTY, &
  & PCVL, PCVH, PCUR, PLAIL, PLAIH, PWLMX, PFRTI, &
- & PCSN, &
+ & PCSN, PSSDP2, &
  & YDSOIL, YDVEG, YDFLAKE, YDURB, YDOCEAN_ML)  
 
 USE PARKIND1,     ONLY : JPIM, JPRB
@@ -17,6 +17,7 @@ USE YOS_FLAKE,    ONLY : TFLAKE
 USE YOS_URB,      ONLY : TURB
 USE YOS_OCEAN_ML, ONLY : TOCEAN_ML
 USE ABORT_SURF_MOD  
+USE YOMSURF_SSDP_MOD
 
 ! (C) Copyright 1999- ECMWF.
 !
@@ -115,8 +116,8 @@ USE ABORT_SURF_MOD
 !     E. Dutta             16-11-2009  snow 2009 cleaning
 !     S. Boussetta/G.Balsamo May 2010 Add CTESSEL
 !     G.Balsamo              Jan 2015 Add subgrid lake ice fraction
-!     J. McNorton           24/08/2022  urban tile
 !     I. Ayan-Miguez         June 2023 Add refactorization of RVCOV
+!     J. McNorton           24/08/2022  urban tile
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE

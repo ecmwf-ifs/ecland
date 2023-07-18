@@ -72,6 +72,7 @@ USE YOMSURF_SSDP_MOD
 
 !     MODIFED
 !     J. McNorton           24/08/2022  urban tile
+!     I. Ayan-Miguez (BSC), July 2023 Refactorization of calibrated surface spatially distributed parameters
 
 !     ------------------------------------------------------------------
 

@@ -133,8 +133,8 @@ USE YOMSURF_SSDP_MOD
 !     F. Vana                05-Mar-2015     Support for single precision
 !     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
 !                                               use of parameter values defined in namelist
-!     J. McNorton            24/08/2022      urban tile
 !     I. Ayan-Miguez (BSC) July 2023         Add PSSDP3 object for spatially distributed parameters
+!     J. McNorton            24/08/2022      urban tile
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -517,7 +517,6 @@ DO JK=2,KLEVS
       ZMFAC=RMFACM(JS)
       ZRMFAC=1./ZMFAC
       ZWCONS=RWCONSM(JS)
-      ZALPHA=RMVGALPHA(JS)
       IF (ZW.LE.(1.001*RWRESTM(JS))) THEN
       ZD=ZDMIN
       IF ( LEURBAN ) THEN
