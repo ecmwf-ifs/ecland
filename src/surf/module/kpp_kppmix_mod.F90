@@ -216,14 +216,14 @@ LLBETA  = .TRUE.
 ! density of fresh water at surface (PRHOH2O)
 CALL KPP_ABK80 &
  & ( KIDIA    ,KFDIA    ,KLON     ,1_JPIM   ,LDKPPCAL ,&
- &   ZTMP1(KIDIA,1) ,PXO(KIDIA,1,1) ,ZTMP2(KIDIA,1) ,PTALPHA ,PSBETA ,& !PTALPHA,PSBETA dmy
- &   ZSIG0    ,ZSIG     ,PRHOH2O  ,LLALPHA  ,LLBETA   )
+ &   ZTMP1(KIDIA,1) ,PXO(KIDIA,1,1) ,ZTMP2(KIDIA,1) ,PTALPHA(:,0) ,PSBETA(:,0) ,& !PTALPHA,PSBETA dmy
+ &   ZSIG0(:,1)    ,ZSIG(:,1)     ,PRHOH2O  ,LLALPHA  ,LLBETA   )
 
 ! density of brine at surface (ZRHOB)
 CALL KPP_ABK80 &
  & ( KIDIA    ,KFDIA    ,KLON     ,1_JPIM   ,LDKPPCAL ,&
- &   ZTMP1(KIDIA,2) ,PXO(KIDIA,1,1) ,ZTMP2(KIDIA,1) ,PTALPHA ,PSBETA ,&!PTALPHA,PSBETA dmy
- &   ZSIG0    ,ZSIG     ,ZRHOB    ,LLALPHA  ,LLBETA   )
+ &   ZTMP1(KIDIA,2) ,PXO(KIDIA,1,1) ,ZTMP2(KIDIA,1) ,PTALPHA(:,0) ,PSBETA(:,0) ,&!PTALPHA,PSBETA dmy
+ &   ZSIG0(:,1)    ,ZSIG(:,1)     ,ZRHOB    ,LLALPHA  ,LLBETA   )
 
 ! 2. Calculate buoyancy profile (m/s**2) ,buoyancy gradients alpha and beta
 !    ----------------------------------------------------------------------
