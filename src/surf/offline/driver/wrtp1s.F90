@@ -99,8 +99,8 @@
 
         WRITE(NULOUT,*) ' SOIL TEMPERATURE - SOIL MOISTURE - ICE T'
         DO JSLEV=1,NCSS
-          WRITE(NULOUT,'(3(2X,E12.6))') TSLNU0(1,JSLEV),QLINU0(1,JSLEV),&
-     &                TILNU0(1,JSLEV)
+          WRITE(NULOUT,'(3(2X,E12.6))') TSLNU0(1,JSLEV,1),QLINU0(1,JSLEV,1),&
+     &                TILNU0(1,JSLEV,1)
         ENDDO
 
 
@@ -108,14 +108,14 @@
 !              ---------------------
 
         WRITE(NULOUT,*) ' SKIN TEMP. - SKIN. RES. CONT. '
-        WRITE(NULOUT,'(2(2X,E12.6))') TRENU0(1) , WRENU0(1)
+        WRITE(NULOUT,'(2(2X,E12.6))') TRENU0(1,1) , WRENU0(1,1)
 
 
 !*       5.    WRITE SNOW VARIABLES
 !              -----------------
 
         WRITE(NULOUT,*) 'SNOW_DEPTH   SNOW_T  SNOW_ALBEDO  SNOW_DENSITY'
-        WRITE(NULOUT,'(E12.6)') FSNNU0(1,1),TSNNU0(1,1),ASNNU0(1),RSNNU0(1,1)
+        WRITE(NULOUT,'(E12.6)') FSNNU0(1,1,1),TSNNU0(1,1,1),ASNNU0(1,1),RSNNU0(1,1,1)
       ENDIF
 
 !        7.1   WRITE IN SURFSOIL FILE.
@@ -146,15 +146,15 @@
 !   time stuff
       CALL DATTIM(ZJUL,IYYMD,IHM)
 ! to avoid trouble reading very small value (1e-XXX)
-IF (WRENU0(1)<1e-30_JPRB) WRENU0=0._JPRB
+IF (WRENU0(1,1)<1e-30_JPRB) WRENU0=0._JPRB
       
      WRITE(NPOSGG,'(f10.3,1X,I8,1X,I4,2X,I8,18(1X,E12.6E3))')&
      &                 ZJUL,IYYMD,IHM,NSTEP&
-     &                ,TRENU0(1),WRENU0(1)&
-     &                ,TSLNU0(1,1),TSLNU0(1,2),TSLNU0(1,3),TSLNU0(1,4)&
-     &                ,QLINU0(1,1),QLINU0(1,2),QLINU0(1,3),QLINU0(1,4)&
-     &                ,FSNNU0(1,1),TSNNU0(1,1),ASNNU0(1),RSNNU0(1,1) &
-     &                ,TILNU0(1,1),TILNU0(1,2),TILNU0(1,3),TILNU0(1,4)
+     &                ,TRENU0(1,1),WRENU0(1,1)&
+     &                ,TSLNU0(1,1,1),TSLNU0(1,2,1),TSLNU0(1,3,1),TSLNU0(1,4,1)&
+     &                ,QLINU0(1,1,1),QLINU0(1,2,1),QLINU0(1,3,1),QLINU0(1,4,1)&
+     &                ,FSNNU0(1,1,1),TSNNU0(1,1,1),ASNNU0(1,1),RSNNU0(1,1,1) &
+     &                ,TILNU0(1,1,1),TILNU0(1,2,1),TILNU0(1,3,1),TILNU0(1,4,1)
 
      WRITE(NPOSGGL,'(f10.3,1X,I8,1X,I4,2X,I8,18(1X,E12.6E3))')&
      &                 ZJUL,IYYMD,IHM,NSTEP,&
