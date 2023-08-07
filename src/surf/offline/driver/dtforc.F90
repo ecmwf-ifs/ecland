@@ -138,10 +138,19 @@ IF ( LSWINT ) THEN
     Z_RADCON=Z_TWOPI/360.0_JPRD
     Z_CONRAD=360.0_JPRD/Z_TWOPI
     ! Solar zenith angle computation
-    ZMU0M(:)=MAX( RSIDECM*GEMU(:) &
-        & -RCODECM*RCOVSRM*SQRT(1._JPRD-GEMU(:)**2)*COS(GELAM(:)) &
-        & +RCODECM*RSIVSRM*SQRT(1._JPRD-GEMU(:)**2)*SIN(GELAM(:)) &
-        & ,0._JPRD)
+
+    !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+    DO IST = 1, NPOI, NPROMA
+      IEND = MIN(IST+NPROMA-1,NPOI)
+      IBL = (IST-1)/NPROMA + 1
+      IPROMA = IEND-IST+1
+
+      ZMU0M(IST:IEND)=MAX( RSIDECM*GEMU(1:IPROMA,IBL) &
+          & -RCODECM*RCOVSRM*SQRT(1._JPRD-GEMU(1:IPROMA,IBL)**2)*COS(GELAM(IST:IEND)) &
+          & +RCODECM*RSIVSRM*SQRT(1._JPRD-GEMU(1:IPROMA,IBL)**2)*SIN(GELAM(IST:IEND)) &
+          & ,0._JPRD)
+    ENDDO
+    !$OMP END PARALLEL DO
 ENDIF 
 
 
@@ -267,10 +276,19 @@ IF (NACCTYPE.eq.2) THEN
                 ZWSOVRM=ZSOVRM*2._JPRD*Z_PI/RDAY
                 ZCOVSRM=COS(ZWSOVRM)
                 ZSIVSRM=SIN(ZWSOVRM)
-                ZANG(:)=ZANG(:)+MAX( ZSIDECM*GEMU(:) &
-                    & -ZCODECM*ZCOVSRM*SQRT(1._JPRD-GEMU(:)**2)*COS(GELAM(:)) &
-                    & +ZCODECM*ZSIVSRM*SQRT(1._JPRD-GEMU(:)**2)*SIN(GELAM(:)) &
-                    & ,0._JPRD)
+
+                !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+                DO IST = 1, NPOI, NPROMA
+                  IEND = MIN(IST+NPROMA-1,NPOI)
+                  IBL = (IST-1)/NPROMA + 1
+                  IPROMA = IEND-IST+1
+
+                  ZANG(IST:IEND)=ZANG(IST:IEND)+MAX( ZSIDECM*GEMU(1:IPROMA,IBL) &
+                      & -ZCODECM*ZCOVSRM*SQRT(1._JPRD-GEMU(1:IPROMA,IBL)**2)*COS(GELAM(IST:IEND)) &
+                      & +ZCODECM*ZSIVSRM*SQRT(1._JPRD-GEMU(1:IPROMA,IBL)**2)*SIN(GELAM(IST:IEND)) &
+                      & ,0._JPRD)
+                ENDDO
+                !$OMP END PARALLEL DO
             END DO
             ZANG(:)=ZANG(:)/4
 
