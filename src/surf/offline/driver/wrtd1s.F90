@@ -130,8 +130,8 @@
       WRITE(NPOSDFO,'(f10.3,1X,I8,1X,I4,1X,I8,13(1X,E13.6))')&
      &      zjul,IYYMD,IHM,NSTEP &
      &      ,UNLEV0(JL,NLEV,1),VNLEV0(JL,NLEV,1),TNLEV0(JL,NLEV,1),QNLEV0(JL,NLEV,1)&
-     &     ,FSSRD(JL),FSTRD(JL) &
-     &     ,FCRF(JL),FCSF(JL),FLSRF(JL),FLSSF(JL) &
+     &     ,FSSRD(JL,1),FSTRD(JL,1) &
+     &     ,FCRF(JL,1),FCSF(JL,1),FLSRF(JL,1),FLSSF(JL,1) &
      &     ,D1T2M2(JL,1),D1D2M2(JL,1)&
      &     ,100.0_JPRB*FOEEWMO(D1D2M2(JL,1))/FOEEWMO(D1T2M2(JL,1))
 
