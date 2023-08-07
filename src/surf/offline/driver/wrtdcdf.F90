@@ -304,25 +304,6 @@ ENDWHERE
 
 !* calculation of total soil wetness
 
-!DO JL=1,NPOI
-!  IF(LEVGEN)THEN
-!    JS=NINT(VFSOTY(JL))
-!    ZWPWP=RWPWPM(JS)
-!    ZWSAT=RWSATM(JS)
-!  ELSE
-!    ZWPWP=RWPWP
-!    ZWSAT=RWSAT
-!  ENDIF
-!  IF ( (ZWSAT-ZWPWP) > 0._JPRB ) THEN
-!    ZSWET(JL)=&
-!     &(DOT_PRODUCT(ZPA*QLINUA(JL,:),RDAW(:))-&
-!     &SUM(RDAW)*ZWPWP)/&
-!     &(SUM(RDAW)*(ZWSAT-ZWPWP))
-!  ELSE
-!    ZSWET(JL)=0.0_JPRB
-!  ENDIF
-!ENDDO
-
 !* calculation of root zone soil moisture content: all liquid water
 !  above wilting point in layers where roots are found
 !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
