@@ -909,7 +909,7 @@ ENDIF
 !   Create space for diagnostic array (for possible pp of canopy resitances)
 !   Put LAT/LON in field 1 an 2, just in case that it is needed in SURF for debugging.  
 ZEXDIAG(KIDIA:KFDIA,11)=GELAT(KIDIA:KFDIA,IBL) ! Latitude
-ZEXDIAG(KIDIA:KFDIA,12)=GELAM(KIDIA:KFDIA) ! Longitude
+ZEXDIAG(KIDIA:KFDIA,12)=GELAM(KIDIA:KFDIA,IBL) ! Longitude
 
   CALL VDFMAIN1S ( CDCONF,&
  & KIDIA,KFDIA,KLON,KLEV,KLEVS,KSTEP,KTILES, KVTYPES,JPDIAG,&
