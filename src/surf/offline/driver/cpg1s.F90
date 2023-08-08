@@ -318,7 +318,7 @@ DO IST = 1, NPOI, NPROMA
 !            -------------
   CDCONF='F'
   CALL CALLPAR1S (CDCONF &
-     & , 1, IPROMA   , NPROMA , IBL, NCSS  , NTILES, NVHILO & 
+     & , 1, IPROMA   , NPROMA , NCSS  , NTILES, NVHILO & 
      & , IFLEV  ,NSTART ,NSTEP  ,NTRAC   &
      & , NLEVI  ,NCOM   ,NCSNEC          &                 !KPP
      & , NDHVTLS,NDHFTLS,NDHVTSS,NDHFTSS &
@@ -388,7 +388,7 @@ DO IST = 1, NPOI, NPROMA
      & , ZLAIE1(:,:,IBL), ZBSTRE1(:,:,IBL), ZBSTR2E1(:,:,IBL) &
      & , ZDHTLS(:,:,:,IBL),ZDHTSS(:,:,:,IBL),ZDHTTS(:,:,:,IBL),ZDHTIS(:,:,:,IBL),ZDHIIS(:,:,IBL), &
            & ZDHSSS(:,:,:,IBL),ZDHWLS(:,:,:,IBL),ZDHRESS(:,:,:,IBL) &
-     & , ZDHCO2S(:,:,:,IBL),ZDHBIOS(:,:,:,IBL),ZDHVEGS(:,:,:,IBL))
+     & , ZDHCO2S(:,:,:,IBL),ZDHBIOS(:,:,:,IBL),ZDHVEGS(:,:,:,IBL),GELAT(:,IBL),GELAM(:,IBL))
 
 !*           UPDATE DIAGNOSTICS
 !     ------------------------------------------------------------------
@@ -419,15 +419,14 @@ DO IST = 1, NPOI, NPROMA
 !            -------------------------------------------------
 ! WARM START FIX
   IF (NSTEP == 0) THEN 
-    GP1(:, MRSNNU:MRSNNU+NCSNEC-1,IBL)  = RSNNU0(:, 1:NCSNEC, IBL) 
-    GP1(:, MTSNNU:MTSNNU+NCSNEC-1,IBL ) = TSNNU0(:, 1:NCSNEC, IBL)
-    GP1(:, MFSNNU:MFSNNU+NCSNEC-1,IBL)  = FSNNU0(:, 1:NCSNEC, IBL) 
-    GP1(:, MWSNNU:MWSNNU+NCSNEC-1,IBL)  = WSNNU0(:, 1:NCSNEC, IBL) 
+    GP1(:, MRSNNU:MRSNNU+NCSNEC-1,IBL) = RSNNU0(:, 1:NCSNEC, IBL) 
+    GP1(:, MTSNNU:MTSNNU+NCSNEC-1,IBL) = TSNNU0(:, 1:NCSNEC, IBL)
+    GP1(:, MFSNNU:MFSNNU+NCSNEC-1,IBL) = FSNNU0(:, 1:NCSNEC, IBL) 
+    GP1(:, MWSNNU:MWSNNU+NCSNEC-1,IBL) = WSNNU0(:, 1:NCSNEC, IBL) 
   END IF
 
 
-  GP1(:,1:NGPP,IBL)=GP1(:,1:NGPP,IBL)+ &
-       &                TDT*ZGPE(:,1:NGPP,IBL)
+  GP1(:,1:NGPP,IBL)=GP1(:,1:NGPP,IBL) + TDT*ZGPE(:,1:NGPP,IBL)
 !*       4.  SWAPPING OF SURFACE VARIABLES.
 !            ------------------------------
 
