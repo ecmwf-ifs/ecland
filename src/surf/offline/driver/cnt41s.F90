@@ -214,7 +214,6 @@ DO NSTEP=NSTART,NSTOP
       ZBUFFOAUX(JL,2)=ZBUFFOAUX(JL,2)+(D1STRO2(JL,1)-D1STSRO2(JL,1))*TSTEP*0.001_JPRB   ! m of water
       ZBUFFOAUX(JL,3)=ZBUFFOAUX(JL,3)+(-D1STIEVAPU2(JL,9,1))*TSTEP*0.001_JPRB   ! m of water
     ENDDO        
-      
     !* Coupling: 
 ! Note that changed the condition to double precision as it is required for long NSTEPS and "small" TCOUPFREQ (e.g. equal to 1)
    IF ( MOD((REAL(NSTEP,KIND=JPRD)*REAL(TSTEP,KIND=JPRD)),REAL(TCOUPFREQ*3600,KIND=JPRD)) == 0 &
