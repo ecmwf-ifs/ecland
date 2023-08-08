@@ -415,7 +415,6 @@ DO IST = 1, NPOI, NPROMA
        & ZDHRESS(1:IPROMA,:,:,IBL),&
    & ZT2M(1:IPROMA,IBL),ZD2M(1:IPROMA,IBL),ZDHCO2S(1:IPROMA,:,:,IBL),ZDHBIOS(1:IPROMA,:,:,IBL),ZDHVEGS(1:IPROMA,:,:,IBL), &
    & ZDHBVOCS(1:IPROMA,:,:,IBL))
- 
 
 !*       3.  COMPUTATION OF T+DT VALUES FOR SURFACE VARIABLES.
 !            -------------------------------------------------
