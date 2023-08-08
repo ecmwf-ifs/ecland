@@ -444,8 +444,7 @@ DO IST = 1, NPOI, NPROMA
 !             ------------------------------------
 
   DO J=1,N2DDIAUX
-    GDIAUX1S(IST:IEND,J,2)=GDIAUX1S(IST:IEND,J,2)+&
-     &TSTEP*GDIAUX1S(IST:IEND,J,1)
+    GDIAUX1S(:,J,2,IBL)=GDIAUX1S(:,J,2,IBL)+TSTEP*GDIAUX1S(:,J,1,IBL)
   ENDDO
 
 ENDDO !IST LOOP
