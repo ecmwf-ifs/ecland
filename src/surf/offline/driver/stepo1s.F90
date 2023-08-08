@@ -135,15 +135,16 @@ ELSE
     IPROMA = IEND-IST+1
 
     GPA(IST:IEND,1:NGPP)=GPA(IST:IEND,1:NGPP)+ZFAC*GP0(1:IPROMA,1:NGPP,IBL)
+
+    !Note since Soil Liquid Water is not available at NSTART
+    !the value at NSTART+1 is used.
+    IF(NSTEP == NSTART+1)THEN
+      QLQNUA(IST:IEND,:)=0.5_JPRB*D1SWAFR(1:IPROMA,:,IBL)+ZFAC*D1SWAFR(1:IPROMA,:,IBL)
+    ELSE
+      QLQNUA(IST:IEND,:)=QLQNUA(IST:IEND,:)+ZFAC*D1SWAFR(1:IPROMA,:,IBL)
+    ENDIF
   ENDDO
   !$OMP END PARALLEL DO
-!Note since Soil Liquid Water is not available at NSTART
-!the value at NSTART+1 is used.
-  IF(NSTEP == NSTART+1)THEN
-    QLQNUA(:,:)=0.5_JPRB*D1SWAFR(:,:)+ZFAC*D1SWAFR(:,:)
-  ELSE
-    QLQNUA(:,:)=QLQNUA(:,:)+ZFAC*D1SWAFR(:,:)
-  ENDIF
 ENDIF
 
 !*       3.   WRITE OUT DIAGNOSTIC VARIABLES AND TENDENCIES.
@@ -172,11 +173,11 @@ IF (LACCUMW) THEN
         DO J=1,N2DDI
           GDI1S(:,J,2,IBL)=0._JPRB
         ENDDO
+        DO J=1,N2DDIAUX
+          GDIAUX1S(:,J,2,IBL)=0._JPRB
+        ENDDO
       ENDDO
       !$OMP END PARALLEL DO
-      DO J=1,N2DDIAUX
-        GDIAUX1S(1:NPOI,J,2)=0._JPRB
-      ENDDO
     ENDIF
 
 !*      3b.   Re-initialize average prognostic quantities
@@ -189,9 +190,9 @@ IF (LACCUMW) THEN
       IPROMA = IEND-IST+1
 
       GPA(IST:IEND,1:NGPP) = 0.5_JPRB*GP0(1:IPROMA,1:NGPP,IBL)
+      QLQNUA(IST:IEND,:) = 0.5_JPRB*D1SWAFR(1:IPROMA,:,IBL)
     ENDDO
     !$OMP END PARALLEL DO
-    QLQNUA(:,:)=0.5_JPRB*D1SWAFR(:,:)
 
   ENDIF
 ENDIF
