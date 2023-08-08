@@ -18,6 +18,7 @@ ecbuild_generate_fortran_interfaces(
 )
 
 list(APPEND offline_driver_src
+    buffer_utils.F90
     callpar1s.F90
     cnt01s.F90
     cnt21s.F90
