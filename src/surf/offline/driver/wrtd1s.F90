@@ -169,14 +169,14 @@
         endif
       ENDIF
       WRITE(NPOSDBD,'(f10.3,1X,I8,1X,I4,1X,I8,8(1X,E13.6))')&
-     &      zjul,IYYMD,IHM,NSTEP,(D1SRFLD2(JL,IA)+D1SRFLU2(JL,IA))*ZWA&
-     &     ,(D1TRFLD2(JL,IA)+D1TRFLU2(JL,IA))*ZWA&
-     &     ,(D1AHFS2(JL,IA)+D1AHFL2(JL,IA))*ZWA&
-     &     ,(D1SRFLD2(JL,IA)+D1SRFLU2(JL,IA)+D1TRFLD2(JL,IA)+&
-     &      D1TRFLU2(JL,IA)+D1AHFS2(JL,IA)+D1AHFL2(JL,IA))*ZWA&
-     &     ,(D1SWNJQ2(JL,IA)+D1SWLJQ2(JL,IA)+D1SW1JBG2(JL,IA)+&
-     &      D1SWAEXT2(JL,1,IA)+D1SWAEXT2(JL,2,IA)+D1SWAEXT2(JL,3,IA)+&
-     &      D1SWAEXT2(JL,4,IA))*ZMM
+     &      zjul,IYYMD,IHM,NSTEP,(D1SRFLD2(JL,IA,1)+D1SRFLU2(JL,IA,1))*ZWA&
+     &     ,(D1TRFLD2(JL,IA,1)+D1TRFLU2(JL,IA,1))*ZWA&
+     &     ,(D1AHFS2(JL,IA,1)+D1AHFL2(JL,IA,1))*ZWA&
+     &     ,(D1SRFLD2(JL,IA,1)+D1SRFLU2(JL,IA,1)+D1TRFLD2(JL,IA,1)+&
+     &      D1TRFLU2(JL,IA,1)+D1AHFS2(JL,IA,1)+D1AHFL2(JL,IA,1))*ZWA&
+     &     ,(D1SWNJQ2(JL,IA,1)+D1SWLJQ2(JL,IA,1)+D1SW1JBG2(JL,IA,1)+&
+     &      D1SWAEXT2(JL,1,IA,1)+D1SWAEXT2(JL,2,IA,1)+D1SWAEXT2(JL,3,IA,1)+&
+     &      D1SWAEXT2(JL,4,IA,1))*ZMM
 
 !     ------------------------------------------------------------------
 
@@ -215,11 +215,11 @@
         WRITE(IPOS(JTI),'(f10.3,1X,I8,1X,I4,1X,I8,12(1X,E13.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1STIFR(JL,JTI),D1STITK(JL,JTI)&
-     &     ,D1STIALB(JL,JTI),D1STIEVAP2(JL,JTI,IA)*ZMM&
-     &     ,D1STISRD2(JL,JTI,IA)*ZWA,D1STISRU2(JL,JTI,IA)*ZWA&
-     &     ,D1STITRD2(JL,JTI,IA)*ZWA,D1STITRU2(JL,JTI,IA)*ZWA&
-     &     ,D1STIH2(JL,JTI,IA)*ZWA,D1STILE2(JL,JTI,IA)*ZWA&
-     &     ,D1STIGFL2(JL,JTI,IA)*ZWA,D1STII2(JL,JTI,IA)*ZWA
+     &     ,D1STIALB(JL,JTI),D1STIEVAP2(JL,JTI,IA,1)*ZMM&
+     &     ,D1STISRD2(JL,JTI,IA,1)*ZWA,D1STISRU2(JL,JTI,IA,1)*ZWA&
+     &     ,D1STITRD2(JL,JTI,IA,1)*ZWA,D1STITRU2(JL,JTI,IA,1)*ZWA&
+     &     ,D1STIH2(JL,JTI,IA,1)*ZWA,D1STILE2(JL,JTI,IA,1)*ZWA&
+     &     ,D1STIGFL2(JL,JTI,IA,1)*ZWA,D1STII2(JL,JTI,IA,1)*ZWA
       ENDDO TILES
       
 !     ------------------------------------------------------------------
@@ -252,14 +252,14 @@
 
       WRITE(NPOSDT0,'(f10.3,1X,I8,1X,I4,1X,I8,8(1X,E13.6))')&
      &      zjul,IYYMD,IHM,NSTEP&
-     &     ,SUM(D1STISRD2(JL,:,IA))*ZWA&
-     &     ,SUM(D1STISRU2(JL,:,IA))*ZWA&
-     &     ,SUM(D1STITRD2(JL,:,IA))*ZWA&
-     &     ,SUM(D1STITRU2(JL,:,IA))*ZWA&
-     &     ,SUM(D1STIH2(JL,:,IA))*ZWA&
-     &     ,SUM(D1STILE2(JL,:,IA))*ZWA&
-     &     ,SUM(D1STIGFL2(JL,:,IA))*ZWA&
-     &     ,SUM(D1STII2(JL,:,IA))*ZWA
+     &     ,SUM(D1STISRD2(JL,:,IA,1))*ZWA&
+     &     ,SUM(D1STISRU2(JL,:,IA,1))*ZWA&
+     &     ,SUM(D1STITRD2(JL,:,IA,1))*ZWA&
+     &     ,SUM(D1STITRU2(JL,:,IA,1))*ZWA&
+     &     ,SUM(D1STIH2(JL,:,IA,1))*ZWA&
+     &     ,SUM(D1STILE2(JL,:,IA,1))*ZWA&
+     &     ,SUM(D1STIGFL2(JL,:,IA,1))*ZWA&
+     &     ,SUM(D1STII2(JL,:,IA,1))*ZWA
 
 !     ------------------------------------------------------------------
 
@@ -281,13 +281,13 @@
      &     ,D1STIFR(JL,5)+D1STIFR(JL,7)&
      &     ,D1STIFR(JL,5)*D1STIALB(JL,5)+D1STIFR(JL,7)*D1STIALB(JL,7)&
      &     ,D1SNDEPTH(JL)&
-     &     ,D1STNSRD2(JL,IA)*ZWA,D1STNSRU2(JL,IA)*ZWA&
-     &     ,D1STNTRD2(JL,IA)*ZWA,D1STNTRU2(JL,IA)*ZWA&
-     &     ,(D1STIFR(JL,5)*D1STIH2(JL,5,IA)+&
-     &      D1STIFR(JL,7)*D1STIH2(JL,7,IA))*ZWA&
-     &     ,(D1STIFR(JL,5)*D1STILE2(JL,5,IA)+&
-     &      D1STIFR(JL,7)*D1STILE2(JL,7,IA))*ZWA&
-     &     ,D1STNGFL2(JL,IA)*ZWA,D1STNM2(JL,IA)*ZWA
+     &     ,D1STNSRD2(JL,IA,1)*ZWA,D1STNSRU2(JL,IA,1)*ZWA&
+     &     ,D1STNTRD2(JL,IA,1)*ZWA,D1STNTRU2(JL,IA,1)*ZWA&
+     &     ,(D1STIFR(JL,5)*D1STIH2(JL,5,IA,1)+&
+     &      D1STIFR(JL,7)*D1STIH2(JL,7,IA,1))*ZWA&
+     &     ,(D1STIFR(JL,5)*D1STILE2(JL,5,IA,1)+&
+     &      D1STIFR(JL,7)*D1STILE2(JL,7,IA,1))*ZWA&
+     &     ,D1STNGFL2(JL,IA,1)*ZWA,D1STNM2(JL,IA,1)*ZWA
 
 !     ------------------------------------------------------------------
 
@@ -306,11 +306,11 @@
       ENDIF
       WRITE(NPOSDT1,'(F10.3,1X,I8,1X,I4,1X,I8,9(1X,E13.6))')&
      &    zjul,IYYMD,IHM,NSTEP&
-     &   ,D1ST1SRD2(JL,IA)*ZWA,D1ST1SRU2(JL,IA)*ZWA&
-     &   ,D1ST1TRD2(JL,IA)*ZWA,D1ST1TRU2(JL,IA)*ZWA&
-     &   ,D1ST1H2(JL,IA)*ZWA,D1ST1LE2(JL,IA)*ZWA&
-     &   ,D1STNGFL2(JL,IA),D1STAGFL2(JL,1,IA)*ZWA&
-     &   ,D1STASF2(JL,1,IA)*ZWA
+     &   ,D1ST1SRD2(JL,IA,1)*ZWA,D1ST1SRU2(JL,IA,1)*ZWA&
+     &   ,D1ST1TRD2(JL,IA,1)*ZWA,D1ST1TRU2(JL,IA,1)*ZWA&
+     &   ,D1ST1H2(JL,IA,1)*ZWA,D1ST1LE2(JL,IA,1)*ZWA&
+     &   ,D1STNGFL2(JL,IA,1),D1STAGFL2(JL,1,IA,1)*ZWA&
+     &   ,D1STASF2(JL,1,IA,1)*ZWA
 
 !     ------------------------------------------------------------------
 
@@ -325,8 +325,8 @@
       ENDIF
       WRITE(NPOSDT2,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E12.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
-     &     ,D1STAGFL2(JL,1,IA)*ZWA,D1STAGFL2(JL,2,IA)*ZWA&
-     &     ,D1STASF2(JL,2,IA)*ZWA
+     &     ,D1STAGFL2(JL,1,IA,1)*ZWA,D1STAGFL2(JL,2,IA,1)*ZWA&
+     &     ,D1STASF2(JL,2,IA,1)*ZWA
 
 !     ------------------------------------------------------------------
 
@@ -341,8 +341,8 @@
       ENDIF
       WRITE(NPOSDT3,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E12.6))')&
      &      zjul,IYYMD,IHM,NSTEP&
-     &     ,D1STAGFL2(JL,2,IA)*ZWA,D1STAGFL2(JL,3,IA)*ZWA&
-     &     ,D1STASF2(JL,3,IA)*ZWA
+     &     ,D1STAGFL2(JL,2,IA,1)*ZWA,D1STAGFL2(JL,3,IA,1)*ZWA&
+     &     ,D1STASF2(JL,3,IA,1)*ZWA
 
 !     ------------------------------------------------------------------
 
@@ -357,7 +357,7 @@
       ENDIF
       WRITE(NPOSDT4,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E12.6))')&
      &      zjul,IYYMD,IHM,NSTEP&
-     &     ,D1STAGFL2(JL,3,IA)*ZWA,D1STASF2(JL,4,IA)*ZWA
+     &     ,D1STAGFL2(JL,3,IA,1)*ZWA,D1STASF2(JL,4,IA,1)*ZWA
 
 !     ------------------------------------------------------------------
 
@@ -377,8 +377,8 @@
       ENDIF
       WRITE(NPOSDSW,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E12.6))')&
      &      zjul,IYYMD,IHM,NSTEP&
-     &     ,D1SWNJQ2(JL,IA)*ZMM,(D1SSFL2(JL,IA)+D1SSFC2(JL,IA))*ZMM&
-     &     ,D1SWNM2(JL,IA)*ZMM
+     &     ,D1SWNJQ2(JL,IA,1)*ZMM,(D1SSFL2(JL,IA,1)+D1SSFC2(JL,IA,1))*ZMM&
+     &     ,D1SWNM2(JL,IA,1)*ZMM
 
 !     ------------------------------------------------------------------
 
@@ -398,7 +398,7 @@
       ENDIF
       WRITE(NPOSDW0,'(F10.3,1X,I8,1X,I4,1X,I8,2(1X,E12.6))')&
      &      zjul,IYYMD,IHM,NSTEP&
-     &     ,D1SWLIT2(JL,IA)*ZMM,D1SWLJQ2(JL,IA)*ZMM
+     &     ,D1SWLIT2(JL,IA,1)*ZMM,D1SWLJQ2(JL,IA,1)*ZMM
 
 !     ------------------------------------------------------------------
 
@@ -424,11 +424,11 @@
       ENDIF
       WRITE(NPOSDW1,'(F10.3,1X,I8,1X,I4,1X,I8,9(1X,E12.6))')&
      &      zjul,IYYMD,IHM,NSTEP&
-     &     ,D1SWAFR(JL,1),D1SW1TF2(JL,IA)*ZMM&
-     &     ,D1SW1M2(JL,IA)*ZMM,D1SW1JBG2(JL,IA)*ZMM&
-     &     ,D1SWAEXT2(JL,1,IA)*ZMM,D1SWAGFL2(JL,1,IA)*ZMM&
-     &     ,D1SW1RI2(JL,IA)*ZMM,D1SWARS2(JL,1,IA)*ZMM&
-     &     ,D1SWAC2(JL,1,IA)*ZMM
+     &     ,D1SWAFR(JL,1),D1SW1TF2(JL,IA,1)*ZMM&
+     &     ,D1SW1M2(JL,IA,1)*ZMM,D1SW1JBG2(JL,IA,1)*ZMM&
+     &     ,D1SWAEXT2(JL,1,IA,1)*ZMM,D1SWAGFL2(JL,1,IA,1)*ZMM&
+     &     ,D1SW1RI2(JL,IA,1)*ZMM,D1SWARS2(JL,1,IA,1)*ZMM&
+     &     ,D1SWAC2(JL,1,IA,1)*ZMM
 
 !     ------------------------------------------------------------------
 
@@ -451,9 +451,9 @@
       ENDIF
       WRITE(NPOSDW2,'(F10.3,1X,I8,1X,I4,1X,I8,6(1X,E12.6))')&
      &      zjul,IYYMD,IHM,NSTEP&
-     &     ,D1SWAFR(JL,2),D1SWAGFL2(JL,1,IA)*ZMM&
-     &     ,D1SWAGFL2(JL,2,IA)*ZMM,D1SWARS2(JL,2,IA)*ZMM&
-     &     ,D1SWAEXT2(JL,2,IA)*ZMM,D1SWAC2(JL,2,IA)*ZMM
+     &     ,D1SWAFR(JL,2),D1SWAGFL2(JL,1,IA,1)*ZMM&
+     &     ,D1SWAGFL2(JL,2,IA,1)*ZMM,D1SWARS2(JL,2,IA,1)*ZMM&
+     &     ,D1SWAEXT2(JL,2,IA,1)*ZMM,D1SWAC2(JL,2,IA,1)*ZMM
 
 !     ------------------------------------------------------------------
 
@@ -476,9 +476,9 @@
       ENDIF
       WRITE(NPOSDW3,'(F10.3,1X,I8,1X,I4,1X,I8,6(1X,E12.6))')&
      &      zjul,IYYMD,IHM,NSTEP&
-     &     ,D1SWAFR(JL,3),D1SWAGFL2(JL,2,IA)*ZMM&
-     &     ,D1SWAGFL2(JL,3,IA)*ZMM,D1SWARS2(JL,3,IA)*ZMM&
-     &     ,D1SWAEXT2(JL,3,IA)*ZMM,D1SWAC2(JL,3,IA)*ZMM
+     &     ,D1SWAFR(JL,3),D1SWAGFL2(JL,2,IA,1)*ZMM&
+     &     ,D1SWAGFL2(JL,3,IA,1)*ZMM,D1SWARS2(JL,3,IA,1)*ZMM&
+     &     ,D1SWAEXT2(JL,3,IA,1)*ZMM,D1SWAC2(JL,3,IA,1)*ZMM
 
 !     ------------------------------------------------------------------
 
@@ -502,9 +502,9 @@
       ENDIF
       WRITE(NPOSDW4,'(F10.3,1X,I8,1X,I4,1X,I8,6(1X,E12.6))')&
      &      zjul,IYYMD,IHM,NSTEP&
-     &     ,D1SWAFR(JL,4),D1SWAGFL2(JL,3,IA)*ZMM&
-     &     ,D1SWAGFL2(JL,4,IA)*ZMM,D1SWARS2(JL,4,IA)*ZMM&
-     &     ,D1SWAEXT2(JL,4,IA)*ZMM,D1SWAC2(JL,4,IA)*ZMM
+     &     ,D1SWAFR(JL,4),D1SWAGFL2(JL,3,IA,1)*ZMM&
+     &     ,D1SWAGFL2(JL,4,IA,1)*ZMM,D1SWARS2(JL,4,IA,1)*ZMM&
+     &     ,D1SWAEXT2(JL,4,IA,1)*ZMM,D1SWAC2(JL,4,IA,1)*ZMM
 
       
       WRITE(NPOSRC,'(F10.3,1X,I8,1X,I4,1X,I8,4(1X,E12.6))')&
@@ -545,13 +545,13 @@
 
  WRITE(NPOSCO2,'(F10.3,1X,I8,1X,I4,1X,I8,35(1X,E14.6E3))')&
      &       zjul,IYYMD,IHM,NSTEP&
-     &      ,D1SAN2(JL,IA)*ZWA,D1SAG2(JL,IA)*ZWA&
-     &      ,D1SRD2(JL,IA)*ZWA,D1SRSOIL_STR2(JL,IA)*ZWA,D1SCO2FLUX2(JL,IA)*ZWA &
-     &      ,D1SVTAN2(JL,1,IA)*ZWA,     D1SVTAN2(JL,2,IA)*ZWA      &
-     &      ,D1SVTAG2(JL,1,IA)*ZWA,     D1SVTAG2(JL,2,IA)*ZWA      &
-     &      ,D1SVTRD2(JL,1,IA)*ZWA,     D1SVTRD2(JL,2,IA)*ZWA      &
-     &      ,D1SVTRSOIL_STR2(JL,1,IA)*ZWA,  D1SVTRSOIL_STR2(JL,2,IA)*ZWA   &     
-     &      ,D1SVTCO2FLUX2(JL,1,IA)*ZWA,D1SVTCO2FLUX2(JL,2,IA)*ZWA &
+     &      ,D1SAN2(JL,IA,1)*ZWA,D1SAG2(JL,IA,1)*ZWA&
+     &      ,D1SRD2(JL,IA,1)*ZWA,D1SRSOIL_STR2(JL,IA,1)*ZWA,D1SCO2FLUX2(JL,IA,1)*ZWA &
+     &      ,D1SVTAN2(JL,1,IA,1)*ZWA,     D1SVTAN2(JL,2,IA,1)*ZWA      &
+     &      ,D1SVTAG2(JL,1,IA,1)*ZWA,     D1SVTAG2(JL,2,IA,1)*ZWA      &
+     &      ,D1SVTRD2(JL,1,IA,1)*ZWA,     D1SVTRD2(JL,2,IA,1)*ZWA      &
+     &      ,D1SVTRSOIL_STR2(JL,1,IA,1)*ZWA,  D1SVTRSOIL_STR2(JL,2,IA,1)*ZWA   &     
+     &      ,D1SVTCO2FLUX2(JL,1,IA,1)*ZWA,D1SVTCO2FLUX2(JL,2,IA,1)*ZWA &
      &      ,D1SLAI2(JL,IA)*ZWA,        D1SBIOM2(JL,IA)*ZWA        &
      &      ,D1SBLOSS2(JL,IA)*ZWA,      D1SBGAIN2(JL,IA)*ZWA       &
      &      ,D1SBIOMSTR2(JL,IA)*ZWA,    D1SBIOMSTRB2(JL,IA)*ZWA    &
@@ -561,7 +561,7 @@
      &      ,D1SVTBGAIN2(JL,1,IA)*ZWA,  D1SVTBGAIN2(JL,2,IA)*ZWA   &
      &      ,D1SVTBIOMSTR2(JL,1,IA)*ZWA,D1SVTBIOMSTR2(JL,2,IA)*ZWA &
      &      ,D1SVTBIOMSTRB2(JL,1,IA)*ZWA,D1SVTBIOMSTRB2(JL,2,IA)*ZWA &
-     &      ,D1SVTRECO2(JL,1,IA)*ZWA,   D1SVTRECO2(JL,2,IA)*ZWA 
+     &      ,D1SVTRECO2(JL,1,IA,1)*ZWA,   D1SVTRECO2(JL,2,IA,1)*ZWA 
 
 !*       17.   WRITE OUT VEGETATION VARIABLE 
 !             ------------------------------------------------

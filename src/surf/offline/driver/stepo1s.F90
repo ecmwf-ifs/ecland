@@ -167,9 +167,13 @@ IF (LACCUMW) THEN
 !              -----------------------------------------------
 
     IF(LRESET)THEN
-      DO J=1,N2DDI
-        GDI1S(1:NPOI,J,2)=0.
+      !$OMP PARALLEL DO PRIVATE(IBL)
+      DO IBL=1,NBLOCKS
+        DO J=1,N2DDI
+          GDI1S(:,J,2,IBL)=0.
+        ENDDO
       ENDDO
+      !$OMP END PARALLEL DO
       DO J=1,N2DDIAUX
         GDIAUX1S(1:NPOI,J,2)=0.
       ENDDO
