@@ -313,84 +313,165 @@ ENDWHERE
 
 !* calculation of total soil wetness
 
-!DO JL=1,NPOI
-!  IF(LEVGEN)THEN
-!    JS=NINT(VFSOTY(JL))
-!    ZWPWP=RWPWPM(JS)
-!    ZWSAT=RWSATM(JS)
-!  ELSE
-!    ZWPWP=RWPWP
-!    ZWSAT=RWSAT
-!  ENDIF
-!  IF ( (ZWSAT-ZWPWP) > 0._JPRB ) THEN
-!    ZSWET(JL)=&
-!     &(DOT_PRODUCT(ZPA*QLINUA(JL,:),RDAW(:))-&
-!     &SUM(RDAW)*ZWPWP)/&
-!     &(SUM(RDAW)*(ZWSAT-ZWPWP))
-!  ELSE
-!    ZSWET(JL)=0.0_JPRB
-!  ENDIF
-!ENDDO
+!$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+DO IST = 1, NPOI, NPROMA
+  IEND = MIN(IST+NPROMA-1,NPOI)
+  IBL = (IST-1)/NPROMA + 1
+  IPROMA = IEND-IST+1
+
+  DO JL=IST,IEND
+    IL = JL-IST+1
+
+    IF(LEVGEN)THEN
+      JS=NINT(VFSOTY(IL,IBL))
+      ZWPWP=RWPWPM(JS)
+      ZWSAT=RWSATM(JS)
+    ELSE
+      ZWPWP=RWPWP
+      ZWSAT=RWSAT
+    ENDIF
+    IF ( (ZWSAT-ZWPWP) > 0._JPRB ) THEN
+      ZSWET(JL)=&
+       &(DOT_PRODUCT(ZPA*QLINUA(JL,:),RDAW(:))-&
+       &SUM(RDAW)*ZWPWP)/&
+       &(SUM(RDAW)*(ZWSAT-ZWPWP))
+    ELSE
+      ZSWET(JL)=0.0_JPRB
+    ENDIF
+  ENDDO
+ENDDO
+!$OMP END PARALLEL DO
 
 !* calculation of root zone soil moisture content: all liquid water
 !  above wilting point in layers where roots are found
 
-DO JL=1,NPOI
-  IBL=MAX((JL-1)/NPROMA,1)
-  IF(IBL == 1)THEN
-    IL = JL
-  ELSE
-    IL=MOD(JL,(IBL-1)*NPROMA)
-  ENDIF
-
-  ZCVL=VFCVL(IL,IBL)*S2RVCOVL2D(IL)
-  ZCVH=VFCVH(IL,IBL)*S2RVCOVH2D(IL)
-
-  ZSROOT(JL)=0._JPRB
-  DO JK=1,NCSS
-    IF(LEVGEN)THEN
-      ZWPWP=S3RWPWPM3D(IL,JK)
-    ELSE
-      ZWPWP=RWPWP
-    ENDIF
-    IF((ZCVL > 0._JPRB .AND. S3RVROOTSAL3D(IL,JK) > 0._JPRB) .OR.&
-      &(ZCVH > 0._JPRB .AND. S3RVROOTSAH3D(IL,JK) > 0._JPRB)) THEN
-       ZSROOT(JL)=ZSROOT(JL)+&
-        &MAX(ZPA*ZLIQ(JL,JK)-RDAW(JK)*RHOH2O*ZWPWP, 0.0_JPRB)
-    ENDIF
-  ENDDO
-ENDDO
-
-!* calculation of depth of frozen ground and thaw layer
-DO JL=1,NPOI
-  ZFDEPT(JL)=0._JPRB
-  ZBOT=0._JPRB
-  DO JK=1,NCSS
-    ZF = 0_JPRB
-    IF (ZQLINUA(JL,JK) > 0._JPRB ) THEN
-      ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
-    ENDIF
-    ZTOP=ZBOT
-    ZBOT=ZTOP+RDAW(JK)
-    IF(ZF > 0._JPRB)THEN
-      ZFDEPT(JL)=MIN(SUM(RDAW),ZTOP+ZF*(ZBOT-ZTOP))
-    ENDIF
-  ENDDO
-
-  ZBOT=SUM(RDAW)
-  ZFTHAW(JL)=ZBOT
-  DO JK=NCSS,1,-1
-    ZF=0._JPRB
-    IF ( ZQLINUA(JL,JK) > 0._JPRB ) THEN
-      ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
-    ENDIF
-    ZTOP=ZBOT-RDAW(JK)
-    IF(ZF > 0._JPRB)THEN
-      ZFTHAW(JL)=MAX(0._JPRB,ZBOT+ZF*(ZTOP-ZBOT))
-    ENDIF
-    ZBOT=ZTOP
-  ENDDO
-ENDDO
+!<<<<<<< HEAD
+!DO JL=1,NPOI
+!  IBL=MAX((JL-1)/NPROMA,1)
+!  IF(IBL == 1)THEN
+!    IL = JL
+!  ELSE
+!    IL=MOD(JL,(IBL-1)*NPROMA)
+!  ENDIF
+!
+!  ZCVL=VFCVL(IL,IBL)*S2RVCOVL2D(IL)
+!  ZCVH=VFCVH(IL,IBL)*S2RVCOVH2D(IL)
+!
+!  ZSROOT(JL)=0._JPRB
+!  DO JK=1,NCSS
+!    IF(LEVGEN)THEN
+!      ZWPWP=S3RWPWPM3D(IL,JK)
+!    ELSE
+!      ZWPWP=RWPWP
+!    ENDIF
+!    IF((ZCVL > 0._JPRB .AND. S3RVROOTSAL3D(IL,JK) > 0._JPRB) .OR.&
+!      &(ZCVH > 0._JPRB .AND. S3RVROOTSAH3D(IL,JK) > 0._JPRB)) THEN
+!       ZSROOT(JL)=ZSROOT(JL)+&
+!        &MAX(ZPA*ZLIQ(JL,JK)-RDAW(JK)*RHOH2O*ZWPWP, 0.0_JPRB)
+!=======
+!!$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+!DO IST = 1, NPOI, NPROMA
+!  IEND = MIN(IST+NPROMA-1,NPOI)
+!  IBL = (IST-1)/NPROMA + 1
+!  IPROMA = IEND-IST+1
+!
+!  DO JL=IST,IEND
+!    IL = JL-IST+1
+!
+!    ITYPL=NINT(VFTVL(IL,IBL))
+!    ITYPH=NINT(VFTVH(IL,IBL))
+!    ZCVL=VFCVL(IL,IBL)*ZRVCOV(ITYPL)
+!    ZCVH=VFCVH(IL,IBL)*ZRVCOV(ITYPH)
+!    IF(LEVGEN)THEN
+!      JS=NINT(VFSOTY(IL,IBL))
+!      ZWPWP=RWPWPM(JS)
+!    ELSE
+!      ZWPWP=RWPWP
+!>>>>>>> 554c5cc (Array indexing bug fixes)
+!    ENDIF
+!  
+!    ZSROOT(JL)=0.
+!    DO JK=1,NCSS
+!      IF((ZCVL > 0. .AND. ZRVROOTSA(JK,ITYPL) > 0.) .OR.&
+!       &(ZCVH > 0. .AND. ZRVROOTSA(JK,ITYPH) > 0.)) THEN
+!        ZSROOT(JL)=ZSROOT(JL)+&
+!         &MAX(ZPA*ZLIQ(JL,JK)-RDAW(JK)*RHOH2O*ZWPWP, 0.0_JPRB)
+!      ENDIF
+!    ENDDO
+!  ENDDO
+!ENDDO
+!!$OMP END PARALLEL DO
+!
+!!* calculation of depth of frozen ground and thaw layer
+!<<<<<<< HEAD
+!DO JL=1,NPOI
+!  ZFDEPT(JL)=0._JPRB
+!  ZBOT=0._JPRB
+!  DO JK=1,NCSS
+!    ZF = 0_JPRB
+!    IF (ZQLINUA(JL,JK) > 0._JPRB ) THEN
+!      ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
+!    ENDIF
+!    ZTOP=ZBOT
+!    ZBOT=ZTOP+RDAW(JK)
+!    IF(ZF > 0._JPRB)THEN
+!      ZFDEPT(JL)=MIN(SUM(RDAW),ZTOP+ZF*(ZBOT-ZTOP))
+!    ENDIF
+!  ENDDO
+!
+!  ZBOT=SUM(RDAW)
+!  ZFTHAW(JL)=ZBOT
+!  DO JK=NCSS,1,-1
+!    ZF=0._JPRB
+!    IF ( ZQLINUA(JL,JK) > 0._JPRB ) THEN
+!      ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
+!    ENDIF
+!    ZTOP=ZBOT-RDAW(JK)
+!    IF(ZF > 0._JPRB)THEN
+!      ZFTHAW(JL)=MAX(0._JPRB,ZBOT+ZF*(ZTOP-ZBOT))
+!    ENDIF
+!    ZBOT=ZTOP
+!=======
+!!$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+!DO IST = 1, NPOI, NPROMA
+!  IEND = MIN(IST+NPROMA-1,NPOI)
+!  IBL = (IST-1)/NPROMA + 1
+!  IPROMA = IEND-IST+1
+!
+!  DO JL=IST,IEND
+!    IL = JL-IST+1
+!
+!    ZFDEPT(JL)=0.
+!    ZBOT=0.
+!    DO JK=1,NCSS
+!      ZF = 0_JPRB
+!      IF (ZQLINUA(JL,JK) > 0._JPRB ) THEN
+!        ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
+!      ENDIF
+!      ZTOP=ZBOT
+!      ZBOT=ZTOP+RDAW(JK)
+!      IF(ZF > 0.)THEN
+!        ZFDEPT(JL)=MIN(SUM(RDAW),ZTOP+ZF*(ZBOT-ZTOP))
+!      ENDIF
+!    ENDDO
+!
+!    ZBOT=SUM(RDAW)
+!    ZFTHAW(JL)=ZBOT
+!    DO JK=NCSS,1,-1
+!      ZF=0._JPRB
+!      IF ( ZQLINUA(JL,JK) > 0._JPRB ) THEN
+!        ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
+!      ENDIF
+!      ZTOP=ZBOT-RDAW(JK)
+!      IF(ZF > 0.)THEN
+!        ZFTHAW(JL)=MAX(0._JPRB,ZBOT+ZF*(ZTOP-ZBOT))
+!      ENDIF
+!      ZBOT=ZTOP
+!    ENDDO
+!>>>>>>> 554c5cc (Array indexing bug fixes)
+!  ENDDO
+!ENDDO
+!!$OMP END PARALLEL DO
 
 !* ===============================================================
 !     START OUTPUT
