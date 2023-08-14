@@ -1,6 +1,6 @@
 INTERFACE
-SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON,KLEVS,KLEVSN, KTILES,&
-                    & PSDOR,LDSICE, &
+SUBROUTINE SURFWS    (YSURF,KIDIA,KFDIA,KLON,KLEVS,KLEVSN, KTILES,&
+                    & PSDOR, LDSICE, &
                     & PLSM, PCIL, PFRTI, PMU0,                          &
                     & PTSAM1M,PTSKIN, PALBSN,                      &  
                     & PTSNM1M ,PSNM1M ,                            &
@@ -54,6 +54,7 @@ SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON,KLEVS,KLEVSN, KTILES,&
 
 
 USE PARKIND1, ONLY : JPIM, JPRB
+USE YOS_SURF, ONLY : TSURF
 USE, INTRINSIC :: ISO_C_BINDING
 
 
@@ -61,7 +62,7 @@ IMPLICIT NONE
 
 ! Declaration of arguments
 
-TYPE(C_PTR)       ,INTENT(IN)    :: YDSURF
+TYPE(TSURF)       ,INTENT(IN)    :: YSURF
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON 
