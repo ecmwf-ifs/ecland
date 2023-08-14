@@ -356,7 +356,7 @@ USE YOMLOG1S , ONLY : LSEMISS
 USE YOMGDI1S , ONLY : D1SRFLD  ,D1SRFLU  ,D1TRFLD  ,D1TRFLU &
      &             , D1SALB, D1SWDS  ,D1SSDS   ,D1SWLDS
 
-USE YOMDPHY  ,ONLY : YDSURF, YSURF
+USE YOMDPHY  ,ONLY : YSURF
 USE PARKIND1 ,ONLY : JPIM     ,JPRB, JPRD, JPIB
 USE YOMHOOK  ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
 USE MPL_MODULE
@@ -820,10 +820,10 @@ PFRTH(KIDIA:KFDIA,KLEV)=ZEMIS(KIDIA:KFDIA)* &
 !*      1.3b 
 
 IF ( (KSTEP==KSTART) .AND. (LEWARMSTART) )  THEN
-  CALL SURFWS(YDSURF, KIDIA, KFDIA, KLON, KLEVS, KLEVSN, KTILES  &
-             ,PSDOR,LLSICE                                       &
-             ,PLSM,PCIL, ZFRTI, PMU0M                                 &
-             ,PTSA, PTL,PASN                                     &
+  CALL SURFWS(YSURF, KIDIA, KFDIA, KLON, KLEVS, KLEVSN, KTILES  &
+             ,PSDOR,LLSICE                                      &
+             ,PLSM, PCIL, ZFRTI, PMU0M                          &
+             ,PTSA, PTL,PASN                                    &
              ,PTSN, PSNS, PRSN, PWSN                           )
 ENDIF
          
