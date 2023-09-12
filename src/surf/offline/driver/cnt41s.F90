@@ -141,7 +141,7 @@ IF (LECMF1WAY) THEN
     IF (NDIMCDF == 2)THEN
       IF (NLAT .NE. NYIN .OR. NLON .NE. NXIN ) THEN
         WRITE(NULOUT,*)"NLAT .NE. NYIN .OR. NLON .NE. NXIN ",NLAT,NYIN,NLON,NXIN
-        !*CALL ABOR1('Error in dimensions coupling with CMF')
+        CALL ABOR1('Error in dimensions coupling with CMF')
       ENDIF
       WRITE(NULOUT,*)"Coupling with CMF using 2D: NXIN,NYIN:",NXIN,NYIN
     ELSE
