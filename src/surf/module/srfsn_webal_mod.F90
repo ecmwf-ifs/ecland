@@ -188,10 +188,14 @@ ZWHCAP=4180._JPRB ! J K-1 Kg-1
 
 DO JL=KIDIA,KFDIA
 IF(LSNOWLANDONLY(JL))THEN
-  IF (LDLAND(JL)) THEN
+  IF (.not. YDSOIL%LESNICE) THEN
     ZSOILDEPTH1=YDSOIL%RDAW(1) ! 1sth Soil layer depth
-  ELSE
-    ZSOILDEPTH1=YDSOIL%RDAI(1) ! 1sth Soil layer depth
+  else
+    IF (LDLAND(JL)) THEN
+      ZSOILDEPTH1=YDSOIL%RDAW(1) ! 1sth Soil layer depth
+    ELSE
+      ZSOILDEPTH1=YDSOIL%RDAI(1) ! 1sth Soil layer depth
+    ENDIF
   ENDIF
   IF (LLNOSNOW(JL)) THEN 
     PSSN(JL,1) = MAX(0._JPRB, PSSNM1M(JL,1) + PTMST*(PSNOWF(JL)+PEVAPSN(JL)))  ! update snow mass with snowfall

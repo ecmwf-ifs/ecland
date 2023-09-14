@@ -268,6 +268,7 @@ DO JL=KIDIA,KFDIA
   
   ! Evap. is only fractional 
   ZEVAPSN(JL) = PFRTI(JL,5)*PEVAPTI(JL,5) + PFRTI(JL,7)*PEVAPSNW(JL)
+  ZTBOTTOM(JL)=PTSAM1M(JL,1)
   IF (LLNOSNOW(JL)) THEN
     ZHFLUX(JL) = 0.0_JPRB 
     ZRAINF(JL) = 0.0_JPRB
@@ -298,7 +299,7 @@ DO JL=KIDIA,KFDIA
     IF (.NOT. YDSOIL%LESNICE) THEN
       ZTBOTTOM(JL)  = PTSAM1M(JL,1)
 
-! ad  d fix to be consistent with Peters-Lidard et al. 1998 
+! add fix to be consistent with Peters-Lidard et al. 1998 
       IF(PTSAM1M(JL,1) < RTF1.AND.PTSAM1M(JL,1) > RTF2) THEN
         ZFF=0.5_JPRB*(1.0_JPRB-SIN(RTF4*(PTSAM1M(JL,1)-RTF3)))
       ELSEIF (PTSAM1M(JL,1) <= RTF2) THEN
@@ -313,7 +314,7 @@ DO JL=KIDIA,KFDIA
       IF (LDLAND(JL)) THEN
         ZTBOTTOM(JL)  = PTSAM1M(JL,1)
 
-! ad  ded fix to be consistent with Peters-Lidard et al. 1998 
+! added fix to be consistent with Peters-Lidard et al. 1998 
         IF(PTSAM1M(JL,1) < RTF1.AND.PTSAM1M(JL,1) > RTF2) THEN
           ZFF=0.5_JPRB*(1.0_JPRB-SIN(RTF4*(PTSAM1M(JL,1)-RTF3)))
         ELSEIF (PTSAM1M(JL,1) <= RTF2) THEN

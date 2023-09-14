@@ -995,16 +995,23 @@ DO JK=1,KLEVS
     ELSE
     ! This assumes that when LDSICE, PFRTI(5) is only active over sea-ice.
     ! Needs rechecking when moving to fractional land-sea mask.
-       IF (LDSICE(JL)) THEN
-         PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-         & ((PFRTI(JL,2)+PFRTI(JL,5)) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
-         & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)-PFRTI(JL,5))*&
-         & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
+       IF (LESNICE) THEN
+         IF (LDSICE(JL)) THEN
+           PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+           & ((PFRTI(JL,2)+PFRTI(JL,5)) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
+           & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)-PFRTI(JL,5))*&
+           & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
+         ELSE
+           PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+           & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
+           & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
+           & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
+         ENDIF
        ELSE
-         PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-         & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
-         & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
-         & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
+           PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+           & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
+           & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
+           & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY
        ENDIF
     ENDIF
   ENDDO
