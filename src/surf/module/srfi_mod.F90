@@ -212,8 +212,8 @@ DO JL=KIDIA,KFDIA
       ZSSRFL=PSSRFLTI(JL,2)*PFRTI(JL,2)
       ZSLRFL=PSLRFL(JL)*PFRTI(JL,2)
       ZTHFL=PAHFSTI(JL,2)*PFRTI(JL,2)+RLSTT*PEVAPTI(JL,2)*PFRTI(JL,2)
-  ! PGSN(JL) is already smeared out over the entire grid square.
-    ZSURFL(JL)=(PGSN(JL)+ZSSRFL+ZSLRFL+ZTHFL)/MAX(ZEPSILON,(PFRTI(JL,2)+PFRTI(JL,5)))
+      ! PGSN(JL) is already smeared out over the entire grid square.
+      ZSURFL(JL)=(PGSN(JL)+ZSSRFL+ZSLRFL+ZTHFL)/MAX(ZEPSILON,(PFRTI(JL,2)+PFRTI(JL,5)))
     ENDIF
   ELSE
     ZSURFL(JL)=0.0_JPRB
