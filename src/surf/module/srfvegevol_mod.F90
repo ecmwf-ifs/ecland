@@ -84,8 +84,10 @@ SUBROUTINE SRFVEGEVOL(KIDIA,KFDIA,KLON,KLEVS,KSTEP, &
 !     ------
 !     M.H. Voogt (KNMI) "C-Tessel"  09/2005 
 !     S. LAFONT (ECMWF) "C-TESSEL"  05/2006
-!      F. Vana  05-Mar-2015  Support for single precision
-
+!     F. Vana  05-Mar-2015  Support for single precision
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
+!     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP2 object for spatially distributed parameters
 !-------------------------------------------------------------------------------
 
 USE PARKIND1  ,ONLY : JPIM, JPRB
@@ -157,13 +159,14 @@ REAL(KIND=JPRB)    :: ZBIOMASSVT(KLON,YDVEG%NVTILES),ZLAI_LAST(KLON,YDVEG%NVTILE
 REAL(KIND=JPRB)    :: ZLAICVT(KLON,YDVEG%NVTILES)
 REAL(KIND=JPRB)    :: ZXM,ZBMCOEF
 REAL(KIND=JPRB)    :: ZEPSILON
+REAL(KIND=JPRB)    :: ZLAIMIN
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 !     ------------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SURFVEG_EVOL_MOD_CTL:SURFVEG_EVOL_CTL',0,ZHOOK_HANDLE)
 ASSOCIATE(RMC=>YDAGS%RMC, RMCO2=>YDAGS%RMCO2, RPCCO2=>YDAGS%RPCCO2, &
  & RVBSLAI=>YDAGS%RVBSLAI, RVBSLAI_NITRO=>YDAGS%RVBSLAI_NITRO, &
- & RVLAIMIN=>YDAGS%RVLAIMIN, &
+ & RVLAIMINL2D=>PSSDP2(:,SSDP2D_ID%NRVLAIMINL2D), RVLAIMINH2D=>PSSDP2(:,SSDP2D_ID%NRVLAIMINH2D), &
  & RDAY=>YDCST%RDAY, &
  & NVTILES=>YDVEG%NVTILES, RLAIINT=>YDVEG%RLAIINT, RVCOVH2D=>PSSDP2(:,SSDP2D_ID%NRVCOVH2D), &
  & RVCOVL2D=>PSSDP2(:,SSDP2D_ID%NRVCOVL2D))
@@ -221,9 +224,10 @@ IF (RLAIINT > 0._JPRB ) THEN
 
     DO JVT=1,NVTILES
 
-      CALL NITRO_DECLINE(KIDIA,KFDIA,KVEG(:,JVT),KLON,KSTEP,PTSPHY, &
+      CALL NITRO_DECLINE(KIDIA,KFDIA,JVT,KVEG(:,JVT),KLON,KSTEP,PTSPHY, &
          & PCVT(:,JVT), &
          & PTSKM1M,PTSAM1M(:,2),PLAT,PLAIVT(:,JVT),&
+         & PSSDP2,&
          & YDCST,YDAGS,&
          & PANFMVT(:,JVT),PRESPBSTR(:,JVT),PRESPBSTR2(:,JVT), &
 	 & PBIOMASS_LAST(:,JVT),PBIOMASSTR_LAST(:,JVT),PBIOMASSTR2_LAST(:,JVT), &
@@ -237,22 +241,31 @@ IF (RLAIINT > 0._JPRB ) THEN
            
            ! computation of LAIGAIN are included in surfveg_evol_ctl
 
-           ! change biomass in time due to assimilation of CO2:
-           ZXM=MAX((RVLAIMIN(IVEG)*RVBSLAI_NITRO(IVEG)-ZBIOMASSVT(JL,JVT)),PANDAYVT(JL,JVT)*ZBMCOEF)
-           ! protection
-           ZXM=MAX(ZXM,0.0_JPRB)  
+            IF (JVT .EQ. 1_JPIM) THEN
+               ! low vegetation
+               ZLAIMIN = RVLAIMINL2D(JL)
+            ELSE IF (JVT .EQ. 2_JPIM) THEN
+               ! low vegetation
+               ZLAIMIN = RVLAIMINH2D(JL)
+            ELSE
+               STOP 'Wrong number of vegitation types in nitro_decline_mod'
+            END IF
+            ! change biomass in time due to assimilation of CO2:
+            ZXM=MAX((ZLAIMIN*RVBSLAI_NITRO(IVEG)-ZBIOMASSVT(JL,JVT)),PANDAYVT(JL,JVT)*ZBMCOEF)
+            ! protection
+            ZXM=MAX(ZXM,0.0_JPRB)  
 
-           ZBIOMASSVT(JL,JVT)=ZBIOMASSVT(JL,JVT)+ZXM
+            ZBIOMASSVT(JL,JVT)=ZBIOMASSVT(JL,JVT)+ZXM
 !           ZBIOMASSVT(JL,JVT)= ZBIOMASSVT(JL,JVT)*RLAIINT+ZLAICVT(JL,JVT)*RVBSLAI_NITRO(KVEG(JL,JVT))*(1._JPRB-RLAIINT)
-           ! change in LAI in time due to biomass changes:
-           PLAIVT(JL,JVT)=ZBIOMASSVT(JL,JVT)/RVBSLAI_NITRO(IVEG)
+            ! change in LAI in time due to biomass changes:
+            PLAIVT(JL,JVT)=ZBIOMASSVT(JL,JVT)/RVBSLAI_NITRO(IVEG)
 
 
-           ! reset to zero the daily net assimilation for next day:
-           PANDAYVT(JL,JVT)=0._JPRB
+            ! reset to zero the daily net assimilation for next day:
+            PANDAYVT(JL,JVT)=0._JPRB
 
-          ! gain output 
-           PBGAINVT(JL,JVT)=ZXM
+            ! gain output 
+            PBGAINVT(JL,JVT)=ZXM
 
         ELSE 
           PANDAYVT(JL,JVT)=0._JPRB

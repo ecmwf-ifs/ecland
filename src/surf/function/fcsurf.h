@@ -20,6 +20,8 @@ REAL(KIND=JPRB) :: ZZWSA ! volumetric soil moisture (m3 m-3)
 REAL(KIND=JPRB) :: ZZF   ! frozen soil fraction
 INTEGER(KIND=JPIM) :: JJS  ! Soil type 
 
+REAL(KIND=JPRB) :: ZZRWSAT
+
 ! ==========================================
 ! Snow liquid water capacity 
 ! Note that YDSOIL buffer must be defined in the calling routine 
@@ -43,10 +45,10 @@ FSNTCOND(ZZRSN) = 2.5E-6_JPRB*ZZRSN*ZZRSN &
 ! See srft_mod.F90
 !=============================================
 REAL(KIND=JPRB) :: FSOILTCOND
-FSOILTCOND(ZZWSA,ZZF,JJS) = YDSOIL%RLAMBDADRYM(JJS)+ &
-                        (YDSOIL%RKERST2*LOG10(MAX(YDSOIL%RKERST1,ZZWSA/YDSOIL%RWSATM(JJS)))+YDSOIL%RKERST3) * &
+FSOILTCOND(ZZWSA,ZZRWSAT,ZZF,JJS) = YDSOIL%RLAMBDADRYM(JJS)+ &
+                        (YDSOIL%RKERST2*LOG10(MAX(YDSOIL%RKERST1,ZZWSA/ZZRWSAT))+YDSOIL%RKERST3) * &
                         (YDSOIL%RLAMSAT1M(JJS)* &
-                        (YDSOIL%RLAMBDAICE**(YDSOIL%RWSATM(JJS)*ZZF))* &
-                        (YDSOIL%RLAMBDAWAT**(YDSOIL%RWSATM(JJS)*(1.0_JPRB-ZZF)))- &
+                        (YDSOIL%RLAMBDAICE**(ZZRWSAT*ZZF))* &
+                        (YDSOIL%RLAMBDAWAT**(ZZRWSAT*(1.0_JPRB-ZZF)))- &
                          YDSOIL%RLAMBDADRYM(JJS))
 
