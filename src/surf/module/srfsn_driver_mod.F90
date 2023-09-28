@@ -227,7 +227,8 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SRFSN_DRIVER_MOD:SRFSN_DRIVER',0,ZHOOK_HANDLE)
 
 ASSOCIATE(RTF1=>YDSOIL%RTF1, RTF2=>YDSOIL%RTF2, RTF3=>YDSOIL%RTF3, RTF4=>YDSOIL%RTF4,&
-        & RCONDSICE=>YDSOIL%RCONDSICE)
+        & RLAMBDADRYM3D=>PSSDP3(:,:,SSDP3D_ID%NRLAMBDADRYM3D), RWSATM3D=>PSSDP3(:,:,SSDP3D_ID%NRWSATM3D), &
+        & RLAMSAT1M3D=>PSSDP3(:,:,SSDP3D_ID%NRLAMSAT1M3D))
 !     ------------------------------------------------------------------
 !*         1.1 Global computations 
 !*             Snow fraction, total heat and precip/snow to the snow scheme 
@@ -327,10 +328,7 @@ DO JL=KIDIA,KFDIA
         ENDIF
         !  ZFF=0.0_JPRB
         ZSURFCOND(JL) = MAX(0.19_JPRB,MIN(2._JPRB,FSOILTCOND(PWSAM1M(JL,1),ZFF,KSOTY(JL))))
-      ELSE
-        ZTBOTTOM(JL)  = PTIAM1M(JL,1)
-        ZFF=1.0_JPRB
-        ZSURFCOND(JL) = RCONDSICE
+
       ENDIF
     ENDIF
   ENDIF
