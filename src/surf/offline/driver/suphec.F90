@@ -59,13 +59,15 @@ SUBROUTINE SUPHEC(KULOUT)
 !        S. Boussetta/G.Balsamo May 2010  Include CTESSEL switch LECTESSEL
 !        G.Balsamo/S. Boussetta June 2011 Include switch LEAGS (for modularity CO2&Evap)
 !        R. Hogan             14-01-2019  Changed LE4ALB to NALBEDOSCHEME
-!        A. Agusti-Panareda Nov 2020 Include variable air CO2 switch LEAIRCO2COUP in photosynthesis
-!        A. Agusti-Panareda Jul 2021 Include LEFARQUHAR switch fro photosynthesis
+!        A. Agusti-Panareda   Nov 2020    Include variable air CO2 switch LEAIRCO2COUP in photosynthesis
+!        A. Agusti-Panareda   Jul 2021    Include LEFARQUHAR switch fro photosynthesis
 !        J. McNorton          24-08-2022  Urban tile
+!        I. Ayan-Miguez       Oct 2023    Include reading of surface global parameters
 !     ----------------------------------------------------------------
 
 USE PARKIND1  ,ONLY : JPIM     ,JPRB,   JPRD
 USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
+USE YOS_NAMPARS1, ONLY : TESURF
 USE YOMCST   , ONLY : RD       ,RV       ,RCPD     ,RCPV     ,&
             &RLVTT    ,RLSTT   ,RLMLT    ,RTT      ,RATM     ,&
             &RESTT    ,RPI     ,R        ,RDAY     ,RSIGMA
@@ -80,7 +82,7 @@ USE YOEPHY   , ONLY : RTHRFRTI, LEVGEN   ,LESSRO   ,LESN09   ,&
             &NALBEDOSCHEME, NEMISSSCHEME,LEOCWA, LEOCCO, LEOCSA, LEOCLA,&
             &LEFLAKE,LEURBAN,LELAIV ,LECTESSEL, LEAGS, LEAIRCO2COUP, LEFARQUHAR, RLAIINT, & 
             &LWCOU,LWCOU2W,LWCOUHMF, &
-            &LEOCML,LESNML,LESNICE, LEWARMSTART, LECOLDSTART, NSNMLWS, RALFMINPSN
+            &LEOCML,LESNML,LESNICE, LEWARMSTART, LECOLDSTART, NSNMLWS, RALFMINPSN, TMP_SURF
             
 USE YOEOPTSURF, ONLY : RVR0VT, RVCMAX25, RHUMREL, RA1, RB1, RG0, RGM25, RE_VCMAX, RE_JMAX
 USE YOELW    , ONLY : NSIL     ,TSTAND   ,XP
@@ -91,6 +93,7 @@ USE YOMLUN1S  , ONLY  : NULNAM
 USE YOEVDF    , ONLY  : RVDIFTS
 USE YOS_SURF, ONLY : TSURF, GET_SURF
 USE MPL_MODULE, ONLY : MPL_BARRIER
+USE RDNML_PARAMS, ONLY : RDNML_SNOW, RDNML_SOIL, RDNML_VEG, RDNML_AGS, RDNML_FLAKE, RDNML_EXC
 
 IMPLICIT NONE
 
@@ -205,6 +208,18 @@ CALL SUSWN   (NTSW,NSW)
 
 !     ------------------------------------------------------------------
 
+!*         2b.     READ NAMELISTS
+!                 ------------------------------------
+
+CALL RDNML_SNOW(TMP_SURF)
+CALL RDNML_SOIL(TMP_SURF)
+CALL RDNML_VEG(TMP_SURF)
+CALL RDNML_AGS(TMP_SURF)
+CALL RDNML_FLAKE(TMP_SURF)
+CALL RDNML_EXC(TMP_SURF)
+
+!     ------------------------------------------------------------------
+
 !*         3.     SETTING CONSTANTS FOR SURFACE SCHEME
 !                 ------------------------------------
 LEOCMTKE =.FALSE.
@@ -224,7 +239,7 @@ CALL SUSURF(KSW=NSW,KCSS=NCSS,KCSNEC=NCSNEC,KSIL=NSIL,KCOM=NCOM,KTILES=NTILES,KT
     & PRLAIINT=RLAIINT,PRSUN=RSUN,PRCORIOI=1._JPRB,PRPLRG=1._JPRB,PNSNMLWS=NSNMLWS,&
     & PRVR0VT=RVR0VT,PRVCMAX25=RVCMAX25,PRHUMREL=RHUMREL,PRA1=RA1,PRB1=RB1,PRG0=RG0,PRGM25=RGM25,&
     & PRE_VCMAX=RE_VCMAX,PRE_JMAX=RE_JMAX,&  
-    & YDSURF=YDSURF,PRALFMINPSN=RALFMINPSN,PRCIMIN=RCIMIN) 
+    & YDSURF=YDSURF,PRALFMINPSN=RALFMINPSN,PRCIMIN=RCIMIN, TMP_SURF=TMP_SURF) 
 
 !GPB change
 !CALL SUVEG

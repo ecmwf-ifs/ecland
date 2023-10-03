@@ -126,6 +126,8 @@ USE YOS_EXC  , ONLY : TEXC
 !     E. Dutra       10-2009        Cleanning 
 !     E. Dutra       10/10/2014    net longwave tiled 
 !     F. Vana        17-Dec-2015    Support for single precision
+!     M. Kelbling, R. Schweppe and S. Thober (UFZ) 11/2/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
 !     J. McNorton    24/08/2022     urban tile
 !     ------------------------------------------------------------------
 
@@ -224,12 +226,13 @@ ASSOCIATE(RSNPER=>YDSOIL%RSNPER, RSNDTDESTROI=>YDSOIL%RSNDTDESTROI, &
  & LEFLAKE=>YDFLAKE%LEFLAKE, LEURBAN=>YDURB%LEURBAN, RH_ICE_MIN_FLK=>YDFLAKE%RH_ICE_MIN_FLK, &
  & RG=>YDCST%RG, RDAY=>YDCST%RDAY, RLVTT=>YDCST%RLVTT, RTT=>YDCST%RTT, &
  & RPI=>YDCST%RPI, RLSTT=>YDCST%RLSTT, RLMLT=>YDCST%RLMLT, &
- & RVLAMSK=>YDVEG%RVLAMSK, LELWTL=>YDEXC%LELWTL)
+ & LELWTL=>YDEXC%LELWTL, RVLAMSK_DESERT=>YDVEG%RVLAMSK_DESERT)
 
 ! Security constant
 ZEPSILON=100._JPRB*TINY(1._JPRB)
 
 ZHOICE=1.0_JPRB/RHOICE
+ZSOILRES=1.0_JPRB/RVLAMSK_DESERT
 ZT0=RTT
 ZTMST=1.0_JPRB/PTMST
 ZEXPF=EXP(-RTAUF*PTMST/RDAY)
@@ -499,7 +502,7 @@ ENDDO
 
 !*         3. NEW SNOW ALBEDO AND DENSITY.
 !             ----------------------------
-ZRSNDTDESTC=460._JPRB ! Original value up to CY43
+ZRSNDTDESTC=RSNDTDESTC ! Original value up to CY43
 DO JL=KIDIA,KFDIA
 IF(.NOT. LSNOWICEONLY(JL))THEN
   IF (LLNOSNOW(JL)) THEN
@@ -539,7 +542,7 @@ IF(.NOT. LSNOWICEONLY(JL))THEN
     ZRSNDT=ZRSNDTOVER+ZRSNDTDEST+ZRSNDTMELT
     ! NEW DENSITY 
     PRSN(JL)=ZRSTAR+ZRSTAR*ZRSNDT*PTMST
-    PRSN(JL)=MIN(450._JPRB,PRSN(JL))
+    PRSN(JL)=MIN(RHOMAXSN_NEW,PRSN(JL))
     PRSN(JL)=MAX(RHOMINSN,PRSN(JL))
 !*        3.2 NEW SNOW ALBEDO.
 !             -----------------

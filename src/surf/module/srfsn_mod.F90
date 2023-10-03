@@ -111,6 +111,7 @@ USE YOS_URB  , ONLY : TURB
 !     J.F. Estrade *ECMWF* 03-10-01 move in surf vob
 !     P. Viterbo     24-05-2004     Change surface units
 !     E. Dutra       16-11-2009     add FLAKE support and remove permanent snow cover treatment
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 use of parameter values defined in namelist
 !     J. McNorton    24/08/2022      urban tile
 !     ------------------------------------------------------------------
 
@@ -184,9 +185,9 @@ ASSOCIATE(RDAY=>YDCST%RDAY, RLMLT=>YDCST%RLMLT, RLSTT=>YDCST%RLSTT, &
  & RHOCI=>YDSOIL%RHOCI, RHOICE=>YDSOIL%RHOICE, RHOMAXSN=>YDSOIL%RHOMAXSN, &
  & RHOMINSN=>YDSOIL%RHOMINSN, RLAMICE=>YDSOIL%RLAMICE, RSFRESH=>YDSOIL%RSFRESH, &
  & RSNPER=>YDSOIL%RSNPER, RTAUA=>YDSOIL%RTAUA, RTAUF=>YDSOIL%RTAUF, &
- & RVLAMSK=>YDVEG%RVLAMSK)
+ & RVLAMSK_DESERT=>YDVEG%RVLAMSK_DESERT)
 ZHOICE=1.0_JPRB/RHOICE
-ZSOILRES=1.0_JPRB/RVLAMSK(8)
+ZSOILRES=1.0_JPRB/RVLAMSK_DESERT
 ZT0=RTT
 ZTMST=1.0_JPRB/PTMST
 ZEXPF=EXP(-RTAUF*PTMST/RDAY)

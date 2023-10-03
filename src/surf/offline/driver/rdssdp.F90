@@ -617,8 +617,8 @@ DO IVAR=1,NVARS2D
    END SELECT
 ENDDO
 
-NVARS3D=9
-CVARS3D(1:NVARS3D)=(/'gdry ', 'lambdam ', 'vgalpha ', 'nfac ', 'wcons ', 'rwrst ', 'wsatm ', 'hrootfr ', 'lrootfr '/)
+NVARS3D=7
+CVARS3D(1:NVARS3D)=(/'gdry ', 'lambdam ', 'vgalpha ', 'nfac ', 'wcons ', 'rwrst ', 'wsatm '/)
 
 DO IVAR=1,NVARS3D
   CVAR=TRIM(CVARS3D(IVAR))

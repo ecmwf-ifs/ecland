@@ -7,11 +7,18 @@ MODULE YOEPHY
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
 
-USE PARKIND1  ,ONLY : JPRB, JPIM
+USE PARKIND1  ,ONLY : JPRB, JPIM, JPRD
+USE YOS_NAMPARS1, ONLY : TESURF
 
 IMPLICIT NONE
 
 SAVE
+
+!     -----------------------------------------------------------------
+!*    PARAMETERS READ FROM NAMELISTS
+!     -----------------------------------------------------------------
+
+TYPE(TESURF) :: TMP_SURF
 
 !     -----------------------------------------------------------------
 !*    ** *YOEPHY* - SWITCHES RELATED TO DIABATIC PROCESSES

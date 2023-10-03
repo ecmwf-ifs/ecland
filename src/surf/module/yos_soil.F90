@@ -1,6 +1,6 @@
 MODULE YOS_SOIL
 
-USE PARKIND1,ONLY : JPIM, JPRB
+USE PARKIND1,ONLY : JPIM, JPRB, JPRM
 
 ! (C) Copyright 2005- ECMWF.
 !
@@ -46,6 +46,7 @@ REAL(KIND=JPRB) :: RQWEVAP         ! INVERSE OF (*CWCRIT*-*CWPW*) WHERE
 REAL(KIND=JPRB) :: RQWSBCR         ! INVERSE OF CRITICAL WETNESS FOR BARE GROUND
 REAL(KIND=JPRB) :: RQSNCR          ! INVERSE OF SNOW MASS per unit area WHEN SNOW
                                    ! COVERS THE GROUND COMPLETELY
+REAL(KIND=JPRB) :: RQSNCRINV       ! INVERSE OF RQSNCR
 REAL(KIND=JPRB) :: RWLMAX          ! MAXIMUM MOISTURE CONTENT OF THE SKIN RESERVOIR
 REAL(KIND=JPRB) :: RPSFR           ! 1./RPSFR IS THE FRACTION OF THE GRID-BOX
                                    ! WHERE THE CONVECTIVE PRECIPITATION FALLS.
@@ -54,7 +55,9 @@ REAL(KIND=JPRB) :: RTF2            ! LOWER TEMPERATURE FOR SOIL WATER FREEZING
 REAL(KIND=JPRB) :: RTF3            ! COEFFICIENT FOR SOIL WATER FREEZING FUNCTION
 REAL(KIND=JPRB) :: RTF4            ! COEFFICIENT FOR SOIL WATER FREEZING FUNCTION
 REAL(KIND=JPRB) :: RTFREEZSICE     ! Temperature at which sea-ice freezes
+REAL(KIND=JPRB) :: RTFREEZSICECEL  ! Temperature at which sea-ice freezes in Celsius
 REAL(KIND=JPRB) :: RTMELTSICE      ! Temperature at which sea-ice melts
+REAL(KIND=JPRB) :: RTMELTSICECEL   ! Temperature at which sea-ice melts in Celsius
 REAL(KIND=JPRB) :: RDARSICE        ! THICKNESS OF ARTIC SEA ICE LAYER
 REAL(KIND=JPRB) :: RDANSICE        ! THICKNESS OF ANTARTIC SEA ICE LAYER
 REAL(KIND=JPRB) :: RCONDSICE       ! Thermal conductivity of sea ice
@@ -69,6 +72,7 @@ REAL(KIND=JPRB) :: RALFMAXSN       ! MAXIMUM SNOW ALBEDO
 REAL(KIND=JPRB) :: RSNPER          ! SNOW MASS per unit area FOR PERENNIAL SNOW
 REAL(KIND=JPRB) :: RHOMINSN        ! MINIMUM SNOW DENSITY (KG/M3)
 REAL(KIND=JPRB) :: RHOMAXSN        ! MAXIMUM SNOW DENSITY (KG/M3)
+REAL(KIND=JPRB) :: RHODELTASN      ! RHOMAXSN - RHOMINSN
 REAL(KIND=JPRB) :: RTAUF           ! RELAXATION C FOR SNOW ALBEDO AND DENSITY (1/DAY)
 REAL(KIND=JPRB) :: RTAUA           ! RELAXATION C FOR COLD SNOW (1/DAY)
 REAL(KIND=JPRB) :: RSFRESH         ! SNOWFALL FOR WHICH ALBEDO IS RESET TO MAX (KG/M2S)
@@ -182,7 +186,44 @@ LOGICAL :: LESNCHECK   ! if true check grid-point snow water/energy
 LOGICAL :: LESNCHECKAbort   ! if true abort grid-point snow water/energy closure is not verified 
 LOGICAL :: LESNWBCON    ! if true conserver snow water balance (avoid reset of snow in glaciers)
 
+! New soil parameters
+REAL(KIND=JPRB) :: RBARPWP     !    Pressure head at permanent wilting point
+!REAL(KIND=JPRB) :: RVGBARCAP   !    Pressure head at field capacity for van Genuchten
+REAL(KIND=JPRB) :: RBARCAP     !    Pressure head at field capacity
+REAL(KIND=JPRB) :: RCLU        !    unstressed canopy resis. for pot. evap. over grassland (50 s/m)
+REAL(KIND=JPRB) :: RLAMBDAMIN  !    minimum thermal conductivity in vlamsk_mod
+REAL(KIND=JPRB) :: RLAMBDAMAX  !    maximum thermal conductivity in vlamsk_mod
 
+REAL(KIND=JPRB) :: RLAMBDRYMA  !    coefficient in RLAMBDADRYM3D calculation 0.135
+REAL(KIND=JPRB) :: RLAMBDRYMB  !    coefficient in RLAMBDADRYM3D calculation 64.7
+REAL(KIND=JPRM) :: RLAMBDRYMC  !    coefficient in RLAMBDADRYM3D calculation 0.947
+
+!REAL(KIND=JPRB) :: RQEXP       !    exponent in Lambda calculation
+
+! parameters of f1
+REAL(KIND=JPRB) :: RRSF1A      !    a in f1 - see documentation p. 131
+REAL(KIND=JPRB) :: RRSF1B      !    1/b in f1 (to achive bitwise comparable) - see documentation p. 131
+REAL(KIND=JPRB) :: RRSF1C      !    c in f1 - see documentation p. 131
+! Parameters from Peters-Lidard 1998
+REAL(KIND=JPRB) :: RRHOSM      !    solids unit weight - kg m^-3
+REAL(KIND=JPRB) :: RLAMBDAQ    !    therm. cond. quarz - W m^-1 K^-1
+REAL(KIND=JPRB) :: RLAMBDAO    !    therm. cond. other - W m^-1 K^-1
+
+! new snow parameters
+REAL(KIND=JPRB) :: RSNLARGE ! large number to impose Tsk=SST, see vlamsk_mod
+REAL(KIND=JPRB) :: RSNLARGESN ! large number to constrain Tsk variations in case of melting snow
+REAL(KIND=JPRB) :: RSNLARGEWT ! large number to constrain Tsk variations in case of melting snow
+REAL(KIND=JPRB) :: RSNSNOW
+REAL(KIND=JPRB) :: RSNSNOWHVEG
+REAL(KIND=JPRB) :: RSNRTTEMP
+REAL(KIND=JPRB) :: RSNPERT    ! permanent snow threshold
+REAL(KIND=JPRB) :: RSNGLC     ! glacial snow mass
+REAL(KIND=JPRB) :: RSMINZ     ! min snow hight - if LESKTI5 (i.e. for tile 5)
+
+! parameter Snow thermal conductivity function
+REAL(KIND=JPRB) :: FSNTCONDA  ! coeff in FSNTCOND function
+REAL(KIND=JPRB) :: FSNTCONDB  ! coeff in FSNTCOND function
+REAL(KIND=JPRB) :: FSNTCONDC  ! coeff in FSNTCOND function
 
 END TYPE TSOIL
 

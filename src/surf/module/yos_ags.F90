@@ -1,5 +1,5 @@
 MODULE YOS_AGS
-USE PARKIND1  ,ONLY : JPIM     ,JPRB
+USE PARKIND1  ,ONLY : JPIM     ,JPRB, JPRD
 
 IMPLICIT NONE
 SAVE
@@ -16,7 +16,8 @@ SAVE
 !     -----------------------------------------------------------------
 
 TYPE :: TAGS
-REAL(KIND=JPRB) :: RCO2 
+REAL(KIND=JPRB) :: RCO2
+REAL(KIND=JPRB) :: RCO2FRAC
 REAL(KIND=JPRB) :: RMAIR
 REAL(KIND=JPRB) :: RMH2O
 REAL(KIND=JPRB) :: RMCO2
@@ -56,6 +57,29 @@ REAL(KIND=JPRB) :: RTAULIM !percentage of limitation of efolding time
 
 ! Parameters depending on latitudinal band (North/Tropics/South)
 REAL(KIND=JPRB) :: RVCH4S(3)
+
+! shape parameter temperature response functions for Am,max and gmes
+! see Sellers et al 1996
+REAL(KIND=JPRB) :: RSHP1AMMAX
+REAL(KIND=JPRB) :: RSHP2AMMAX
+REAL(KIND=JPRB) :: RSHP1GMES
+REAL(KIND=JPRB) :: RSHP2GMES
+
+! max f zero
+! see documentation (8.101) and collatz 2004
+REAL(KIND=JPRB) :: RMAXFZERO
+
+! LAIB_NITRO function coefficients
+REAL(KIND=JPRB) :: RLAIB_NITROA
+REAL(KIND=JPRB) :: RLAIB_NITROB
+REAL(KIND=JPRB) :: RLAIB_NITROMIN
+
+! other new:
+REAL(KIND=JPRB) :: RCC_NIT_BASE_DIL
+REAL(KIND=JPRB) :: RVGMES_FLDEXP
+REAL(KIND=JPRB) :: RESPBSTR_COEF
+REAL(KIND=JPRD) :: REPS_COEF
+REAL(KIND=JPRD) :: RGSC_COEF
 
 ! Parameters depending on photosynthesis mechanism (C3 or c4)
 

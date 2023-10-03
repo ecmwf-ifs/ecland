@@ -93,18 +93,15 @@ ASSOCIATE(LEFLAKE=>YDFLAKE%LEFLAKE, RC_B1=>YDFLAKE%RC_B1, RC_B2=>YDFLAKE%RC_B2, 
  & RTPL_RHO_I=>YDFLAKE%RTPL_RHO_I, RTPL_RHO_W_R=>YDFLAKE%RTPL_RHO_W_R, &
  & RTPL_T_F=>YDFLAKE%RTPL_T_F, RTPL_T_R=>YDFLAKE%RTPL_T_R, &
  & RTPSF_L_EVAP=>YDFLAKE%RTPSF_L_EVAP, &
- & RU_STAR_MIN_FLK=>YDFLAKE%RU_STAR_MIN_FLK)
-
-!  Dimensionless constants 
-!  in the equations for the mixed-layer depth 
-!  and for the shape factor with respect to the temperature profile in the thermocline
-RC_CBL_1       = 0.17_JPRD             ! Constant in the CBL entrainment equation
-RC_CBL_2       = 1._JPRD               ! Constant in the CBL entrainment equation
-RC_SBL_ZM_N    = 0.5_JPRD              ! Constant in the ZM1996 equation for the equilibrium SBL depth
-RC_SBL_ZM_S    = 10._JPRD              ! Constant in the ZM1996 equation for the equilibrium SBL depth
-RC_SBL_ZM_I    = 20._JPRD              ! Constant in the ZM1996 equation for the equilibrium SBL depth
-RC_RELAX_H     = 0.030_JPRD            ! Constant in the relaxation equation for the SBL depth
-RC_RELAX_C     = 0.030_JPRD           ! Constant with respect to the temperature profile in the thermocline
+ & RU_STAR_MIN_FLK=>YDFLAKE%RU_STAR_MIN_FLK, &
+ & ROPT_WAT_EXTC1_REF=>YDFLAKE%ROPT_WAT_EXTC1_REF, &
+ & ROPT_WAT_FRAC1_TRANS=>YDFLAKE%ROPT_WAT_FRAC1_TRANS, &
+ & ROPT_WAT_FRAC2_TRANS=>YDFLAKE%ROPT_WAT_FRAC2_TRANS, &
+ & ROPT_WAT_EXTC1_TRANS=>YDFLAKE%ROPT_WAT_EXTC1_TRANS, &
+ & ROPT_WAT_EXTC2_TRANS=>YDFLAKE%ROPT_WAT_EXTC2_TRANS, &
+ & ROPT_WICE_EXTC1_REF=>YDFLAKE%ROPT_WICE_EXTC1_REF, &
+ & ROPT_BICE_EXTC1_REF=>YDFLAKE%ROPT_BICE_EXTC1_REF, &
+ & ROPT_ICE_EXTC1_OP=>YDFLAKE%ROPT_ICE_EXTC1_OP)
 
 !  Parameters of the shape functions 
 !  Indices refer to T - thermocline, S - snow, I - ice,
@@ -112,23 +109,13 @@ RC_RELAX_C     = 0.030_JPRD           ! Constant with respect to the temperature
 !  "pr0" and "pr1" denote zeta derivatives of the corresponding shape function 
 !  at "zeta=0" ad "zeta=1", respectively.
 
-RC_T_MIN       = 0.5_JPRD            ! Minimum value of the shape factor C_T (thermocline)
-RC_T_MAX       = 0.8_JPRD            ! Maximum value of the shape factor C_T (thermocline)
-RPHI_T_PR0_1   = 40._JPRD/3._JPRD    ! Constant in the expression for the T shape-function derivative 
-RPHI_T_PR0_2   = 20._JPRD/3._JPRD    ! Constant in the expression for the T shape-function derivative 
-RC_TT_1        = 11._JPRD/18._JPRD   ! Constant in the expression for C_TT (thermocline)
-RC_TT_2        = 7._JPRD/45._JPRD    ! Constant in the expression for C_TT (thermocline)
-RC_B1          = 2._JPRD/3._JPRD     ! Shape factor (upper layer of bottom sediments)
-RC_B2          = 3._JPRD/5._JPRD     ! Shape factor (lower layer of bottom sediments)
-RC_S_LIN       = 0.5_JPRD            ! Shape factor (linear temperature profile in the snow layer)
-RPHI_S_PR0_LIN = 1._JPRD             ! S shape-function derivative (linear profile) 
-RC_I_LIN       = 0.5_JPRD            ! Shape factor (linear temperature profile in the ice layer)
-RPHI_I_PR0_LIN = 1._JPRD             ! I shape-function derivative (linear profile) 
-RPHI_I_PR1_LIN = 1._JPRD             ! I shape-function derivative (linear profile) 
-RPHI_I_AST_MR  = 2._JPRD             ! Constant in the MR2004 expression for I shape factor
-RC_I_MR        = 1._JPRD/12._JPRD    ! Constant in the MR2004 expression for I shape factor
-RH_ICE_MAX     = 3._JPRD             ! Maximum ice tickness in 
-                                    ! the Mironov and Ritter (2004, MR2004) ice model [m] 
+!RPHI_T_PR0_1   = 40._JPRD/3._JPRD    ! Constant in the expression for the T shape-function derivative 
+!RPHI_T_PR0_2   = 20._JPRD/3._JPRD    ! Constant in the expression for the T shape-function derivative 
+!RC_TT_1        = 11._JPRD/18._JPRD   ! Constant in the expression for C_TT (thermocline)
+!RC_TT_2        = 7._JPRD/45._JPRD    ! Constant in the expression for C_TT (thermocline)
+!RC_B1          = 2._JPRD/3._JPRD     ! Shape factor (upper layer of bottom sediments)
+!RC_B2          = 3._JPRD/5._JPRD     ! Shape factor (lower layer of bottom sediments)
+!RC_I_MR        = 1._JPRD/12._JPRD    ! Constant in the MR2004 expression for I shape factor 
 
 !  Security constants
 
@@ -147,7 +134,6 @@ RC_SMALL_FLK    = 100._JPRD*EPSILON(RC_SMALL_FLK)  ! A small number
 RTPL_GRAV          = 9.81_JPRD        ! Acceleration due to gravity [m s^{-2}]
 RTPL_T_R           = 277.13_JPRD      ! Temperature of maximum density of fresh water [K]
 RTPL_T_F           = 273.15_JPRD      ! Fresh water freezing point [K]
-RTPL_A_T           = 1.6509E-05_JPRD  ! Constant in the fresh-water equation of state [K^{-2}]
 RTPL_RHO_W_R       = 1.0E+03_JPRD     ! Maximum density of fresh water [kg m^{-3}]
 RTPL_RHO_I         = 9.1E+02_JPRD     ! Density of ice [kg m^{-3}]
 RTPL_L_F           = 3.3E+05_JPRD     ! Latent heat of fusion [J kg^{-1}]
@@ -161,22 +147,24 @@ RTPSF_L_EVAP       = 2.501E+06_JPRD   ! Specific heat of evaporation [J kg^{-1}]
 ! Optical characteristics for water, ice and snow.
 ! The simplest one-band approximation is used as a reference.
 
+ROPT_WAT_FRAC2_TRANS = 1._JPRD - ROPT_WAT_FRAC1_TRANS
+
 ROPTICPAR_WATER_REF = ROPTICPAR_MEDIUM(1,                          & ! Water (reference)
 & (/1._JPRD, (0._JPRD    , J=2,NBAND_OPTIC_MAX)/),               &
-& (/3._JPRD, (1.E+10_JPRD, J=2,NBAND_OPTIC_MAX)/))                  ! 0.5 m-1 in Lemoigne, 2015, (pers. comm.) 1.0 m-1 in Mironov 2015 (pers.comm.)
+& (/ROPT_WAT_EXTC1_REF, (1.E+10_JPRD, J=2,NBAND_OPTIC_MAX)/))                  ! 0.5 m-1 in Lemoigne, 2015, (pers. comm.) 1.0 m-1 in Mironov 2015 (pers.comm.)
 !& (/1._JPRD, (1.E+10_JPRD, J=2,NBAND_OPTIC_MAX)/))
 ROPTICPAR_WATER_TRANS = ROPTICPAR_MEDIUM(2,                        & ! Transparent Water (two-band)
-& (/0.10_JPRD, 0.90_JPRD, (0._JPRD    , J=3,NBAND_OPTIC_MAX)/),  &
-& (/2.0_JPRD , 0.20_JPRD, (1.E+10_JPRD, J=3,NBAND_OPTIC_MAX)/))
+& (/ROPT_WAT_FRAC1_TRANS, ROPT_WAT_FRAC2_TRANS, (0._JPRD    , J=3,NBAND_OPTIC_MAX)/),  &
+& (/ROPT_WAT_EXTC1_TRANS , ROPT_WAT_EXTC2_TRANS, (1.E+10_JPRD, J=3,NBAND_OPTIC_MAX)/))
 ROPTICPAR_WHITEICE_REF = ROPTICPAR_MEDIUM(1,                       & ! White ice
 & (/1._JPRD  , (0._JPRD    , J=2,NBAND_OPTIC_MAX)/),             &
-& (/17.1_JPRD, (1.E+10_JPRD, J=2,NBAND_OPTIC_MAX)/))
+& (/ROPT_WICE_EXTC1_REF, (1.E+10_JPRD, J=2,NBAND_OPTIC_MAX)/))
 ROPTICPAR_BLUEICE_REF = ROPTICPAR_MEDIUM(1,                        & ! Blue ice
 & (/1._JPRD , (0._JPRD    , J=2,NBAND_OPTIC_MAX)/),              &
-& (/8.4_JPRD, (1.E+10_JPRD, J=2,NBAND_OPTIC_MAX)/))
+& (/ROPT_BICE_EXTC1_REF, (1.E+10_JPRD, J=2,NBAND_OPTIC_MAX)/))
 ROPTICPAR_ICE_OPAQUE = ROPTICPAR_MEDIUM(1,                         & ! Opaque ice
 & (/1._JPRD     , (0._JPRD    , J=2,NBAND_OPTIC_MAX)/),          &
-& (/1.0E+07_JPRD, (1.E+10_JPRD, J=2,NBAND_OPTIC_MAX)/))
+& (/ROPT_ICE_EXTC1_OP, (1.E+10_JPRD, J=2,NBAND_OPTIC_MAX)/))
 
 LEFLAKE=LD_LEFLAKE
  

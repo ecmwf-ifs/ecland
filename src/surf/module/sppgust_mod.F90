@@ -36,6 +36,7 @@ USE YOS_EXC  , ONLY : TEXC
 !     P. Viterbo  ECMWF  12/05/2005 Externalize SURF (based on vdfppgust)
 !     A. Beljaars ECMWF  18/02/2006 Revised gust to accomodate stochastic physics
 !     N.Semane+P.Bechtold 04-10-2012 Add RPARZI
+!     M. Kelbling and S. Thober (UFZ) 25/3/2020 use of parameter values defined in namelist
 
 !     PURPOSE
 !     -------
@@ -116,7 +117,8 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 IF (LHOOK) CALL DR_HOOK('SPPGUST_MOD:SPPGUST',0,ZHOOK_HANDLE)
 ASSOCIATE(RG=>YDCST%RG, RLSTT=>YDCST%RLSTT, RLVTT=>YDCST%RLVTT, RTT=>YDCST%RTT, &
- & REPDU2=>YDEXC%REPDU2, RKAP=>YDEXC%RKAP, RPARZI=>YDEXC%RPARZI)
+ & REPDU2=>YDEXC%REPDU2, RKAP=>YDEXC%RKAP, RPARZI=>YDEXC%RPARZI, &
+ & RUGNA=>YDEXC%RUGNA, RUGNB=>YDEXC%RUGNB, RUGN=>YDEXC%RUGN)
 Z10M=10._JPRB
 ZOROC=5._JPRB
 
@@ -152,8 +154,8 @@ ZOROC=5._JPRB
 !     ZUGN !        8.23  7.71  7.26 
 !             These numbers apply at 20 m/s
 
-ZUGN=7.20_JPRB
-ZCZI=0.5_JPRB/12._JPRB
+ZUGN=RUGN
+ZCZI=RUGNA/RUGNB
 Z1D3=1._JPRB/3._JPRB
 ZIPBL=RPARZI
 

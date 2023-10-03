@@ -36,6 +36,7 @@ USE YOS_EXC   , ONLY : TEXC
 !                                   (based on vdfexcs)
 !     Modified A. Beljaars       30/10/2013 Change scaling of transfer coeff.
 !     Modified A. Beljaars       02/02/2017 Introduction of tracer transfer coeff.
+!     Modified M. Kelbling and S. Thober (UFZ) 11/6/2020 use of parameter values defined in namelist
 
 !     PURPOSE
 !     -------
@@ -185,7 +186,8 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 IF (LHOOK) CALL DR_HOOK('VEXCS_MOD:VEXCS',0,ZHOOK_HANDLE)
 ASSOCIATE(RD=>YDCST%RD, RETV=>YDCST%RETV, RG=>YDCST%RG, &
- & REPDU2=>YDEXC%REPDU2, RKAP=>YDEXC%RKAP, RPARZI=>YDEXC%RPARZI)
+ & REPDU2=>YDEXC%REPDU2, RKAP=>YDEXC%RKAP, RPARZI=>YDEXC%RPARZI, &
+ & RETACONV=>YDEXC%RETACONV )
 
 ZCON1  =RVTMP2-RETV
 ZCON2  =2.0_JPRB/3._JPRB
@@ -405,7 +407,7 @@ DO JIT=1, KITT
 
 !             SAFETY PROVISION FOR DIVERGING ITERATIONS
 
-    IF (ZETA*ZETA3(JL)  <  0.0_JPRB) ZETA=ZETA3(JL)*0.5_JPRB
+    IF (ZETA*ZETA3(JL)  <  0.0_JPRB) ZETA=ZETA3(JL)*RETACONV
     ZETA2(JL)=ZETA3(JL)
     ZF2(JL)  =ZF3(JL)
     ZETA3(JL)=ZETA

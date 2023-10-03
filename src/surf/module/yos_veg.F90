@@ -51,6 +51,26 @@ LOGICAL         :: LEAGS                     ! True when using CTESSEL scheme fo
 LOGICAL         :: LEFARQUHAR                ! True when using Farquhar photosynthesis model
 LOGICAL         :: LEAIRCO2COUP              ! True when using variable atmospheric CO2 in photosynthesis
 LOGICAL         :: LFACO2BIOFLUX             ! True when rescaling CO2 biogenic fluxes based on opt.flux clim budget
+
+
+
+! parameters Q10 function - McGuire et al. 1992
+REAL(KIND=JPRB) :: RVQ10A                    ! 2.5665_JPRB  CTESSEL
+REAL(KIND=JPRB) :: RVQ10B                    ! 0.05308_JPRB CTESSEL
+REAL(KIND=JPRB) :: RVQ10C                    ! 0.00238_JPRB CTESSEL
+REAL(KIND=JPRB) :: RVQ10D                    ! 0.00004_JPRB CTESSEL
+REAL(KIND=JPRB) :: RVQ10MIN                  ! min value for Q10 when temperature is very high (>56deg): 0.0001
+
+! New global parameters
+REAL(KIND=JPRB) :: RVLAMSK_DESERT ! Unstable SKIN LAYER CONDUCT. DESERT
+REAL(KIND=JPRB) :: RVLAMSK_SNOW   ! Unstable SKIN LAYER CONDUCT. SNOW
+REAL(KIND=JPRB) :: RVLAMSKS_DESERT! Stable SKIN LAYER CONDUCT. DESERT
+REAL(KIND=JPRB) :: RVLAMSKS_SNOW  ! Stable SKIN LAYER CONDUCT. SNOW
+REAL(KIND=JPRB) :: RVZ0M_BARE     ! Roughness length for momentum - bare soil
+REAL(KIND=JPRB) :: RVZ0M_SNOW     ! Roughness length for momentum - snow
+REAL(KIND=JPRB) :: RVZ0H_BARE     ! Roughness length for heat - bare soil
+REAL(KIND=JPRB) :: RVZ0H_SNOW     ! Roughness length for heat - snow
+
 END TYPE TVEG
 
 END MODULE YOS_VEG

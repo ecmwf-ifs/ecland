@@ -12,15 +12,21 @@
 
 !     E. DUTRA    E.C.M.W.F.      05/04/2016
 
+!     Modifications:
+!     I. Ayan-Miguez (BSC) Oct 2023: Add refactorization of Global and 
+!                                    Spatially distributed parameters
+
 !     ------------------------------------------------------------------
 
 REAL(KIND=JPRB) :: ZZSNM ! Snow mass (kg m-2)
 REAL(KIND=JPRB) :: ZZRSN ! Snow density (kg m-3)
 REAL(KIND=JPRB) :: ZZWSA ! volumetric soil moisture (m3 m-3)
 REAL(KIND=JPRB) :: ZZF   ! frozen soil fraction
-INTEGER(KIND=JPIM) :: JJS  ! Soil type 
-
+ 
+REAL(KIND=JPRB) :: ZZRLAMBDADRYM
 REAL(KIND=JPRB) :: ZZRWSAT
+REAL(KIND=JPRB) :: ZZRLAMSAT
+
 
 ! ==========================================
 ! Snow liquid water capacity 
@@ -36,8 +42,8 @@ FLWC(ZZSNM,ZZRSN) = ZZSNM*(YDSOIL%RLWCSWEB+(YDSOIL%RLWCSWEC-YDSOIL%RLWCSWEB)*&
 ! From  doi:10.1029/2011GL049234
 !============================================
 REAL(KIND=JPRB) :: FSNTCOND
-FSNTCOND(ZZRSN) = 2.5E-6_JPRB*ZZRSN*ZZRSN &
-               & -1.23E-4_JPRB*ZZRSN+0.024_JPRB
+  FSNTCOND(ZZRSN) = YDSOIL%FSNTCONDC*ZZRSN*ZZRSN &
+               & + YDSOIL%FSNTCONDB*ZZRSN+YDSOIL%FSNTCONDA
                
                
 !=============================================
@@ -45,10 +51,10 @@ FSNTCOND(ZZRSN) = 2.5E-6_JPRB*ZZRSN*ZZRSN &
 ! See srft_mod.F90
 !=============================================
 REAL(KIND=JPRB) :: FSOILTCOND
-FSOILTCOND(ZZWSA,ZZRWSAT,ZZF,JJS) = YDSOIL%RLAMBDADRYM(JJS)+ &
+FSOILTCOND(ZZWSA,ZZRLAMBDADRYM,ZZRWSAT,ZZRLAMSAT,ZZF) =ZZRLAMBDADRYM+ &
                         (YDSOIL%RKERST2*LOG10(MAX(YDSOIL%RKERST1,ZZWSA/ZZRWSAT))+YDSOIL%RKERST3) * &
-                        (YDSOIL%RLAMSAT1M(JJS)* &
+                        (ZZRLAMSAT* &
                         (YDSOIL%RLAMBDAICE**(ZZRWSAT*ZZF))* &
                         (YDSOIL%RLAMBDAWAT**(ZZRWSAT*(1.0_JPRB-ZZF)))- &
-                         YDSOIL%RLAMBDADRYM(JJS))
+                         ZZRLAMBDADRYM)
 
