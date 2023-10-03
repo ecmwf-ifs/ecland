@@ -13,7 +13,7 @@
 !     JEAN BIDLOT    E.C.M.W.F.      24/10/2013.
 !     JEAN BIDLOT    E.C.M.W.F.      10/04/2015. sea-state dependent latent and sensible transfer coefficients
 !                                                after Janssen( Tech memo 239, 1997) 
-
+!     I. AYAN-MIGUEZ  BSC Oct 2023: Added refactorization of Global parameters
 !     ------------------------------------------------------------------
 
 !     FCZ0 DESCRIBES THE FUNCTIONAl DEPENDENCE OF THE ROUGHNESS LENGTHS 
@@ -57,14 +57,12 @@ PZNSEA(PZ0HQ, PZN, PZ0, PUST2) = MAX( PZZ(PZ0HQ, PZPLUS(PZ0HQ,PZN), PZMINS(PZ0HQ
 
 ! AERODYNAMIC ROUGHNESS LENGTH OVER SEA ICE:
 ! ------------------------------------------
-REAL(KIND=JPRB), PARAMETER :: AZ0ICE=6.05E-3_JPRB
-REAL(KIND=JPRB), PARAMETER :: BZ0ICE=17._JPRB
-REAL(KIND=JPRB), PARAMETER :: CZ0ICE=0.93E-3_JPRB
 
 REAL(KIND=JPRB) :: PCICCTR ! SEA ICE CONCENTRATION
 REAL(KIND=JPRB) :: PZ0MIN  ! MINIMUM VALUE FOR PZ0ICE 
 REAL(KIND=JPRB) :: PZ0ICE  ! ROUGHNESS LENGTH FOR MOMEMTUM OVER SEA ICE 
 
-PZ0ICE(PZ0MIN, PCICCTR)=MAX(PZ0MIN,(1._JPRB-PCICCTR)*CZ0ICE+AZ0ICE*EXP(-BZ0ICE*(PCICCTR-0.5_JPRB)**2))
+PZ0ICE(PZ0MIN, PCICCTR)=MAX(PZ0MIN,(1._JPRB-PCICCTR)*YDEXC%RCZ0ICE+YDEXC%RAZ0ICE* &
+                            & EXP(-YDEXC%RBZ0ICE*(PCICCTR-YDEXC%RDZ0ICE)**2))
 
 !     ------------------------------------------------------------------

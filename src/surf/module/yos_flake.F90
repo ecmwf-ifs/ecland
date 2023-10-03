@@ -24,7 +24,7 @@ MODULE YOS_FLAKE
 !  Phone:  +49-69-8062 2705
 !  Fax:    +49-69-8062 3721
 !  E-mail: dmitrii.mironov@dwd.de
-!
+
 ! History:
 ! Version    Date       Name
 ! ---------- ---------- ----
@@ -75,13 +75,13 @@ TYPE :: TFLAKE
 !  in the equations for the mixed-layer depth 
 !  and for the shape factor with respect to the temperature profile in the thermocline
 
-REAL (KIND = JPRB):: RC_CBL_1         ! Constant in the CBL entrainment equation
-REAL (KIND = JPRB):: RC_CBL_2         ! Constant in the CBL entrainment equation
-REAL (KIND = JPRB):: RC_SBL_ZM_N      ! Constant in the ZM1996 equation for the equilibrium SBL depth
-REAL (KIND = JPRB):: RC_SBL_ZM_S      ! Constant in the ZM1996 equation for the equilibrium SBL depth
-REAL (KIND = JPRB):: RC_SBL_ZM_I      ! Constant in the ZM1996 equation for the equilibrium SBL depth
-REAL (KIND = JPRB):: RC_RELAX_H       ! Constant in the relaxation equation for the SBL depth
-REAL (KIND = JPRB):: RC_RELAX_C       ! Constant in the relaxation equation for the shape factor
+REAL (KIND = JPRD):: RC_CBL_1         ! Constant in the CBL entrainment equation
+REAL (KIND = JPRD):: RC_CBL_2         ! Constant in the CBL entrainment equation
+REAL (KIND = JPRD):: RC_SBL_ZM_N      ! Constant in the ZM1996 equation for the equilibrium SBL depth
+REAL (KIND = JPRD):: RC_SBL_ZM_S      ! Constant in the ZM1996 equation for the equilibrium SBL depth
+REAL (KIND = JPRD):: RC_SBL_ZM_I      ! Constant in the ZM1996 equation for the equilibrium SBL depth
+REAL (KIND = JPRD):: RC_RELAX_H       ! Constant in the relaxation equation for the SBL depth
+REAL (KIND = JPRD):: RC_RELAX_C       ! Constant in the relaxation equation for the shape factor
                                      ! with respect to the temperature profile in the thermocline
 
 !  Parameters of the shape functions 
@@ -92,19 +92,19 @@ REAL (KIND = JPRB):: RC_RELAX_C       ! Constant in the relaxation equation for 
 
 REAL (KIND = JPRB):: RC_T_MIN         ! Minimum value of the shape factor C_T (thermocline)
 REAL (KIND = JPRB):: RC_T_MAX         ! Maximum value of the shape factor C_T (thermocline)
-REAL (KIND = JPRB):: RPHI_T_PR0_1     ! Constant in the expression for the T shape-function derivative 
-REAL (KIND = JPRB):: RPHI_T_PR0_2     ! Constant in the expression for the T shape-function derivative 
-REAL (KIND = JPRB):: RC_TT_1          ! Constant in the expression for C_TT (thermocline)
-REAL (KIND = JPRB):: RC_TT_2          ! Constant in the expression for C_TT (thermocline)
-REAL (KIND = JPRB):: RC_B1            ! Shape factor (upper layer of bottom sediments)
-REAL (KIND = JPRB):: RC_B2            ! Shape factor (lower layer of bottom sediments)
+REAL (KIND = JPRD):: RPHI_T_PR0_1     ! Constant in the expression for the T shape-function derivative 
+REAL (KIND = JPRD):: RPHI_T_PR0_2     ! Constant in the expression for the T shape-function derivative 
+REAL (KIND = JPRD):: RC_TT_1          ! Constant in the expression for C_TT (thermocline)
+REAL (KIND = JPRD):: RC_TT_2          ! Constant in the expression for C_TT (thermocline)
+REAL (KIND = JPRD):: RC_B1            ! Shape factor (upper layer of bottom sediments)
+REAL (KIND = JPRD):: RC_B2            ! Shape factor (lower layer of bottom sediments)
 REAL (KIND = JPRB):: RC_S_LIN         ! Shape factor (linear temperature profile in the snow layer)
 REAL (KIND = JPRB):: RPHI_S_PR0_LIN   ! S shape-function derivative (linear profile) 
 REAL (KIND = JPRB):: RC_I_LIN         ! Shape factor (linear temperature profile in the ice layer)
 REAL (KIND = JPRB):: RPHI_I_PR0_LIN   ! I shape-function derivative (linear profile) 
 REAL (KIND = JPRB):: RPHI_I_PR1_LIN   ! I shape-function derivative (linear profile) 
 REAL (KIND = JPRB):: RPHI_I_AST_MR    ! Constant in the MR2004 expression for I shape factor
-REAL (KIND = JPRB):: RC_I_MR          ! Constant in the MR2004 expression for I shape factor
+REAL (KIND = JPRD):: RC_I_MR          ! Constant in the MR2004 expression for I shape factor
 REAL (KIND = JPRB):: RH_ICE_MAX       ! Maximum ice tickness in 
                                      ! the Mironov and Ritter (2004, MR2004) ice model [m] 
 
@@ -142,6 +142,36 @@ TYPE (ROPTICPAR_MEDIUM):: ROPTICPAR_WATER_TRANS    ! Transparent Water (two-band
 TYPE (ROPTICPAR_MEDIUM):: ROPTICPAR_WHITEICE_REF   ! White ice
 TYPE (ROPTICPAR_MEDIUM):: ROPTICPAR_BLUEICE_REF    ! Blue ice
 TYPE (ROPTICPAR_MEDIUM):: ROPTICPAR_ICE_OPAQUE     ! Opaque ice
+! parameter for the optical characteristics of water
+! Fraction is only sensful for 2 or more bands
+! Fractions of total shortwave radiation flux: ROPT_XXX_FRACI_XXX
+! Extinction coefficients are named: ROPT_XXX_EXTCI_XXX
+! with I being the band
+REAL (KIND = JPRD):: ROPT_WAT_EXTC1_REF   ! Water(reference)
+REAL (KIND = JPRD):: ROPT_WAT_FRAC1_TRANS ! Water(transparent, two-band)
+REAL (KIND = JPRD):: ROPT_WAT_FRAC2_TRANS ! Water(transparent, two-band)
+REAL (KIND = JPRD):: ROPT_WAT_EXTC1_TRANS ! Water(transparent, two-band)
+REAL (KIND = JPRD):: ROPT_WAT_EXTC2_TRANS ! Water(transparent, two-band)
+REAL (KIND = JPRD):: ROPT_WICE_EXTC1_REF  ! White ices
+REAL (KIND = JPRD):: ROPT_BICE_EXTC1_REF  ! Blue ices
+REAL (KIND = JPRD):: ROPT_ICE_EXTC1_OP    ! Opaque ices
+
+! Lake parameters at ocean points - to receive meaningful FLAKE prognostics
+REAL (KIND = JPRB):: RC_SHAPE       ! The lake shape factor for sea tiles? is kept constant to 0.65
+REAL (KIND = JPRB):: RC_OC_MAXICEZ  ! max ice-depth and mult. fact. with fraction for ice depth (see surftstp_clt_mod)
+REAL (KIND = JPRB):: RC_OC_MAXDEPTH ! max ocean depth for FLAKE
+
+! Lake paramters in flakeene and flakerad module
+REAL (KIND = JPRD):: RDEPTH_W_MAX
+REAL (KIND = JPRD):: RDEPTH_W_MIN
+REAL (KIND = JPRD):: RD_C_T_DT_MAX_A
+REAL (KIND = JPRD):: RC_I_FLK_A
+REAL (KIND = JPRD):: RH_ICE_FUSION_A
+REAL (KIND = JPRD):: RH_ICE_FUSION_B
+REAL (KIND = JPRD):: RT_ICE_MIN_FLK
+REAL (KIND = JPRD):: RCONV_EQUIL_A
+REAL (KIND = JPRD):: RCONV_EQUIL_B
+REAL (KIND = JPRD):: RCONV_EQUIL_C
 
 LOGICAL :: LEFLAKE
     
