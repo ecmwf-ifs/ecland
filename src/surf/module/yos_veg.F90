@@ -1,6 +1,6 @@
 MODULE YOS_VEG
  
-USE PARKIND1  ,ONLY : JPIM     ,JPRB
+USE PARKIND1,       ONLY : JPIM, JPRB
 
 ! (C) Copyright 2005- ECMWF.
 !

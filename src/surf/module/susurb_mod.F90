@@ -151,7 +151,7 @@ REXPDR  = 0.15_JPRB             ! Exponential decay of recirculation
 
 ! Material properties
 
-RBUIZ0M = 0.05_JPRB            ! Rough. len. for mom. of building materials
+!RBUIZ0M = 0.05_JPRB            ! Rough. len. for mom. of building materials
 RWALTHK = 0.15_JPRB             ! Thickness of wall (m) (not currently used)
 RROOTHK = 0.15_JPRB             ! Thickness of roof (m) (not currently used)
 RROATHK = 0.15_JPRB             ! Thickness of road (m) (not currently used)

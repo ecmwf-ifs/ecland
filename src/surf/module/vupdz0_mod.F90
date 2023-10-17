@@ -314,18 +314,6 @@ IF (LLINIT) THEN
 ! blend between roughness of low vegetation and soil and roughness of ice caps, when snow depth below 25cm 
     ZMLOW=PCVL(JL)/(1.0_JPRB-PCVH(JL))*RVZ0ML2D(JL)+(1.0_JPRB-PCVL(JL)-PCVH(JL))/(1.0_JPRB-PCVH(JL))*RVZ0M_BARE
     PZ0MTI(JL,5)=ZSNWGHT(JL)*RVZ0M_SNOW+(1.0_JPRB-ZSNWGHT(JL))*ZMLOW
-! Snow over sea-ice: if we are over sea-ice, we use empirical formula.
-! Note that if LESNICE=.FALSE. (default) this is not having any effect
-    IF (.not. LESNICE)THEN
-      PZ0MTI(JL,5)=ZSNWGHT(JL)*RVZ0M(12)+(1.0_JPRB-ZSNWGHT(JL))*ZMLOW
-    ELSE
-      IF (LDSICE(JL)) THEN
-        PZ0MTI(JL,5)=PZ0ICE(RZ0ICE,(PFRTI(JL,2)+MAX(0._JPRB,PFRTI(JL,5))))
-      ELSE ! we are over Land snow
-       PZ0MTI(JL,5)=ZSNWGHT(JL)*RVZ0M_SNOW+(1.0_JPRB-ZSNWGHT(JL))*ZMLOW
-      ENDIF
-    ENDIF
-
 !       - High vegetation
     PZ0MTI(JL,6)=RVZ0MH2D(JL)
 !       - Sheltered snow
@@ -467,15 +455,9 @@ JTILE = 5
 DO JL=KIDIA,KFDIA
   ZMLOW=PCVL(JL)/(1.0_JPRB-PCVH(JL))*RVZ0ML2D(JL)+(1.0_JPRB-PCVL(JL)-PCVH(JL))/(1.0_JPRB-PCVH(JL))*RVZ0M_BARE
   ZHLOW=PCVL(JL)/(1.0_JPRB-PCVH(JL))*RVZ0HL2D(JL)+(1.0_JPRB-PCVL(JL)-PCVH(JL))/(1.0_JPRB-PCVH(JL))*RVZ0H_BARE
-  IF (LDSICE(JL) .and. LESNICE) THEN
-      PZ0MTI(JL,JTILE)=PZ0ICE(RZ0ICE,(PFRTI(JL,2)+MAX(0._JPRB,PFRTI(JL,5))) )
-  ELSE ! we are over Land snow
       PZ0MTI(JL,5)=ZSNWGHT(JL)*RVZ0M_SNOW+(1.0_JPRB-ZSNWGHT(JL))*ZMLOW
-  ENDIF
-  IF (LDSICE(JL) .and. LESNICE) THEN
-    PZ0HTI(JL,JTILE)=ZSNWGHT(JL)*RVZ0H(12)+(1.0_JPRB-ZSNWGHT(JL))*ZHLOW
-    PZ0QTI(JL,JTILE)=PZ0HTI(JL,JTILE)
-  ELSE
+!*    PZ0HTI(JL,JTILE)=ZSNWGHT(JL)*RVZ0H(12)+(1.0_JPRB-ZSNWGHT(JL))*ZHLOW
+!*    PZ0QTI(JL,JTILE)=PZ0HTI(JL,JTILE)
 
   ! Use Andreas (2002) formula for z0h for exposed snow, tile 5
   ! doi: 10.1175/1525-7541(2002)003<0417:PSTOSA>2.0.CO;2
@@ -504,7 +486,6 @@ DO JL=KIDIA,KFDIA
 
     PZ0HTI(JL,JTILE)=ZSNWGHT(JL)*RVZ0H_SNOW+(1.0_JPRB-ZSNWGHT(JL))*ZHLOW
     PZ0QTI(JL,JTILE)=PZ0HTI(JL,JTILE)
-  ENDIF
 
 ENDDO
 

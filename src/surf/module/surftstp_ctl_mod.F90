@@ -692,7 +692,7 @@ ENDIF
 ZROFS(KIDIA:KFDIA)=0._JPRB
 ! Take care of permanent snow areas! 
 !Permanent snow reset was potentially dangerous at 1m threshold and 9m is used instead.
-ZSNPERT=9000.0_JPRB ! permanent snow threshold
+
 KLMAX=KLEVSN ! permanent snow max index
 IF ( .NOT. LESNML ) KLMAX=1
 DO JL=KIDIA,KFDIA
