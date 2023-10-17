@@ -1,0 +1,272 @@
+MODULE YOS_NAMPARS1
+
+  USE PARKIND1  ,ONLY : JPRB, JPIM, JPRD, JPRM
+
+  IMPLICIT NONE
+
+  SAVE
+
+TYPE :: TESURF
+   ! --------------------------------------------------
+   !  -- SNOW -----------------------------------------
+   ! --------------------------------------------------
+    ! * snow related (new parameterization) constants
+    REAL(KIND=JPRB) :: RLWCSWEA
+    REAL(KIND=JPRB) :: RLWCSWEB
+    REAL(KIND=JPRB) :: RLWCSWEC
+    REAL(KIND=JPRB) :: RTEMPAMP
+    REAL(KIND=JPRB) :: RHOMINSNA
+    REAL(KIND=JPRB) :: RHOMINSNB
+    REAL(KIND=JPRB) :: RHOMINSNC
+    REAL(KIND=JPRB) :: RHOMINSND
+    REAL(KIND=JPRB) :: RSNDTOVERA
+    REAL(KIND=JPRB) :: RSNDTOVERB
+    REAL(KIND=JPRB) :: RSNDTOVERC
+    REAL(KIND=JPRB) :: RSNDTDESTA
+    REAL(KIND=JPRB) :: RSNDTDESTB
+    REAL(KIND=JPRB) :: RSNDTDESTC
+    REAL(KIND=JPRB) :: RSNDTDESTROI
+
+    ! * Snow wind-induced densification parameters
+    REAL(KIND=JPRB) :: RSNDAMOB
+    REAL(KIND=JPRB) :: RSNDMOB
+    REAL(KIND=JPRB) :: RSNDAW
+    REAL(KIND=JPRB) :: RSNDBW
+    REAL(KIND=JPRB) :: RSNDKV
+    REAL(KIND=JPRB) :: RSNDATAUW
+    REAL(KIND=JPRB) :: RSNDBTAUW
+    REAL(KIND=JPRB) :: RSNDWCOMPMAX
+    ! * Snow solar absorption parameters
+    REAL(KIND=JPRB) :: SSAG1
+    REAL(KIND=JPRB) :: SSAG2
+    REAL(KIND=JPRB) :: SSAG3
+    REAL(KIND=JPRB) :: SSAGSNSMAX
+    REAL(KIND=JPRB) :: SSASNEXTMIN
+    REAL(KIND=JPRB) :: SSASNEXTMAX
+    REAL(KIND=JPRB) :: SSASNEXTCNST
+    ! * New snow heat conductivity parameters
+    REAL(KIND=JPRB) :: SNHCONDAV
+    REAL(KIND=JPRB) :: SNHCONDBV
+    REAL(KIND=JPRB) :: SNHCONDCV
+    REAL(KIND=JPRB) :: SNHCONDPOV
+    REAL(KIND=JPRB) :: RHOMAXSN_NEW
+    ! ! * vlamsk
+    REAL(KIND=JPRB) :: RSNLARGE
+    REAL(KIND=JPRB) :: RSNLARGESN
+    REAL(KIND=JPRB) :: RSNLARGEWT
+    REAL(KIND=JPRB) :: RSNSNOW
+    REAL(KIND=JPRB) :: RSNSNOWHVEG
+    REAL(KIND=JPRB) :: RSNRTTEMP
+    ! * Other snow parameters
+    REAL(KIND=JPRB) :: RSNPERT
+    REAL(KIND=JPRB) :: RSNGLC
+    REAL(KIND=JPRB) :: RSMINZ
+    REAL(KIND=JPRB) :: RSFRESH
+    REAL(KIND=JPRB) :: RALFMINSN
+    REAL(KIND=JPRB) :: RALFMAXSN
+    ! parameter Snow thermal conductivity function
+    REAL(KIND=JPRB) :: FSNTCONDA
+    REAL(KIND=JPRB) :: FSNTCONDB
+    REAL(KIND=JPRB) :: FSNTCONDC
+    REAL(KIND=JPRB) :: RLICE
+    REAL(KIND=JPRB) :: RQSNCRINV
+    ! sea ice related
+    REAL(KIND=JPRB) :: RDARSICE
+    REAL(KIND=JPRB) :: RDANSICE
+    REAL(KIND=JPRB) :: RRCSICE
+    REAL(KIND=JPRB) :: RCONDSICE
+    REAL(KIND=JPRB) :: RSNPER
+    REAL(KIND=JPRB) :: RHOMINSN
+    REAL(KIND=JPRB) :: RHODELTASN
+    REAL(KIND=JPRB) :: RTAUF
+    REAL(KIND=JPRB) :: RTAUA
+    REAL(KIND=JPRB) :: RALAMSN
+    REAL(KIND=JPRB) :: RDSNMAX
+
+    ! --------------------------------------------------
+    !  -- SOIL -----------------------------------------
+    ! --------------------------------------------------
+    REAL(KIND=JPRB) :: RTF1
+    REAL(KIND=JPRB) :: RTF2
+    REAL(KIND=JPRB) :: RLAMBDAICE
+    REAL(KIND=JPRB) :: RLAMBDAWAT
+    REAL(KIND=JPRB) :: RKERST1
+    REAL(KIND=JPRB) :: RKERST2
+    REAL(KIND=JPRB) :: RKERST3
+    REAL(KIND=JPRB) :: RSRDEP
+    REAL(KIND=JPRB) :: RSIGORMIN
+    REAL(KIND=JPRB) :: RSIGORMAX
+    REAL(KIND=JPRB) :: RWLMAX
+    REAL(KIND=JPRB) :: RPSFR
+    REAL(KIND=JPRB) :: RBARPWP
+!    REAL(KIND=JPRB) :: RVGBARCAP
+    REAL(KIND=JPRB) :: RBARCAP
+    REAL(KIND=JPRB) :: RCLU
+!    REAL(KIND=JPRB) :: RQEXP
+    REAL(KIND=JPRB) :: RRSF1A
+    REAL(KIND=JPRB) :: RRSF1B
+    REAL(KIND=JPRB) :: RRSF1C
+    REAL(KIND=JPRB) :: RRHOSM
+    REAL(KIND=JPRB) :: RLAMBDAQ
+    REAL(KIND=JPRB) :: RLAMBDAO
+    REAL(KIND=JPRB) :: RLAMBDAMIN
+    REAL(KIND=JPRB) :: RLAMBDAMAX
+    REAL(KIND=JPRB) :: RLAMBDRYMA
+    REAL(KIND=JPRB) :: RLAMBDRYMB
+    REAL(KIND=JPRM) :: RLAMBDRYMC
+    REAL(KIND=JPRB) :: RTFREEZSICECEL
+    REAL(KIND=JPRB) :: RTMELTSICECEL
+
+    ! --------------------------------------------------
+    !  -- VEGETATION -----------------------------------
+    ! --------------------------------------------------
+    REAL(KIND=JPRB) :: RVQ10A
+    REAL(KIND=JPRB) :: RVQ10B
+    REAL(KIND=JPRB) :: RVQ10C
+    REAL(KIND=JPRB) :: RVQ10D
+    REAL(KIND=JPRB) :: RVQ10MIN
+    REAL(KIND=JPRB) :: RVINTER
+    REAL(KIND=JPRB) :: RLHAERO
+    REAL(KIND=JPRB) :: RLHAEROS
+    REAL(KIND=JPRB) :: RCEPSW
+    REAL(KIND=JPRB) :: RVLAMSK_DESERT
+    REAL(KIND=JPRB) :: RVLAMSK_SNOW
+    REAL(KIND=JPRB) :: RVLAMSKS_DESERT
+    REAL(KIND=JPRB) :: RVLAMSKS_SNOW
+    REAL(KIND=JPRB) :: RVZ0M_BARE
+    REAL(KIND=JPRB) :: RVZ0M_SNOW
+    REAL(KIND=JPRB) :: RVZ0H_BARE
+    REAL(KIND=JPRB) :: RVZ0H_SNOW
+
+    ! --------------------------------------------------
+    !  -- AGS ------------------------------------------
+    ! --------------------------------------------------
+    REAL(KIND=JPRB) :: RAW
+    REAL(KIND=JPRB) :: RASW
+    REAL(KIND=JPRB) :: RBW
+    REAL(KIND=JPRB) :: RDMAXN
+    REAL(KIND=JPRB) :: RDMAXX
+    REAL(KIND=JPRB) :: RPARCF
+    REAL(KIND=JPRB) :: RPCCO2
+    REAL(KIND=JPRB) :: RIAOPT
+    REAL(KIND=JPRB) :: RDSPOPT
+    REAL(KIND=JPRB) :: RXGT
+    REAL(KIND=JPRB) :: RDIFRACF
+    REAL(KIND=JPRB) :: RSHP1AMMAX
+    REAL(KIND=JPRB) :: RSHP2AMMAX
+    REAL(KIND=JPRB) :: RSHP1GMES
+    REAL(KIND=JPRB) :: RSHP2GMES
+    REAL(KIND=JPRB) :: RMAXFZERO
+    REAL(KIND=JPRB) :: RCC_NIT_BASE_DIL
+    REAL(KIND=JPRB) :: RLAIB_NITROA
+    REAL(KIND=JPRB) :: RLAIB_NITROB
+    REAL(KIND=JPRB) :: RLAIB_NITROMIN
+    REAL(KIND=JPRB) :: RVGMES_FLDEXP
+    REAL(KIND=JPRB) :: RESPBSTR_COEF
+    REAL(KIND=JPRD) :: REPS_COEF
+    REAL(KIND=JPRD) :: RGSC_COEF
+    REAL(KIND=JPRB) :: RXBOMEGA
+    REAL(KIND=JPRB) :: RRDCF
+    REAL(KIND=JPRB) :: RCONDCTMIN
+    REAL(KIND=JPRB) :: RCONDSTMIN
+    REAL(KIND=JPRB) :: RANFMINIT
+    REAL(KIND=JPRB) :: RRESPFACTOR_NIT
+    REAL(KIND=JPRB) :: RCNS_NIT
+    REAL(KIND=JPRB) :: RCA_1X_CO2_NIT
+    REAL(KIND=JPRB) :: RCA_2X_CO2_NIT
+    REAL(KIND=JPRB) :: RCC_NIT
+    REAL(KIND=JPRB) :: RCO2FRAC
+
+    ! --------------------------------------------------
+    !  -- FLAKE ----------------------------------------
+    ! --------------------------------------------------
+    REAL(KIND=JPRB) :: RC_SHAPE
+    REAL(KIND=JPRB) :: RC_OC_MAXICEZ
+    REAL(KIND=JPRB) :: RC_OC_MAXDEPTH
+    !  Dimensionless constants
+    !  in the equations for the mixed-layer depth
+    !  and for the shape factor with respect to the temperature profile in the thermocline
+    REAL(KIND=JPRD) :: RC_CBL_1
+    REAL(KIND=JPRD) :: RC_CBL_2
+    REAL(KIND=JPRD) :: RC_SBL_ZM_N
+    REAL(KIND=JPRD) :: RC_SBL_ZM_S
+    REAL(KIND=JPRD) :: RC_SBL_ZM_I
+    REAL(KIND=JPRD) :: RC_RELAX_H
+    REAL(KIND=JPRD) :: RC_RELAX_C
+    !  Parameters of the shape functions
+    REAL(KIND=JPRB) :: RC_T_MIN
+    REAL(KIND=JPRB) :: RC_T_MAX
+    REAL(KIND=JPRD) :: RPHI_T_PR0_1
+    REAL(KIND=JPRD) :: RPHI_T_PR0_2
+    REAL(KIND=JPRD) :: RC_TT_1
+    REAL(KIND=JPRD) :: RC_TT_2
+    REAL(KIND=JPRD) :: RC_B1
+    REAL(KIND=JPRD) :: RC_B2
+    REAL(KIND=JPRB) :: RC_S_LIN
+    REAL(KIND=JPRB) :: RPHI_S_PR0_LIN
+    REAL(KIND=JPRB) :: RC_I_LIN
+    REAL(KIND=JPRB) :: RPHI_I_PR0_LIN
+    REAL(KIND=JPRB) :: RPHI_I_PR1_LIN
+    REAL(KIND=JPRB) :: RPHI_I_AST_MR
+    REAL(KIND=JPRD) :: RC_I_MR
+    REAL(KIND=JPRB) :: RH_ICE_MAX
+    REAL(KIND=JPRB) :: RTPL_A_T
+    REAL(KIND=JPRD) :: ROPT_WAT_EXTC1_REF
+    REAL(KIND=JPRD) :: ROPT_WAT_FRAC1_TRANS
+    REAL(KIND=JPRD) :: ROPT_WAT_EXTC1_TRANS
+    REAL(KIND=JPRD) :: ROPT_WAT_EXTC2_TRANS
+    REAL(KIND=JPRD) :: ROPT_WICE_EXTC1_REF
+    REAL(KIND=JPRD) :: ROPT_BICE_EXTC1_REF
+    REAL(KIND=JPRD) :: ROPT_ICE_EXTC1_OP
+    !  Parameters used in flakeen flakerad module
+    REAL(KIND=JPRD) :: RDEPTH_W_MAX
+    REAL(KIND=JPRD) :: RDEPTH_W_MIN
+    REAL(KIND=JPRD) :: RD_C_T_DT_MAX_A
+    REAL(KIND=JPRD) :: RC_I_FLK_A
+    REAL(KIND=JPRD) :: RH_ICE_FUSION_A
+    REAL(KIND=JPRD) :: RH_ICE_FUSION_B
+    REAL(KIND=JPRD) :: RT_ICE_MIN_FLK
+    REAL(KIND=JPRD) :: RCONV_EQUIL_A
+    REAL(KIND=JPRD) :: RCONV_EQUIL_B
+    REAL(KIND=JPRD) :: RCONV_EQUIL_C
+
+    ! --------------------------------------------------
+    !  -- EXC ------------------------------------------
+    ! --------------------------------------------------
+    REAL(KIND=JPRB) :: RSSRFLTIMAX
+    REAL(KIND=JPRB) :: RBLENDWMO
+    REAL(KIND=JPRB) :: RZ0MWMO
+    REAL(KIND=JPRB) :: RETACONV
+    REAL(KIND=JPRB) :: RCDFC
+    REAL(KIND=JPRB) :: RBLENDSNVEG
+    REAL(KIND=JPRB) :: RUGNA
+    REAL(KIND=JPRB) :: RUGNB
+    REAL(KIND=JPRB) :: RUGN
+    REAL(KIND=JPRB) :: RKAP
+    REAL(KIND=JPRB) :: RPARZIINI
+    REAL(KIND=JPRB) :: RZ0ICEINI
+    REAL(KIND=JPRB) :: REPUST
+    REAL(KIND=JPRB) :: RNUINI
+    REAL(KIND=JPRB) :: RNUMINI
+    REAL(KIND=JPRB) :: RNUHINI
+    REAL(KIND=JPRB) :: RNUQINI
+    REAL(KIND=JPRB) :: RCHAR
+!    REAL(KIND=JPRB) :: REPDU2
+    REAL(KIND=JPRB) :: RAZ0ICE
+    REAL(KIND=JPRB) :: RBZ0ICE
+    REAL(KIND=JPRB) :: RCZ0ICE
+    REAL(KIND=JPRB) :: RDZ0ICE
+!    INTEGER(KIND=JPIM) :: REZ0ICE
+    INTEGER(KIND=JPIM) :: RITZ0WN
+    REAL(KIND=JPRB) :: RACDZ0WN
+    REAL(KIND=JPRB) :: RBCDZ0WN
+    REAL(KIND=JPRB) :: RXEPSZ0WN
+    REAL(KIND=JPRB) :: RUSTMINZ0WN
+    REAL(KIND=JPRB) :: RPCHARMAXZ0WN
+    REAL(KIND=JPRB) :: RZ0FGZ0WN
+    REAL(KIND=JPRB) :: RSALIN
+    REAL(KIND=JPRB) :: RBLENDZ0
+
+END TYPE TESURF
+
+END MODULE YOS_NAMPARS1

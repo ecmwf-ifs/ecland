@@ -157,16 +157,15 @@ ALLOCATE (ZBUF(NPOI))
 CALL MPL_BARRIER()  
 
 NVARS2D=61
-CVARS2D(1:NVARS2D)=(/'hvegcov ', 'lvegcov ', 'hvegstr ', 'lvegstr ', &
-        & 'hlamsk ', 'llamsk ', 'hlamsks ', 'llamsks ', 'hvegrsm ', 'lvegrsm ', &
-        & 'hrvz0h ', 'lrvz0h ', 'hrvz0m ', 'lrvz0m ', 'lah ', 'hammax ', 'lammax ',  &
-        & 'lbh ', 'hvce ', 'lvce ', 'hvcf ', 'lvcf ', 'hvcnal ', 'lvcnal ','hvdmax ', &
-        & 'lvdmax ', 'hepso ', 'lepso ', 'hvf2i ', 'lvf2i ', 'hfzrost ', 'lfzrost ', &
-        & 'hgamm ', 'lgamm ', 'hvgc ', 'lvgc ', 'hvgmes ','lvgmes ', 'hminlai ', &
-        & 'lminlai ', 'hqammax ', 'lqammax ', 'hqdgamm ', 'lqdgamm ', 'hqdgmes ', &
-        & 'lqdgmes ', 'hsefold ', 'lsefold ', 'ht1amax ', &
-        & 'lt1amax ', 'ht1gmes ', 'lt1gmes ', 'ht2amax ', 'lt2amax ', 'ht2gmes ', &
-        & 'lt2gmes ', 'htopt ', 'ltopt ', 'hxomega ', 'lxomega ', 'bvegrsm '/)
+CVARS2D(1:NVARS2D) = (/ 'hvegcov ', 'lvegcov ', 'hvegstr ', 'lvegstr ', &
+     'hlamsk  ', 'llamsk  ', 'hlamsks ', 'llamsks ', 'hvegrsm ', 'lvegrsm ', &
+     'hrvz0h  ', 'lrvz0h  ', 'hrvz0m  ', 'lrvz0m  ', 'lah     ', 'hammax  ', 'lammax  ', &
+     'lbh     ', 'hvce    ', 'lvce    ', 'hvcf    ', 'lvcf    ', 'hvcnal  ', 'lvcnal  ', 'hvdmax  ', &
+     'lvdmax  ', 'hepso   ', 'lepso   ', 'hvf2i   ', 'lvf2i   ', 'hfzrost ', 'lfzrost ', &
+     'hgamm   ', 'lgamm   ', 'hvgc    ', 'lvgc    ', 'hvgmes  ', 'lvgmes  ', 'hminlai ', &
+     'lminlai ', 'hqammax ', 'lqammax ', 'hqdgamm ', 'lqdgamm ', 'hqdgmes ', 'lqdgmes ', &
+     'hsefold ', 'lsefold ', 'ht1amax ', 'lt1amax ', 'ht1gmes ', 'lt1gmes ', 'ht2amax ', &
+     'lt2amax ', 'ht2gmes ', 'lt2gmes ', 'htopt   ', 'ltopt   ', 'hxomega ', 'lxomega ', 'bvegrsm ' /)
 
 DO IVAR=1,NVARS2D
    CVAR=TRIM(CVARS2D(IVAR))
@@ -618,7 +617,7 @@ DO IVAR=1,NVARS2D
 ENDDO
 
 NVARS3D=7
-CVARS3D(1:NVARS3D)=(/'gdry ', 'lambdam ', 'vgalpha ', 'nfac ', 'wcons ', 'rwrst ', 'wsatm '/)
+CVARS3D(1:NVARS3D)=(/'gdry    ', 'lambdam ', 'vgalpha ', 'nfac    ', 'wcons   ', 'rwrst   ', 'wsatm   '/)
 
 DO IVAR=1,NVARS3D
   CVAR=TRIM(CVARS3D(IVAR))
