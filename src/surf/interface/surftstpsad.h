@@ -1,6 +1,7 @@
 INTERFACE
 SUBROUTINE SURFTSTPSAD(YDSURF , KIDIA , KFDIA , KLON  , KLEVS ,KLEVSN,&
  & KTILES, KSOTY,&
+ & PSSDP2, PSSDP3,&
  & PTSPHY , PFRTI,&
 !-trajectory
  & LDLAND  , LDSICE  , LDSI     , LDNH   , LDREGSF,&
@@ -159,6 +160,8 @@ IMPLICIT NONE
 ! Declaration of arguments
 
 TYPE(C_PTR)       ,INTENT(IN)    :: YDSURF
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)                                                          
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)   
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON

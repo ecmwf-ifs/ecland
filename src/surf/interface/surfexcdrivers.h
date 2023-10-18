@@ -10,6 +10,7 @@ SUBROUTINE SURFEXCDRIVERS    ( YDSURF, &
  & , PUMLEV, PVMLEV, PTMLEV, PQMLEV, PAPHMS, PGEOMLEV, PCPTGZLEV &
  & , PSST, PTSKM1M, PCHAR, PSSRFL, PTICE, PTSNOW &
  & , PWLMX &
+ & , PSSDP2 , PSSDP3 &
 ! input data, soil
  & , PTSAM1M, PWSAM1M, KSOTY &
 ! input data, tiled
@@ -205,6 +206,8 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSRFL(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTICE(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSNOW(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)                                                          
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)   
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 

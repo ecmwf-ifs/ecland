@@ -14,7 +14,7 @@ SUBROUTINE VUPDZ0(KIDIA,KFDIA,KLON,KTILES,KSTEP,CDCONF,LDSICE,LESNICE,&
  & PUSTRTI,PVSTRTI,PAHFSTI,PEVAPTI,&
  & PHLICE, &
  & PTSKTI,PCHAR,PCHARHQ,PFRTI,PUCURR,PVCURR,&
- & YDCST,YDEXC,YDVEG,YDFLAKE,YDURB,PSSDP2,&
+ & PSSDP2,YDCST,YDEXC,YDVEG,YDFLAKE,YDURB,&
  & PZ0MTI,PZ0HTI,PZ0QTI,PBUOMTI,PZDLTI,PRAQTI)
 
 USE YOMHOOK   , ONLY : LHOOK, DR_HOOK, JPHOOK
@@ -52,6 +52,7 @@ USE YOMSURF_SSDP_MOD
 !                                               use of parameter values defined in namelist
 !     Modified   J. Bidlot 15/02/2021 Sea state effect in Z0H and Z0Q over the oceans (under LWCOU2W and LWCOUHMF switches).
 !     Modified   J. McNorton 24/08/2022 urban tile
+!     Modified   I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP2 object for surface spatially distributed parameters
 
 !     PURPOSE
 !     -------
