@@ -178,7 +178,7 @@ IF(NDIMCDF == 2)THEN
 ELSE
   ISTART2(1)=IST
   ICOUNT2(1)=NLEN
-  ICOUNT2(1)=1
+  ICOUNT2(2)=1
 ENDIF
 
 !     catchment mask
