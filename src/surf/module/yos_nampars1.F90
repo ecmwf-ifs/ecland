@@ -267,6 +267,28 @@ TYPE :: TESURF
     REAL(KIND=JPRB) :: RSALIN
     REAL(KIND=JPRB) :: RBLENDZ0
 
+    ! --------------------------------------------------
+    !  -- URBAN ------------------------------------------
+    ! --------------------------------------------------
+    REAL(KIND=JPRB) :: RBUIZ0M
+    REAL(KIND=JPRB) :: RWALALB
+    REAL(KIND=JPRB) :: RROOALB
+    REAL(KIND=JPRB) :: RROAALB
+    REAL(KIND=JPRB) :: RWALEMIS
+    REAL(KIND=JPRB) :: RROOEMIS
+    REAL(KIND=JPRB) :: RROAEMIS
+    REAL(KIND=JPRB) :: RWALVHC
+    REAL(KIND=JPRB) :: RROOVHC
+    REAL(KIND=JPRB) :: RROAVHC
+    REAL(KIND=JPRB) :: RWALTC
+    REAL(KIND=JPRB) :: RROOTC
+    REAL(KIND=JPRB) :: RROATC
+    REAL(KIND=JPRB) :: RURBALP
+    REAL(KIND=JPRB) :: RURBCON
+    REAL(KIND=JPRB) :: RURBLAM
+    REAL(KIND=JPRB) :: RURBSAT
+    REAL(KIND=JPRB) :: RURBSRES 
+
 END TYPE TESURF
 
 END MODULE YOS_NAMPARS1
