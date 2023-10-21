@@ -744,4 +744,80 @@ CONTAINS
 
   END SUBROUTINE RDNML_EXC
 
+  SUBROUTINE RDNML_URB(TMP_SURF)
+
+    USE YOMLUN1S, ONLY : NULNAM
+    USE YOS_NAMPARS1, ONLY : TESURF
+    USE PARKIND1, ONLY : JPIM     ,JPRB
+    USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
+
+    IMPLICIT NONE
+
+    TYPE(TESURF),       INTENT(INOUT) :: TMP_SURF
+
+    REAL(KIND=JPRB) :: RBUIZ0M
+    REAL(KIND=JPRB) :: RWALALB
+    REAL(KIND=JPRB) :: RROOALB
+    REAL(KIND=JPRB) :: RROAALB
+    REAL(KIND=JPRB) :: RWALEMIS
+    REAL(KIND=JPRB) :: RROOEMIS
+    REAL(KIND=JPRB) :: RROAEMIS
+    REAL(KIND=JPRB) :: RWALVHC
+    REAL(KIND=JPRB) :: RROOVHC
+    REAL(KIND=JPRB) :: RROAVHC
+    REAL(KIND=JPRB) :: RWALTC
+    REAL(KIND=JPRB) :: RROOTC
+    REAL(KIND=JPRB) :: RROATC
+    REAL(KIND=JPRB) :: RURBALP
+    REAL(KIND=JPRB) :: RURBCON
+    REAL(KIND=JPRB) :: RURBLAM
+    REAL(KIND=JPRB) :: RURBSAT
+    REAL(KIND=JPRB) :: RURBSRES 
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+#include "namparurb.h"
+
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_URB',0,ZHOOK_HANDLE)
+
+    !     ------------------------------------------------------------------
+    !*         0.     ALLOCATE ARRAYS
+    !                 -------------
+
+    !     ------------------------------------------------------------------
+    !*         1.     READ NAMELIST
+    !                 -------------
+
+!    WRITE(*,*) "Reading global urban parameters from namelist..."
+
+    REWIND(NULNAM)
+    READ(NULNAM,NAMPARURB)
+
+    !     ------------------------------------------------------------------
+    !*         2.     WRITE VALUES TO TMP_SURF
+    !                 -------------
+    TMP_SURF%RBUIZ0M  = RBUIZ0M
+    TMP_SURF%RWALALB  = RWALALB
+    TMP_SURF%RROOALB  = RROOALB
+    TMP_SURF%RROAALB  = RROAALB
+    TMP_SURF%RWALEMIS = RWALEMIS
+    TMP_SURF%RROOEMIS = RROOEMIS
+    TMP_SURF%RROAEMIS = RROAEMIS
+    TMP_SURF%RWALVHC  = RWALVHC
+    TMP_SURF%RROOVHC  = RROOVHC
+    TMP_SURF%RROAVHC  = RROAVHC 
+    TMP_SURF%RWALTC   = RWALTC
+    TMP_SURF%RROOTC   = RROOTC
+    TMP_SURF%RROATC   = RROATC
+    TMP_SURF%RURBALP  = RURBALP
+    TMP_SURF%RURBCON  = RURBCON
+    TMP_SURF%RURBLAM  = RURBLAM
+    TMP_SURF%RURBSAT  = RURBSAT
+    TMP_SURF%RURBSRES = RURBSRES
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_URB',1,ZHOOK_HANDLE)
+
+  END SUBROUTINE RDNML_URB
+
 END MODULE RDNML_PARAMS

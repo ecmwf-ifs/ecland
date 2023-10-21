@@ -75,6 +75,8 @@ REAL (KIND = JPRB):: RSBCONS        ! Stefan-Boltzmann Constant (W m-2K-4)
 REAL (KIND = JPRB):: RGACC          ! Acceleration due to gravity (m s-2)
 REAL (KIND = JPRB):: RAIRRHO        ! Density of air (Kg m-3)    !NOTE THIS CAN BE TAKEN FROM MODEL
 REAL (KIND = JPRB):: RMODZ          ! Lowest model height (m)    !NOTE THIS CAN BE TAKEN FROM MODEL
+REAL (KIND = JPRB):: RMODW          ! Lowest model height - wind (m) !NOTE THIS CAN BE TAKEN FROM MODEL
+
 REAL (KIND = JPRB):: RVKSQ          ! Von Karman constant squared
 REAL (KIND = JPRB):: REXPDR         ! Exponential decay of recirculation
 
