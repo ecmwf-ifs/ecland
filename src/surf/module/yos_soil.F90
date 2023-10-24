@@ -188,7 +188,7 @@ LOGICAL :: LESNWBCON    ! if true conserver snow water balance (avoid reset of s
 
 ! New soil parameters
 REAL(KIND=JPRB) :: RBARPWP     !    Pressure head at permanent wilting point
-!REAL(KIND=JPRB) :: RVGBARCAP   !    Pressure head at field capacity for van Genuchten
+REAL(KIND=JPRB) :: RVGBARCAP   !    Pressure head at field capacity for van Genuchten
 REAL(KIND=JPRB) :: RBARCAP     !    Pressure head at field capacity
 REAL(KIND=JPRB) :: RCLU        !    unstressed canopy resis. for pot. evap. over grassland (50 s/m)
 REAL(KIND=JPRB) :: RLAMBDAMIN  !    minimum thermal conductivity in vlamsk_mod
@@ -198,7 +198,6 @@ REAL(KIND=JPRB) :: RLAMBDRYMA  !    coefficient in RLAMBDADRYM3D calculation 0.1
 REAL(KIND=JPRB) :: RLAMBDRYMB  !    coefficient in RLAMBDADRYM3D calculation 64.7
 REAL(KIND=JPRM) :: RLAMBDRYMC  !    coefficient in RLAMBDADRYM3D calculation 0.947
 
-!REAL(KIND=JPRB) :: RQEXP       !    exponent in Lambda calculation
 
 ! parameters of f1
 REAL(KIND=JPRB) :: RRSF1A      !    a in f1 - see documentation p. 131

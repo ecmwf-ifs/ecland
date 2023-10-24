@@ -98,7 +98,7 @@ ASSOCIATE(RVHSTRH2D=>PSSDP2(:,SSDP2D_ID%NRVHSTRH2D), RVHSTRL2D=>PSSDP2(:,SSDP2D_
     & RLAMBDADRYM3D=>PSSDP3(:,:,SSDP3D_ID%NRLAMBDADRYM3D), RLAMSAT1M3D=>PSSDP3(:,:,SSDP3D_ID%NRLAMSAT1M3D), &
     & RRCSOILM3D=>PSSDP3(:,:,SSDP3D_ID%NRRCSOILM3D), RWCAPM3D=>PSSDP3(:,:,SSDP3D_ID%NRWCAPM3D),&
     & RWPWPM3D=>PSSDP3(:,:,SSDP3D_ID%NRWPWPM3D), RCGDRYM3D=>PSSDP3(:,:,SSDP3D_ID%NRCGDRYM3D), &
-    & RETV=>YDCST%RETV, LEVGEN=>YDSOIL%LEVGEN,&
+    & RETV=>YDCST%RETV, LEVGEN=>YDSOIL%LEVGEN,RVGBARCAP=>YDSOIL%RVGBARCAP,RBARCAP=>YDSOIL%RBARCAP,&
     & RGH2O=>YDSOIL%RGH2O, RCO2=>YDAGS%RCO2, RDSPOPT=>YDAGS%RDSPOPT, RIAOPT=>YDAGS%RIAOPT,&
     & RAW=>YDAGS%RAW, RBW=>YDAGS%RBW, RDAY=>YDCST%RDAY, RRHOSM=>YDSOIL%RRHOSM, &
     & RLAMBDAQ=>YDSOIL%RLAMBDAQ, RLAMBDAO=>YDSOIL%RLAMBDAO, RBARPWP=>YDSOIL%RBARPWP,&
@@ -202,12 +202,12 @@ ZFAC=100._JPRB/9.8_JPRB  ! Bit optimized version of the original
 ZPSIPWP=RBARPWP*ZFAC   ! Classic permanent wilting point
 
 IF (LEVGEN) THEN
-  ZPSICAP=-0.10_JPRB*ZFAC  ! Value valid for sandy soil in the literature---> larger AWC 
+  ZPSICAP=RVGBARCAP*ZFAC  ! Value valid for sandy soil in the literature---> larger AWC 
                            ! favourably compared to FC obs for medium soils (Ukraine/Russia)
                            ! produce invariant equilibrium after rescaling from TESSEL
                            ! enlarge the range of action for SM analysis (active if PWP<W<CAP)
 ELSE
-  ZPSICAP=-0.33_JPRB*ZFAC  ! Value mostly used in literature (Hillel, 1998)
+  ZPSICAP=RBARCAP*ZFAC  ! Value mostly used in literature (Hillel, 1998)
 ENDIF
 
 
