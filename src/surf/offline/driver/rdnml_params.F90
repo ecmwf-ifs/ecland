@@ -53,7 +53,8 @@ CONTAINS
     REAL(KIND=JPRB) :: SNHCONDBV = 2.5425_JPRB
     REAL(KIND=JPRB) :: SNHCONDCV = 289.99_JPRB
     REAL(KIND=JPRB) :: SNHCONDPOV = 100000.0_JPRB
-    REAL(KIND=JPRB) :: RHOMAXSN_NEW = 500.0_JPRB
+
+    REAL(KIND=JPRB) :: RHOMAXSN_NEW = 500.0_JPRB ! New snow density max value
 
     ! ! * vlamsk
     REAL(KIND=JPRB) :: RSNLARGE = 10000000000.0_JPRB
@@ -685,10 +686,6 @@ CONTAINS
     !  Parameters of the shape functions
     REAL(KIND=JPRB) :: RC_T_MIN = 0.5_JPRB
     REAL(KIND=JPRB) :: RC_T_MAX = 0.8_JPRB
-    REAL(KIND=JPRD) :: RPHI_T_PR0_1 = 40._JPRD/3._JPRD
-    REAL(KIND=JPRD) :: RPHI_T_PR0_2 = 20._JPRD/3._JPRD
-    REAL(KIND=JPRD) :: RC_TT_1 = 11._JPRD/18._JPRD
-    REAL(KIND=JPRD) :: RC_TT_2 = 7._JPRD/45._JPRD
     REAL(KIND=JPRD) :: RC_B1 = 2._JPRD/3._JPRD
     REAL(KIND=JPRD) :: RC_B2 = 3._JPRD/5._JPRD
     REAL(KIND=JPRB) :: RC_S_LIN = 0.5_JPRB
@@ -696,8 +693,6 @@ CONTAINS
     REAL(KIND=JPRB) :: RC_I_LIN = 0.5_JPRB
     REAL(KIND=JPRB) :: RPHI_I_PR0_LIN = 1.0_JPRB
     REAL(KIND=JPRB) :: RPHI_I_PR1_LIN = 1.0_JPRB
-    REAL(KIND=JPRB) :: RPHI_I_AST_MR = 2.0_JPRB
-    REAL(KIND=JPRD) :: RC_I_MR = 1._JPRD/12._JPRD
     REAL(KIND=JPRB) :: RH_ICE_MAX = 3.0_JPRB
 
     REAL(KIND=JPRB) :: RTPL_A_T = 1.6509E-05_JPRB
@@ -758,10 +753,6 @@ CONTAINS
 
     TMP_SURF%RC_T_MIN        = RC_T_MIN
     TMP_SURF%RC_T_MAX        = RC_T_MAX
-    TMP_SURF%RPHI_T_PR0_1    = RPHI_T_PR0_1
-    TMP_SURF%RPHI_T_PR0_2    = RPHI_T_PR0_2
-    TMP_SURF%RC_TT_1         = RC_TT_1
-    TMP_SURF%RC_TT_2         = RC_TT_2
     TMP_SURF%RC_B1           = RC_B1
     TMP_SURF%RC_B2           = RC_B2
     TMP_SURF%RC_S_LIN        = RC_S_LIN
@@ -769,8 +760,6 @@ CONTAINS
     TMP_SURF%RC_I_LIN        = RC_I_LIN
     TMP_SURF%RPHI_I_PR0_LIN  = RPHI_I_PR0_LIN
     TMP_SURF%RPHI_I_PR1_LIN  = RPHI_I_PR1_LIN
-    TMP_SURF%RPHI_I_AST_MR   = RPHI_I_AST_MR
-    TMP_SURF%RC_I_MR         = RC_I_MR
     TMP_SURF%RH_ICE_MAX      = RH_ICE_MAX
 
     TMP_SURF%RTPL_A_T        = RTPL_A_T
@@ -812,10 +801,6 @@ CONTAINS
     WRITE(NULOUT,*) '   RC_RELAX_C             = ', RC_RELAX_C
     WRITE(NULOUT,*) '   RC_T_MIN               = ', RC_T_MIN
     WRITE(NULOUT,*) '   RC_T_MAX               = ', RC_T_MAX
-    WRITE(NULOUT,*) '   RPHI_T_PR0_1           = ', RPHI_T_PR0_1
-    WRITE(NULOUT,*) '   RPHI_T_PR0_2           = ', RPHI_T_PR0_2
-    WRITE(NULOUT,*) '   RC_TT_1                = ', RC_TT_1
-    WRITE(NULOUT,*) '   RC_TT_2                = ', RC_TT_2
     WRITE(NULOUT,*) '   RC_B1                  = ', RC_B1
     WRITE(NULOUT,*) '   RC_B2                  = ', RC_B2
     WRITE(NULOUT,*) '   RC_S_LIN               = ', RC_S_LIN
@@ -823,8 +808,6 @@ CONTAINS
     WRITE(NULOUT,*) '   RC_I_LIN               = ', RC_I_LIN
     WRITE(NULOUT,*) '   RPHI_I_PR0_LIN         = ', RPHI_I_PR0_LIN
     WRITE(NULOUT,*) '   RPHI_I_PR1_LIN         = ', RPHI_I_PR1_LIN
-    WRITE(NULOUT,*) '   RPHI_I_AST_MR          = ', RPHI_I_AST_MR
-    WRITE(NULOUT,*) '   RC_I_MR                = ', RC_I_MR
     WRITE(NULOUT,*) '   RH_ICE_MAX             = ', RH_ICE_MAX
     WRITE(NULOUT,*) '   RTPL_A_T               = ', RTPL_A_T
     WRITE(NULOUT,*) '   ROPT_WAT_EXTC1_REF     = ', ROPT_WAT_EXTC1_REF

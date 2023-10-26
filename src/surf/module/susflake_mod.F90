@@ -109,13 +109,15 @@ ASSOCIATE(LEFLAKE=>YDFLAKE%LEFLAKE, RC_B1=>YDFLAKE%RC_B1, RC_B2=>YDFLAKE%RC_B2, 
 !  "pr0" and "pr1" denote zeta derivatives of the corresponding shape function 
 !  at "zeta=0" ad "zeta=1", respectively.
 
-!RPHI_T_PR0_1   = 40._JPRD/3._JPRD    ! Constant in the expression for the T shape-function derivative 
-!RPHI_T_PR0_2   = 20._JPRD/3._JPRD    ! Constant in the expression for the T shape-function derivative 
-!RC_TT_1        = 11._JPRD/18._JPRD   ! Constant in the expression for C_TT (thermocline)
-!RC_TT_2        = 7._JPRD/45._JPRD    ! Constant in the expression for C_TT (thermocline)
+RPHI_T_PR0_1   = 40._JPRD/3._JPRD    ! Constant in the expression for the T shape-function derivative 
+RPHI_T_PR0_2   = 20._JPRD/3._JPRD    ! Constant in the expression for the T shape-function derivative 
+RC_TT_1        = 11._JPRD/18._JPRD   ! Constant in the expression for C_TT (thermocline)
+RC_TT_2        = 7._JPRD/45._JPRD    ! Constant in the expression for C_TT (thermocline)
 !RC_B1          = 2._JPRD/3._JPRD     ! Shape factor (upper layer of bottom sediments)
 !RC_B2          = 3._JPRD/5._JPRD     ! Shape factor (lower layer of bottom sediments)
-!RC_I_MR        = 1._JPRD/12._JPRD    ! Constant in the MR2004 expression for I shape factor 
+
+RPHI_I_AST_MR  = 2._JPRD             ! Constant in the MR2004 expression for I shape factor
+RC_I_MR        = 1._JPRD/12._JPRD    ! Constant in the MR2004 expression for I shape factor 
 
 !  Security constants
 
