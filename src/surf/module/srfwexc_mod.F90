@@ -4,6 +4,7 @@ SUBROUTINE SRFWEXC(KIDIA,KFDIA,KLON,KLEVS,KTILES,&
  & PTMST,KTVL,KTVH,PFRTI,PEVAPTI,&
  & PWSAM1M,PTSAM1M,PCUR,&
  & PTSFC,PTSFL,PMSN,PEMSSN,PEINTTI,PEVAPSNW,&
+ & PSSDP3,&
  & YDSOIL,YDVEG,YDURB,&
  & PROS,PCFW,PRHSW,&
  & PSAWGFL,PFWEL1,PFWE234,&
@@ -15,6 +16,7 @@ USE YOS_THF   , ONLY : RHOH2O
 USE YOS_SOIL  , ONLY : TSOIL
 USE YOS_VEG   , ONLY : TVEG
 USE YOS_URB   , ONLY : TURB
+USE YOMSURF_SSDP_MOD
 
 ! (C) Copyright 1993- ECMWF.
 !
@@ -119,7 +121,10 @@ USE YOS_URB   , ONLY : TURB
 !     J.F. Estrade *ECMWF* 03-10-01 move in surf vob
 !     P. Viterbo    24-05-2004      Change surface units
 !     E. Dutra      07-07-2008      clean number of tiles dependence
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
 !     J. McNorton   24/08/2022  urban tile
+!     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -147,6 +152,7 @@ REAL(KIND=JPRB),    INTENT(IN)   :: PEMSSN(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PEINTTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PEVAPSNW(:)
 LOGICAL,            INTENT(IN)   :: LDLAND(:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSDP3(:,:,:)
 TYPE(TSOIL),        INTENT(IN)   :: YDSOIL
 TYPE(TVEG),         INTENT(IN)   :: YDVEG
 TYPE(TURB),         INTENT(IN)   :: YDURB

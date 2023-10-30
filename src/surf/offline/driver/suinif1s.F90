@@ -175,6 +175,7 @@ IF (LESSDP_CALIB) THEN
   ENDIF
 ENDIF
 
+! TODO: Call routine to compute derived spatially distributed parameters (SDP)
 
 !*       INITIALISATION OF THE ATMOSPHERIC FORCING.
 

@@ -100,6 +100,98 @@ SAVE
 
 ! VFPGLOB - global grid indices gaussian reduced
 
+! GPD_SDP2 - Generic group for 2D calibrated surface spatially distributed parameters
+
+! S2RVCOVH2D      - Cover vegetation for high veg.
+! S2RVCOVL2D      - Cover vegetation for low veg.
+! S2RVHSTRH2D     - Param. in humidity stress function high veg.
+! S2RVHSTRL2D     - Param. in humidity stress function low veg.
+! S2RVLAMSKH2D    - Unstable skin layer conduct. High veg.
+! S2RVLAMSKL2D    - Unstable skin layer conduct. Low veg.
+! S2RVLAMSKSH2D   - Stable skin layer conduct. High veg.
+! S2RVLAMSKSL2D   - Stable skin layer conduct. Low veg.
+! S2RVRSMINH2D    - Min. Stomatal resistance. High veg.
+! S2RVRSMINL2D    - Min. Stomatal resistance. Low veg.
+! S2RVZ0HH2D      - Roughness length of heat high veg.
+! S2RVZ0HL2D      - Roughness length of heat low veg.
+! S2RVZ0MH2D      - Roughness length of momentum high veg.
+! S2RVZ0ML2D      - Roughness length of momentum low veg.
+! S2RVAHL2D       - Coef. herbaceous water stress response low veg. 
+! S2RVAMMAXH2D    - Leaf photosynthetic capacity high veg. 
+! S2RVAMMAXL2D    - Leaf photosynthetic capacity low veg.
+! S2RVBHL2D       - Coef. herbaceous water stress response low veg.
+! S2RVCEH2D       - SLA sensitivity to nitrogen concentration high veg.
+! S2RVCEL2D       - SLA sensitivity to nitrogen concentration low veg. 
+! S2RVCFH2D       - Lethal min value of SLA high veg. 
+! S2RVCFL2D       - Lethal min value of SLA low veg.
+! S2RVCNAH2D      - Nitrogen concentration of active biomass high veg.
+! S2RVCNAL2D      - Nitrogen concentration of active biomass low veg.
+! S2RVDMAXH2D     - Max. especific humidity deficit tolerated by high veg. 
+! S2RVDMAXL2D     - Max. especific humidity deficit tolerated by low veg.
+! S2RVEPSOH2D     - Max. initial quantum use efficiency high veg. 
+! S2RVEPSOL2D     - Max. initial quantum use efficiency low veg.
+! S2RVF2IH2D      - Critical normalized swc for stress parameterisation high veg. 
+! S2RVF2IL2D      - Critical normalized swc for stress parameterisation low veg. 
+! S2RVFZEROSTH2D
+! S2RVFZEROSTL2D
+! S2RVGAMMH2D     - CO2 compensation concentration high veg. 
+! S2RVGAMML2D     - CO2 compensation concentration low veg.  
+! S2RVGCH2D       - Cuticular conductance high veg.
+! S2RVGCL2D       - Cuticular conductance low veg.
+! S2RVGMESH2D     - Mesophyll conductance high veg.
+! S2RVGMESL2D     - Mesophyll conductance low veg.
+! S2RVLAIMINH2D   - Min. LAI high veg.
+! S2RVLAIMINL2D   - Min. LAI low veg. 
+! S2RVQDAMMAXH2D  - Q10 function leaf photosynt. capacity high veg. 
+! S2RVQDAMMAXL2D  - Q10 function leaf photosynt. capacity low veg.
+! S2RVQDGAMMH2D   - Q10 funct. CO2 compensation concentration high veg.
+! S2RVQDGAMML2D   - Q10 funct. CO2 compensation concentration low veg. 
+! S2RVQDGMESH2D   - Q10 funct. mesophyll conductance high veg.
+! S2RVQDGMESL2D   - Q10 funct. mesophyll conductance low veg.
+! S2RVSEFOLDH2D   - E-folding time senescense high veg.
+! S2RVSEFOLDL2D   - E-folding time senescense low veg.
+! S2RVT1AMMAXH2D  - Min. ref. temp. response funct. leaf photosynt. capacity high veg.
+! S2RVT1AMMAXL2D  - Min. ref. temp. response funct. leaf photosynt. capacity low veg.
+! S2RVT1GMESH2D   - Min. ref. temp. response funct. mesophyll conductance high veg
+! S2RVT1GMESL2D   - Min. ref. temp. response funct. mesophyll conductance low veg.
+! S2RVT2AMMAXH2D  - Max. ref. temp. response funct. leaf photosynt. capacity high veg.
+! S2RVT2AMMAXL2D  - Max. ref. temp. response funct. leaf photosynt. capacity low veg.
+! S2RVT2GMESH2D   - Max. ref. temp. response funct. mesophyll conductance high veg.
+! S2RVT2GMESL2D   - Max. ref. temp. response funct. mesophyll conductance low veg.
+! S2RVTOPTH2D     - Optimum temp. compensation point high veg.
+! S2RVTOPTL2D     - Optimum temp. compensation point low veg.
+! S2RXBOMEGAMH2D  - Foliage scattering coeff. high veg.
+! S2RXBOMEGAML2D  - Foliage scattering coeff. low veg.
+! S2RVRSMINB2D    - Bare soil minimum resistance
+! S2RVANMAXH2D    - derived SDP
+! S2RVANMAXL2D    - derived SDP
+! S2RVBSLAI_NITROH2D - derived SDP
+! S2RVBSLAI_NITROL2D - derived SDP 
+
+! GPD_SDP3 - Generic group for 3D calibrated surface spatially distributed parameters
+
+! S3RCGDRYM3D    - Heat capacity of soil
+! S3RLAMBDAM3D   - Lambda factor for van Genuchten
+! S3RMVGALPHA3D  - Alpha in van Genuchten
+! S3RNFACM3D     - N exponent in van Genuchten
+! S3RWCONSM3D    - Water conductivity at saturation
+! S3RWRESTM3D    - van Genuchten rwrst
+! S3RWSATM3D     - Soil water content at saturation
+! S3RVROOTSAH3D  - Percentage of roots in each soil layer high veg.
+! S3RVROOTSAL3D  - Percentage of roots in each soil layer low veg.
+! S3RCWPSISM3D   - derived SDP
+! S3RDMAXM3D     - derived SDP
+! S3RDMINM3D     - derived SDP
+! S3RLAMBDADRYM3D  - derived SDP
+! S3RLAMSAT1M3D  - derived SDP
+! S3RMFACM3D     - derived SDP
+! S3RQWEVAPM3D   - derived SDP
+! S3RQWSBCRM3D   - derived SDP
+! S3RRCSOILM3D   - derived SDP
+! S3RWCAPM3D     - derived SDP
+! S3RWPWPM3D     - derived SDP
+
+
 REAL(KIND=JPRB),ALLOCATABLE,TARGET:: GPD(:,:)
 
 REAL(KIND=JPRB),POINTER:: VFMASK(:)
@@ -198,6 +290,8 @@ REAL(KIND=JPRB),POINTER:: VFPGLOB(:)
 REAL(KIND=JPRB),ALLOCATABLE,TARGET:: GPD_SDP2(:,:)
 REAL(KIND=JPRB),POINTER :: S2RVCOVH2D(:)
 REAL(KIND=JPRB),POINTER :: S2RVCOVL2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVHSTRH2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVHSTRL2D(:)
 REAL(KIND=JPRB),POINTER :: S2RVLAMSKH2D(:)
 REAL(KIND=JPRB),POINTER :: S2RVLAMSKL2D(:)
 REAL(KIND=JPRB),POINTER :: S2RVLAMSKSH2D(:)
@@ -206,13 +300,81 @@ REAL(KIND=JPRB),POINTER :: S2RVRSMINH2D(:)
 REAL(KIND=JPRB),POINTER :: S2RVRSMINL2D(:)
 REAL(KIND=JPRB),POINTER :: S2RVZ0HH2D(:)
 REAL(KIND=JPRB),POINTER :: S2RVZ0HL2D(:)
-REAL(KIND=JPRB),POINTER :: S2RVANMAXL2D(:) !derived SDP
 REAL(KIND=JPRB),POINTER :: S2RVZ0MH2D(:)
 REAL(KIND=JPRB),POINTER :: S2RVZ0ML2D(:)
-REAL(KIND=JPRB),POINTER :: S2RVRSMINB2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVAHL2D(:)      
+REAL(KIND=JPRB),POINTER :: S2RVAMMAXH2D(:)   
+REAL(KIND=JPRB),POINTER :: S2RVAMMAXL2D(:)  
+REAL(KIND=JPRB),POINTER :: S2RVBHL2D(:)     
+REAL(KIND=JPRB),POINTER :: S2RVCEH2D(:)     
+REAL(KIND=JPRB),POINTER :: S2RVCEL2D(:)      
+REAL(KIND=JPRB),POINTER :: S2RVCFH2D(:)      
+REAL(KIND=JPRB),POINTER :: S2RVCFL2D(:)     
+REAL(KIND=JPRB),POINTER :: S2RVCNAH2D(:)    
+REAL(KIND=JPRB),POINTER :: S2RVCNAL2D(:)    
+REAL(KIND=JPRB),POINTER :: S2RVDMAXH2D(:)    
+REAL(KIND=JPRB),POINTER :: S2RVDMAXL2D(:)   
+REAL(KIND=JPRB),POINTER :: S2RVEPSOH2D(:)    
+REAL(KIND=JPRB),POINTER :: S2RVEPSOL2D(:)   
+REAL(KIND=JPRB),POINTER :: S2RVF2IH2D(:)     
+REAL(KIND=JPRB),POINTER :: S2RVF2IL2D(:)     
+REAL(KIND=JPRB),POINTER :: S2RVFZEROSTH2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVFZEROSTL2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVGAMMH2D(:)    
+REAL(KIND=JPRB),POINTER :: S2RVGAMML2D(:)     
+REAL(KIND=JPRB),POINTER :: S2RVGCH2D(:)     
+REAL(KIND=JPRB),POINTER :: S2RVGCL2D(:)     
+REAL(KIND=JPRB),POINTER :: S2RVGMESH2D(:)   
+REAL(KIND=JPRB),POINTER :: S2RVGMESL2D(:)   
+REAL(KIND=JPRB),POINTER :: S2RVLAIMINH2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVLAIMINL2D(:)  
+REAL(KIND=JPRB),POINTER :: S2RVQDAMMAXH2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVQDAMMAXL2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVQDGAMMH2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVQDGAMML2D(:)  
+REAL(KIND=JPRB),POINTER :: S2RVQDGMESH2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVQDGMESL2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVSEFOLDH2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVSEFOLDL2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVT1AMMAXH2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVT1AMMAXL2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVT1GMESH2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVT1GMESL2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVT2AMMAXH2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVT2AMMAXL2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVT2GMESH2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVT2GMESL2D(:) 
+REAL(KIND=JPRB),POINTER :: S2RVTOPTH2D(:)   
+REAL(KIND=JPRB),POINTER :: S2RVTOPTL2D(:)   
+REAL(KIND=JPRB),POINTER :: S2RXBOMEGAMH2D(:)
+REAL(KIND=JPRB),POINTER :: S2RXBOMEGAML2D(:)
+REAL(KIND=JPRB),POINTER :: S2RVRSMINB2D(:)  
+REAL(KIND=JPRB),POINTER :: S2RVANMAXH2D(:)  ! derived SDP
+REAL(KIND=JPRB),POINTER :: S2RVANMAXL2D(:)  ! derived SDP
+REAL(KIND=JPRB),POINTER :: S2RVBSLAI_NITROH2D(:) ! derived SDP
+REAL(KIND=JPRB),POINTER :: S2RVBSLAI_NITROL2D(:) ! derived SDP 
 
 ! Calibrated 3D spatially distributed parameters
 REAL(KIND=JPRB),ALLOCATABLE,TARGET:: GPD_SDP3(:,:,:)
+REAL(KIND=JPRB),POINTER :: S3RCGDRYM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RLAMBDAM3D(:,:)
 REAL(KIND=JPRB),POINTER :: S3RMVGALPHA3D(:,:)
-
+REAL(KIND=JPRB),POINTER :: S3RNFACM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RWCONSM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RWRESTM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RWSATM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RVROOTSAH3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RVROOTSAL3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RCWPSISM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RDMAXM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RDMINM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RLAMBDADRYM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RLAMSAT1M3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RMFACM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RQWEVAPM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RQWSBCRM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RRCSOILM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RWCAPM3D(:,:)
+REAL(KIND=JPRB),POINTER :: S3RWPWPM3D(:,:)
+   
 END MODULE YOMGPD1S

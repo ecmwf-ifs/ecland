@@ -3,6 +3,7 @@ CONTAINS
 SUBROUTINE SRFRCG(KIDIA  , KFDIA  , KLON , KTILES, KLEVS ,&
  & LDLAND , LDSICE ,&
  & PTSAM1M, KSOTY  , PCVL   , PCVH  , PCUR,&
+ & PSSDP3,&
  & YDCST, YDSOIL   , YDURB  ,&
  & PCTSA)  
  
@@ -12,6 +13,7 @@ USE YOS_THF   , ONLY : RHOH2O
 USE YOS_CST   , ONLY : TCST
 USE YOS_SOIL  , ONLY : TSOIL
 USE YOS_URB   , ONLY : TURB
+USE YOMSURF_SSDP_MOD
 
 ! (C) Copyright 1993- ECMWF.
 !
@@ -72,7 +74,10 @@ USE YOS_URB   , ONLY : TURB
 !     Modified    P. Viterbo   24/05/2004   Change surface units
 !     Modified    G. Balsamo   10/01/2006   Include Van Genuchten Hydro.
 !     Modified    G. Balsamo   03/07/2006   Add soil type
+!     Modified    M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                            use of parameter values defined in namelist
 !     Modified    J. McNorton  24/08/2022   urban tile
+!     Modified    I. Ayan-Miguez (BSC)  Sep 2023  Added PSSDP3 object for spatially distributed parameters
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -93,6 +98,8 @@ REAL(KIND=JPRB),    INTENT(IN)   :: PCUR(:)
 
 LOGICAL,   INTENT(IN)   :: LDLAND(:)
 LOGICAL,   INTENT(IN)   :: LDSICE(:)
+
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSDP3(:,:,:)
 
 TYPE(TCST),         INTENT(IN)   :: YDCST
 TYPE(TSOIL),        INTENT(IN)   :: YDSOIL
