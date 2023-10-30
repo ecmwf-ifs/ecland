@@ -8,6 +8,7 @@ SUBROUTINE SRFCOTWO(KIDIA,KFDIA,KLON,KLEVS,KTILES,&
  & PWSOIL,PTSOIL,&
  & PDSN,PFWET,PLAT, &
  & PANTI,PAGTI,PRDTI,&
+ & PSSDP3,&
  & YDCST,YDVEG,YDSOIL,YDAGS,&
  & PANDAYVT,PANFMVT,&
  & PAG,PRD,PAN,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX,&
@@ -29,6 +30,9 @@ SUBROUTINE SRFCOTWO(KIDIA,KFDIA,KLON,KLEVS,KTILES,&
 !     Sebastien Lafont (ECMWF)    18/05/2006
 !     S. Boussetta/G.Balsamo June 2010 Add soil moisture scaling factor for Reco
 !     S. Boussetta/G.Balsamo October 2010 Add snowpack and cold season temeprature effects on respiration
+!     M. Kelbling and S. Thober (UFZ) 25/5/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
+!     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
 
 !     PURPOSE
 !     -------
@@ -113,7 +117,7 @@ USE YOS_CST  , ONLY : TCST
 USE YOS_VEG  , ONLY : TVEG
 USE YOS_SOIL , ONLY : TSOIL
 USE YOS_AGS  , ONLY : TAGS
-
+USE YOMSURF_SSDP_MOD
 
 IMPLICIT NONE
 
@@ -142,6 +146,7 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PANTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PAGTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRDTI(:,:)
 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
 TYPE(TSOIL)       ,INTENT(IN)    :: YDSOIL

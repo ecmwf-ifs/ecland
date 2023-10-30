@@ -2,6 +2,7 @@ MODULE SRFWNG_MOD
 CONTAINS
 SUBROUTINE SRFWNG(KIDIA,KFDIA,KLEVS,PTMST,KSOTY,&
  & PWL,PWLMX,PWSA,&
+ & PSSDP3,&
  & YDSOIL,&
  & PROS,PROD,PWFSD,&
  & LDLAND,PDHWLS)  
@@ -10,6 +11,7 @@ USE PARKIND1  , ONLY : JPIM, JPRB
 USE YOMHOOK   , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_THF   , ONLY : RHOH2O
 USE YOS_SOIL  , ONLY : TSOIL
+USE YOMSURF_SSDP_MOD
 
 ! (C) Copyright 1989- ECMWF.
 !
@@ -80,7 +82,10 @@ USE YOS_SOIL  , ONLY : TSOIL
 !     Modified    J.F. Estrade *ECMWF* 03-10-01 move in surf vob
 !     P. Viterbo    24-05-2004      Change surface units
 !     G. Balsamo    03-07-2006      Add soil type
-!     G. Balsamo    18-08-2015      Rewritten for soil multi-layer 
+!     G. Balsamo    18-08-2015      Rewritten for soil multi-layer
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
+!     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -95,6 +100,7 @@ INTEGER(KIND=JPIM), INTENT(IN)   :: KSOTY(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PTMST
 REAL(KIND=JPRB),    INTENT(IN)   :: PWLMX(:)
 LOGICAL,            INTENT(IN)   :: LDLAND(:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSDP3(:,:,:)
 TYPE(TSOIL),        INTENT(IN)   :: YDSOIL
 
 REAL(KIND=JPRB),    INTENT(INOUT):: PWL(:)

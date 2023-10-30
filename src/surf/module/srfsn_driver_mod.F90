@@ -10,6 +10,7 @@ SUBROUTINE SRFSN_DRIVER(KIDIA   ,KFDIA   ,KLON   ,KLEVSN, PTMST, LDLAND,&
   & PSSFC, PSSFL   , PTSFC, PTSFL, &
   & PSLRFLTI, PSSRFLTI , PAHFSTI, PEVAPTI, PEVAPSNW, &
   & PWSAM1M , KSOTY, PAPRS, &
+  & PSSDP3, &
   ! input derived types (constants)
   & YDSOIL , YDCST, &
   ! output prognostics at T 
@@ -35,6 +36,7 @@ USE SRFSN_REGRID_MOD
 USE SRFSN_SSRABS_MOD
 
 USE ABORT_SURF_MOD
+USE YOMSURF_SSDP_MOD
 
 ! (C) Copyright 2015- ECMWF.
 !
@@ -127,7 +129,7 @@ USE ABORT_SURF_MOD
 !     Modifications:
 !     Original   E. Dutra      ECMWF     04/12/2015
 !                G. Arduini    ECMWF     01/09/2021
-
+!     Modified:  I. Ayan-Miguez (BSC) Sep 2023: Add PSSDP3 and adapt FSOILTCOND function
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -166,6 +168,7 @@ REAL(KIND=JPRB),    INTENT(IN)   :: PEVAPSNW(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PWSAM1M(:,:)
 INTEGER(KIND=JPIM), INTENT(IN)   :: KSOTY(:)
 
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSDP3(:,:,:)
 TYPE(TSOIL)       , INTENT(IN)   :: YDSOIL
 TYPE(TCST)        , INTENT(IN)   :: YDCST
 

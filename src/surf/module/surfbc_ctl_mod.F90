@@ -116,6 +116,8 @@ USE YOMSURF_SSDP_MOD
 !     E. Dutta             16-11-2009  snow 2009 cleaning
 !     S. Boussetta/G.Balsamo May 2010 Add CTESSEL
 !     G.Balsamo              Jan 2015 Add subgrid lake ice fraction
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
 !     I. Ayan-Miguez         June 2023 Add refactorization of RVCOV
 !     J. McNorton           24/08/2022  urban tile
 !     ------------------------------------------------------------------

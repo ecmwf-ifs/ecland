@@ -14,7 +14,7 @@ SUBROUTINE VSURF(KIDIA,KFDIA,KLON,KTILES,KLEVS,KTILE,&
  & PEVAP ,&
  & PAN,PAG,PRD ,PPWLIQ ,&
  & PDHVEGS, PEXDIAG, &
- & PSSDP2, YDCST, YDVEG, YDEXC, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB)
+ & PSSDP2, PSSDP3, YDCST, YDVEG, YDEXC, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB)
   
 USE PARKIND1 , ONLY : JPIM, JPRB
 USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
@@ -67,7 +67,7 @@ USE YOMSURF_SSDP_MOD
 !     S. Boussetta     21/06/2022  Added Ronda (Ronda et al. 2002, J. App. Met.) SM stress function
 !     J. McNorton      24/08/2022  urban tile
 !     S. Boussetta     21/06/2022  Added LAI scaling by Cveg for Rc canopy resistance computaioin
-!     I. Ayan-Miguez July 2023 Added PSSDP2 object for spatially distributed parameters
+!     I. Ayan-Miguez   July 2023   Added PSSDP2 object for spatially distributed parameters
 
 !     PURPOSE
 !     -------
@@ -203,6 +203,7 @@ REAL(KIND=JPRB)   ,INTENT(INOUT) :: PWETHS(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PPWLIQ(KLON,KLEVS)
 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
 TYPE(TEXC)        ,INTENT(IN)    :: YDEXC

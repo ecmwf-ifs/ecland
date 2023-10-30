@@ -5,6 +5,7 @@ SUBROUTINE SRFT(KIDIA  , KFDIA , KLON   , KTILES, KLEVS ,&
  & PFRTI  , PAHFSTI, PEVAPTI ,&
  & PSLRFLTI , PSSRFLTI, PGSN   ,&
  & PCTSA  , LDLAND ,&
+ & PSSDP3 ,&
  & YDCST  , YDSOIL , YDFLAKE, YDURB,&
  & PTSA   , PTSDFL , PDHTTS)  
   
@@ -16,6 +17,7 @@ USE YOS_FLAKE, ONLY : TFLAKE
 USE YOS_URB  , ONLY : TURB
 
 USE SRFWDIF_MOD
+USE YOMSURF_SSDP_MOD
 
 ! (C) Copyright 1993- ECMWF.
 !
@@ -100,7 +102,10 @@ USE SRFWDIF_MOD
 !     G. Balsamo    08-01-2006      Include Van Genuchten Hydro.
 !     E. Dutra      21/11/2008      change ground heat flux ! account for new lake tile
 !     E. Dutra      10/10/2014  net longwave tiled
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
 !     J. McNorton   24/08/2022  urban tile
+!     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -125,6 +130,7 @@ REAL(KIND=JPRB),    INTENT(IN)   :: PSSRFLTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PGSN(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PCTSA(:,:)
 LOGICAL,            INTENT(IN)   :: LDLAND(:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSDP3(:,:,:)
 TYPE(TCST),         INTENT(IN)   :: YDCST
 TYPE(TSOIL),        INTENT(IN)   :: YDSOIL
 TYPE(TFLAKE),       INTENT(IN)   :: YDFLAKE

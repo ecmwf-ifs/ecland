@@ -4,6 +4,7 @@ SUBROUTINE SRFENE(&
  & KIDIA  , KFDIA  , KLON  , KLEVS,&
  & LDLAND , LDSICE ,&
  & PTSAM1M, KSOTY, PCVL , PCVH ,&
+ & PSSDP3 ,&
  & YDCST  , YDSOIL ,&
  & PENES)  
 
@@ -21,7 +22,9 @@ SUBROUTINE SRFENE(&
 !     Modified  P.VITERBO  99-03-26   Tiling of the land surface
 !               P.VITERBO  2004-05-24 Move to surf library
 !               G.BALSAMO  2006-07-03 Add soil type 
-
+!               M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
+!               I. Ayan-Miguez (BSC) Sep 2023  Add PSSDP3 object for spatially distributed parameters
 !     PURPOSE.
 !     --------
 
@@ -82,6 +85,7 @@ USE YOMHOOK   , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_THF   , ONLY : RHOH2O
 USE YOS_CST   , ONLY : TCST
 USE YOS_SOIL  , ONLY : TSOIL
+USE YOMSURF_SSDP_MOD
 
 IMPLICIT NONE
 
@@ -95,6 +99,7 @@ LOGICAL           ,INTENT(IN)    :: LDSICE(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TSOIL)       ,INTENT(IN)    :: YDSOIL
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PENES(:,:) 
