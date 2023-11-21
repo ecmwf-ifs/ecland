@@ -887,6 +887,7 @@ DO JL =KIDIA,KFDIA
       ZTLSF(JL) = RC_SHAPE 
       ZTLICE(JL)= ZTIA(JL,1)
       IF (LDSICE(JL)) THEN  ! The sea-ice presence is used to set a ice-depth over ocean (capped to 0.1m)
+         !*ZHLICE(JL)= MIN(PFRTI(JL,2)/10.0_JPRB,0.1_JPRB)
       ! We use ZHLML mixed layer depth and ZHLICE ice thickness as container for snow
       ! depth and ice thickness over sea-ice respectively
          IF ( LNEMOICETHK ) THEN
