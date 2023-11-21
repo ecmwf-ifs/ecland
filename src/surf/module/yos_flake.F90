@@ -24,7 +24,7 @@ MODULE YOS_FLAKE
 !  Phone:  +49-69-8062 2705
 !  Fax:    +49-69-8062 3721
 !  E-mail: dmitrii.mironov@dwd.de
-
+!
 ! History:
 ! Version    Date       Name
 ! ---------- ---------- ----
@@ -75,13 +75,13 @@ TYPE :: TFLAKE
 !  in the equations for the mixed-layer depth 
 !  and for the shape factor with respect to the temperature profile in the thermocline
 
-REAL (KIND = JPRD):: RC_CBL_1         ! Constant in the CBL entrainment equation
-REAL (KIND = JPRD):: RC_CBL_2         ! Constant in the CBL entrainment equation
-REAL (KIND = JPRD):: RC_SBL_ZM_N      ! Constant in the ZM1996 equation for the equilibrium SBL depth
-REAL (KIND = JPRD):: RC_SBL_ZM_S      ! Constant in the ZM1996 equation for the equilibrium SBL depth
-REAL (KIND = JPRD):: RC_SBL_ZM_I      ! Constant in the ZM1996 equation for the equilibrium SBL depth
-REAL (KIND = JPRD):: RC_RELAX_H       ! Constant in the relaxation equation for the SBL depth
-REAL (KIND = JPRD):: RC_RELAX_C       ! Constant in the relaxation equation for the shape factor
+REAL (KIND = JPRB):: RC_CBL_1         ! Constant in the CBL entrainment equation
+REAL (KIND = JPRB):: RC_CBL_2         ! Constant in the CBL entrainment equation
+REAL (KIND = JPRB):: RC_SBL_ZM_N      ! Constant in the ZM1996 equation for the equilibrium SBL depth
+REAL (KIND = JPRB):: RC_SBL_ZM_S      ! Constant in the ZM1996 equation for the equilibrium SBL depth
+REAL (KIND = JPRB):: RC_SBL_ZM_I      ! Constant in the ZM1996 equation for the equilibrium SBL depth
+REAL (KIND = JPRB):: RC_RELAX_H       ! Constant in the relaxation equation for the SBL depth
+REAL (KIND = JPRB):: RC_RELAX_C       ! Constant in the relaxation equation for the shape factor
                                      ! with respect to the temperature profile in the thermocline
 
 !  Parameters of the shape functions 
@@ -92,19 +92,19 @@ REAL (KIND = JPRD):: RC_RELAX_C       ! Constant in the relaxation equation for 
 
 REAL (KIND = JPRB):: RC_T_MIN         ! Minimum value of the shape factor C_T (thermocline)
 REAL (KIND = JPRB):: RC_T_MAX         ! Maximum value of the shape factor C_T (thermocline)
-REAL (KIND = JPRD):: RPHI_T_PR0_1     ! Constant in the expression for the T shape-function derivative 
-REAL (KIND = JPRD):: RPHI_T_PR0_2     ! Constant in the expression for the T shape-function derivative 
-REAL (KIND = JPRD):: RC_TT_1          ! Constant in the expression for C_TT (thermocline)
-REAL (KIND = JPRD):: RC_TT_2          ! Constant in the expression for C_TT (thermocline)
-REAL (KIND = JPRD):: RC_B1            ! Shape factor (upper layer of bottom sediments)
-REAL (KIND = JPRD):: RC_B2            ! Shape factor (lower layer of bottom sediments)
+REAL (KIND = JPRB):: RPHI_T_PR0_1     ! Constant in the expression for the T shape-function derivative 
+REAL (KIND = JPRB):: RPHI_T_PR0_2     ! Constant in the expression for the T shape-function derivative 
+REAL (KIND = JPRB):: RC_TT_1          ! Constant in the expression for C_TT (thermocline)
+REAL (KIND = JPRB):: RC_TT_2          ! Constant in the expression for C_TT (thermocline)
+REAL (KIND = JPRB):: RC_B1            ! Shape factor (upper layer of bottom sediments)
+REAL (KIND = JPRB):: RC_B2            ! Shape factor (lower layer of bottom sediments)
 REAL (KIND = JPRB):: RC_S_LIN         ! Shape factor (linear temperature profile in the snow layer)
 REAL (KIND = JPRB):: RPHI_S_PR0_LIN   ! S shape-function derivative (linear profile) 
 REAL (KIND = JPRB):: RC_I_LIN         ! Shape factor (linear temperature profile in the ice layer)
 REAL (KIND = JPRB):: RPHI_I_PR0_LIN   ! I shape-function derivative (linear profile) 
 REAL (KIND = JPRB):: RPHI_I_PR1_LIN   ! I shape-function derivative (linear profile) 
 REAL (KIND = JPRB):: RPHI_I_AST_MR    ! Constant in the MR2004 expression for I shape factor
-REAL (KIND = JPRD):: RC_I_MR          ! Constant in the MR2004 expression for I shape factor
+REAL (KIND = JPRB):: RC_I_MR          ! Constant in the MR2004 expression for I shape factor
 REAL (KIND = JPRB):: RH_ICE_MAX       ! Maximum ice tickness in 
                                      ! the Mironov and Ritter (2004, MR2004) ice model [m] 
 
