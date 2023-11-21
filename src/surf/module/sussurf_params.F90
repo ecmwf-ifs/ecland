@@ -57,10 +57,9 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 IF (LHOOK) CALL DR_HOOK('SUSSURF_PARAMS_MOD:SUSSURF_PARAMS',0,ZHOOK_HANDLE)
 
-   ! --------------------------------------------------
-   !  -- SOIL -----------------------------------------
-   ! --------------------------------------------------
-
+! --------------------------------------------------
+!  -- SNOW -----------------------------------------
+! --------------------------------------------------
 
 YDSOIL%RLWCSWEA        = TMP_SURF%RLWCSWEA
 YDSOIL%RLWCSWEB        = TMP_SURF%RLWCSWEB
@@ -125,6 +124,10 @@ YDSOIL%RDSNMAX         = TMP_SURF%RDSNMAX
 YDSOIL%RSFRESH         = TMP_SURF%RSFRESH
 YDSOIL%RALFMINSN       = TMP_SURF%RALFMINSN
 YDSOIL%RALFMAXSN       = TMP_SURF%RALFMAXSN
+
+! --------------------------------------------------
+!  -- SOIL -----------------------------------------
+! --------------------------------------------------
 
 YDSOIL%RTF1            = TMP_SURF%RTF1
 YDSOIL%RTF2            = TMP_SURF%RTF2
