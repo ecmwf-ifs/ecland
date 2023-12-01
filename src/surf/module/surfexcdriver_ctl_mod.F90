@@ -2,7 +2,7 @@ MODULE SURFEXCDRIVER_CTL_MOD
 CONTAINS
 SUBROUTINE SURFEXCDRIVER_CTL(CDCONF &
  & , KIDIA, KFDIA, KLON, KLEVS, KTILES, KVTYPES, KDIAG, KSTEP &
- & , KLEVSN, KLEVI, KDHVTLS, KDHFTLS, KDHVTSS, KDHFTSS &
+ & , KLEVSN, KLEVI, LDLAND, KDHVTLS, KDHFTLS, KDHVTSS, KDHFTSS &
  & , KDHVTTS, KDHFTTS, KDHVTIS, KDHFTIS, K_VMASS &
  & , PTSTEP,PTSTEPF &
 ! input data, non-tiled
@@ -166,6 +166,8 @@ USE VLAMSK_MOD
 
 !      PMU0     : COS SOLAR
 !      PCARDI   : CONCENTRATION ATMOSPHERIC CO2
+!    Logicals independent of tiles (In):
+!     LDLAND    :    LAND SEA MASK INDICATOR                       -
 
 
 !      PUMLEV   :    X-VELOCITY COMPONENT, lowest atmospheric level   m/s
@@ -316,6 +318,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: K_VMASS
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEP
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEPF
 
+LOGICAL           ,INTENT(IN)    :: LDLAND(:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVL(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KCO2TYP(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(:) 
@@ -493,7 +496,7 @@ REAL(KIND=JPRB) :: ZDUA, ZZCDN, ZQSSN, ZCOR, ZRG, &
                  & ZZ0MWMO, ZBLENDWMO, ZBLENDZ0, ZCOEF1
 REAL(KIND=JPRB) :: ZRVTRSR
 
-LOGICAL         :: LLAND, LLSICE, LLHISSR(KLON)
+LOGICAL         :: LLSICE, LLHISSR(KLON)
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
@@ -785,7 +788,14 @@ PWETHS(KIDIA:KFDIA)=ZWETHS(KIDIA:KFDIA)
 !*          3.3x Surface temperature and Skin conductivity 
 !               -------------------------
 IF (LEOCWA .OR. LEOCCO) THEN
-  PTSRF(KIDIA:KFDIA,1)=PTSKTI(KIDIA:KFDIA,1)
+! Limit skin temperature over water tile to freezing point of water over land point
+! (when used in combination with lake tile for transition freezing period)
+! This is fine from conservation point of view as the two tiles do not interact
+  WHERE(LDLAND(KIDIA:KFDIA))
+    PTSRF(KIDIA:KFDIA,1)=MAX(RTT, PTSKTI(KIDIA:KFDIA,1))
+  ELSEWHERE
+    PTSRF(KIDIA:KFDIA,1)=PTSKTI(KIDIA:KFDIA,1)
+  ENDWHERE
 ELSE
   PTSRF(KIDIA:KFDIA,1)=PSST(KIDIA:KFDIA)
 ENDIF
