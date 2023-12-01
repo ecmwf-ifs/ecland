@@ -1,7 +1,7 @@
 INTERFACE
 SUBROUTINE SURFEXCDRIVER    (YDSURF, CDCONF &
  & , KIDIA, KFDIA, KLON, KLEVS, KTILES, KVTYPES, KDIAG, KSTEP &
- & , KLEVSN, KLEVI, KDHVTLS, KDHFTLS, KDHVTSS, KDHFTSS &
+ & , KLEVSN, KLEVI, LDLAND, KDHVTLS, KDHFTLS, KDHVTSS, KDHFTSS &
  & , KDHVTTS, KDHFTTS, KDHVTIS, KDHFTIS, K_VMASS &
  & , KDHVCO2S,KDHFCO2S,KDHVVEGS,KDHFVEGS &
  & , PTSTEP,PTSTEPF &
@@ -165,6 +165,8 @@ USE ISO_C_BINDING
 !      PUCURR   :    u component of ocean surface current             m/s
 !      PVCURR   :    v component of ocean surface current             m/s
 !      PI10FGCV :    gust velocity from deep convection               m/s
+!    Logicals independent of tiles (In):
+!      LDLAND    :    LAND SEA MASK INDICATOR                       -
 
 !    Reals with tile index (In/Out):
 !      PUSTRTI  :    SURFACE U-STRESS                                 N/m2 
@@ -265,6 +267,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KDIAG
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSTEP
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVSN 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVI 
+LOGICAL,           INTENT(IN)    :: LDLAND(:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHVTLS 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHFTLS 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHVTSS 
