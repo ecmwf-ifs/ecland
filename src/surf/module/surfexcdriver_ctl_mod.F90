@@ -64,7 +64,7 @@ USE SURFSEB_CTL_MOD
 USE SRFCOTWO_MOD
 USE VSFLX_MOD
 USE VLAMSK_MOD 
-USE YOMLUN    , ONLY : NULOUT, NULERR, RESERVE_LUN, FREE_LUN
+USE EC_LUN       , ONLY : NULERR
 ! (C) Copyright 2005- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
