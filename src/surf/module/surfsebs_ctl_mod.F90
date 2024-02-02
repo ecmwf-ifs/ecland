@@ -320,9 +320,9 @@ DO JT=1,KTILES
   !*   ELSE
         DO JL=KIDIA,KFDIA
            IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
-              ZLAMSK(JL,JT)=RVLAMSKS_SNOW
+              ZLAMSK(JL,JT)=RVLAMSKS(12)
            ELSE
-              ZLAMSK(JL,JT)=RVLAMSK_SNOW
+              ZLAMSK(JL,JT)=RVLAMSKS(12)
            ENDIF
            ! If LREPEAT=true, increase Lamda_skin to high value !
            IF (LREPEAT(JL)) THEN

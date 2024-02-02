@@ -884,7 +884,7 @@ DO JL =KIDIA,KFDIA
       ZTLWML(JL)=MAX(PSST(JL),RTT)
       ZTLMNW(JL)=MAX(PSST(JL),RTT)
       ZTLBOT(JL)=MAX(PSST(JL),RTT)
-      ZTLSF(JL) = RC_SHAPE 
+      ZTLSF(JL) =0.65_JPRB ! The lake shape factor is kept constant to 0.65
       ZTLICE(JL)= ZTIA(JL,1)
       IF (LDSICE(JL)) THEN  ! The sea-ice presence is used to set a ice-depth over ocean (capped to 0.1m)
          !*ZHLICE(JL)= MIN(PFRTI(JL,2)/10.0_JPRB,0.1_JPRB)
@@ -893,7 +893,7 @@ DO JL =KIDIA,KFDIA
          IF ( LNEMOICETHK ) THEN
            ZHLICE(JL) = MAX(PTHKICE(JL), 0.28_JPRB)
          ELSE
-           ZHLICE(JL)= MIN(PFRTI(JL,2)*RC_OC_MAXICEZ,RC_OC_MAXICEZ)
+           ZHLICE(JL)= MIN(PFRTI(JL,2)/10.0_JPRB,0.1_JPRB)
          ENDIF
       ELSE
          ZHLICE(JL)= 0.0_JPRB
