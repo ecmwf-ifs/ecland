@@ -221,18 +221,6 @@ CALL RDNML_URB(TMP_SURF)
 
 !     ------------------------------------------------------------------
 
-!*         2b.     READ NAMELISTS
-!                 ------------------------------------
-
-CALL RDNML_SNOW(TMP_SURF)
-CALL RDNML_SOIL(TMP_SURF)
-CALL RDNML_VEG(TMP_SURF)
-CALL RDNML_AGS(TMP_SURF)
-CALL RDNML_FLAKE(TMP_SURF)
-CALL RDNML_EXC(TMP_SURF)
-
-!     ------------------------------------------------------------------
-
 !*         3.     SETTING CONSTANTS FOR SURFACE SCHEME
 !                 ------------------------------------
 LEOCMTKE =.FALSE.
