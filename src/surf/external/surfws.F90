@@ -1,4 +1,5 @@
 SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON, KLEVS, KLEVSN, KTILES, PSDOR, &
+                    & LDSICE,&
                     & PLSM,    PFRTI, PMU0,                          &
                     & PTSAM1M, PTSKIN,PALBSN,                         &
                     & PTSNM1M, PSNM1M,                                &
@@ -75,6 +76,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVSN
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTILES
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLSM(:) 
+LOGICAL   ,INTENT(IN)    :: LDSICE(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSDOR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 
@@ -102,6 +104,10 @@ YSURF => GET_SURF(YDSURF)
 
 IF(UBOUND(PLSM,1) < KLON) THEN
   CALL ABORT_SURF('SURFWS: PLSM TOO SHORT!')
+ENDIF
+
+IF(UBOUND(LDSICE,1) < KLON) THEN
+  CALL ABORT_SURF('SURFWS: LDSICE TOO SHORT!')
 ENDIF
 
 IF(UBOUND(PFRTI,1) < KLON) THEN
@@ -167,7 +173,7 @@ ENDIF
 
 
 CALL SURFWS_CTL   (KIDIA, KFDIA, KLON, KLEVSN, PSDOR, &
- & PLSM, PFRTI, PMU0,                         &
+ & LDSICE,PLSM, PFRTI, PMU0,                         &
  & PTSAM1M, PTSKIN, PALBSN,                    &
  & PTSNM1M, PSNM1M, PRSNM1M, PWSNM1M,          &  
  & YSURF%YCST, YSURF%YSOIL                     )  

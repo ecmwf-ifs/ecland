@@ -17,6 +17,7 @@ SUBROUTINE SURFTSTP_CTL(KIDIA , KFDIA , KLON  , KLEVS , KTILES,&
  & PAHFSTI, PEVAPTI, PSSRFLTI,PSLRFLTI,& 
  & PLAT, PANFMVT, PANDAYVT,PMU0,&                                  !CTESSEL
  & PCVT, PLAIVT, PLAIL, PLAIH,&                                    !CTESSEL
+ & PCIL, &
  & PLAILC,  PLAIHC, &
  & LDLAND,  LDSICE, LDSI, LDNH, LDOCN_KPP,&      
  & PSNM1M  ,PTSNM1M, PASNM1M, PRSNM1M,PWSNM1M,&
@@ -80,6 +81,7 @@ USE SRFSN_DRIVER_MOD
 USE SRFRCG_MOD
 USE SRFT_MOD
 USE SRFI_MOD
+USE SRFIL_MOD
 USE SRFWL_MOD
 USE SRFWEXC_MOD
 USE SRFWEXC_VG_MOD
@@ -338,6 +340,7 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSKM1M(:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PLAIVT(:,:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PLAIL(:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PLAIH(:)
+REAL(KIND=JPRB)   ,INTENT(INOUT) :: PCIL(:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PANFMVT(:,:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PANDAYVT(:,:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PRESPBSTR(:,:)
@@ -509,11 +512,14 @@ REAL(KIND=JPRB) :: ZTSFC_TAD(KLON),ZTSFL_TAD(KLON), ZSSFC_TAD(KLON), ZSSFL_TAD(K
 
 REAL(KIND=JPRB) :: ZFWEL1(KLON)   ,ZFWE234(KLON)
 REAL(KIND=JPRB) :: ZGSN(KLON) ,ZMSN(KLON),ZEMSSN(KLON),ZEINTTI(KLON,KTILES)
+REAL(KIND=JPRB) :: ZMICE(KLON), ZMSNICE(KLON), ZGSNICE(KLON), ZGLICE(KLON)
+LOGICAL         :: LEGLACIERMELT
 REAL(KIND=JPRB) :: ZCDAWZ(KLON,KLEVS)
 REAL(KIND=JPRB) :: ZSLRFLTI(KLON,KTILES)
 REAL(KIND=JPRD) :: ZTSPHY
 REAL(KIND=JPRB) :: ZHOH2O
 REAL(KIND=JPRB) :: ZRSNM1M(KLON)
+REAL(KIND=JPRB) :: ZEPSILON
 
 INTEGER(KIND=JPIM) :: JK, JL, JT,KLMAX
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -540,7 +546,7 @@ ASSOCIATE(RTT=>YDCST%RTT, &
 
 ZTSPHY=(1.0_JPRD)/PTSPHY
 ZHOH2O=1.0_JPRB/RHOH2O
-
+ZEPSILON=10.0_JPRB*EPSILON(ZEPSILON)
 DO JK=1,KLEVS
   DO JL=KIDIA,KFDIA
     ZCDAWZ(JL,JK)=RDAW(JK)
@@ -606,7 +612,7 @@ IF ( LESNML ) THEN
   ENDIF
   CALL SRFSN_DRIVER(KIDIA   ,KFDIA   ,KLON   ,KLEVSN, PTSPHY, LDLAND,&
   & LDSNOWOVERICE, &
-  & PSDOR, &
+  & PSDOR, LDSICE, PCIL,&
   ! input at T-1 prognostics
   & PSNM1M, PTSNM1M, PRSNM1M  ,PWSNM1M, PASNM1M, &
   ! input at T-1 fluxes or constants 
@@ -620,7 +626,7 @@ IF ( LESNML ) THEN
   ! output prognostics at T 
   & ZSN,  ZTSN, ZRSN, ZWSN, ZASN, &
   ! output fluxes 
-  & ZGSN, ZMSN, ZEMSSN, & 
+  & ZGSN, ZGSNICE, ZMSN, ZMSNICE, ZEMSSN, & 
   ! Diagnostics 
   & PDHTSS, PDHSSS)
 
@@ -690,9 +696,11 @@ ELSE
 
 ENDIF
 ZROFS(KIDIA:KFDIA)=0._JPRB
-! Take care of permanent snow areas! 
-!Permanent snow reset was potentially dangerous at 1m threshold and 9m is used instead.
 
+
+!Permanent snow reset is set to 1500 mm as land-ice is introduced.
+ZSNPERT=1500.0_JPRB ! permanent snow threshold, do not allow more than 3.0m snow accumulation in open-loop simulations 
+                    ! with density of 500 kg m-3
 KLMAX=KLEVSN ! permanent snow max index
 IF ( .NOT. LESNML ) KLMAX=1
 DO JL=KIDIA,KFDIA
@@ -703,34 +711,16 @@ DO JL=KIDIA,KFDIA
     ENDIF
   ENDIF
 
-  IF ( SUM(PSNM1M(JL,:)) >=RSNPERT ) THEN
-    ZASN(JL)=RALFMINPSN
-    IF (.NOT. YDSOIL%LESNWBCON ) THEN 
-      !=======***NOTE***==========
-       ! SETTING ZSN IN PERMANENT SNOW AREAS DOES NOT CONSERVE MASS !!!!
-       ! IF MASS IS TO BE CONSERVED THE FOLLOWING LINE SHOULD BE COMMENTED !
-       IF ( .NOT. LESNML ) THEN
-         ZRSN(JL,KLMAX)=RHOMAXSN
-         ZSN(JL,KLMAX) = RSNGLC !reset to glaciers value of 10000 kg/m2 (SWE=10m)
-       ELSE ! RSN is not interactive over glacier, fixed to 300
-         ZRSN(JL,1:KLEVSN) =RHOMAXSN
-         ZWSN(JL,1:KLEVSN) = 0._JPRB
-         IF (KLMAX /= KLEVSN) THEN
-           ZSN(JL,KLMAX)  = RSNGLC - SUM(ZSN(JL,1:KLMAX-1)) - SUM(ZSN(JL,KLMAX+1:KLEVSN))  !reset to glaciers value of 10000 kg/m2 (SWE=10m)
-         ELSE
-           ZSN(JL,KLMAX)  = RSNGLC - SUM(ZSN(JL,1:KLMAX-1))                        !reset to glaciers value of 10000 kg/m2 (SWE=10m)
-         ENDIF
-       ENDIF
-    ELSE
-      ! try to keep water balance by removing snow mass > 10000 as calving - runoff
-      ! this only applies to the single layer 
-      IF ( .NOT. LESNML ) THEN
-        ZRSN(JL,KLMAX)=RHOMAXSN
-        ZROFS(JL) = MAX(0._JPRB,ZSN(JL,KLMAX)-SUM(PSNM1M(JL,:)))*ZTSPHY
-        ZSN(JL,KLMAX)=RSNGLC
+! Take care of permanent snow areas! 
+!reset to max allowed snow mass 1500.0  kg/m2 
+  IF ( SUM(ZSN(JL,:)) >ZSNPERT ) THEN
+      IF (KLMAX /= KLEVSN) THEN
+        ZSN(JL,KLMAX)  = ZSNPERT - SUM(ZSN(JL,1:KLMAX-1)) - SUM(ZSN(JL,KLMAX+1:KLEVSN))  
+      ELSE
+        ZSN(JL,KLMAX)  = ZSNPERT - SUM(ZSN(JL,1:KLMAX-1))
       ENDIF
-    ENDIF
   ENDIF
+
 ENDDO
 
 !*         2b.    URBAN CHANGES.
@@ -759,20 +749,29 @@ CALL SRFRCG(KIDIA  , KFDIA  , KLON   ,KTILES, KLEVS ,&
  & ZCTSA)  
 
 !*         3.2     TEMPERATURE CHANGES.
+! Land-ice
+CALL SRFIL(&
+ & KIDIA  , KFDIA  , KLON   , KLEVS  , KLEVI  ,LDLAND, PCIL,PSDOR,&
+ & PTSPHY , PTIAM1M, PFRTI  , PAHFSTI, PEVAPTI, ZGSNICE,&
+ & ZSLRFLTI(:,2) ,PSSRFLTI, PTSAM1M(KIDIA:KFDIA,1), LDSICE , LDNH   , &
+ & YDCST  ,YDSOIL  ,&
+ & ZTIA   , ZMICE,ZGLICE, PDHTIS)  
+
+
 ! soil
 CALL SRFT(KIDIA  , KFDIA  , KLON   , KTILES, KLEVS  , &
  & PTSPHY , PTSAM1M, PWSAM1M, &
  & PFRTI  , PAHFSTI,PEVAPTI , &
- & ZSLRFLTI , PSSRFLTI, ZGSN  , &
- & ZCTSA  , LDLAND , &
+ & ZSLRFLTI , PSSRFLTI, ZGSN  , ZGLICE, &
+ & ZCTSA  , LDLAND , PCIL, &
  & PSSDP3 , &
  & YDCST  , YDSOIL , YDFLAKE, YDURB,&
  & ZTSA   ,PTSDFL  , PDHTTS)
 ! sea-ice
 IF (LDSI) THEN
   CALL SRFI(&
-   & KIDIA  , KFDIA  , KLON   , KLEVS  , KLEVI  , &
-   & PTSPHY , PFRTI  , PTIAM1M, PAHFSTI, PEVAPTI, ZGSN,&
+   & KIDIA  , KFDIA  , KLON   , KLEVS  , KLEVI  , LDLAND, PCIL, &
+   & PTSPHY , PTIAM1M, PFRTI, PAHFSTI, PEVAPTI, ZGSN,&
    & ZSLRFLTI(:,2) ,PSSRFLTI, LDSICE , LDNH   ,&
    & LNEMOICETHK, PTHKICE, &
    & YDCST  ,YDSOIL  ,&
@@ -847,6 +846,16 @@ CALL SRFWNG(KIDIA,KFDIA,KLEVS,PTSPHY,KSOTY,&
 
 WHERE (LDLAND(KIDIA:KFDIA)) PROFD(KIDIA:KFDIA)=&
  & PROFD(KIDIA:KFDIA)+ZSAWGFL(KIDIA:KFDIA,KLEVS)*PTSPHY  
+
+! Glacier runoff: add it to PROFS as additional meltwater from the ice surface
+! ZMSNICE is already rescaled by fraction in snow routine
+  LEGLACIERMELT=.TRUE.
+  IF (LEGLACIERMELT) THEN
+    ! Normalise zmice to the grid box 
+    WHERE (PCIL(KIDIA:KFDIA)>0.0001)
+       PROFS(:) = PROFS(:) + ( (PCIL(:)*ZMICE(:)) + ZMSNICE(:) ) * PTSPHY
+    ENDWHERE
+  ENDIF
 
 
 !*        4.7     Lake model FLAKE 
@@ -993,28 +1002,22 @@ ENDDO
 DO JK=1,KLEVS
   DO JL=KIDIA,KFDIA
     IF (PFRTI(JL,9).GT.0.0_JPRB) THEN 
-       PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-       & ((ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
+         PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+         & (PCIL(JL)*(ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
+         & (1.0_JPRB-PCIL(JL))*(ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
+
     ELSE
-    ! This assumes that when LDSICE, PFRTI(5) is only active over sea-ice.
-    ! Needs rechecking when moving to fractional land-sea mask.
        IF (LESNICE) THEN
-         IF (LDSICE(JL)) THEN
-           PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-           & ((PFRTI(JL,2)+PFRTI(JL,5)) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
-           & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)-PFRTI(JL,5))*&
-           & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
-         ELSE
-           PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-           & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
-           & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
-           & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
-         ENDIF
+         PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+         & (PCIL(JL)*&
+         & (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
+         & (1.0_JPRB-PCIL(JL))*&
+         & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
        ELSE
-           PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-           & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
-           & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
-           & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY
+         PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+         & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
+         & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
+         & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
        ENDIF
     ENDIF
   ENDDO

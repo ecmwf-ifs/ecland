@@ -301,6 +301,7 @@ IF (YDSOIL%LESNML) THEN
 ! 2.1 compute vertical grid from previous time step profiles
   CALL SRFSN_VGRID(KIDIA,KFDIA,KLON,YDSOIL%NLEVSN,LLNOSNOW,&
               &  PSDOR, &
+              &  PFRTI(:,2) , LDLAND ,&  ! WRONG TO BE FIXED !!
               &  PSNM1M,PRSNM1M,&
               &  YDSOIL%RLEVSNMIN,YDSOIL%RLEVSNMAX,&
               &  YDSOIL%RLEVSNMIN_GL,YDSOIL%RLEVSNMAX_GL,&

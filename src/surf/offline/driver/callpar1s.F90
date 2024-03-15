@@ -537,7 +537,7 @@ REAL(KIND=JPRB) :: ZWND(KLON)
 REAL(KIND=JPRB) :: ZWLMX (KLON),ZEMIR(KLON),ZEMIW(KLON)
 REAL(KIND=JPRB) :: ZCHAR(KLON)
 REAL(KIND=JPRB) :: ZCHARHQ(KLON)
-REAL(KIND=JPRB) :: ZCVL(KLON),ZCVH(KLON),ZCUR(KLON)
+REAL(KIND=JPRB) :: ZCVL(KLON),ZCVH(KLON),ZCUR(KLON),ZCIL(KLON)
 REAL(KIND=JPRB) :: ZLAIL(KLON),ZLAIH(KLON)
 REAL(KIND=JPRB) :: ZLAILP(KLON),ZLAIHP(KLON),ZAVGPAR(KLON)
 REAL(KIND=JPRB) :: ZAVGPARC(KLON) ! Should be transformed into an input parameter!
@@ -640,7 +640,7 @@ CALL SURFBC(YDSURF, KIDIA,KFDIA,KLON,KTILES,KLEVSN &
      &           ,LESNICE &
      &           ,LLLAND ,LLSICE ,LLLAKE,LLNH, LLOCN_KPP &    
      &           ,ITVL   ,ICO2TYP, ITVH   ,ISOTY &
-     &           ,ZCVL   ,ZCVH   ,ZCUR  ,ZLAIL , ZLAIH, ZLAILP, ZLAIHP, ZAVGPAR & 
+     &           ,ZCVL   ,ZCVH   ,ZCUR  ,ZCIL, ZLAIL , ZLAIH, ZLAILP, ZLAIHP, ZAVGPAR & 
      &           ,ZWLMX  ,ZFRTI,ZCSN)
 
 
@@ -816,7 +816,7 @@ PFRTH(KIDIA:KFDIA,KLEV)=ZEMIS(KIDIA:KFDIA)* &
 
 IF ( (KSTEP==KSTART) .AND. (LEWARMSTART) )  THEN
   CALL SURFWS(YDSURF, KIDIA, KFDIA, KLON, KLEVS, KLEVSN, KTILES  &
-             ,PSDOR                                              &
+             ,PSDOR,LLSICE                                       &
              ,PLSM, ZFRTI, PMU0M                                 &
              ,PTSA, PTL,PASN                                     &
              ,PTSN, PSNS, PRSN, PWSN                           )
@@ -944,6 +944,7 @@ ZEXDIAG(KIDIA:KFDIA,12)=GELAM(KIDIA:KFDIA) ! Longitude
  & LESNICE,&
  & PMU0M   , &
  & PTSPHY,ITVL,ICO2TYP,ITVH,ZCVL,ZCVH,PCUR,PFWET,PLAT,ZLAIL,ZLAIH,&
+ & ZCIL, &
  & PSNS,PRSN, & 
  & PU  ,PV  ,PT  ,PQ  ,PC  ,&
  & PAPRS,PGEOM1,&
@@ -1007,6 +1008,7 @@ IF (LDEBUGPRINT) THEN
    PRINT *,'ZCVL',ZCVL
    PRINT *,'ZCVH',ZCVH
    PRINT *,'ZCUR',ZCUR
+   PRINT *,'ZCIL',ZCIL
    PRINT *,'ZLAIL',ZLAIL
    PRINT *,'ZLAIH',ZLAIH
    PRINT *,'PU',PU  
@@ -1126,6 +1128,7 @@ IF ( LESURF ) THEN
      & PAHFSTI, PEVAPTI, ZFRSOTI, PSLRFLTI,&
      & GELAT, PANFMVT, PANDAYVT, PMU0M,&                      !CTESSEL
      & ZCVT, ZLAIVT, ZLAIL, ZLAIH, &                          !CTESSEL
+     & ZCIL, &
      & PLAILC,  PLAIHC, &
      & LLLAND, LLSICE, LESICE, LLNH, LLOCN_KPP,&              !KPP
      & PSNS  ,PTSN,PASN,PRSN,PWSN,ZPAPSRF,PTL,PTSA,PTIA,&

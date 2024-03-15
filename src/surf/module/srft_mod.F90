@@ -3,8 +3,8 @@ CONTAINS
 SUBROUTINE SRFT(KIDIA  , KFDIA , KLON   , KTILES, KLEVS ,&
  & PTMST  , PTSAM1M, PWSAM1M  ,&
  & PFRTI  , PAHFSTI, PEVAPTI ,&
- & PSLRFLTI , PSSRFLTI, PGSN   ,&
- & PCTSA  , LDLAND ,&
+ & PSLRFLTI , PSSRFLTI, PGSN   ,PGLICE,&
+ & PCTSA  , LDLAND , PCIL,&
  & PSSDP3 ,&
  & YDCST  , YDSOIL , YDFLAKE, YDURB,&
  & PTSA   , PTSDFL , PDHTTS)  
@@ -61,6 +61,7 @@ USE YOMSURF_SSDP_MOD
 !    *PWSAM1M*    SOIL MOISTURE                                m**3/m**3
 !    *PSLRFLTI*   Tiled NET LONGWAVE  RADIATION AT THE SURFACE        W/M**2
 !    *PGSN*       GROUND HEAT FLUX FROM SNOW DECK TO SOIL       W/M2
+!    *PGLICE*     GROUND HEAT FLUX FROM ICE DECK TO SOIL       W/M2
 !    *PCTSA*      VOLUMETRIC HEAT CAPACITY                      J/K/M**3
 !    *PFRTI*      TILE FRACTIONS                              (0-1)
 !            1 : WATER                  5 : SNOW ON LOW-VEG+BARE-SOIL
@@ -105,6 +106,7 @@ USE YOMSURF_SSDP_MOD
 !                                               use of parameter values defined in namelist
 !     J. McNorton   24/08/2022  urban tile
 !     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
+!     G. Arduini    2024        glacier component
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -126,7 +128,9 @@ REAL(KIND=JPRB),    INTENT(IN)   :: PEVAPTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PSLRFLTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PSSRFLTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PGSN(:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PGLICE(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PCTSA(:,:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PCIL(:)
 LOGICAL,            INTENT(IN)   :: LDLAND(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PSSDP3(:,:,:)
 TYPE(TCST),         INTENT(IN)   :: YDCST
@@ -146,6 +150,7 @@ REAL(KIND=JPRB) :: ZRHS(KLON,KLEVS), ZCDZ(KLON,KLEVS),&
  & ZTSA(KLON,KLEVS)  
 LOGICAL :: LLDOSOIL(KLON)
 
+REAL(KIND=JPRB) :: ZCLAND, ZCSN_L
 INTEGER(KIND=JPIM) :: JK, JL
 
 REAL(KIND=JPRB) :: ZCONS1, ZCONS2, ZSLRFL, ZSSRFL, ZTHFL, ZTMST,&
@@ -207,14 +212,20 @@ DO JL=KIDIA,KFDIA
      ZTHFL=ZTHFL+PFRTI(JL,10)*(PAHFSTI(JL,10)+RLVTT*PEVAPTI(JL,10))
     ENDIF
 
-    ZSURFL(JL)=ZSSRFL+ZSLRFL+ZTHFL+PGSN(JL)
+    ZSURFL(JL)=ZSSRFL+ZSLRFL+ZTHFL+PGSN(JL)+PCIL(JL)*PGLICE(JL)
 
+    ZCLAND=1._JPRB - PFRTI(JL,9)
     IF ( LEFLAKE ) THEN
       IF ( PFRTI(JL,9) > RFRSMALL ) THEN
-        ZSURFL(JL)=PGSN(JL)
-        IF ( (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8)) > RFRSMALL ) THEN
-          ZSURFL(JL)=PGSN(JL)+(ZSSRFL+ZSLRFL+ZTHFL) & 
-                  & / (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8))
+        ZSURFL(JL)=PGSN(JL)+PCIL(JL)*PGLICE(JL)
+
+        !*IF ( (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8)) > RFRSMALL ) THEN
+        !*  ZSURFL(JL)=(1._JPRB-PFRTI(JL,2))*PGSN(JL)+(ZSSRFL+ZSLRFL+ZTHFL) & 
+        !*          & / (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8))
+        !*ENDIF
+        IF ( ZCLAND> RFRSMALL ) THEN
+          ZSURFL(JL)=(PCIL(JL)*PGLICE(JL)+PGSN(JL)+ZSSRFL+ZSLRFL+ZTHFL) & 
+                  & / ZCLAND
         ENDIF
         IF ( LEURBAN ) THEN
           IF ( (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8)+PFRTI(JL,10)) > RFRSMALL ) THEN

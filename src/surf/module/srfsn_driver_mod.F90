@@ -2,7 +2,7 @@ MODULE SRFSN_DRIVER_MOD
 CONTAINS
 SUBROUTINE SRFSN_DRIVER(KIDIA   ,KFDIA   ,KLON   ,KLEVSN, PTMST, LDLAND,&
   & LDSNOWICE, &
-  & PSDOR, &
+  & PSDOR, LDSICE, PCIL, &
   ! input at T-1 prognostics
   & PSSNM1M, PTSNM1M, PRSNM1M  ,PWSNM1M, PASNM1M, &
   ! input at T-1 fluxes or constants 
@@ -16,7 +16,7 @@ SUBROUTINE SRFSN_DRIVER(KIDIA   ,KFDIA   ,KLON   ,KLEVSN, PTMST, LDLAND,&
   ! output prognostics at T 
   & PSSN,  PTSN, PRSN, PWSN, PASN, &
   ! output fluxes 
-  & PGSN, PMSN, PEMSSN, & 
+  & PGSN, PGSNICE, PMSN, PMICE, PEMSSN, & 
   ! Diagnostics 
   & PDHTSS, PDHSSS)
 
@@ -141,8 +141,10 @@ INTEGER(KIND=JPIM), INTENT(IN)   :: KLON
 INTEGER(KIND=JPIM), INTENT(IN)   :: KLEVSN
 REAL(KIND=JPRB)   , INTENT(IN)   :: PTMST
 LOGICAL           , INTENT(IN)   :: LDLAND(:)
+LOGICAL           , INTENT(IN)   :: LDSICE(:)
 LOGICAL           , INTENT(IN)   :: LDSNOWICE
 REAL(KIND=JPRB)   , INTENT(IN)   :: PSDOR(:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PCIL(:)
 
 REAL(KIND=JPRB),    INTENT(IN)   :: PSSNM1M(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PTSNM1M(:,:)
@@ -177,7 +179,9 @@ REAL(KIND=JPRB),    INTENT(OUT)  :: PRSN(:,:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PwSN(:,:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PASN(:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PGSN(:)
+REAL(KIND=JPRB),    INTENT(OUT)  :: PGSNICE(:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PMSN(:)
+REAL(KIND=JPRB),    INTENT(OUT)  :: PMICE(:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PEMSSN(:)
 
 REAL(KIND=JPRB),    INTENT(OUT)  :: PDHTSS(:,:,:)
@@ -190,6 +194,7 @@ REAL(KIND=JPRB) :: ZRAINF(KLON)  ! total rainfall
 REAL(KIND=JPRB) :: ZHFLUX(KLON)  ! Net heat flux to the snow 
 REAL(KIND=JPRB) :: ZEVAPSN(KLON) ! Snow evaporation 
 REAL(KIND=JPRB) :: ZSURFCOND(KLON) ! under lying surface thermal conductivity 
+REAL(KIND=JPRB) :: ZSURFCOND_ICE(KLON) ! under lying surface thermal conductivity for ice
 REAL(KIND=JPRB) :: ZPHASE(KLON)
 REAL(KIND=JPRB) :: ZMELTSN(KLON,KLEVSN) ! Snow melting in each layer
 REAL(KIND=JPRB) :: ZFREZSN(KLON,KLEVSN) ! Snow freezing in each layer
@@ -206,12 +211,18 @@ REAL(KIND=JPRB) :: ZZSSNM1M(KLON,KLEVSN)
 REAL(KIND=JPRB) :: ZZTSNM1M(KLON,KLEVSN)
 REAL(KIND=JPRB) :: ZZRSNM1M(KLON,KLEVSN)
 REAL(KIND=JPRB) :: ZZWSNM1M(KLON,KLEVSN)
+REAL(KIND=JPRB) :: ZTSURF(KLON)
 
 REAL(KIND=JPRB) :: ZSNOTRS(KLON,KLEVSN+1) ! Solar rad abs in each snow layer 
                                            ! (+1 amount in the soil)
+REAL(KIND=JPRB) :: zc1, zc2, zc3, ZTAU_ICE
+REAL(KIND=JPRB) :: ZMICE_TOTAL(KLON)
+INTEGER(KIND=JPIM) :: KLACT
 
 REAL(KIND=JPRB) :: ZFF              ! Frozen soil fraction
 LOGICAL          :: LLNOSNOW(KLON)       ! FALSE to compute snow 
+REAL(KIND=JPRB)    :: ZEPSILON
+
 LOGICAL          :: LSNOWLANDONLY(KLON)  ! TRUE to compute snow only over land 
 REAL(KIND=JPRB) :: ZTBOTTOM(KLON)   ! Temperature bottom boundary condition
 
@@ -231,6 +242,7 @@ ASSOCIATE(RTF1=>YDSOIL%RTF1, RTF2=>YDSOIL%RTF2, RTF3=>YDSOIL%RTF3, RTF4=>YDSOIL%
 !*         1.1 Global computations 
 !*             Snow fraction, total heat and precip/snow to the snow scheme 
 !             -----------------------------------------------------------
+ZEPSILON=EPSILON(ZEPSILON)
 
 DO JL=KIDIA,KFDIA
 ! This safety check must be put for DA 
@@ -275,6 +287,7 @@ DO JL=KIDIA,KFDIA
     ZHFLUX(JL) = 0.0_JPRB 
     ZRAINF(JL) = 0.0_JPRB
     ZSURFCOND(JL)=0._JPRB
+    ZSURFCOND_ICE(JL)=0._JPRB
     
   ELSE
 !           NET HEAT FLUX AT SNOW SURFACE; EQUATIONS APPLY TO TOTAL SNOW MASS IN THE GRID SQUARE. 
@@ -327,8 +340,16 @@ DO JL=KIDIA,KFDIA
           ZFF=0.0_JPRB
         ENDIF
         !  ZFF=0.0_JPRB
-        ZSURFCOND(JL) = MAX(0.19_JPRB,MIN(2._JPRB,FSOILTCOND(PWSAM1M(JL,1),RLAMBDADRYM3D(JL,1),&
-+           & RWSATM3D(JL,1),RLAMSAT1M3D(JL,1),ZFF)))
+     IF (PCIL(JL)<1._JPRB-10._JPRB*ZEPSILON .AND. LDLAND(JL))THEN
+       ZSURFCOND(JL) = MAX(0.19_JPRB,MIN(2._JPRB,FSOILTCOND(PWSAM1M(JL,1),ZFF,KSOTY(JL))))
+       ZSURFCOND_ICE(JL) = RCONDSICE
+       ZSURFCOND(JL) = (1._JPRB - PCIL(JL))*ZSURFCOND(JL) + PCIL(JL)*RCONDSICE 
+       ZTSURF(JL)    = (1._JPRB - PCIL(JL))*PTSAM1M(JL,1) + PCIL(JL)*PTIAM1M(JL,1)
+     ELSE
+       ZSURFCOND(JL) = RCONDSICE 
+       ZTSURF(JL)    = PTIAM1M(JL,1)
+     ENDIF
+
       ELSE
         ZTBOTTOM(JL)  = PTIAM1M(JL,1)
         ZFF=1.0_JPRB
@@ -348,7 +369,7 @@ ENDDO
 !*             
 !             -----------------------------------------------------------
   
-CALL SRFSN_VGRID(KIDIA,KFDIA,KLON,KLEVSN,LLNOSNOW,PSDOR,&
+CALL SRFSN_VGRID(KIDIA,KFDIA,KLON,KLEVSN,LLNOSNOW,PSDOR,PCIL,LDLAND,&
                  ZZSSNM1M,PRSNM1M,&
                  YDSOIL%RLEVSNMIN,YDSOIL%RLEVSNMAX,&
                  YDSOIL%RLEVSNMIN_GL,YDSOIL%RLEVSNMAX_GL,&
@@ -381,19 +402,53 @@ CALL SRFSN_SSRABS(KIDIA,KFDIA,KLON,KLEVSN,&
 CALL SRFSN_WEBAL(KIDIA,KFDIA,KLON,KLEVSN, LDLAND,&
  & PTMST,LLNOSNOW,LSNOWLANDONLY,ZFRSN,&
  & ZSSNM1M,ZWSNM1M,ZRSNM1M,ZTSNM1M,&
- & ZTBOTTOM,ZHFLUX,ZSNOTRS,ZSNOWF,ZRAINF,ZEVAPSN,ZSURFCOND,&
+ & ZTBOTTOM,&
+ & ZTSURF,ZHFLUX,ZSNOTRS,ZSNOWF,ZRAINF,ZEVAPSN,ZSURFCOND,&
  & PAPRS,&
  & YDSOIL,YDCST,&
  & PSSN,PWSN,PTSN,&
  & PGSN,PMSN,ZMELTSN,ZFREZSN,&
  & PDHTSS,PDHSSS)
 PEMSSN(KIDIA:KFDIA) = 0._JPRB 
+
+! Rescale PMSN, PGSN between a glacier and snow on soil contribution. The glacier part goes into surface runoff
+PMICE(KIDIA:KFDIA)=0._JPRB
+PGSNICE(KIDIA:KFDIA)=0._JPRB
+
+ZMICE_TOTAL(KIDIA:KFDIA)=PCIL(KIDIA:KFDIA)*PMSN(KIDIA:KFDIA)
+PMICE(KIDIA:KFDIA)=ZMICE_TOTAL(KIDIA:KFDIA)
+!* scale PMICE by the slope parameter following, Langen et al. 2017
+! Runoff=pmice/tau_ice (*dt <-- this done in surftstp for consistency with the other fluxes) 
+! The remaining water is readded to PWSN as excess of water that "lingers" over the impearmeable surface.
+! Using parameters from Zuo and Orleamans as dealing with runoff over ice as here.
+! It should be the slope parameter in there, but we can use the standard deviation of the orography scaled by a factor
+zc1=0.30_JPRB
+zc1=1.50_JPRB
+zc2=25.0_JPRB
+zc3=140.0_JPRB ! Not used
+!**DO JL=KIDIA,KFDIA
+!**  ZTAU_ICE=zc1+zc2*exp(-2.0*PSDOR(JL)/50.0_JPRB)
+!**  !*PMICE(JL)=MAX(0._JPRB, (ZMICE_TOTAL(JL)-ZMICE_TOTAL(JL)*PTMST/(86400.0*ZTAU_ICE))) ! in seconds
+!**  PMICE(JL)=MAX(0._JPRB, (ZMICE_TOTAL(JL)*PTMST/(86400.0*ZTAU_ICE))) ! in seconds
+!**
+!**  ! Find last layer with liquid water, use same epsilon as in srfsn_webal
+!**  DO JK=1,KLEVSN
+!**      IF (PSSNM1M(JL,JK) > 10._JPRB*EPSILON(ZEPSILON) ) KLACT=JK
+!**  ENDDO
+!**  PWSN(JL,KLACT)=PWSN(JL,KLACT) + (ZMICE_TOTAL(JL) - PMICE(JL))*PTMST
+!**ENDDO
+
+PGSNICE(KIDIA:KFDIA)=PCIL(KIDIA:KFDIA)*PGSN(KIDIA:KFDIA) ! This is already scaled by Csn
+
+PMSN(KIDIA:KFDIA)=(1._JPRB - PCIL(KIDIA:KFDIA))*PMSN(KIDIA:KFDIA)
+PGSN(KIDIA:KFDIA)=(1._JPRB - PCIL(KIDIA:KFDIA))*PGSN(KIDIA:KFDIA) ! this is already scaled by Csn
+
 !     ------------------------------------------------------------------
 !*         4. Update snow density 
 !*             
 !             -----------------------------------------------------------
 
-CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,LSNOWLANDONLY,ZFRSN,&
+CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,LSNOWLANDONLY,PCIL,LDLAND,&
               &ZRSNM1M,ZSSNM1M,ZTSNM1M,ZWSNM1M,PWSN,&
               &ZSNOWF,PUSRF,PVSRF,PTSRF,&
               &YDSOIL,YDCST,PRSN,PDHTSS)
@@ -404,6 +459,7 @@ CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,LSNOWLANDONLY,ZFRSN,&
 !             -----------------------------------------------------------
 ZPHASE(KIDIA:KFDIA)=ZMELTSN(KIDIA:KFDIA,1)-ZFREZSN(KIDIA:KFDIA,1)
 CALL SRFSN_ASN(KIDIA,KFDIA,KLON,PTMST,LLNOSNOW,LSNOWLANDONLY,PASNM1M,&
+ & PCIL, &
  & ZPHASE,ZTSNM1M,ZSNOWF,YDSOIL,YDCST,PASN)
 
 

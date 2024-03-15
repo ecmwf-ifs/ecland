@@ -1,7 +1,7 @@
 MODULE SURFWS_CTL_MOD
 CONTAINS
 SUBROUTINE SURFWS_CTL( KIDIA, KFDIA, KLON, KLEVSN,  &
-                     & PSDOR, &
+                     & PSDOR,LDSICE, &
                      & LSMASK, PFRTI,PMU0,          &
                      & PTSA, PTSKIN, PALBSN,        &
                      & PTSN, PSSN, PRSN, PWSN,      &
@@ -103,6 +103,7 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSA(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSKIN(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PALBSN(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: LSMASK(:) 
+LOGICAL   ,INTENT(IN)    :: LDSICE(:) 
 
 ! Output fields:
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PTSN(:,:) 
@@ -235,7 +236,7 @@ ENDDO
 !******************************************************************
 ! 1.2 Define snow vertical grid and mean quantities for computation
 CALL SRFSN_VGRID(KIDIA,KFDIA,KLON,KLEVSN, LLNOSNOW, &
-               & PSDOR,                             &
+               & PSDOR,PSDOR,LDLAND,               & ! to be fixed second PSDOR should be PCIL
                & PSSN,PRSN,                         &
                & ZLEVMIN,ZLEVMAX, &
                & ZLEVMIN_GL,ZLEVMAX_GL, &
