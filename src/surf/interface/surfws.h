@@ -1,6 +1,6 @@
 INTERFACE
 SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON,KLEVS,KLEVSN, KTILES,&
-                    & PSDOR, &
+                    & PSDOR,LDSICE, &
                     & PLSM, PFRTI, PMU0,                          &
                     & PTSAM1M,PTSKIN, PALBSN,                      &  
                     & PTSNM1M ,PSNM1M ,                            &
@@ -68,6 +68,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVSN
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTILES
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLSM(:) 
+LOGICAL   ,INTENT(IN)    :: LDSICE(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSDOR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 

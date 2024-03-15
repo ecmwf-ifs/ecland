@@ -150,6 +150,7 @@ USE YOMSURF_SSDP_MOD
 !                                               use of parameter values defined in namelist
 !     S. Boussetta          22-06-2022 Added explicit snow albedo for snow under high veg
 !     J. McNorton           24-08-2022 urban tile
+!     G. Arduini            2024       Glacier component
 !     I. Ayan-Miguez (BSC)  Sep 2023   Added PSSDP3 object for spatially distributed parameters
 !-----------------------------------------------------------------------
 
@@ -203,6 +204,7 @@ REAL(KIND=JPRB),    INTENT(OUT) :: PCCNO(:)
 LOGICAL        ,    INTENT(IN)  :: LNEMOLIMALB
 LOGICAL        ,    INTENT(IN)  :: LESNICE
 
+LOGICAL, INTENT(IN)             :: LDLAND(:)
 LOGICAL,   INTENT(IN)  :: LDNH(:)
 LOGICAL,   INTENT(IN)  :: LDLAND(:)
 
@@ -602,6 +604,20 @@ DO JSW=1,KSW
     ELSE
       ZADTI2=ZALBICE_AN
       ZAPTI2=ZALBICE_AN
+    ENDIF
+    IF (LDLAND(JL))THEN ! land-ice
+      IF (LDNH(JL)) THEN
+        !*ZADTI2=MIN(ZALBICE_AR,0.60_JPRB)
+        !*ZAPTI2=MIN(ZALBICE_AR,0.60_JPRB)
+        ! 0.40 as used in Avanzi et al. for land ice...
+        ZADTI2=0.40_JPRB !0.60_JPRB
+        ZAPTI2=0.40_JPRB !0.60_JPRB
+      ELSE
+        !*ZADTI2=MIN(ZALBICE_AN,0.60_JPRB)
+        !*ZAPTI2=MIN(ZALBICE_AN,0.60_JPRB)
+        ZADTI2=0.40_JPRB !*0.60_JPRB
+        ZAPTI2=0.40_JPRB !*0.60_JPRB
+      ENDIF
     ENDIF
 
 ! SNOW ON LOW-VEG+BARE-SOIL

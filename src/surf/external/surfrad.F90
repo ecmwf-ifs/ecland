@@ -48,6 +48,7 @@ USE SURFRAD_CTL_MOD
 ! KMON   : length of the 12 months
 ! KSECO  : Number of seconds since 00 UTC on the initial day of the forecast
 ! LDNH   : LOGICAL  : .TRUE. FOR Northern Hemisphere
+! LDLAND : LOGICAL  : .TRUE. FOR LAND POINT
 ! PALBF  : REAL     : FIXED BACKGROUND SURFACE SHORTWAVE ALBEDO
 ! PALBICEF REAL     : FIXED SEA-ICE ALBEDO (FROM COUPLER)
 ! PTVH   : REAL     : DOMINANT HIGH VEGETATION TYPE
