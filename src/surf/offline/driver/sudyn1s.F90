@@ -80,7 +80,7 @@ NACCTYPE=0 ! Forcing fluxes assument centered on timestamp (linear interp.)
 LPREINT=.FALSE. ! PRECIPITATION DISTRIBUTION OF FORCING 
 LSWINT=.FALSE. ! SOLAR ANGLE INTERPOLATION 
 LFLXINT=.FALSE. ! Linear interpolation of solar and thermal rad 
-TCOUPFREQ=86400._JPRB ! Coupling frequency with cama-flood 
+TCOUPFREQ=1._JPRB ! Coupling frequency with cama-flood 
 !     ------------------------------------------------------------------
 
 !*       2.    Modify default values.

@@ -28,7 +28,7 @@ SAVE
 ! LSWINT   L : LOGICAL:  INTERPOLATE SOLAR DOWNWARD RADIATION FOLLOWING SOLAR ZENITH ANGLE, DEFAULT = FALSE 
 ! LPREINT  L : LOGICAL:  DISTRIBUTE PRECIPITATION, DEFAULT = FALSE
 ! LFLXINT  L : LOGICAL:  Linear Interpolation for solar rad and thermal rad (works for for NACCTYPE 0 and 2
-! TCOUPFREQ  : Frequency of coupling with Cama-flood (in seconds)
+! TCOUPFREQ  : Frequency of coupling with Cama-flood (in hours)
 
 INTEGER(KIND=JPIM) :: NSTEP
 REAL(KIND=JPRB) :: TSTEP
