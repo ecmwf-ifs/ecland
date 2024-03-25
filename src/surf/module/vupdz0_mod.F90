@@ -476,11 +476,8 @@ DO JL=KIDIA,KFDIA
   ! Use Andreas (2002) formula for z0h for exposed snow, tile 5
   ! doi: 10.1175/1525-7541(2002)003<0417:PSTOSA>2.0.CO;2
   ! The actual z0h is a log-average of vegetation and snow, dependending on ZSNWGHT
-  ! Kinematic viscosity of air at 0C: 1.35E-5;
-  Rstar=(REAL(RVZ0M_SNOW*ZUST(JL,JTILE),KIND=JPRD))/(1.35E-5_JPRD)
-  ZZ0HSNOW=REAL(RVZ0M_SNOW,KIND=JPRD)*exp( zat_sn*log(Rstar)**3._JPRB + zbt_sn*log(Rstar)**2._JPRB + zct_sn*log(Rstar) + zdt_sn )
-  ZZ0QSNOW=REAL(RVZ0M_SNOW,KIND=JPRD)*exp( zaq_sn*log(Rstar)**3._JPRB + zbq_sn*log(Rstar)**2._JPRB + zcq_sn*log(Rstar) + zdq_sn )
-
+    ZZ0HSNOW = PZ0SICE(RVZ0M(12), ZUST(JL,JTILE), 1)
+    ZZ0QSNOW = PZ0SICE(RVZ0M(12), ZUST(JL,JTILE), 2) 
     IF (LEURBAN) THEN
       ZURBF=PCUR(JL)
       ZPCVL=MAX(PCVL(JL)*(1.0_JPRB-ZURBF),0.0_JPRB)
