@@ -366,7 +366,6 @@ ENDIF
 
 !* DETERMINE the friction velocity u*
 
-!ZCDFC=2.E-3_JPRB
 
 DO JTILE=1,KTILES
   DO JL=KIDIA,KFDIA

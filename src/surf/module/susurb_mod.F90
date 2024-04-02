@@ -65,7 +65,6 @@ REAL (KIND = JPRB)::aa
 REAL (KIND = JPRB)::bb
 REAL (KIND = JPRB)::cc
 REAL (KIND = JPRB)::dd
-!REAL (KIND = JPRB)::RMODW
 INTEGER           ::i
 INTEGER           ::j
 

@@ -181,7 +181,6 @@ ASSOCIATE(RCPD=>YDCST%RCPD, RETV=>YDCST%RETV, RLSTT=>YDCST%RLSTT, &
 ZRVA=5000._JPRB
 ZRVB=10._JPRB
 ZEPSF3=0.00001_JPRB ! security value for exponential sat-deficit dependence
-!ZRSMINB=50._JPRB  ! bare soil minimum resistance
 
 !     ------------------------------------------------------------------
 

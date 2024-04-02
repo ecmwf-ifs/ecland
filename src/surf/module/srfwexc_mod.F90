@@ -251,15 +251,7 @@ TILES: DO JTILE=1,KTILES
 ! no liquid evaporation contribution to soil from tile 1, 2, 5 
 ! no root extraction from tile 3 and 8
     IF ( JTILE /= 4 .AND. JTILE /= 6 .AND. JTILE /= 7 ) CYCLE TILES 
-!    IF (JTILE == 4) THEN
-!      DO JL=KIDIA,KFDIA
-!        ITYP(JL)=KTVL(JL)
-!      ENDDO
-!    ELSEIF (JTILE == 6.OR. JTILE == 7) THEN
-!      DO JL=KIDIA,KFDIA
-!        ITYP(JL)=KTVH(JL)
-!      ENDDO
-!    ENDIF
+
 ! Layers 1-klevs
     LAYERS: DO JK=1,KLEVS
       DO JL=KIDIA,KFDIA

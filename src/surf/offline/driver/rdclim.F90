@@ -149,7 +149,7 @@ IF( MYPROC == 1 ) THEN
     SELECT CASE (TRIM(CNAME))
       CASE('x','lon')
         NILON=DIMLEN
-        IF (TRIM(CNAME) .EQ. 'lon') THEN
+        IF (TRIM(CNAME) == 'lon') THEN
           NILON_SAVE=NILON
         ENDIF
         WRITE(*,*)'DIMENSION x ',TRIM(CNAME),' FOUND WITH LEN=',NILON
