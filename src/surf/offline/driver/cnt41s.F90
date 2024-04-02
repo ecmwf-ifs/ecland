@@ -212,7 +212,7 @@ DO NSTEP=NSTART,NSTOP
     ENDDO        
       
     !* Coupling: 
-    IF ( MOD(NSTEP*TSTEP,TCOUPFREQ*3600) .EQ. 0 .AND. NSTEP .NE. NSTART ) THEN
+    IF ( MOD(NSTEP*TSTEP,TCOUPFREQ*3600) == 0 .AND. NSTEP /= NSTART ) THEN
       ZTT1C = OMP_GET_WTIME()
       WRITE(NULOUT,*)' CMF_COUPLING: CALLING DRV_PUT & DRV_ADVANCE:',ISTEPADV
 
@@ -221,7 +221,7 @@ DO NSTEP=NSTART,NSTOP
       CALL MPL_ALLGATHERV(PRECVBUF=ZD1STRO2(:),PSENDBUF=ZBUFFOAUX(:,2),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SSRO")
       CALL MPL_ALLGATHERV(PRECVBUF=ZD1STIEVAPU2(:),PSENDBUF=ZBUFFOAUX(:,3),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:LakeEVAP")
 
-      IF (NDIMCDF .NE. 2)THEN
+      IF (NDIMCDF /= 2)THEN
         DO JL=1,NLALO
           JLL=INT(ZVFPGLOB(JL))
           ZBUFFO(JLL,1,1)= ZD1STSRO2(JL)   
@@ -244,7 +244,7 @@ DO NSTEP=NSTART,NSTOP
 
       !*  Send runoff to CaMa-Flood 
       !    -------------------------
-      IF ( MYPROC .LE. MIN(NPROC, NPROC_CMF) ) THEN 
+      IF ( MYPROC <= MIN(NPROC, NPROC_CMF) ) THEN 
         !*  - Must be MYPROC <= 16 only, and data is global
         CALL CMF_FORCING_PUT(ZBUFFO(:,:,:))
  
@@ -254,7 +254,7 @@ DO NSTEP=NSTART,NSTOP
       
         !* Get data from Cama-Flood 
         !  -------------------
-        IF (LECMF2LAKEC .NE. 0) THEN
+        IF (LECMF2LAKEC /= 0) THEN
           CALL CMF_FORCING_COM(ZBUFFI(:,:,:))
         ENDIF
       ENDIF

@@ -322,8 +322,7 @@ ENDWHERE
 !  above wilting point in layers where roots are found
 
 DO JL=1,NPOI
-!  ITYPL=NINT(VFTVL(JL))
-!  ITYPH=NINT(VFTVH(JL))
+
   ZCVL=VFCVL(JL)*S2RVCOVL2D(JL)
   ZCVH=VFCVH(JL)*S2RVCOVH2D(JL)
 
