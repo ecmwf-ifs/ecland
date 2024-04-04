@@ -5,7 +5,7 @@ SUBROUTINE SRFSN_LWIMPMLS(KIDIA  ,KFDIA  ,KLON   ,PTMST,        &
  & PSLRFL  ,PSSRFLTI,PFRTI   ,PAHFSTI ,PEVAPTI,               &
  & PSSFC   ,PSSFL   ,PEVAPSNW,                                &
  & PTSFC   ,PTSFL   ,                                         &
- & PAPRS   ,PWSAM1M , KSOTY   ,                               &
+ & PAPRS   ,PWSAM1M ,                                         &
  & PSSDP3,&
  & YDCST   ,YDVEG   ,YDSOIL  ,YDFLAKE ,                       &
  & PTSN    ,PGSN )
@@ -136,7 +136,6 @@ REAL(KIND=JPRB),    INTENT(OUT)  :: PTSN(:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PGSN(:)
 
 REAL(KIND=JPRB),    INTENT(IN)   :: PAPRS(:), PWSAM1M(:,:)
-INTEGER(KIND=JPIM), INTENT(IN)   :: KSOTY(:)
 
 !      LOCAL VARIABLES
 
@@ -157,7 +156,7 @@ REAL(KIND=JPRB),DIMENSION(KLON)   :: ZSOILCOND
 
 REAL(KIND=JPRB) :: ZFF, ZWU, ZLIC, ZLWT, ZLAMBDASAT, ZKERSTEN, ZINVWSAT, ZCOND
 
-INTEGER(KIND=JPIM) :: JL,JS
+INTEGER(KIND=JPIM) :: JL
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
@@ -254,7 +253,7 @@ DO JL=KIDIA,KFDIA
     ZFF=0.0_JPRB
     ZWU=PWSAM1M(JL,1)*(1.0_JPRB-ZFF)
     ZLWT=RLAMBDAWAT**ZWU
-    JS=KSOTY(JL)
+    !JS=KSOTY(JL)
     ZINVWSAT=1.0_JPRB/RWSATM3D(JL,1)
     ZLIC=RLAMBDAICE**(RWSATM3D(JL,1)-ZWU)
     ZLAMBDASAT=RLAMSAT1M3D(JL,1)*ZLIC*ZLWT
