@@ -198,6 +198,7 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 REAL(KIND=JPRB) :: ZLICE(KLON),ZLWAT(KLON)
 REAL(KIND=JPRD) :: ZDUMMY
+REAL(KIND=JPRD) :: zat_sn, zbt_sn,  zct_sn , zdt_sn, zaq_sn, zbq_sn, zcq_sn, zdq_sn, Rstar
 REAL(KIND=JPRB) :: ZURBF,ZPCVL, ZPCVH, ZPCVB
 REAL(KIND=JPRB) :: ZZ0HSNOW, ZZ0QSNOW
 
@@ -251,6 +252,18 @@ ENDIF
 ZURBF = 0._JPRB
 
 ZCON2  =2.0_JPRB/3._JPRB
+
+! Constants for Andreas z0h computation for snow
+zat_sn=-0.0061586_JPRD 
+zbt_sn=-0.12756_JPRD
+zct_sn=-0.66267_JPRD
+zdt_sn=0.25344_JPRD
+zaq_sn=-0.0054869_JPRB
+zbq_sn=-0.12027_JPRB
+zcq_sn=-0.68407_JPRB
+zdq_sn=0.48260_JPRB
+
+
 
 !     PBL HEIGHT FOR W* - EFFECT
 
