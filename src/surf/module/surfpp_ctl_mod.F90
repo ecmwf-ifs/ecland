@@ -434,6 +434,15 @@ IF (LT2MTILE)THEN
                        &PFRTI(JL,JTILE)*ZQ2M(JL,JTILE)
     ENDDO
   ENDDO
+  ! Overwrite where dominant water or sea-ice. 
+  ! Using PLSM would be cleaner, but this should be eq.
+  DO JL=KIDIA,KFDIA
+    IF ((PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,5)+PFRTI(JL,6)+PFRTI(JL,7)+PFRTI(JL,8)+PFRTI(JL,9))<1.0_JPRB)THEN
+       PT2M(JL)=ZT2M_DL(JL)
+       PD2M(JL)=ZD2M_DL(JL)
+       PQ2M(JL)=ZQ2M_DL(JL)
+    ENDIF
+  ENDDO
 ENDIF
 
 !         4.4 SKIN LAYER TENDENCY 
