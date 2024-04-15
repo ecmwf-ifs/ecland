@@ -46,7 +46,6 @@ USE YOMSURF_SSDP_MOD
 !    *KFDIA*      END POINT
 !    *KLON*       NUMBER OF GRID POINTS PER PACKET
 !    *KLEVS*      NUMBER OF SOIL LAYERS
-!    *KSOTY*      SOIL TYPE                                   (1-7)
 
 !     INPUT PARAMETERS (REAL):
 !    *PTMST*      TIME STEP                                      S
@@ -254,7 +253,6 @@ DO JK=1,IKLEVS
       ZWU=PWSAM1M(JL,JK)*(1.0_JPRB-ZFF)
       ZLWT=RLAMBDAWAT**ZWU
       IF(LEVGEN)THEN
-      !  JS=KSOTY(JL)
         ZINVWSAT=1.0_JPRB/RWSATM3D(JL,JK)
         ZLIC=RLAMBDAICE**(RWSATM3D(JL,JK)-ZWU)
         ZLAMBDASAT=RLAMSAT1M3D(JL,JK)*ZLIC*ZLWT

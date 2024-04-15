@@ -47,7 +47,6 @@ SUBROUTINE SRFENE(&
 !    *KFDIA*      END POINT
 !    *KLON*       NUMBER OF GRID POINTS PER PACKET
 !    *KLEVS*      NUMBER OF SOIL LAYERS
-!    *KSOTY*      SOIL TYPE                                        (1-7)
 
 !     INPUT PARAMETERS (LOGICAL):
 

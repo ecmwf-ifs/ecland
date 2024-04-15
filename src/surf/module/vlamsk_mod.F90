@@ -57,7 +57,6 @@ USE YOMSURF_SSDP_MOD
 !     PWSAM1M : Soil moisture 
 
 !     Integers(in)
-!     KSOTY  : Soil type 
 
 !     Real with tile index (out) 
 !     PLAMSK :        Tiled Skin layer conductivity 
@@ -288,7 +287,6 @@ IF (YDSOIL%LESKTI8) THEN
         ZFF=0.0_JPRB
       ENDIF
     !ZFF = 0._JPRB
-    ! MAX(1,KSOTY(JL)) to avoid floating exceptions
     ZSNOWSK=MAX(RLAMBDAMIN,MIN(RLAMBDAMAX,FSOILTCOND(PWSAM1M(JL,1),RLAMBDADRYM3D(JL,1),RWSATM3D(JL,1),RLAMSAT1M3D(JL,1),ZFF)))
     PLAMSK(JL,JT)=2._JPRB*ZSNOWSK*ZTMP1
   ENDDO
