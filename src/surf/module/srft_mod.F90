@@ -49,7 +49,6 @@ USE YOMSURF_SSDP_MOD
 !    *KTILES*     NUMBER OF SURFACE TILES
 !    *KDHVTTS*    Number of variables for soil energy budget
 !    *KDHFTTS*    Number of fluxes for soil energy budget
-!    *KSOTY*      SOIL TYPE                                   (1-7)
 
 !     INPUT PARAMETERS (REAL):
 !    *PTMST*      TIME STEP                                      S
@@ -249,7 +248,6 @@ DO JK=1,KLEVS
      ! ZWU=PWSAM1M(JL,JK)*(1.0_JPRB-ZFF)
      ! ZLWT=RLAMBDAWAT**ZWU
       IF(LEVGEN)THEN
-     !   JS=KSOTY(JL)
         ZLSM=RLAMSAT1M3D(JL,JK)
         ZWSATM=RWSATM3D(JL,JK)
 
