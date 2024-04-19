@@ -93,6 +93,12 @@ INTEGER(KIND=JPIM) :: LECMF2LAKEC ! 2 way coupling with cama-flood updated lake 
                                   ! 0 == OFF
                                   ! 1 == lake cover with flood fraction
                                   ! 2 == add flood fraction to lake cover 
+LOGICAL :: LBVOC_EMIS ! Switch for activating BVOC emissions
+INTEGER(KIND=JPIM) :: NBVOC_EMIS ! Number of BVOC emission fields
+INTEGER(KIND=JPIM),PARAMETER :: NBVOC_EMIS_DEFAULT=30 ! Maximum number of BVOC types
+CHARACTER(LEN=8), DIMENSION(NBVOC_EMIS_DEFAULT) :: BVOC_NAMES ! Names of BVOC emissions
+INTEGER(KIND=JPIM), PARAMETER :: DELTA_DAY_LAI_EMIS_BVOC=10 ! default days historic LAI info
+
 LOGICAL :: LESSDP_CALIB ! Activate calibration of Surface Spatially Distributed Parameters
 
 !
@@ -166,6 +172,7 @@ LOGICAL :: LESSDP_CALIB ! Activate calibration of Surface Spatially Distributed 
 ! RLAIINT : REAL: Relaxation factor between interactive LAI and climatological LAI (1:fully interactive, 0:climatological LAI is used, )
 ! LECLIM10D: Logical: IF TRUE interpolate between 10-day climate values (for albedo and LAI) 
 ! LBLEND: LOGICAL: OPTION TO MAKE BLENDING HEIGHT A FUNCTION OF Z0M
+! LBVOC_EMIS: Logical: IF TRUE compute online BVOC emis
 
 !     -----------------------------------------------------------------
 END MODULE YOEPHY

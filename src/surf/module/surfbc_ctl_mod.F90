@@ -1,11 +1,14 @@
 MODULE SURFBC_CTL_MOD
 CONTAINS
 SUBROUTINE SURFBC_CTL(KIDIA, KFDIA, KLON, KTILES,KLEVSN, &
- & PTVL, PCO2TYP, PTVH, PSOTY, PSDOR, PCVLC, PCVHC, PCURC, PLAILC, PLAIHC, PLAILI, PLAIHI, &
+ & PTVL, PCO2TYP, PTVH, PSOTY, PSDOR, PCVLC, PCVHC, PCURC, &
+ & PLAILC, PLAIHC, PLAILI, PLAIHI, &
+ & PLAILCP,PLAIHCP, PAVGPARC, &
  & PLSM, PCI, PCLAKE, PHLICE, PGEMU, PSNM1M, PWLM1M, PRSNM1M, LESNICE, &  
  & LDLAND, LDSICE, LDLAKE, LDNH, LDOCN_KPP, &      
  & KTVL, KCO2TYP, KTVH, KSOTY, &
- & PCVL, PCVH, PCUR, PLAIL, PLAIH, PWLMX, PFRTI, &
+ & PCVL, PCVH, PCUR, PLAIL, PLAIH, PLAIHP, &
+ & PWLMX, PFRTI, &
  & PCSN, PSSDP2, &
  & YDSOIL, YDVEG, YDFLAKE, YDURB, YDOCEAN_ML)  
 
@@ -54,8 +57,11 @@ USE YOMSURF_SSDP_MOD
 !     *PCVLC*        LOW VEGETATION COVER  (CLIMATE)                (0-1)
 !     *PCVHC*        HIGH VEGETATION COVER (CLIMATE)                (0-1)
 !     *PCURC*        URBAN COVER (CLIMATE)                          (0-1)
-!     *PLAILC*        LOW LAI (FROM CLIMATE FILE)                   m2/m2
-!     *PLAIHC*        HIGH LAI (FROM CLIMATE FILE)                  m2/m2
+!     *PLAILC*       LOW LAI (FROM CLIMATE FILE)                    m2/m2
+!     *PLAIHC*       HIGH LAI (FROM CLIMATE FILE)                   m2/m2
+!     *PLAILCP*      Prev LOW LAI (FROM CLIMATE FILE)               m2/m2
+!     *PLAIHCP*      Prev HIGH LAI (FROM CLIMATE FILE)              m2/m2
+!     *PAVGPARC*     Average PAR for use in BVOC emissions module   W/m2
 
 !     *PLAILI*        LOW LAI (Interactive)                         m2/m2
 !     *PLAIHI*        HIGH LAI (Interactive)                        m2/m2
@@ -82,6 +88,7 @@ USE YOMSURF_SSDP_MOD
 !     *PCUR*         URBAN COVER (CORRECTED)                        (0-1)
 !     *PLAIL*         LOW LAI  (CORRECTED)                         (m2/m2)
 !     *PLAIH*         HIGH LAI (CORRECTED)                         (m2/m2)
+!     *PAVGPAR*      Average PAR for use in BVOC emissions module   W/m2
 !     *PWLMX*        MAXIMUM SKIN RESERVOIR CAPACITY                kg/m**2
 !     *PFRTI*        TILE FRACTIONS                                 (0-1)
 !            1 : WATER                  5 : SNOW ON LOW-VEG+BARE-SOIL
@@ -142,6 +149,9 @@ REAL(KIND=JPRB),    INTENT(IN)  :: PCVHC(:)
 REAL(KIND=JPRB),    INTENT(IN)  :: PCURC(:)
 REAL(KIND=JPRB),    INTENT(IN)  :: PLAILC(:)
 REAL(KIND=JPRB),    INTENT(IN)  :: PLAIHC(:)
+REAL(KIND=JPRB),    INTENT(IN)  :: PLAILCP(:)
+REAL(KIND=JPRB),    INTENT(IN)  :: PLAIHCP(:)
+REAL(KIND=JPRB),    INTENT(IN)  :: PAVGPARC(:)
 REAL(KIND=JPRB),    INTENT(IN)  :: PLAILI(:)
 REAL(KIND=JPRB),    INTENT(IN)  :: PLAIHI(:)
 REAL(KIND=JPRB),    INTENT(IN)  :: PLSM(:)
@@ -170,6 +180,9 @@ REAL(KIND=JPRB),    INTENT(OUT) :: PCVH(:)
 REAL(KIND=JPRB),    INTENT(OUT) :: PCUR(:)
 REAL(KIND=JPRB),    INTENT(OUT) :: PLAIL(:)
 REAL(KIND=JPRB),    INTENT(OUT) :: PLAIH(:)
+REAL(KIND=JPRB),    INTENT(OUT) :: PLAILP(:)
+REAL(KIND=JPRB),    INTENT(OUT) :: PLAIHP(:)
+REAL(KIND=JPRB),    INTENT(OUT) :: PAVGPAR(:)
 REAL(KIND=JPRB),    INTENT(OUT) :: PWLMX(:)
 REAL(KIND=JPRB),    INTENT(OUT) :: PFRTI(:,:)
 
@@ -236,6 +249,8 @@ IF(LELAIV)THEN
     DO JL=KIDIA,KFDIA
       PLAIL(JL)=PLAILC(JL)
       PLAIH(JL)=PLAIHC(JL)
+      PLAILP(JL)=PLAILCP(JL)
+      PLAIHP(JL)=PLAIHCP(JL)
     ENDDO
   ENDIF
 ELSE
@@ -306,6 +321,7 @@ DO JL=KIDIA,KFDIA
    & +PCVH(JL)*PLAIH(JL))
   ZCVW(JL)=MAX(0._JPRB,MIN(1.0_JPRB,PWLM1M(JL)/PWLMX(JL)))
   LDOCN_KPP(JL) = LEOCML .AND. ( .NOT. LDLAND(JL) .AND. .NOT. LDLAKE(JL) ) 
+  PAVGPAR(JL)=PAVGPARC(JL)
 ENDDO
 
 !        Define surface fractions

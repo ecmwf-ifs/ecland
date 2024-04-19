@@ -2,11 +2,13 @@ INTERFACE
 SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
  & PSSDP2, PTVL   , PCO2TYP,PTVH   ,PSOTY  ,PSDOR,PCVLC  ,PCVHC, PCURC, &
  & PLAILC  ,PLAIHC, PLAILI, PLAIHI,&
+ & PLAILCP, PLAIHCP, PAVGPARC, &
  & PLSM   ,PCI    ,PCLAKE ,PHLICE,&
  & PGEMU  ,PSNM1M ,PWLM1M ,PRSNM1M, LESNICE,&  
  & LDLAND ,LDSICE ,LDLAKE ,LDNH, LDOCN_KPP,&
  & KTVL   ,KCO2TYP, KTVH   ,KSOTY,&
- & PCVL   ,PCVH, PCUR,PLAIL, PLAIH,  PWLMX  ,PFRTI, &
+ & PCVL   ,PCVH, PCUR,PLAIL, PLAIH, PLAILP, PLAIHP, PAVGPAR,&
+ & PWLMX  ,PFRTI, &
  & PCSN)
 
 ! (C) Copyright 1999- ECMWF.
@@ -45,6 +47,7 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !     *PCURC*        URBAN COVER (PASSIVE - CLIMATE)                (0-1)
 !     *PLAILC*        LOW LAI (CLIMATE)                             m2/m2
 !     *PLAIHC*        HIGH LAI (CLIMATE)                            m2/m2
+!     *PAVGPARC*     Average PAR for use in BVOC emissions module   ?
 !     *PLSM*         LAND-SEA MASK                                  (0-1)
 !     *PCI*          SEA-ICE FRACTION                               (0-1)
 !     *PCLAKE*       LAKE FRACTION                                  (0-1)
@@ -67,6 +70,7 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !     *PCUR*         URBAN COVER (CORRECTED)                        (0-1)
 !     *PLAIL*        LOW LAI (REAL)                                 m2/m2
 !     *PLAIH*        HIGH LAI (REAL)                                m2/m2
+!     *PAVGPAR*      Average PAR for use in BVOC emissions module   ?
 !     *PWLMX*        MAXIMUM SKIN RESERVOIR CAPACITY                kg/m**2
 !     *PFRTI*        TILE FRACTIONS                                 (0-1)
 !            1 : WATER                  5 : SNOW ON LOW-VEG+BARE-SOIL
@@ -122,6 +126,9 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVHC(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCURC(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILC(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHC(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILCP(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHCP(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPARC(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILI(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHI(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLSM(:) 
@@ -147,6 +154,9 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCVH(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCUR(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PLAIL(:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PLAIH(:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PLAILP(:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PLAIHP(:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAVGPAR(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWLMX(:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PFRTI(:,:) 
 
