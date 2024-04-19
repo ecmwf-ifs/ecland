@@ -36,6 +36,7 @@ SAVE
 !    *NDHFCO2S*     Number of fluxes for CO2
 !    *NDHVBIOS*     Number of variables for biomass
 !    *NDHFBIOS*     Number of fluxes for biomass
+!    *NDHVBVOCS*    Number of variables for BVOC emissions
 !    *NDHVVEGS*     Number of variables for vegetation
 !    *NDHFVEGS*     Number of fluxes for vegetation
 
@@ -61,6 +62,7 @@ INTEGER(KIND=JPIM) :: NDHVCO2S
 INTEGER(KIND=JPIM) :: NDHFCO2S
 INTEGER(KIND=JPIM) :: NDHVBIOS
 INTEGER(KIND=JPIM) :: NDHFBIOS
+INTEGER(KIND=JPIM) :: NDHVBVOCS
 INTEGER(KIND=JPIM) :: NDHVVEGS
 INTEGER(KIND=JPIM) :: NDHFVEGS
 END MODULE YOMCDH1S

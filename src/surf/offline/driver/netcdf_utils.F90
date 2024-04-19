@@ -462,6 +462,9 @@ SELECT CASE(CNAME)
   CASE('CH4flux')
     CLNAME='Net CH4 flux'
     CUNITS='kg m-2 s-1'
+  CASE('BVOCflux')
+    CLNAME='Net BVOC flux for emission type 1'
+    CUNITS='kg m-2 s-1'
   CASE('biomass')
     CLNAME='Active biomass'
     CUNITS='kg m-2'

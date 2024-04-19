@@ -5,9 +5,12 @@ SUBROUTINE SURFEXCDRIVER_CTL(CDCONF &
  & , KLEVSN, KLEVI, LDLAND, KDHVTLS, KDHFTLS, KDHVTSS, KDHFTSS &
  & , KDHVTTS, KDHFTTS, KDHVTIS, KDHFTIS, K_VMASS &
  & , PTSTEP,PTSTEPF &
+ & , PPPFD_TOA &
 ! input data, non-tiled
  & , KTVL, KCO2TYP, KTVH, PCVL, PCVH, PCUR &
- & , PLAIL, PLAIH, PFWET, PLAT &
+ & , PLAIL, PLAIH &
+ & , PLAILP, PLAIHP, PAVGPAR &
+ & , PFWET, PLAT &
  & , PSNM , PRSN &
  & , PMU0 , PCARDI &
  & , PUMLEV, PVMLEV, PTMLEV, PQMLEV, PCMLEV, PAPHMS, PGEOMLEV, PCPTGZLEV &
@@ -34,15 +37,17 @@ SUBROUTINE SURFEXCDRIVER_CTL(CDCONF &
  & , PZ0MW, PZ0HW, PZ0QW, PBLENDPP, PCPTSPP, PQSAPP, PBUOMPP, PZDLPP &
 ! output data, non-tiled CO2
  & , PAN,PAG,PRD,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX&
+! output data: Biogenic VOC (BVOC) emissions
+ & , PBVOCFLUX & 
 ! output canopy resistance  
  & , PWETB, PWETL, PWETLU, PWETH, PWETHS &
 ! output data, diagnostics
  & , PDHTLS, PDHTSS, PDHTTS, PDHTIS &
- & , PDHVEGS, PEXDIAG, PDHCO2S &
+ & , PDHVEGS, PEXDIAG, PDHCO2S,PDHBVOCS &
  & , PRPLRG &
 ! LIM switch
  & , LSICOUP, LDSICE, LBLEND &
- & , YDCST, YDEXC, YDVEG, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB & 
+ & , YDCST, YDEXC, YDVEG, YDBVOC, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB & 
  & )
 
 USE PARKIND1  , ONLY : JPIM, JPRB
@@ -50,6 +55,7 @@ USE YOMHOOK   , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_EXC   , ONLY : TEXC
 USE YOS_CST   , ONLY : TCST
 USE YOS_VEG   , ONLY : TVEG
+USE YOS_BVOC  , ONLY : TBVOC
 USE YOS_AGS   , ONLY : TAGS
 USE YOS_AGF   , ONLY : TAGF
 USE YOS_SOIL  , ONLY : TSOIL
@@ -62,6 +68,7 @@ USE VEXCS_MOD
 USE VEVAP_MOD
 USE SURFSEB_CTL_MOD
 USE SRFCOTWO_MOD
+USE SRFBVOC_MOD
 USE VSFLX_MOD
 USE VLAMSK_MOD 
 USE EC_LUN       , ONLY : NULERR
@@ -110,6 +117,7 @@ USE EC_LUN       , ONLY : NULERR
 !    V.Bastrikov,F.Maignan,P.Peylin,A.Agusti-Panareda/S.Boussetta Feb 2021 Add Farquhar photosynthesis model
 !    J. McNorton           24/08/2022  urban tile
 !    A. van Niekerk 05/2023 Added LBLEND option to make blending height function of z0m
+!    V. Huijnen            31/10/2023 Add support for BVOC emissions calculation
 
 !  INTERFACE: 
 
@@ -161,6 +169,9 @@ USE EC_LUN       , ONLY : NULERR
 !      PCUR     :    URBAN COVER                                     (0-1)
 !      PLAIL    :    LOW VEGETATION LAI                              m2/m2
 !      PLAIH    :    HIGH VEGETATION LAI                             m2/m2
+!      PLAILP   :    LOW VEGETATION LAI previous time step           m2/m2
+!      PLAIHP   :    HIGH VEGETATION LAI previous time step          m2/m2
+!      PAVGPAR  :    Average PAR for use in BVOC emissions module    W/m2
 
 !     PSNM      :       SNOW MASS (per unit area)                      kg/m**2
 !     PRSN      :      SNOW DENSITY                                   kg/m**3
@@ -265,6 +276,7 @@ USE EC_LUN       , ONLY : NULERR
 !     *PDHVEGS*      Diagnostic array for vegetation (see module yomcdh) 
 !     *PEXDIAG*      Extra diagnostics for pp of canopy stresses
 !     *PDHCO2S*      Diagnostic array for CO2 (see module yomcdh)
+!     *PDHBVOCS*     Diagnostic array for BVOC (see module yomcdh)
 !       PWETB        Surface resistance bare soild 
 !       PWETL        Canopy resistance of low vegetation  
 !       PWETLU       Canopy resistance of low vegetation , unstressed 
@@ -318,6 +330,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KDHFTIS
 INTEGER(KIND=JPIM),INTENT(IN)    :: K_VMASS
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEP
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEPF
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PPPFD_TOA
 
 LOGICAL           ,INTENT(IN)    :: LDLAND(:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVL(:) 
@@ -329,6 +342,9 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVH(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCUR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILP(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHP(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPAR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFWET(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAT(:)
 
@@ -424,8 +440,10 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRSOIL_STR(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRECO(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCO2FLUX(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCH4FLUX(:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHVEGS(:,:,:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHCO2S(:,:,:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHBVOCS(:,:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PEXDIAG(:,:) 
 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTLS(:,:,:) 
@@ -448,6 +466,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETHS(:)
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TEXC)        ,INTENT(IN)    :: YDEXC
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
+TYPE(TBVOC)       ,INTENT(IN)    :: YDBVOC
 TYPE(TAGS)        ,INTENT(IN)    :: YDAGS
 TYPE(TAGF)        ,INTENT(IN)    :: YDAGF
 TYPE(TSOIL )      ,INTENT(IN)    :: YDSOIL
@@ -474,9 +493,14 @@ REAL(KIND=JPRB) :: ZZ0MTI(KLON,KTILES) , ZZ0HTI(KLON,KTILES) ,&
 REAL(KIND=JPRB) :: ZANTI(KLON,KTILES)  , ZAGTI(KLON,KTILES),&
                  & ZRDTI(KLON,KTILES)  , ZLAMSK(KLON,KTILES)
 
+REAL(KIND=JPRB) :: ZBVOCFLUXVT(KLON,YDBVOC%NEMIS_BVOC,KTILES)
+
 REAL(KIND=JPRB) :: ZLAIVT(KLON,2+1),& ! number vegetation tiles
+                   ZLAIVT_WET(KLON,2+1),& ! LAI, including wet skin tile
+                   ZLAIVTP_WET(KLON,2+1),& ! LAI at previous time step, including wet skin tile
                    ZCVT(KLON,2+1)
 INTEGER(KIND=JPIM) :: KVEG(KLON,KTILES)
+INTEGER(KIND=JPIM) :: KVEG_WET(KLON) ! dominant vegetation on wet skin tile (3)
 INTEGER(KIND=JPIM)  :: KVTTL(KTILES) !link tile number/veg type
 
 
@@ -518,6 +542,7 @@ ASSOCIATE(LEOCWA=>YDEXC%LEOCWA, LEOCCO=>YDEXC%LEOCCO, REPDU2=>YDEXC%REPDU2, &
  & LEFLAKE=>YDFLAKE%LEFLAKE, LEURBAN=>YDURB%LEURBAN, RH_ICE_MIN_FLK=>YDFLAKE%RH_ICE_MIN_FLK, &
  & RTT=>YDCST%RTT, RCPD=>YDCST%RCPD, RD=>YDCST%RD, RSIGMA=>YDCST%RSIGMA, &
  & RG=>YDCST%RG, RETV=>YDCST%RETV, RSSRFLTIMAX=>YDEXC%RSSRFLTIMAX, &
+ & LEMIS_BVOC=>YDBVOC%LEMIS_BVOC, &
  & RVZ0M=>YDVEG%RVZ0M, LECTESSEL=>YDVEG%LECTESSEL, RVTRSR=>YDVEG%RVTRSR, RBLENDZ0=>YDEXC%RBLENDZ0, &
  & LESNICE=>YDSOIL%LESNICE)
 
@@ -533,6 +558,8 @@ ZANTI(KIDIA:KFDIA,:)=0._JPRB
 ZAGTI(KIDIA:KFDIA,:)=0._JPRB
 ZRDTI(KIDIA:KFDIA,:)=0._JPRB
 
+ZBVOCFLUXVT(KIDIA:KFDIA,:,:)=0._JPRB
+
 !mapping betwen tiles and vegetation TYPE
 KVEG(KIDIA:KFDIA,:)=0_JPIM
 KVEG(KIDIA:KFDIA,4)=KTVL(KIDIA:KFDIA) !type low veg
@@ -543,6 +570,16 @@ KVEG(KIDIA:KFDIA,7)=KTVH(KIDIA:KFDIA) !shaded snow same type high veg !why ?
 ZLAIVT(KIDIA:KFDIA,:)=0.0_JPRB
 ZLAIVT(KIDIA:KFDIA,1)=PLAIL(KIDIA:KFDIA)
 ZLAIVT(KIDIA:KFDIA,2)=PLAIH(KIDIA:KFDIA)
+
+!initialisation Wet LAI
+ZLAIVT_WET(KIDIA:KFDIA,:)=0.0_JPRB
+ZLAIVT_WET(KIDIA:KFDIA,1)=PLAIL(KIDIA:KFDIA)
+ZLAIVT_WET(KIDIA:KFDIA,2)=PLAIH(KIDIA:KFDIA)
+
+!initialisation Wet LAI previous time step
+ZLAIVTP_WET(KIDIA:KFDIA,:)=0.0_JPRB
+ZLAIVTP_WET(KIDIA:KFDIA,1)=PLAILP(KIDIA:KFDIA)
+ZLAIVTP_WET(KIDIA:KFDIA,2)=PLAIHP(KIDIA:KFDIA)
 
 !intialisation vegetation type fraction
 ZCVT(KIDIA:KFDIA,:)=0.0_JPRB
@@ -598,6 +635,18 @@ DO JTILE=2,KTILES
 !* low-vegetation (4) if present or bare soil (8) 
          IF (PFRTI(JL,8).GT.0.0_JPRB) IFRLMAX(JL)=8
          IF (PFRTI(JL,4).GT.0.0_JPRB) IFRLMAX(JL)=4
+         IF (PCVL(JL)+PCVH(JL) > 0.5) THEN
+           IF (PCVL(JL) .GT. PCVH (JL)) THEN
+              ZLAIVT_WET(JL,3) =PLAIL(JL)
+              ZLAIVTP_WET(JL,3)=PLAILP(JL)
+	      KVEG_WET(JL)=KTVL(JL)
+            ELSE
+              ZLAIVT_WET(JL,3) =PLAIH(JL)
+              ZLAIVTP_WET(JL,3)=PLAIHP(JL)
+	      KVEG_WET(JL)=KTVH(JL)
+           ENDIF
+         ENDIF
+!        IF (PFRTI(JL,4).GT.PFRTI(JL,8)) IFRLMAX(JL)=4
 !        IF (PFRTI(JL,8).GT.0.0_JPRB) IFRLMAX(JL)=8
 !        IF (PFRTI(JL,4).GT.PFRTI(JL,8)) IFRLMAX(JL)=4
 !        IF (PFRTI(JL,5).GT.PFRTI(JL,4) .AND. PFRTI(JL,5).GT.PFRTI(JL,8) ) IFRLMAX(JL)=5
@@ -703,7 +752,7 @@ KVTTL(JTILE)=2 !type high veg
 ELSEIF (JTILE  ==  7) THEN
 KVTTL(JTILE)=2 !type high veg 
 ELSE
-KVTTL(JTILE)=3
+KVTTL(JTILE)=3 ! wet skin - can be both low/high veg.
 ENDIF
 
 ENDDO
@@ -726,10 +775,12 @@ DO JTILE=1,KTILES
 
   CALL VSURF(KIDIA,KFDIA,KLON,KTILES,KLEVS,JTILE,&
    & KTVL,KCO2TYP,KTVH,&
-   & KVTTL(JTILE),KVEG,&
-   & ZLAIVT(:,KVTTL(JTILE)),& 
-   & PMU0,PCO2FLUX,&
-   & PFRTI, PLAIL, PLAIH,&
+   & KVTTL(JTILE),KVEG,KVEG_WET,&
+   & PPPFD_TOA, &
+   & ZLAIVT(:,KVTTL(JTILE)),ZLAIVT_WET(:,KVTTL(JTILE)),& 
+   & ZLAIVTP_WET(:,KVTTL(JTILE)),& 
+   & PMU0,PLAT, PCO2FLUX,&
+   & PFRTI, PLAIL, PLAIH,PAVGPAR,&
    & PTMLEV  ,PQMLEV  , PCMLEV, PAPHMS,&
    & PTSKTI(:,JTILE),PWSAM1M,PTSAM1M,KSOTY,&
    & ZSRFD,PRAQTI(:,JTILE),ZQSATI(:,JTILE),&
@@ -737,7 +788,8 @@ DO JTILE=1,KTILES
    & ZWETB ,PCPTSTI(:,JTILE) ,ZWETL, ZWETLU, ZWETH, ZWETHS ,&
    & PEVAPTI(:,JTILE) ,&
    & ZANTI(:,JTILE),ZAGTI(:,JTILE),ZRDTI(:,JTILE) ,&
-   & PWLIQ(:,:,JTILE), PDHVEGS , PEXDIAG,&
+   & PWLIQ(:,:,JTILE), &
+   & ZBVOCFLUXVT(:,:,JTILE), PDHVEGS , PEXDIAG,&
    & PSSDP2, PSSDP3, YDCST, YDVEG, YDEXC, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB)
 ENDDO
 
@@ -764,6 +816,7 @@ PWETHS(KIDIA:KFDIA)=ZWETHS(KIDIA:KFDIA)
         PANFMVT(KIDIA:KFDIA,:)=0._JPRB
         IF (SIZE(PDHVEGS) > 0) PDHVEGS(KIDIA:KFDIA,:,:)=0._JPRB
         IF (SIZE(PDHCO2S) > 0) PDHCO2S(KIDIA:KFDIA,:,:)=0._JPRB
+        IF (SIZE(PDHBVOCS) > 0) PDHBVOCS(KIDIA:KFDIA,:,:)=0._JPRB
       ENDIF
 
 !orig      ELSE
@@ -782,6 +835,17 @@ PWETHS(KIDIA:KFDIA)=ZWETHS(KIDIA:KFDIA)
    & PAG,PRD,PAN,PRSOIL_STR,&
    & PRECO,PCO2FLUX,PCH4FLUX,&
    & PDHCO2S)
+
+
+  IF ( LEMIS_BVOC ) THEN   
+    CALL SRFBVOC(KIDIA,KFDIA,KLON,KTILES,&
+     & PTSTEP ,&
+     & PFRTI,&
+     & YDBVOC,&
+     & ZBVOCFLUXVT, &
+     & PBVOCFLUX, &
+     & PDHBVOCS)
+   ENDIF
 
 !orig      ENDIF
     ENDIF
@@ -838,7 +902,8 @@ CALL VLAMSK(KIDIA,KFDIA,KLON,KTILES,LDSICE,KTVL,KTVH,&
 ! DDH diagnostics
 
 IF (SIZE(PDHTLS) > 0 .AND. SIZE(PDHTSS) > 0 .AND. SIZE(PDHTTS) > 0 .AND. &
-  & SIZE(PDHTIS) > 0 .AND. SIZE(PDHVEGS) > 0 .AND. SIZE(PDHCO2S) > 0) &
+  & SIZE(PDHTIS) > 0 .AND. SIZE(PDHVEGS) > 0 .AND. SIZE(PDHCO2S) > 0 .AND. &
+  & SIZE(PDHBVOCS) > 0 ) &
   & CALL COMPUTE_DDH
 
 !*         3.     EXCHANGE COEFFICIENTS
