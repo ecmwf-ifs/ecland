@@ -612,8 +612,8 @@ ENDDO !JL
                                 &           * MAX(1._JPRB-RSTRESS_VCMAX, ZWATER_LIM(JL))
         ENDDO
 
-            
-       IF ( ( PSRFD(JL) .GT. EPSILON(1._JPRM) )   .AND. &
+!      Set a minimum threshold for radiation to avoid non-zero GPP at nighttime with single precision            
+       IF ( ( PSRFD(JL) .GT. 0.0001_JPRB )   .AND. &        
                  ( PF2(JL) .GT. EPSILON(1._JPRM) ) .AND. &
                 ( ZTEMP_GROWTH(JL) .GT. RTPHOTO_MIN ) .AND. &
                  ( ZTEMP_GROWTH(JL) .LT. RTPHOTO_MAX ) ) THEN
