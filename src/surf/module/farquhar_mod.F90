@@ -347,9 +347,10 @@ SUBROUTINE FARQUHAR (KIDIA, KFDIA, KLON, LDLAND, KVTYPE, KCO2TYP, YDAGS, YDAGF, 
   REAL(KIND=JPRB), ALLOCATABLE :: ZJJ(:,:)       ! Rate of e− transport (umol e− m−2 s−1)
 
 !ORIG  REAL(KIND=JPRB), ALLOCATABLE :: ZLEAF_CI(:,:)  ! intercellular CO2 concentration (ppm)
-!ORIG  REAL(KIND=JPRB), ALLOCATABLE :: ZCC(:,:)       ! Chloroplast CO2 partial pressure (ubar)
-
-!
+  !ORIG  REAL(KIND=JPRB), ALLOCATABLE :: ZCC(:,:)       ! Chloroplast CO2 partial pressure (ubar)
+  
+  REAL(KIND=JPRB), PARAMETER   ::  ZRADTHRESHGPP=0.0001_JPRB ! GPP radiation threshold to check zero values in single precision
+ 
 
   REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
@@ -613,7 +614,7 @@ ENDDO !JL
         ENDDO
 
 !      Set a minimum threshold for radiation to avoid non-zero GPP at nighttime with single precision            
-       IF ( ( PSRFD(JL) .GT. 0.0001_JPRB )   .AND. &        
+       IF ( ( PSRFD(JL) .GT. ZRADTHRESHGPP )   .AND. &        
                  ( PF2(JL) .GT. EPSILON(1._JPRM) ) .AND. &
                 ( ZTEMP_GROWTH(JL) .GT. RTPHOTO_MIN ) .AND. &
                  ( ZTEMP_GROWTH(JL) .LT. RTPHOTO_MAX ) ) THEN
