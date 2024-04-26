@@ -98,6 +98,35 @@ YDBVOC%LDF(:)=0.0
 ! Test entries
 !YDBVOC%EMIS_FAC(1,1:NPFT)=(/ 1.,   2. ,  3., 4., 5., 6., 7., 8., 9., 10.01, 11., 12., 13.,   14.,    15.,    16./)
 !YDBVOC%EMIS_FAC(1:NEMIS_BVOC,1:NPFT)=1.0_JPRB
+  ! MATCHING BATS table with MEGAN PFT categories  
+  
+  ! (1)  ! LOW  - Crops, Mixed Farming              =>! 15 Other CROPS
+  ! (2)  ! LOW  - Short Grass                       =>! 12/13/14 (cold/cool/warm) C3 GRASS. Default: cool (13)
+  ! (3)  ! HIGH - Evergreen Needleleaf Trees        =>! 1/3  Needleleaf evergr. temperate /evergr boreal tree. Default: temperate (1)
+  ! (4)  ! HIGH - Deciduous Needleleaf Trees        =>! 2  Needleleaf deciduous boreal tree. NOTE that we follow K. Sindelarova in order of PF types!
+  ! (5)  ! HIGH - Deciduous Broadleaf Trees         =>! 6/7/8 Broadleaf evergreen/deciduous trop/temperate/boreal tree. default: temperate (7)
+  ! (6)  ! HIGH - Evergreen Broadleaf Trees         =>! 4/5 broadleaf evergreene tropical/temperate tree. Default: tropical (4)
+  ! (7)  pre-49r1 ! LOW  - Tall Grass                       =>! 12/13/14 cold/cool/warm GRASS. Default: cool (13)
+  ! (7)  49r1     ! mixed crops                     =>! 15: Other crops
+  ! (8)  !      - Desert                            =>! N/A
+  ! (9)  ! LOW  - Tundra                            =>! 12 cold grass
+  ! (10) ! LOW  - Irrigated Crops                   =>! 15 other crops
+  ! (11) ! LOW  - Semidesert                        =>! 13 cool C3 grass
+  ! (12) !      - Ice Caps and Glaciers             =>! N/A
+  ! (13) ! LOW  - Bogs and Marshes                  =>! 13 cool grass?
+  ! (14) !      - Inland Water                      =>! N/A
+  ! (15) !      - Ocean                             =>! N/A
+  ! (16) ! LOW  - Evergreen Shrubs                  =>! 9 broadleaf evergreen temperate shroub
+  ! (17) ! LOW  - Deciduous Shrubs                  =>! 10/11 broadleaf dediduous temperate/boreal shrub. Default: temparate (10)
+  ! (18) pre-49r1 ! HIGH - Mixed Forest/woodland    =>! 7 broadleaf deciduous temperate tree
+  ! (18) 49r1     ! HIGH - Broad Savana             =>! 6/7/8 Broadleaf evergreen/deciduous trop/temperate/boreal tree. default: temperate (7)
+  ! (19) pre-49r1 ! HIGH - Interrupted Forest       =>! 7 broadleaf deciduous temperate tree
+  ! (19) 49r1     ! N/A                             =>! 0 
+  ! (20) ! LOW  - Water and Land Mixtures           =>! N/A
+  
+  ! Corresponding base conversion table from ECLAND to MEGAN PFT:
+  !                     ECLAND index:         1  2  3 4 5 6 7  8 9  10 11 12 13 14 15 16 17 18 19 20
+!  INTEGER(KIND=JPIM) :: ECLAND_TO_MEGAN(20)=(/15,13,1,2,7,4,15,0,12,15,13,0, 13, 0, 0,9, 10, 7, 0, 0 /)
 
 DO JK=1,NEMIS_BVOC
   YDBVOC%NAME(JK)=BVOC_NAMES(JK)
