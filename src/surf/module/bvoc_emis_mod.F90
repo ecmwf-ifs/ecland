@@ -157,6 +157,9 @@ INTEGER(KIND=JPIM) :: ECLAND_TO_MEGAN(20)=(/15,13,1,2,7,4,15,0,12,15,13,0, 13, 0
 
 !Indices associated to Deciduous PFTs in MEGAN classification
 INTEGER(KIND=JPIM) :: MEGAN_DECIDUOUS_PFT(6) = (/ 2, 6, 7, 8, 10, 11 /) 
+! aura change to 3 according to Alex's paper
+!INTEGER(KIND=JPIM) :: MEGAN_DECIDUOUS_PFT(6) = (/ 3, 6, 7, 8, 10, 11 /)
+
 
 ! Variables
 REAL(KIND=JPRB)   :: ZT_DAILY   ! Daily average air temperature representative of "the simulation period"
