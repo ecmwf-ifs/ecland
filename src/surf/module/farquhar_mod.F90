@@ -352,7 +352,6 @@ SUBROUTINE FARQUHAR (KIDIA, KFDIA, KLON, LDLAND, KVTYPE, KCO2TYP, YDAGS, YDAGF, 
 !ORIG  REAL(KIND=JPRB), ALLOCATABLE :: ZLEAF_CI(:,:)  ! intercellular CO2 concentration (ppm)
   !ORIG  REAL(KIND=JPRB), ALLOCATABLE :: ZCC(:,:)       ! Chloroplast CO2 partial pressure (ubar)
   
-  !  REAL(KIND=JPRB), PARAMETER   ::  ZRADTHRESHGPP=0.0001_JPRB ! GPP radiation threshold to check zero values in single precision
     REAL(KIND=JPRB), PARAMETER   ::  ZRADTHRESHGPP=1000._JPRB*EPSILON(1._JPRB) ! GPP radiation threshold to check zero values in single precision
  
 
