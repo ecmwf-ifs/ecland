@@ -14,7 +14,7 @@ SUBROUTINE SURFEXCDRIVER(YSURF, CDCONF &
  & , PMU0 , PCARDI &
  & , PUMLEV, PVMLEV, PTMLEV, PQMLEV, PCMLEV, PAPHMS, PGEOMLEV, PCPTGZLEV &
  & , PSST, PTSKM1M, PCHAR, PCHARHQ, PSSRFL, PSLRFL, PEMIS, PTICE, PTSN &
- & , PHLICE,PTLICE,PTLWML & 
+ & , PHLICE,PTLICE,PTLWML &
  & , PTHKICE,PSNTICE &
  & , PWLMX, PUCURR, PVCURR, PI10FGCV &
  & , PSSDP2, PSSDP3 &
@@ -38,7 +38,7 @@ SUBROUTINE SURFEXCDRIVER(YSURF, CDCONF &
  & , PAN,PAG,PRD,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX&
 ! output data: Biogenic VOC (BVOC) emissions
  & , PBVOCFLUX &
-! output canopy and bare soild resistance 
+! output canopy and bare soild resistance
  & , PWETB, PWETL, PWETLU, PWETH, PWETHS &
 ! output data, diagnostics
  & , PDHTLS, PDHTSS, PDHTTS, PDHTIS &
@@ -72,7 +72,7 @@ USE SURFEXCDRIVER_CTL_MOD, ONLY: SURFEXCDRIVER_CTL
 !  PURPOSE:
 !    Routine SURFEXCDRIVER controls the ensemble of routines that prepare
 !    the surface exchange coefficients and associated surface quantities
-!    needed for the solution of the vertical diffusion equations. 
+!    needed for the solution of the vertical diffusion equations.
 
 !  SURFEXCDRIVER is called by VDFMAIN
 
@@ -81,7 +81,7 @@ USE SURFEXCDRIVER_CTL_MOD, ONLY: SURFEXCDRIVER_CTL
 !    externalisation.
 
 !  AUTHOR:
-!    P. Viterbo       ECMWF May 2005   
+!    P. Viterbo       ECMWF May 2005
 
 !  REVISION HISTORY:
 !    E. Dutra/G. Balsamo May 2008 Add lake tile
@@ -90,7 +90,7 @@ USE SURFEXCDRIVER_CTL_MOD, ONLY: SURFEXCDRIVER_CTL
 !    N. Semane  04-10-2012  Include small planet PRPLRG
 !    Linus Magnusson     10-09-28 Sea-ice
 
-!  INTERFACE: 
+!  INTERFACE:
 
 !    Characters (In):
 !      CDCONF   :    IFS Configuration
@@ -104,7 +104,7 @@ USE SURFEXCDRIVER_CTL_MOD, ONLY: SURFEXCDRIVER_CTL
 !      KVTYPES  :    Number of biomes for carbon
 !      KDIAG    :    Number of diagnostic parameters
 !      KSTEP    :    Time step index
-!      KLEVSN   :    Number of snow layers (diagnostics) 
+!      KLEVSN   :    Number of snow layers (diagnostics)
 !      KLEVI    :    Number of sea ice layers (diagnostics)
 !      KDHVTLS  :    Number of variables for individual tiles
 !      KDHFTLS  :    Number of fluxes for individual tiles
@@ -139,16 +139,16 @@ USE SURFEXCDRIVER_CTL_MOD, ONLY: SURFEXCDRIVER_CTL
 !      PLAILP   :    Low vegetation LAI previous time step
 !      PLAIHP   :    High vegetation LAI previous time step
 !      PAVGPAR  :    Average PAR
-!      PISOP_EP :    Isoprene Emission Potential 
+!      PISOP_EP :    Isoprene Emission Potential
 
 !     PSNM      :       SNOW MASS (per unit area)                      kg/m**2
 !     PRSN      :      SNOW DENSITY                                   kg/m**3
 
 !      PMU0          : COS SOLAR angle
 !      PCARDI        : CONCENTRATION ATMOSPHERIC CO2
-!      PRPLRG    :   ! GRAVITY SMALL PLANET FACTOR 
+!      PRPLRG    :   ! GRAVITY SMALL PLANET FACTOR
 
-!    Reals with tile index (In): 
+!    Reals with tile index (In):
 !      PFRTI    :    TILE FRACTIONS                                   (0-1)
 !            1 : WATER                  5 : SNOW ON LOW-VEG+BARE-SOIL
 !            2 : ICE                    6 : DRY SNOW-FREE HIGH-VEG
@@ -189,7 +189,7 @@ USE SURFEXCDRIVER_CTL_MOD, ONLY: SURFEXCDRIVER_CTL
 !     LDLAND    :    LAND SEA MASK INDICATOR                       -
 
 !    Reals with tile index (In/Out):
-!      PUSTRTI  :    SURFACE U-STRESS                                 N/m2 
+!      PUSTRTI  :    SURFACE U-STRESS                                 N/m2
 !      PVSTRTI  :    SURFACE V-STRESS                                 N/m2
 !      PAHFSTI  :    SURFACE SENSIBLE HEAT FLUX                       W/m2
 !      PEVAPTI  :    SURFACE MOISTURE FLUX                            KG/m2/s
@@ -212,13 +212,13 @@ USE SURFEXCDRIVER_CTL_MOD, ONLY: SURFEXCDRIVER_CTL
 !      PCFQTI   :    Tiled EXCHANGE COEFFICIENT AT THE SURFACE        ????
 !      PCSATTI  :    MULTIPLICATION FACTOR FOR QS AT SURFACE          -
 !                      FOR SURFACE FLUX COMPUTATION
-!      PCAIRTI  :    MULTIPLICATION FACTOR FOR Q AT  LOWEST MODEL     - 
+!      PCAIRTI  :    MULTIPLICATION FACTOR FOR Q AT  LOWEST MODEL     -
 !                      LEVEL FOR SURFACE FLUX COMPUTATION
 !      PCPTSTIU :    AS PCPTSTI FOR UNSTRESSED LOW VEGETATION         J/kg
 !      PCSATTIU :    AS PCSATTI FOR UNSTRESSED LOW VEGETATION         -
-!      PCAIRTIU :    AS PCAIRTI FOR UNSTRESSED LOW VEGETATION         - 
-!      PRAQTI   :    Aerodynamic resistance                           - 
-!      PTSRF    :    Tiled surface temperature for each tile 
+!      PCAIRTIU :    AS PCAIRTI FOR UNSTRESSED LOW VEGETATION         -
+!      PRAQTI   :    Aerodynamic resistance                           -
+!      PTSRF    :    Tiled surface temperature for each tile
 !                    Boundary condition in surfseb                    K
 !      PLAMSK   :    Tiled skin layer conductivity                    W m-2 K-1
 
@@ -238,7 +238,7 @@ USE SURFEXCDRIVER_CTL_MOD, ONLY: SURFEXCDRIVER_CTL
 !      PCPTSPP  :    Cp*Ts for post-processing of weather parameters  J/kg
 !      PQSAPP   :    Apparent surface humidity for post-processing    kg/kg
 !                     of weather parameters
-!      PBUOMPP  :    Buoyancy flux, for post-processing of gustiness  ???? 
+!      PBUOMPP  :    Buoyancy flux, for post-processing of gustiness  ????
 !      PZDLPP   :    z/L for post-processing of weather parameters    -
 !      PDHTLS   :    Diagnostic array for tiles (see module yomcdh)
 !                      (Wm-2 for energy fluxes, kg/(m2s) for water fluxes)
@@ -249,15 +249,15 @@ USE SURFEXCDRIVER_CTL_MOD, ONLY: SURFEXCDRIVER_CTL
 !      PDHTIS   :    Diagnostic array for ice T (see module yomcdh)
 !                      (Wm-2 for fluxes)
 
-!     *PDHVEGS*      Diagnostic array for vegetation (see module yomcdh) 
+!     *PDHVEGS*      Diagnostic array for vegetation (see module yomcdh)
 !     *PEXDIAG*      Diagnostic array for optional pp of canopy resistances
 !     *PDHCO2S*      Diagnostic array for CO2 (see module yomcdh)
 !     *PDHBVOCS*     Diagnostic array for BVOC (see module yomcdh)
-!       PWETB        Surface resistance bare soild 
-!       PWETL        Canopy resistance of low vegetation  
-!       PWETLU       Canopy resistance of low vegetation , unstressed 
-!       PWETH        Canopy resistance of high vegetation  
-!       PWETHS       Canopy resistance of high vegetation snow cover  
+!       PWETB        Surface resistance bare soild
+!       PWETL        Canopy resistance of low vegetation
+!       PWETLU       Canopy resistance of low vegetation , unstressed
+!       PWETH        Canopy resistance of high vegetation
+!       PWETHS       Canopy resistance of high vegetation snow cover
 
 !     EXTERNALS.
 !     ----------
@@ -265,7 +265,7 @@ USE SURFEXCDRIVER_CTL_MOD, ONLY: SURFEXCDRIVER_CTL
 !     ** SURFEXCDRIVER_CTL CALLS SUCCESSIVELY:
 !         *VUPDZ0*
 !         *VSURF*
-!         *CO2* 
+!         *CO2*
 !         *VEXCS*
 !         *VEVAP*
 !         *VSFLX*
@@ -306,32 +306,31 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEP
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEPF
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PPPFD_TOA
 LOGICAL,INTENT(IN)               :: LDLAND(KLON)
+INTEGER(KIND=JPIM),INTENT(IN)    :: KTVL(KLON) 
+INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(KLON) 
+INTEGER(KIND=JPIM),INTENT(IN)    :: KCO2TYP(KLON) 
+INTEGER(KIND=JPIM),INTENT(IN)    :: KSOTY(KLON) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHVCO2S
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHFCO2S
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHVBVOCS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHVVEGS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHFVEGS
-INTEGER(KIND=JPIM),INTENT(IN)    :: KTVL(KLON) 
-INTEGER(KIND=JPIM),INTENT(IN)    :: KCO2TYP(KLON) 
-INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(KLON) 
-INTEGER(KIND=JPIM),INTENT(IN)    :: KSOTY(KLON) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVL(KLON) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVH(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCUR(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIL(KLON) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(KLON)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PFWET(KLON)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAT(KLON)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSNM(KLON,KLEVSN)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PRSN(KLON,KLEVSN)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILP(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHP(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPAR(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PISOP_EP(KLON)
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PFWET(:)
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAT(:)
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PI10FGCV(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PSNM(KLON,KLEVSN)
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PRSN(KLON,KLEVSN)
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCARDI
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUMLEV(KLON) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PVMLEV(KLON) 
@@ -358,6 +357,7 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSN(KLON,KLEVSN)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX(KLON) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR(KLON)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PI10FGCV(KLON) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M(KLON,KLEVS) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSAM1M(KLON,KLEVS) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(KLON,KTILES) 
@@ -407,34 +407,34 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0QTIW(KLON,KTILES)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZDLTI(KLON,KTILES)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPPTI(KLON,KTILES)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPPTI(KLON,KTILES)
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAN(:)
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAG(:)
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRD(:)
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRSOIL_STR(:)
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRECO(:)
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCO2FLUX(:)
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCH4FLUX(:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAN(KLON)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAG(KLON)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRD(KLON)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRSOIL_STR(KLON)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRECO(KLON)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCO2FLUX(KLON)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCH4FLUX(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHVEGS(KLON,KVTYPES,KDHVVEGS+KDHFVEGS) 
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHCO2S(KLON,KVTYPES,KDHVCO2S+KDHFCO2S) 
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHBVOCS(KLON,KVTYPES,KDHVBVOCS)
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PEXDIAG(KLON,KDIAG)
-
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHCO2S(KLON,KVTYPES,KDHVCO2S+KDHFCO2S) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTLS(KLON,KTILES,KDHVTLS+KDHFTLS) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTSS(KLON,KLEVSN,KDHVTSS+KDHFTSS) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTTS(KLON,KLEVS,KDHVTTS+KDHFTTS) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTIS(KLON,KLEVI,KDHVTIS+KDHFTIS)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHBVOCS(KLON,KVTYPES,KDHVBVOCS)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRPLRG
-
-LOGICAL           ,INTENT(IN)    :: LSICOUP
-LOGICAL           ,INTENT(IN)    :: LDSICE(KLON)
-LOGICAL           ,INTENT(IN)    :: LBLEND
-!canopy / bare soild resistances 
+!canopy / bare soild resistances
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETB(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETL(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETLU(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETH(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETHS(KLON)
+
+LOGICAL           ,INTENT(IN)    :: LSICOUP
+LOGICAL           ,INTENT(IN)    :: LDSICE(KLON)
+LOGICAL           ,INTENT(IN)    :: LBLEND
+
 !ifndef INTERFACE
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
