@@ -188,7 +188,7 @@ REAL(KIND=JPRB), PARAMETER :: ZINH_MAX = 1.344
 REAL(KIND=JPRB), PARAMETER :: ZH = 1.4614
 REAL(KIND=JPRB), PARAMETER :: ZCSTAR = 585
 REAL(KIND=JPRB), PARAMETER :: ZMMR_TO_VMR = 28.96 / 44.0 * 1E6_JPRB   ! Conversion of CO2 from kg/kg to ppmv
-REAL(KIND=JPRB) :: ZSRFD_FUDGE_FAC
+REAL(KIND=JPRB) :: FUDGE_FAC_BVOC
 !REAL(KIND=JPRB), PARAMETER :: ZSRFD_FUDGE_FAC=1./2.2_JPRB ! Division of IFS SSRD by factor 2.2, proposed by Katerina Sindelarova, May 2023
 
 
@@ -198,11 +198,11 @@ IF (LHOOK) CALL DR_HOOK('BVOC_EMIS_MOD:BVOC_EMIS',0,ZHOOK_HANDLE)
 
 ASSOCIATE( EMIS_FAC=>YDBVOC%EMIS_FAC, NEMIS_BVOC=>YDBVOC%NEMIS_BVOC, &
          & LDF => YDBVOC%LDF, IC5H8 => YDBVOC%IC5H8, RW_TO_MOL_BVOC=>YDBVOC%RW_TO_MOL_BVOC, &
-	 & NBVOC_DELTA_DAY_LAI=>YDBVOC%NBVOC_DELTA_DAY_LAI, ZSRFD_FUDGE_FAC=>YDEPHY%ZSRFD_FUDGE_FAC)
+	 & NBVOC_DELTA_DAY_LAI=>YDBVOC%NBVOC_DELTA_DAY_LAI, FUDGE_FAC_BVOC=>YDEPHY%FUDGE_FAC_BVOC)
 
 !*       1.     INITIALIZE Local Variables
 !               ---------- ----------
-WRITE(NULOUT,*) ' ZSRFD_FUDGE_FAC=', ZSRFD_FUDGE_FAC
+WRITE(NULOUT,*) ' FUDGE_FAC_BVOC=', FUDGE_FAC_BVOC
 DO JL=KIDIA,KFDIA
 
   ! Initialize activity activity factors to unity (no inhibition)
@@ -318,7 +318,7 @@ DO JL=KIDIA,KFDIA
     ZP_TOA=PPPFD_TOA  !      photosynthetic flux at top of atmosphere, umol/m2/sec
                       !      at least seasonal variation should be introduced 
                       !      following eqn. 11 of Sindelarova (2017)
-    ZPPFD=PSRFD(JL)*RW_TO_MOL_BVOC*ZSRFD_FUDGE_FAC ! Application of fudge factor - check if this is still needed.
+    ZPPFD=PSRFD(JL)*RW_TO_MOL_BVOC*FUDGE_FAC_BVOC ! Application of fudge factor - check if this is still needed.
     ZPHI=ZPPFD/(PMU0(JL) * ZP_TOA)
     ZGAMMA_P(JL)=MAX(0._JPRB,PMU0(JL)*(2.46*ZPHI*(1+0.0005*(ZP_DAILY-400._JPRB))-0.9*ZPHI*ZPHI )) ! eq 11b
   ELSE 
