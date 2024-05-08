@@ -26,6 +26,7 @@ TYPE :: TBVOC
 
 
   REAL(KIND=JPRB) :: RW_TO_MOL_BVOC              ! W_to_mmol * RG_to_PAR = 2.3
+  REAL(KIND=JPRB) :: FUDGE_FAC_BVOC
 
 END TYPE TBVOC
 
