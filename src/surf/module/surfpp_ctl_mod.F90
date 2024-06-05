@@ -339,6 +339,7 @@ IF (LT2MTILE)THEN
    ! Wind calculations made separately after loop on tiles.
    ! Temperature and humidity are computed per tile and averaged afterwards
    LWIND=.FALSE.
+   !$loki nodep
    DO JTILE=1,KTILES
      CALL SPPCFL(KIDIA,KFDIA,KLON,JTILE &
      & , PUMLEV, PVMLEV, PQMLEV, PGEOMLEV, PCPTSPPTI(KIDIA:KFDIA,JTILE), PCPTGZLEV &
