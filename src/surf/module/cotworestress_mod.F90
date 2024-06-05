@@ -492,6 +492,7 @@ ELSE
 
   ! A-gs photosynthesis model
 
+  !$loki nodep
   DO JINT=1,SIZE(RABC)
      ! jint=1 is the lowest part of the canopy, jint=size(rabc) is the highest part. 
      !  Diffusion of incident radiation:
