@@ -1,0 +1,332 @@
+MODULE VEVAPSTL_MOD
+CONTAINS
+SUBROUTINE VEVAPSTL (KIDIA,KFDIA,KLON,PTMST,PRVDIFTS,KTILE, &
+ & PWLMX5, PTMLEV5 , PQMLEV5 , PAPHMS5, PTSKM1M5, PTSAM1M5, &
+ & PQS5  , PCFQ5   , PWETB5  , PWETL5 , PWETH5  , PWETHS5 , &
+ & YDCST , YDVEG   , &
+ & PCPTS5, PCSAT5  , PCAIR5  , PCSNW5 , &
+ & PTMLEV, PQMLEV  , PAPHMS  , PTSKM1M, PTSAM1M , &
+ & PQS   , PCFQ    , PWETB   , PWETL  , PWETH   , PWETHS , &
+ & PCPTS , PCSAT   , PCAIR   , PCSNW )
+
+USE PARKIND1 , ONLY : JPIM, JPRB
+USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
+USE YOS_THF  , ONLY : RVTMP2
+USE YOS_CST  , ONLY : TCST
+USE YOS_VEG  , ONLY : TVEG
+
+! (C) Copyright 1995- ECMWF.
+!
+! This software is licensed under the terms of the Apache Licence Version 2.0
+! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+! In applying this licence, ECMWF does not waive the privileges and immunities
+! granted to it by virtue of its status as an intergovernmental organisation
+! nor does it submit to any jurisdiction.
+
+!     ------------------------------------------------------------------
+
+!**   *VEVAPSTL* - COMPUTE EQUIVALENT EVAPOTRANSPIRATION EFFICIENCY
+!                   (Tangent linear)
+
+!     P. Viterbo   ECMWF    22/06/2005     Externalise surf
+
+!     based on
+
+!     J.F. MAHFOUF          E.C.M.W.F.    02/10/95
+
+!     adapted from
+
+!     A.C.M. BELJAARS       E.C.M.W.F.    18/01/90.
+
+!     OBUKHOV-L UPDATE      ACMB          26/03/90.
+!     (MAINLY TECHNICAL; TO MAKE CODE MORE READABLE)
+
+!  MODIFIED:
+!    M. Janiskova  ECMWF   15/02/2006  modified for tiling of land surface
+!                                      (as used in non-linear VEVAP routine)
+
+!     PURPOSE
+!     -------
+
+!     COMPUTE EQUIVALENT EVAPOTRANSPIRATION EFFICIENCY
+
+!     INTERFACE
+!     ---------
+
+!     *VEVAPSTL* IS CALLED BY *VDFMAINSTL*
+
+!   INPUT PARAMETERS (INTEGER):
+
+!     *KIDIA*        START POINT
+!     *KFDIA*        END POINT
+!     *KLON*         NUMBER OF GRID POINTS PER PACKET
+!     *KTILE*        TILE INDEX
+
+!   INPUT PARAMETERS (REAL):
+
+!     *PTMST*        TIME STEP
+!     *PRVDIFTS*     Semi-implicit factor for vertical diffusion discretization
+
+!  Trajectory  Perturbation  Description                               Unit
+!  PWLMX5      ----          Semi-implicit factor for vertical 
+!                            diffusion discretization                  kg/m**2
+!  PTMLEV5     PTMLEV        TEMPERATURE AT T-1, 
+!                            lowest atmospheric level                  K
+!  PQMLEV5     PQMLEV        PECIFIC HUMUDITY AT T-1, 
+!                            lowest atmospheric level                  kg/kg
+!  PAPHMS5     PAPHMS        PRESSURE AT T-1, surface                  Pa
+!  PTSKM1M5    PTSKM1M       SKIN TEMPERATURE                          K
+!  PTSAM1M5    PTSAM1M       SURFACE TEMPERATURE                       K
+
+!  PQS5        PQS           SATURATION Q AT SURFACE                   kg/kg
+!  PCFQ5       PCFQ          PROP. TO EXCH. COEFF. FOR MOISTURE
+!                            (C-STAR IN DOC.)  (SURFACE LAYER ONLY)    ?
+!  PWETB5      PWETB         BARE SOIL RESISTANCE                      ?
+!  PWETL5      PWETL         STOMATAL RESISTANCE LOW VEGETATION        ?
+!  PWETH5      PWETH         STOMATAL RESISTANCE HIGH VEGETATION, 
+!                            SNOW FREE                                 ?
+!  PWETHS5     PWETHS        STOMATAL RESISTANCE HIGH VEGETATION 
+!                            WITH SNOW                                 ?
+
+!   OUTPUT PARAMETERS (REAL):
+
+!  Trajectory  Perturbation  Description                               Unit
+!  PCPTS5      PCPTS         DRY STATIC ENRGY AT SURFACE               J/kg
+!  PCSAT5      PCSAT         MULTIPLICATION FACTOR FOR QS AT SURFACE
+!                            FOR SURFACE FLUX COMPUTATION
+!  PCAIR5      PCAIR         MULTIPLICATION FACTOR FOR Q AT LOWEST 
+!                            MODEL LEVEL FOR SURFACE FLUX COMPUTATION
+!  PCSNW5      PCSNW         MULTIPLICATION FACTOR FOR MOISTURE FLUX
+!                            COMPUTATION FROM SNOW THROUGH CANOPY (TILE 7)
+
+!     METHOD
+!     ------
+
+!     SEE DOCUMENTATION
+
+!     ------------------------------------------------------------------
+
+IMPLICIT NONE
+
+INTEGER(KIND=JPIM),INTENT(IN)    :: KLON 
+INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
+INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA
+INTEGER(KIND=JPIM),INTENT(IN)    :: KTILE 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTMST 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PRVDIFTS
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX5(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTMLEV5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PQMLEV5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PAPHMS5(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSKM1M5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M5(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PQS5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PCFQ5(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PWETB5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PWETL5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PWETH5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PWETHS5(:) 
+TYPE(TCST)        ,INTENT(IN)    :: YDCST
+TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTS5(:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCSAT5(:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCAIR5(:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCSNW5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTMLEV(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PQMLEV(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PAPHMS(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSKM1M(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PQS(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PCFQ(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PWETB(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PWETL(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PWETH(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PWETHS(:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTS(:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCSAT(:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCAIR(:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCSNW(:)
+INTEGER(KIND=JPIM) :: JL
+
+REAL(KIND=JPRB) :: ZCONS12, ZCONS16, ZEMAX5, ZRAS
+REAL(KIND=JPRB) :: ZCONS, ZZWET, ZZWETS, ZEP, ZCAIR, Z1S
+
+REAL(KIND=JPRB) :: ZEP5, ZCAIR5, ZCONS5, ZZWET5, ZZWETS5, Z1S5
+REAL(KIND=JPRB) :: ZDIV15, ZDIV25, ZDIV35, ZDIV45, ZDIV55
+REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+!     ------------------------------------------------------------------
+
+!*       1.     INITIALIZE CONSTANTS
+!               ---------- ----------
+
+IF (LHOOK) CALL DR_HOOK('VEVAPSTL_MOD:VEVAPSTL',0,ZHOOK_HANDLE)
+ASSOCIATE(RCPD=>YDCST%RCPD, RD=>YDCST%RD, RETV=>YDCST%RETV, RG=>YDCST%RG, &
+ & RLHAERO=>YDVEG%RLHAERO, RLHAEROS=>YDVEG%RLHAEROS)
+
+ZCONS12 = (PRVDIFTS*PTMST*RG)/RD
+ZCONS16 = 1./(RG*PTMST*PRVDIFTS)
+
+!     ------------------------------------------------------------------
+
+!          2.    COMPUTE EQUIVALENT EFFICIENCY FOR EVAPORATION
+!                ------- ---------- ---------- --- -----------
+
+PCSAT (KIDIA:KFDIA) = 0.0_JPRB
+PCSAT5(KIDIA:KFDIA) = 1.0_JPRB
+PCAIR (KIDIA:KFDIA) = 0.0_JPRB
+PCAIR5(KIDIA:KFDIA) = 1.0_JPRB
+
+!      interception reservoir
+
+IF(KTILE == 3)THEN
+  DO JL=KIDIA,KFDIA
+    ZEP  = ZCONS16*(PQMLEV5(JL)-PQS5(JL))*PCFQ(JL) &
+     &   + ZCONS16*PCFQ5(JL)*(PQMLEV(JL)-PQS(JL))
+    ZEP5 = ZCONS16*PCFQ5(JL)*(PQMLEV5(JL)-PQS5(JL))
+    ZEMAX5 = -PWLMX5(JL)/PTMST
+    IF (ZEP5 < 0.0_JPRB .AND. ZEMAX5 < 0.0_JPRB .AND. ZEP5 < ZEMAX5) THEN
+      ZDIV15 = 1.0_JPRB/ZEP5
+      ZCAIR  = -ZEMAX5*ZDIV15*ZDIV15*ZEP
+      ZCAIR5 = ZEMAX5*ZDIV15
+      IF (ZCAIR5 < 1.0_JPRB) THEN
+        PCAIR (JL) = ZCAIR
+        PCAIR5(JL) = ZCAIR5
+      ELSE
+        PCAIR (JL) = 0.0_JPRB
+        PCAIR5(JL) = 1.0_JPRB
+      ENDIF
+      PCSAT (JL) = PCAIR (JL)
+      PCSAT5(JL) = PCAIR5(JL)
+    ENDIF
+  ENDDO
+ENDIF
+
+!      LOW VEGETATION
+
+IF (KTILE  ==  4) THEN
+  DO JL=KIDIA,KFDIA
+    IF (PQMLEV5(JL)  <=  PQS5(JL)) THEN
+      ZDIV25 = 1.0_JPRB/(PTMLEV5(JL)*(1.0_JPRB+RETV*PQMLEV5(JL)))  
+      ZCONS  = ZCONS12*ZDIV25*PAPHMS(JL) &
+       & - ZCONS12*PAPHMS5(JL)*ZDIV25*ZDIV25 &
+       & * (RETV*PTMLEV5(JL)*PQMLEV(JL) &
+       & + (1.0_JPRB+RETV*PQMLEV5(JL))*PTMLEV(JL))
+      ZCONS5 = ZCONS12*PAPHMS5(JL)*ZDIV25
+      ZDIV35 = 1.0_JPRB/ZCONS5
+      ZZWET  = PWETL(JL)*ZDIV35-PWETL5(JL)*ZDIV35*ZDIV35*ZCONS
+      ZZWET5 = PWETL5(JL)*ZDIV35
+      PCSAT5(JL) = 1.0_JPRB/(1.0_JPRB+PCFQ5(JL)*ZZWET5)
+      PCSAT (JL) = PCSAT5(JL)*PCSAT5(JL) &
+       & * (-PCFQ5(JL)*ZZWET-ZZWET5*PCFQ(JL))
+      PCAIR (JL) = PCSAT (JL)
+      PCAIR5(JL) = PCSAT5(JL)
+    ENDIF
+  ENDDO
+ENDIF
+
+!      HIGH VEGETATION (NO SNOW)
+
+IF (KTILE  ==  6) THEN
+  DO JL=KIDIA,KFDIA
+    IF (PQMLEV5(JL)  <=  PQS5(JL)) THEN
+      ZDIV25 = 1.0_JPRB/(PTMLEV5(JL)*(1.0_JPRB+RETV*PQMLEV5(JL)))  
+      ZCONS  = ZCONS12*ZDIV25*PAPHMS(JL) &
+       & - ZCONS12*PAPHMS5(JL)*ZDIV25*ZDIV25 &
+       & * (RETV*PTMLEV5(JL)*PQMLEV(JL) &
+       & + (1.0_JPRB+RETV*PQMLEV5(JL))*PTMLEV(JL))
+      ZCONS5 = ZCONS12*PAPHMS5(JL)*ZDIV25
+      ZDIV35 = 1.0_JPRB/ZCONS5
+      ZZWET  = PWETH(JL)*ZDIV35-PWETH5(JL)*ZDIV35*ZDIV35*ZCONS
+      ZZWET5 = PWETH5(JL)*ZDIV35
+      PCSAT5(JL) = 1.0_JPRB/(1.0_JPRB+PCFQ5(JL)*ZZWET5)
+      PCSAT (JL) = PCSAT5(JL)*PCSAT5(JL) &
+       & * (-PCFQ5(JL)*ZZWET-ZZWET5*PCFQ(JL))
+      PCAIR (JL) = PCSAT (JL)
+      PCAIR5(JL) = PCSAT5(JL)
+    ENDIF
+  ENDDO
+ENDIF
+
+!      HIGH VEGETATION (WITH UNDERLYING SNOW)
+
+IF (KTILE == 7) THEN
+  PCSNW (KIDIA:KFDIA) = 0.0_JPRB
+  PCSNW5(KIDIA:KFDIA) = 0.0_JPRB
+  DO JL=KIDIA,KFDIA
+    IF (PQMLEV5(JL) <= PQS5(JL)) THEN
+      IF(PTSKM1M5(JL) > PTSAM1M5(JL)) THEN
+        ZRAS=1200._JPRB/RLHAEROS  
+      ELSE
+        ZRAS=1200._JPRB/RLHAERO  
+      ENDIF
+      ZDIV25 = 1.0_JPRB/(PTMLEV5(JL)*(1.0_JPRB+RETV*PQMLEV5(JL)))  
+      ZCONS  = ZCONS12*ZDIV25*PAPHMS(JL) &
+       & - ZCONS12*PAPHMS5(JL)*ZDIV25*ZDIV25 &
+       & * (RETV*PTMLEV5(JL)*PQMLEV(JL) &
+       & + (1.0_JPRB+RETV*PQMLEV5(JL))*PTMLEV(JL))
+      ZCONS5 = ZCONS12*PAPHMS5(JL)*ZDIV25
+      ZDIV35 = 1.0_JPRB/ZCONS5
+      ZZWET  = PWETHS(JL)*ZDIV35-PWETHS5(JL)*ZDIV35*ZDIV35*ZCONS
+      ZZWET5 = PWETHS5(JL)*ZDIV35
+      ZZWETS  = -ZRAS*ZDIV35*ZDIV35*ZCONS
+      ZZWETS5 = ZRAS*ZDIV35
+      ZDIV45 = 1.0_JPRB/(ZZWETS5+ZZWET5*PCFQ5(JL)*ZZWETS5+ZZWET5)
+      PCSAT (JL) = ZDIV45*ZDIV45*(ZZWET5*ZZWETS &
+       & - ZZWETS5*(ZZWET5*ZZWETS5*PCFQ(JL) &
+       & + (PCFQ5(JL)*ZZWETS5+1.0_JPRB)*ZZWET))
+      PCSAT5(JL) = ZZWETS5*ZDIV45
+      PCAIR (JL) = PCSAT (JL)
+      PCAIR5(JL) = PCSAT5(JL)
+      IF (PWETHS5(JL) > 1.0_JPRB) THEN
+        ZDIV55 = 1.0_JPRB/(ZZWET5+ZZWETS5*PCFQ5(JL)*ZZWET5+ZZWETS5)
+        PCSNW (JL) = ZDIV55*ZDIV55*(ZZWETS5*ZZWET &
+         & - ZZWET5*(ZZWETS5*ZZWET5*PCFQ(JL) &
+         & + (PCFQ5(JL)*ZZWET5+1.0_JPRB)*ZZWETS))
+        PCSNW5(JL) = ZZWET5*ZDIV55
+      ENDIF
+    ENDIF
+  ENDDO
+ENDIF
+
+!      BARE SOIL
+
+IF (KTILE  ==  8) THEN
+  DO JL=KIDIA,KFDIA
+    IF (PQMLEV5(JL)  <=  PQS5(JL)) THEN
+      ZDIV25 = 1.0_JPRB/(PTMLEV5(JL)*(1.0_JPRB+RETV*PQMLEV5(JL)))
+      ZCONS  = ZCONS12*ZDIV25*PAPHMS(JL) &
+       & - ZCONS12*PAPHMS5(JL)*ZDIV25*ZDIV25 &
+       & * (RETV*PTMLEV5(JL)*PQMLEV(JL) &
+       & + (1.0_JPRB+RETV*PQMLEV5(JL))*PTMLEV(JL))
+      ZCONS5 = ZCONS12*PAPHMS5(JL)*ZDIV25
+      ZDIV35 = 1.0_JPRB/ZCONS5
+      ZZWET  = PWETB(JL)*ZDIV35-PWETB5(JL)*ZDIV35*ZDIV35*ZCONS
+      ZZWET5 = PWETB5(JL)*ZDIV35
+      PCSAT5(JL) = 1.0_JPRB/(1.0_JPRB+PCFQ5(JL)*ZZWET5)
+      PCSAT (JL) = PCSAT5(JL)*PCSAT5(JL) &
+       & * (-PCFQ5(JL)*ZZWET-ZZWET5*PCFQ(JL))
+      PCAIR (JL) = PCSAT (JL)
+      PCAIR5(JL) = PCSAT5(JL)
+    ENDIF
+  ENDDO
+ENDIF
+
+DO JL=KIDIA,KFDIA
+  Z1S  = RCPD*PTSKM1M (JL)
+  Z1S5 = RCPD*PTSKM1M5(JL)
+  PCPTS (JL) = Z1S *(1.0_JPRB+RVTMP2*(PCSAT5(JL)*PQS5(JL) &
+   & + (1.0_JPRB-PCAIR5(JL))*PQMLEV5(JL))) &
+   & + Z1S5*RVTMP2*(PCSAT (JL)*PQS5(JL) &
+   & + PCSAT5(JL)*PQS (JL) &
+   & + (1.0_JPRB-PCAIR5(JL))*PQMLEV (JL) &
+   & - PCAIR (JL) *PQMLEV5(JL))  
+  PCPTS5(JL) = Z1S5*(1.0_JPRB+RVTMP2*(PCSAT5(JL)*PQS5(JL) &
+   & + (1.0_JPRB-PCAIR5(JL))*PQMLEV5(JL)))  
+ENDDO
+
+END ASSOCIATE
+IF (LHOOK) CALL DR_HOOK('VEVAPSTL_MOD:VEVAPSTL',1,ZHOOK_HANDLE)
+END SUBROUTINE VEVAPSTL
+END MODULE VEVAPSTL_MOD

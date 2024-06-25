@@ -1,0 +1,85 @@
+# config.yaml
+# (C) Copyright 2024- ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+#
+# Configuration file for ecland_create_forcing.py script.
+# Example for 2D ('regional') extraction using cds
+
+# General information of the type of data to retrieve
+sites:
+    ftype: 2D         # 1D or 2D -- note that 2D allows only 1 "sitenames" (region) at the time 
+                      #             (and so iniDate, endDate, dx, clat*,clon* ...)
+    group: TEST_2D # Group the sites extracted under a common label/project, e.g. TERRENO,PLUMBER2 etc.
+    sitenames:        # site name code, MUST comply to XX-YYY for 1D, more flexible for 2D
+        - EU-001
+    iniDate:         # iniDate, one entry for each entry of sitename
+        - 20220101
+    endDate:         # endDate, one entry for each entry of sitename
+        - 20220228
+
+# This is only relevant for ftype=2D
+regional:
+    regional: true       # true if regional run, 
+    dx:     0.25         # resolution of the regional run in degrees
+    clatn:  60.75        # north latitude corner of lat/lon domain
+    clats:  35.75        # south latitude corner of lat/lon domain
+    clone:  32.75        # east longitude corner of lat/lon domain
+    clonw:  -10.75       # west longitude corner of lat/lon domain
+    cmf_res: 'glb_15min' # keywords supported: 'glb_15min', 'glb_06min', 'glb_03min'
+    actions:             # Note order of the following items is important!
+        - prepare_initialconditions_2D: true # Prepare initial conditions for 2D simulation (extract and create)
+        - prepare_cmf_basin           : false # Prepare CMF basin file for 2D simulation
+        - prepare_forcing_2D          : true # Prepare forcing for 2D simulation
+
+
+# Configuration of folders, paths etc.
+config:
+    workingdir: ./era5_data                # working dir forcing
+    inidir:     ./era5_data                # working dir initial cond
+    cmfdir:     ./ecland_input/cmf_aux/       # directory with cama-flood auxillary files
+                                                          # subfolders are expected to follow this naming convention:
+                                                          # <cmf_res>_<dx>_<CLIMVERSION>
+                                                          
+    sodir:      ./ecland_input/clim/          # output dir for initial cond and static fields
+    fodir:      ./ecland_input/forcing/       # output dir for forcing
+    scriptsdir: ../../scripts/ # Directory with create_forcing scripts
+    retrieve_with: cds                                   # mars (ecmwf) or cds (climate data store)
+
+
+# Initial condition and climate (static) fields
+initial_conditions:
+    INICLASS: "ea"         # the class of the initial condition data  - only "ea" is supported for retrieve_with cds
+    INISTREAM: oper        # the stream of the initial condition data - only oper is supported for retrieve_with cds
+    INIEXPVER: 1           # the experiment version of the initial condition data - only 1 is supported for retrieve_with cds
+    INIHOUR: "00:00:00"    # the time of the initial condition data - only "00:00:00" is supported for retrieve_with cds
+    RESOL: "639"           # the resolution used for the initial condition data and climate data, on the original gaussian grid used by ERA5 (639)
+                           # only "639" is supported for retrieve_with cds
+    GTYPE: "l_2"           # the type of gaussian grid used by ERA5, "l_2" for linear reduced gaussian grid, 
+                           # "_4" for cubic reduced gaussian grid. Only "l_2" is supported for retrieve_with cds
+    CLIMVERSION: "v020"    # the version of the "climate" data used for the initial condition data. 
+                                # ERA5 uses the v015; also available v020 (operational with CY48R1)
+    clim_data_loc: "nexus" # the location of the climate data used for the initial condition data. 
+                           # external users: "nexus"
+                           # emcwf (internal) users: "ecmwf" or "nexus"
+
+# Forcing
+forcing:
+    FORCINGCLASS: "ea"                                    # the class of the forcing data, not yet supported
+    FORCINGSTREAM: oper                                   # the stream of the forcing data, not yet supported
+    FORCINGEXPVER: 1                                      # the experiment version of the forcing data, not yet supported
+    FORCINGHOUR: "00:00:00"                               # the time of the forcing data, not yet supported
+    lapseCorrection: False                                # Apply lapse rate correction to temperature, Pressure and specific humidity; default:False
+                                                          # Require a ORODIFF_FILE to be provided at the target resolution (e.g. dx=0.25 deg)
+    ORODIFF_FILE: None                                    # Path to the orography difference file used for lapse rate correction
+    nthreads: 2                                           # Number of threads (parallel tasks) used for the forcing calculation. 
+    forcingCommonName: "forcing_ea_1_oper_1"              # Name of the forcing file, filename convention accepted by the forcing extraction scripts: <forcingCommonName>_<YYYYMM00>.tar.gz
+    forcingdir: "" # Directory with pre-processed forcing (empty if no forcing is available)
+                                                          # ecmwf hpc: "/ec/fwsm/lb/project/surface_forcing/era5/"
+                                                          # This is also the directory where forcing will be saved if SAVE_FORCING_GRIB is true
+    SAVE_FORCING_GRIB: false                              # Save forcing downloaded from cds/mars in grib format to <forcingdir> for future use
+    

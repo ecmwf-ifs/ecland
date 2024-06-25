@@ -1,0 +1,99 @@
+! (C) Copyright 2021- ECMWF.
+!
+! This software is licensed under the terms of the Apache Licence Version 2.0
+! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+! In applying this licence, ECMWF does not waive the privileges and immunities
+! granted to it by virtue of its status as an intergovernmental organisation
+! nor does it submit to any jurisdiction.
+
+&NRUNVER
+   LADPSTP=.TRUE.              ! true for adaptive time step
+   LFPLAIN=.TRUE.              ! true: consider floodplain (false: only river channel)
+   LKINE=.FALSE.                  ! true for kinematic river routing
+   LFLDOUT=.TRUE.              ! true: floodplain flow (high-water channel flow) active
+   LPTHOUT=.TRUE.              ! true: activate bifurcation scheme
+   LDAMOUT  = .FALSE.            !  true: activate dam operation (under development)
+   LROSPLIT =true ! true: input if surface (Qs) and sub-surface (Qsb) runoff
+   LWEVAP=false     ! true: Evap is recieved in CaMa-Flood and extracted from floodplains
+   LWEVAPFIX=.FALSE! true : extract water downstream to conserve water
+   LWEXTRACTRIV=FALSE ! true : extract water also from river channel
+   LGDWDLY=false ! True to activate ground water reservoir
+   LSLPMIX=.FALSE.            ! True to activate mixed kinematic and local inertia solution
+   LMEANSL=.FALSE.               ! true: boundary condition for mean sea level
+   LSEALEV=.FALSE.               ! true: boundary condition for variable sea level
+   LRESTART=false                 ! true: initial condition from restart file
+   LSTOONLY=false                ! true for restart only from storage
+   LOUTPUT=.TRUE.                ! true: use standard output (to file)
+   LGRIDMAP=.TRUE.               ! true: for standard XY gridded 2D map
+   LLEAPYR=.TRUE.                ! true: account for leap year (Feb29 skipped)
+   LMAPEND=.FALSE.               ! true: for map data endian conversion
+   LBITSAFE=.TRUE.               ! true: for Bit Identical simulation (avoid OSM ATOMIC)
+   LSLOPEMOUTH=.FALSE. ! true: prescribe water level slope == elevation slope on river month
+   /
+&NDIMTIME
+   CDIMINFO = "diminfo.txt"        ! text file for dimention information
+   DT       = 1800            ! time step length (sec)
+   IFRQ_INP = 24  ! input forcing update frequency (hour)
+   /
+&NPARAM
+   PMANRIV  = 0.03D0                  ! manning coefficient river
+   PMANFLD  = 0.10D0                  ! manning coefficient floodplain
+   PGRV     = 9.8D0                     ! gravity accerelation
+   PDSTMTH  = 25000.D0                  ! downstream distance at river mouth [m]
+   PCADP    = 0.7                     ! CFL coefficient
+   PMINSLP  = 1.D-5                       ! minimum slope (kinematic wave)
+   IMIS     = -9999                       ! missing value for integer
+   RMIS     = 1.E20                       ! missing value for real*4
+   DMIS     = 1.E20                       ! missing value for real*8
+   CSUFBIN  = '.bin'                      ! file suffix for plain binary 2D map
+   CSUFVEC  = '.vec'                      ! file suffix for plain binary 1D vector
+   CSUFPTH  = '.pth'                      ! file suffix for plain binary bifurcation channel
+   CSUFCDF  = '.nc'                       ! file suffix for netCDF
+   /
+&NSIMTIME
+   SYEAR={yy}    ! start year
+   SMON={mm}     ! month
+   SDAY={dd}     ! day
+   SHOUR=00      ! hour
+   EYEAR={yye}   ! end year
+   EMON={mme}    ! end
+   EDAY={dde}    ! end
+   EHOUR=00      ! hour
+   /
+   &NMAP
+   LMAPCDF=.TRUE.                      ! true for netCDF map input
+   CPTHOUT="bifprm.txt"                ! bifurcation channel list
+   CRIVCLINC="rivclim.nc"              ! * netCDF river maps
+   CRIVPARNC="rivpar.nc"               ! * netCDF river width & depth
+   /
+&NRESTART
+   CRESTDIR="./"                       ! restart directory
+   CRESTSTO="restartin_cmf_2022.nc"    ! restart file
+   LRESTCDF=.TRUE.                     ! true for netCDF restart file
+   CVNREST="restart"                   ! restart variable name
+   IFRQ_RST=0                          ! restart write frequency (1-24: hour, 0:end of run)
+   /
+&NFORCE
+   LINPCDF=false         ! true for netCDF input
+   LINTERP=true                 !  true for runoff interpolation using input matrix
+   LINPEND  = .FALSE.                 ! true for runoff endian conversion
+   LITRPCDF = .TRUE.                  ! * true for netCDF input matrix
+   CINPMAT="inpmat.nc"                ! input matrix file name
+   DROFUNIT=86400.          ! runoff unit conversion to get m/s.
+   CROFCDF="runoff.nc"             ! * netCDF input runoff file name
+   CVNROF   = "Qs"                 ! * netCDF input runoff variable name
+   CVNSUB   = "Qsb"                 ! * netCDF input runoff variable name
+   SYEARIN={yy}    ! * for netCDF input start date (start of the initial time step)
+   SMONIN={mm}
+   SDAYIN={dd}
+   SHOURIN=00
+   /
+&NOUTPUT
+   COUTDIR="./"                       ! output directory ("NONE" for no output)
+   CVARSOUT="rivsto,fldsto,gwsto,totout,fldfrc,wevap"                ! list of variables to output
+   COUTTAG=""                          ! Output Tag Name for each experiment
+   LOUTVEC=.FALSE.                     ! for 1-D land-only output (small data size, post processing required)
+   LOUTCDF=.TRUE.                      ! true for netCDF output
+   NDLEVEL=0               ! Netcdf4 Deflation Level
+   IFRQ_OUT = 6       ! output data write frequency (hour)
+   /

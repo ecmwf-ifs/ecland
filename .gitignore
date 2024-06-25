@@ -1,0 +1,22 @@
+# contents of .gitignore
+
+# specific ignores
+build
+install
+.vscode
+
+# definition file related
+documents/
+work/
+clim/
+forcing/
+benchmark/
+observations/
+
+# example script to run ecLand on atos hpc
+ecland_run.sh
+
+# cython compiled
+tools/create_forcing/scripts/osm_pyutils/cython_ext.c
+tools/create_forcing/scripts/osm_pyutils/cython_ext.cpython-311-x86_64-linux-gnu.so
+

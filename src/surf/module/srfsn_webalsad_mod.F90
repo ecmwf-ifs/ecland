@@ -1,0 +1,1153 @@
+MODULE SRFSN_WEBALSAD_MOD
+CONTAINS
+SUBROUTINE SRFSN_WEBALSAD(KIDIA,KFDIA,KLON,KLEVSN,&
+ & PTMST  , PFRTI   , LDLAND  , LLNOSNOW, &
+ & PSSNM1M5, PWSNM1M5 , PRSNM1M5 , PTSNM1M5,&
+ & PSLRFL5 , PSSRFLTI5, PAHFSTI5 , PEVAPTI5,&
+ & PSSFC5  , PSSFL5   , PEVAPSNW5, &
+ & PTSFC5  , PTSFL5   ,           &
+ & PTSURF5 , PSNOTRS5 ,           &
+ & PAPRS5  , PWSURF5  ,           &
+ & KSOTY   ,                      &
+ & YDSOIL  , YDCST   ,            &
+ & PTSN5, PGSN5, &
+ !-- perturbations
+ & PSSNM1M, PWSNM1M , PTSNM1M,&
+ & PSLRFL , PSSRFLTI, PAHFSTI , PEVAPTI,&
+ & PSSFC  , PSSFL   , PEVAPSNW, &
+ & PTSFC  , PTSFL   ,           &
+ & PTSURF , PSNOTRS ,           &
+ & PAPRS  , PWSURF  ,           &
+ & PTSN, PGSN                   &
+ &)
+ 
+
+
+USE PARKIND1 , ONLY : JPIM, JPRB
+USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
+
+USE YOS_SOIL , ONLY : TSOIL 
+USE YOS_CST  , ONLY : TCST
+
+USE ABORT_SURF_MOD
+
+#ifdef DOC
+! (C) Copyright 2021- ECMWF.
+!
+! This software is licensed under the terms of the Apache Licence Version 2.0
+! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+! In applying this licence, ECMWF does not waive the privileges and immunities
+! granted to it by virtue of its status as an intergovernmental organisation
+! nor does it submit to any jurisdiction.
+
+!**** - SNOW ENERGY BALANCE
+!                        (Adjoint)
+!
+!     PURPOSE.
+!     --------
+!          COMPUTES CHANGES IN SNOW TEMPERATURE
+
+!**   INTERFACE.
+!     ----------
+!          *SRFSN_WEBALSAD* IS CALLED FROM *SURFTSTPSAD*.
+
+!     PARAMETER   DESCRIPTION                                          UNITS
+!     ---------   -----------                                          -----
+
+!     INPUT PARAMETERS (INTEGER):
+!     *KIDIA*      START POINT
+!     *KFDIA*      END POINT
+!     *KLON*       NUMBER OF GRID POINTS PER PACKET
+!     *KLEVSN*    VERTICAL SNOW LAYERS
+
+!     INPUT PARAMETERS (REAL):
+!     *PTMST*      TIME STEP                                            S
+!     *PFRTI*      TILE FRACTIONS                                       -
+ 
+!     INPUT PARAMETERS (LOGICAL):
+!    *LDLAND*     LAND/SEA MASK (TRUE/FALSE)
+!    *LLNOSNOW*   NO-SNOW/SNOW MASK (TRUE IF NO-SNOW)
+
+!     INPUT PARAMETERS AT T-1 OR CONSTANT IN TIME (REAL):
+!  Trajectory  Perturbation  Description                                Unit
+!  PSSNM1M5    PSSNM1M       SNOW MASS (per unit area)                  kg/m2/s
+!  PTSNM1M5    PTSNM1M       SNOW TEMPERATURE                           K
+!  PRSNM1M     ---           SNOW DENSITY                               kg/m3 
+!  PTSAM1M5    PTSAM1M       SOIL TEMPERATURE                           K
+!  PSLRFL5     PSLRFL        NET LONGWAVE  RADIATION AT THE SURFACE     W/m2
+!  PSSRFLTI5   PSSRFLTI      NET SHORTWAVE RADIATION AT THE SURFACE,    W/m2
+!                            FOR EACH TILE  
+!  PTSURF5     PTSURF       TEMPERATURE OF TOP SOIL LAYER                K
+!  PWSURF5     PWSURF SOIL MOISTURE OF TOP SOIL LAYER                K
+!  PAHFSTI5    PAHFSTI       TILE SENSIBLE HEAT FLUX                    W/m2
+!  PEVAPTI5    PEVAPTI       TILE EVAPORATION                           kg/m2/s
+!  PSSFC5      PSSFC         CONVECTIVE  SNOW FLUX AT THE SURFACE       kg/m2/s
+!  PSSFL5      PSSFL         LARGE SCALE SNOW FLUX AT THE SURFACE       kg/m2/s
+!  PEVAPSNW5   PEVAPSNW      EVAPORATION FROM SNOW UNDER FOREST         kg/m2/s
+!  PTSFC5      PTSFC         Convective Throughfall at the surface      kg/m2/s
+!  PTSFL5      PTSFL         Large Scale Throughfall at the surface     kg/m2/s
+
+!     PARAMETERS AT T+1 :
+!  Trajectory  Perturbation  Description                                Unit
+!  PTSN5       PTSN          SNOW TEMPERATURE                           K
+
+!    FLUXES FROM SNOW SCHEME:
+!  Trajectory  Perturbation  Description                                Unit
+!  PGSN5       PGSN          GROUND HEAT FLUX FROM SNOW DECK TO SOIL    W/m2 (#)
+
+
+! (#) THOSE TWO QUANTITIES REPRESENT THE WHOLE GRID-BOX. IN RELATION
+!       TO THE DOCUMENTATION, THEY ARE PGSN=Fr_s*G_s
+
+!     METHOD.
+!     -------
+!      Adaptation of srfsn_webals (Adjoint)
+
+!     EXTERNALS.
+!     ----------
+
+!     REFERENCE.
+!     ----------
+
+!     Original:
+!     ---------
+!     G. Arduini              E.C.M.W.F.     01-08-2021  
+
+!     Modifications
+!     -------------
+
+!     ------------------------------------------------------------------
+#endif
+
+
+IMPLICIT NONE
+
+! Declaration of arguments 
+INTEGER(KIND=JPIM), INTENT(IN)   :: KIDIA
+INTEGER(KIND=JPIM), INTENT(IN)   :: KFDIA
+INTEGER(KIND=JPIM), INTENT(IN)   :: KLON
+INTEGER(KIND=JPIM), INTENT(IN)   :: KLEVSN
+REAL(KIND=JPRB)   , INTENT(IN)   :: PTMST
+REAL(KIND=JPRB),    INTENT(IN)   :: PFRTI(:,:)
+
+LOGICAL           , INTENT(IN)   :: LDLAND(:)
+LOGICAL           , INTENT(IN)   :: LLNOSNOW(:)
+
+INTEGER(KIND=JPIM), INTENT(IN)   :: KSOTY(:)
+! Traj
+REAL(KIND=JPRB)   , INTENT(IN)   :: PSSNM1M5(:,:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PWSNM1M5(:,:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PRSNM1M5(:,:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PTSNM1M5(:,:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PTSURF5(:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PSNOTRS5(:,:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PAPRS5(:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PWSURF5(:)
+
+REAL(KIND=JPRB),    INTENT(IN)   :: PSLRFL5(:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSRFLTI5(:,:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PAHFSTI5(:,:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PEVAPTI5(:,:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSFC5(:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSFL5(:)
+REAL(KIND=JPRB),    INTENT(IN)   :: PEVAPSNW5(:)
+!REAL(KIND=JPRB),    INTENT(INOUT):: PTSFC5(:)
+!REAL(KIND=JPRB),    INTENT(INOUT):: PTSFL5(:)
+REAL(KIND=JPRB),    INTENT(IN):: PTSFC5(:)
+REAL(KIND=JPRB),    INTENT(IN):: PTSFL5(:)
+
+! perturbation (inout)
+REAL(KIND=JPRB)   , INTENT(INOUT)   :: PSSNM1M(:,:)
+REAL(KIND=JPRB)   , INTENT(INOUT)   :: PWSNM1M(:,:)
+REAL(KIND=JPRB)   , INTENT(INOUT)   :: PTSNM1M(:,:)
+REAL(KIND=JPRB)   , INTENT(INOUT)   :: PTSURF(:)
+REAL(KIND=JPRB)   , INTENT(INOUT)   :: PSNOTRS(:,:)
+REAL(KIND=JPRB)   , INTENT(INOUT)   :: PAPRS(:)
+REAL(KIND=JPRB)   , INTENT(INOUT)   :: PWSURF(:)
+
+REAL(KIND=JPRB),    INTENT(INOUT)   :: PSLRFL(:)
+REAL(KIND=JPRB),    INTENT(INOUT)   :: PSSRFLTI(:,:)
+REAL(KIND=JPRB),    INTENT(INOUT)   :: PAHFSTI(:,:)
+REAL(KIND=JPRB),    INTENT(INOUT)   :: PEVAPTI(:,:)
+REAL(KIND=JPRB),    INTENT(INOUT)   :: PSSFC(:)
+REAL(KIND=JPRB),    INTENT(INOUT)   :: PSSFL(:)
+REAL(KIND=JPRB),    INTENT(INOUT)   :: PEVAPSNW(:)
+REAL(KIND=JPRB),    INTENT(INOUT)   :: PTSFC(:)
+REAL(KIND=JPRB),    INTENT(INOUT)   :: PTSFL(:)
+
+
+TYPE(TSOIL)       , INTENT(IN)   :: YDSOIL
+TYPE(TCST)        , INTENT(IN)   :: YDCST
+
+! Traj out
+REAL(KIND=JPRB)   , INTENT(OUT)  :: PTSN5(:,:)
+REAL(KIND=JPRB)   , INTENT(OUT)  :: PGSN5(:)
+
+! Pert inout (Adj)
+REAL(KIND=JPRB)   , INTENT(INOUT)  :: PTSN(:,:)
+REAL(KIND=JPRB)   , INTENT(INOUT)  :: PGSN(:)
+
+
+! Local variables (in srfsn_driver in full non linear)
+REAL(KIND=JPRB) :: ZSNOWF5(KLON)
+REAL(KIND=JPRB) :: ZRAINF5(KLON)
+REAL(KIND=JPRB) :: ZEVAPSN5(KLON)
+REAL(KIND=JPRB) :: ZHFLUX5(KLON)
+REAL(KIND=JPRB) :: ZFRSN5(KLON)
+
+REAL(KIND=JPRB) :: ZSNOWF(KLON)
+REAL(KIND=JPRB) :: ZRAINF(KLON)
+REAL(KIND=JPRB) :: ZEVAPSN(KLON)
+REAL(KIND=JPRB) :: ZHFLUX(KLON)
+REAL(KIND=JPRB) :: ZFRSN(KLON)
+REAL(KIND=JPRB) :: ZMELTSN
+REAL(KIND=JPRB) :: ZFREZSN
+
+
+! Local variables      traj                pert
+REAL(KIND=JPRB) :: ZDSN5(KLEVSN)      , ZDSN(KLEVSN)    ! actual snow depth
+REAL(KIND=JPRB) :: ZSNHC5(KLEVSN)     , ZSNHC(KLEVSN)   ! snow heat capacity 
+REAL(KIND=JPRB) :: ZICE5(KLEVSN)      , ZICE(KLEVSN)    ! snow ice content (PSSN-PWSN)
+REAL(KIND=JPRB) :: ZSNCOND5(KLEVSN)   , ZSNCOND(KLEVSN) ! Snow thermal conductivity 
+REAL(KIND=JPRB) :: ZSNCONDH5(KLEVSN+1), ZSNCONDH(KLEVSN+1) ! THERMAL CONDUCTIVITY IN HALF LEVEL TERM 
+REAL(KIND=JPRB) :: ZTSTAR5(KLEVSN)    , ZTSTAR(KLEVSN)  ! New snow temperature 
+REAL(KIND=JPRB) :: ZISTAR5(KLEVSN)    , ZISTAR(KLEVSN)  ! New ice content 
+REAL(KIND=JPRB) :: ZWSTAR5(KLEVSN)    , ZWSTAR(KLEVSN)  ! New liquid water content 
+REAL(KIND=JPRB) :: ZLIQF5(0:KLEVSN)   , ZLIQF(0:KLEVSN) ! LIQUID WATER FLUX 
+REAL(KIND=JPRB) :: ZLIQF55(0:KLEVSN)  ! LIQUID WATER FLUX (TRAJ SAVE)
+
+REAL(KIND=JPRB) :: ZTA5(KLEVSN),ZTB5(KLEVSN),ZTC5(KLEVSN),ZTR5(KLEVSN)  ! TERMS TO TRI-DIAG
+REAL(KIND=JPRB) :: ZTA(KLEVSN), ZTB(KLEVSN),ZTC(KLEVSN),ZTR(KLEVSN)  ! TERMS TO TRI-DIAG
+REAL(KIND=JPRB) :: ZGSN5,ZWCAP5, ZSNVCOND5
+REAL(KIND=JPRB) :: ZGSN, ZWCAP, ZQ(KLEVSN),  ZSNVCOND,  ZTMP0
+
+REAL(KIND=JPRB) :: ZFF5, ZWU5, ZLWT5,  ZINVWSAT5, ZLIC5, ZLAMBDASAT5, ZCOND5, ZKERSTEN5, ZSOILCOND5
+REAL(KIND=JPRB) :: ZFF,  ZWU,  ZLWT,   ZINVWSAT,  ZLIC,  ZLAMBDASAT,  ZCOND,  ZKERSTEN,  ZSOILCOND
+
+! Local var for adj (store updated traj)
+REAL(KIND=JPRB) :: ZQ5(KLEVSN),ZTMP05(KLEVSN),ZMELTSN5(KLEVSN),&
+                 & ZFREZSN5(KLEVSN),ZMELTCHANGE5(KLEVSN),ZFREZCHANGE5(KLEVSN)
+REAL(KIND=JPRB) :: ZFREZSN55(KLEVSN),ZMELTSN55(KLEVSN)
+REAL(KIND=JPRB) :: ZGSNRES5(0:KLEVSN),ZGSNRES(0:KLEVSN)
+REAL(KIND=JPRB) :: ZTSTAR05(KLEVSN), ZTSTAR15(KLEVSN), ZTSTAR25(KLEVSN),ZTSTAR35(KLEVSN)
+REAL(KIND=JPRB) :: ZTA15(KLEVSN), ZTA25(KLEVSN),&
+                 & ZTB15(KLEVSN), ZTB25(KLEVSN),&
+                 & ZTC15(KLEVSN), ZTC25(KLEVSN),&
+                 & ZTR15(KLEVSN), ZTR25(KLEVSN)  ! TERMS TO TRI-DIAG
+REAL(KIND=JPRB) :: ZGSN15, ZGSN25
+! Local var common for ad and nl
+REAL(KIND=JPRB) :: ZTMST,ZIHCAP,ZSOILDEPTH1,ZEPSILON
+REAL(KIND=JPRB) :: ZWHCAP
+
+REAL(KIND=JPRB) :: ZTMPHC, ZTMPCOND, ZSNCONDH1, ZSNCONDH2, ZCONSLWC, ZLN10
+
+INTEGER(KIND=JPIM) :: JL,JK,KLACT, JS
+REAL(KIND=JPRB) :: ZZLIQF5
+REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+!! INCLUDE FUNCTIONS
+
+#include "fcsurf.h"
+
+!    -----------------------------------------------------------------
+IF (LHOOK) CALL DR_HOOK('SRFSN_WEBALSAD_MOD:SRFSN_WEBALSAD',0,ZHOOK_HANDLE)
+
+!    -----------------------------------------------------------------
+ASSOCIATE(RHOCI=>YDSOIL%RHOCI,RHOICE=>YDSOIL%RHOICE,&
+ & RTT=>YDCST%RTT,RLMLT=>YDCST%RLMLT,&
+ & RALAMSN=>YDSOIL%RALAMSN, RLAMICE=>YDSOIL%RLAMICE, &
+ & RFRTINY=>YDSOIL%RFRTINY, RFRSMALL=>YDSOIL%RFRSMALL, &
+ & RDSNMAX=>YDSOIL%RDSNMAX, SNHCONDAV=>YDSOIL%SNHCONDAV, &
+ & SNHCONDBV=>YDSOIL%SNHCONDBV, SNHCONDCV=>YDSOIL%SNHCONDCV, &
+ & SNHCONDPOV=>YDSOIL%SNHCONDPOV, &
+ & RKERST1=>YDSOIL%RKERST1, RKERST2=>YDSOIL%RKERST2, RKERST3=>YDSOIL%RKERST3, &
+ & RLAMBDADRY=>YDSOIL%RLAMBDADRY, RLAMBDADRYM=>YDSOIL%RLAMBDADRYM, &
+ & RLAMBDAICE=>YDSOIL%RLAMBDAICE, RLAMBDAWAT=>YDSOIL%RLAMBDAWAT, &
+ & RLAMSAT1=>YDSOIL%RLAMSAT1, RLAMSAT1M=>YDSOIL%RLAMSAT1M, RSIMP=>YDSOIL%RSIMP, &
+ & RWSAT=>YDSOIL%RWSAT, RWSATM=>YDSOIL%RWSATM, &
+ & RLWCSWEA=>YDSOIL%RLWCSWEA , RLWCSWEB=>YDSOIL%RLWCSWEB, RLWCSWEC=>YDSOIL%RLWCSWEC)
+
+! RLMLT (latent heat of fusion J Kg -1)
+ZTMST      = 1.0_JPRB/PTMST 
+ZIHCAP     = RHOCI/RHOICE  ! Ice heat capacity (J K-1 Kg-1)
+ZSOILDEPTH1= YDSOIL%RDAW(1) ! 1sth Soil layer depth
+ZEPSILON   = 10._JPRB*EPSILON(ZEPSILON)
+ZWHCAP     = 4180._JPRB ! J K-1 Kg-1
+ZLN10      = LOG(10.0_JPRB)
+
+! Input fields (in srfsn_driver usually)
+  
+DO JL=KIDIA,KFDIA
+! snow fraction and logical no snow
+  ZFRSN(JL)=MAX(PFRTI(JL,5)+PFRTI(JL,7),RFRTINY)
+
+  IF (LDLAND(JL)) THEN
+    ! Snowfall is all redirected here ! 
+    ZSNOWF5(JL) = PSSFC5(JL) + PSSFL5(JL)
+  ELSE 
+    ZSNOWF5(JL) = 0.0_JPRB 
+  ENDIF
+! Evap. is only fractional 
+  ZEVAPSN5(JL) = PFRTI(JL,5)*PEVAPTI5(JL,5) + PFRTI(JL,7)*PEVAPSNW5(JL)
+
+    
+! Rainfall is only fractional 
+  ZRAINF5(JL)= ZFRSN(JL)*(PTSFC5(JL)+PTSFL5(JL))
+
+ENDDO
+
+ZZLIQF5=0._JPRB
+
+DO JL=KIDIA,KFDIA
+  IF (LLNOSNOW(JL)) THEN 
+    PTSN5(JL,:) = RTT
+    PGSN5(JL)   = 0.0_JPRB
+    
+  ELSE
+! heat flux into the snowpack (not scaled by fraction, it simplifies fraction in
+! heat transfer eq.
+    ZHFLUX5(JL)=( PFRTI(JL,5)*(PAHFSTI5(JL,5)+YDCST%RLSTT*PEVAPTI5(JL,5))&
+              & +PFRTI(JL,7)*(PAHFSTI5(JL,7)+YDCST%RLVTT*(PEVAPTI5(JL,7)-PEVAPSNW5(JL))&
+              & +YDCST%RLSTT*PEVAPSNW5(JL))&
+              & +PFRTI(JL,5)*PSSRFLTI5(JL,5)&
+              & +PFRTI(JL,7)*PSSRFLTI5(JL,7)&
+              & +(PFRTI(JL,5)+PFRTI(JL,7))*PSLRFL5(JL)&
+              & ) !
+! Soil heat conductivity (simplified) - copied from srfts
+    ZFF=0.0_JPRB
+    ZWU5=PWSURF5(JL)*(1.0_JPRB-ZFF)
+    ZLWT5=RLAMBDAWAT**ZWU5
+    JS=KSOTY(JL)
+    ZINVWSAT=1.0_JPRB/RWSATM(JS)
+    ZLIC5=RLAMBDAICE**(RWSATM(JS)-ZWU5)
+    ZLAMBDASAT5=RLAMSAT1M(JS)*ZLIC5*ZLWT5
+    IF (PWSURF5(JL)*ZINVWSAT > RKERST1) THEN
+      ZCOND5 = PWSURF5(JL)*ZINVWSAT
+    ELSE
+      ZCOND5 = RKERST1
+    ENDIF
+
+    ZKERSTEN5=RKERST2*LOG10(ZCOND5)+RKERST3
+    ZSOILCOND5=RLAMBDADRYM(JS)+ZKERSTEN5*(ZLAMBDASAT5-RLAMBDADRYM(JS))
+
+!! Preparation
+    DO JK=1,KLEVSN
+      IF (PSSNM1M5(JL,JK) > ZEPSILON ) KLACT=JK
+    ENDDO
+    DO JK=1,KLEVSN
+
+    ZICE5(JK) = PSSNM1M5(JL,JK) - PWSNM1M5(JL,JK) 
+    ! Limit thermally active snow depth to 1 meter of snow (for glaciers in particular)
+    ZDSN5(JK) = (PSSNM1M5(JL,JK)/ PRSNM1M5(JL,JK)) ! read snow depth (m)
+    IF (ZDSN5(JK) < RDSNMAX) THEN
+      ZDSN5(JK)   = PSSNM1M5(JL,JK)/ PRSNM1M5(JL,JK)
+    ELSE
+      ZDSN5(JK)   = RDSNMAX
+    ENDIF
+    ZTMPHC=(ZICE5(JK)/PRSNM1M5(JL,JK)) 
+    IF (ZTMPHC < RDSNMAX) THEN
+      ZSNHC5(JK)  = (ZIHCAP*PRSNM1M5(JL,JK) * (ZICE5(JK)/PRSNM1M5(JL,JK))+ ZWHCAP*PWSNM1M5(JL,JK) ) * ZTMST
+    ELSE
+      ZSNHC5(JK)  = (ZIHCAP*PRSNM1M5(JL,JK)*RDSNMAX + ZWHCAP*PWSNM1M5(JL,JK) ) * ZTMST
+    ENDIF
+
+    ! heat conductivity from water vapor transport into the snowpack
+    ZTMPCOND=(SNHCONDAV-SNHCONDBV/(PTSNM1M5(JL,JK)-SNHCONDCV)) 
+    IF (ZTMPCOND > 0._JPRB) THEN
+        ZSNVCOND5=(SNHCONDPOV/PAPRS5(JL))*(SNHCONDAV-SNHCONDBV/(PTSNM1M5(JL,JK)-SNHCONDCV))
+    ELSE
+        ZSNVCOND5=0._JPRB
+    ENDIF
+    ! snow heat conductivity (total)
+    ZSNCOND5(JK) = FSNTCOND(PRSNM1M5(JL,JK))+ZSNVCOND5  ! add the thermal cond from water vapor transfer
+    ENDDO
+    ! special case for 1 layer only, limit snow heat capacity to 1 meter of snow
+    ! IF (KLACT == 1 ) ZSNHC(1) = ZIHCAP * MIN(1._JPRB,ZDSN(1))*PRSNM1M(JL,1) * ZTMST
+     
+    ZSNCONDH5(1)=ZFRSN(JL)*ZSNCOND5(1) / MAX(ZEPSILON,(0.5_JPRB*ZDSN5(1))*(0.5_JPRB*ZDSN5(1)))   ! ACTUALY NOT USED ! (W m-2 K-1)
+    DO JK=2,KLACT
+      ZSNCONDH5(JK)=ZFRSN(JL)*2._JPRB*(ZDSN5(JK-1)*ZSNCOND5(JK-1)+ZDSN5(JK)*ZSNCOND5(JK))/&
+                  & ((ZDSN5(JK-1)+ZDSN5(JK))*(ZDSN5(JK-1)+ZDSN5(JK)))
+    ENDDO
+    ! Simplified basal heat conduction
+    ZSNCONDH5(KLACT+1)=ZFRSN(JL)*1._JPRB*(ZDSN5(KLACT)*ZSNCOND5(KLACT)+ZSOILDEPTH1*ZSOILCOND5)/&
+                  & ((ZDSN5(KLACT)+ZSOILDEPTH1)*(ZDSN5(KLACT)+ZSOILDEPTH1))
+
+    ! Compute coefficient
+    IF (KLACT > 1 ) THEN 
+      JK=1
+      ZTA5(JK)=0._JPRB
+      ZTB5(JK)=ZSNHC5(JK)+ZSNCONDH5(JK+1)
+      ZTC5(JK)=-ZSNCONDH5(JK+1)
+      ZTR5(JK)=(ZHFLUX5(JL)-PSNOTRS5(JL,JK))+ZSNHC5(JK)*PTSNM1M5(JL,JK)
+!  add radiative flux to second to bottom layer:
+      JK=KLACT
+      ZTA5(JK)=-ZSNCONDH5(JK)
+      ZTB5(JK)=ZSNHC5(JK)+ZSNCONDH5(JK)+ZSNCONDH5(JK+1)
+      ZTC5(JK)=0._JPRB
+      ZTR5(JK)=ZSNHC5(JK)*PTSNM1M5(JL,JK)+ZSNCONDH5(JK+1)*PTSURF5(JL)+PSNOTRS5(JL,JK)
+      DO JK=2,KLACT-1
+        ZTA5(JK)=-ZSNCONDH5(JK)
+        ZTB5(JK)=ZSNHC5(JK)+ZSNCONDH5(JK)+ZSNCONDH5(JK+1)
+        ZTC5(JK)=-ZSNCONDH5(JK+1)
+        ZTR5(JK)=ZSNHC5(JK)*PTSNM1M5(JL,JK) + PSNOTRS5(JL,JK)
+      ENDDO
+    ENDIF
+    
+! SOLVE
+    ZTSTAR5(:) = PTSNM1M5(JL,:)
+    ZTSTAR05(:) = ZTSTAR5(:)
+    ZGSN5=0._JPRB
+    IF (KLACT == 1 ) THEN
+      ! SINGLE LAYER
+      ZTA5(1)=0._JPRB
+      ZTC5(1)=0._JPRB
+      ZTB5(1)=ZSNHC5(1)+ZSNCONDH5(2)
+      ZTR5(1)=(ZHFLUX5(JL)-PSNOTRS5(JL,1))+ZSNHC5(1)*PTSNM1M5(JL,1)+ZSNCONDH5(2)*PTSURF5(JL)
+
+      ZTSTAR5(1)=ZTR5(1)/ZTB5(1)
+      ZGSN5=ZSNCONDH5(2)*(ZTSTAR5(1)-PTSURF5(JL))
+    ELSE
+    ! MULTI LAYER
+       CALL TRISOLVERS(KLACT,ZTA5,ZTB5,ZTC5,ZTR5,ZTSTAR5)
+       ZGSN5=ZSNCONDH5(KLACT+1)*(ZTSTAR5(KLACT)-PTSURF5(JL))
+    ENDIF 
+! store FIRST ZTSTAR update for adj.
+    ZTA15(1:KLEVSN) = ZTA5(1:KLEVSN)
+    ZTB15(1:KLEVSN) = ZTB5(1:KLEVSN)
+    ZTC15(1:KLEVSN) = ZTC5(1:KLEVSN)
+    ZTR15(1:KLEVSN) = ZTR5(1:KLEVSN)
+    ZTSTAR15(1:KLEVSN) = ZTSTAR5(1:KLEVSN) 
+    ZGSN15             = ZGSN5
+
+    ! * SPECIAL CASE WHEN THERE IS MELTING ON THE 1ST LAYER
+    IF ( ZTSTAR5(1) > RTT ) THEN 
+      IF (KLACT == 1 ) THEN
+        ! SINGLE LAYER
+        ZGSN5=ZSNCONDH5(2)*(RTT-PTSURF5(JL))
+        ZTSTAR5(1)=(ZHFLUX5(JL)-PSNOTRS5(JL,1)+ZSNHC5(1)*PTSNM1M5(JL,1)-ZGSN5)/ZSNHC5(1)
+      ELSE
+        ! MULTI LAYER
+        ! SOLVE SYSTEM SETTING T1 == RTT 
+        ZTB5(1) = 1._JPRB
+        ZTC5(1) = 0._JPRB 
+        ZTR5(1) = RTT 
+        ZTSTAR5(:) = PTSNM1M5(JL,:)  
+        CALL TRISOLVERS(KLACT,ZTA5,ZTB5,ZTC5,ZTR5,ZTSTAR5)
+        ZGSN5=ZSNCONDH5(KLACT+1)*(ZTSTAR5(KLACT)-PTSURF5(JL))
+        ! EXPLICIT 1ST LAYER TEMP CALCULATION
+        ZTSTAR5(1)=(ZHFLUX5(JL)-PSNOTRS5(JL,1)+ZSNHC5(1)*PTSNM1M5(JL,1)-ZSNCONDH5(2)*(ZTSTAR5(1)-ZTSTAR5(2)))/ZSNHC5(1)
+      ENDIF
+    ENDIF
+! store SECOND ZTSTAR update for adj.
+    ZTA25(1:KLEVSN) = ZTA5(1:KLEVSN)
+    ZTB25(1:KLEVSN) = ZTB5(1:KLEVSN)
+    ZTC25(1:KLEVSN) = ZTC5(1:KLEVSN)
+    ZTR25(1:KLEVSN) = ZTR5(1:KLEVSN)
+    ZTSTAR25(1:KLEVSN) = ZTSTAR5(1:KLEVSN) 
+    ZGSN25             = ZGSN5
+    
+! UPDATE SOLID/LIQUID CONTENTS OF FIRST LAYER BEFORE FURTHER CALCULATIONS
+    ZISTAR5(1:KLEVSN) = ZICE5(1:KLEVSN)
+    ZWSTAR5(1:KLEVSN) = PWSNM1M5(JL,1:KLEVSN)
+    ZLIQF5(0:KLEVSN)  = 0._JPRB
+    ! INCLUDE SNOWFALL AND RAINFALL INTERCEPTION 
+    ZISTAR5(1) = ZICE5(1)+PTMST*(ZSNOWF5(JL)+ZEVAPSN5(JL))
+
+    ZLIQF5(0)  = PTMST*ZRAINF5(JL)
+    ZLIQF55(0)  = ZLIQF5(0)
+    
+    ! PHASE CHANGES AND LIQUID WATER BALANCE STARTING IN LAYER 1
+    ZMELTSN5(1:KLEVSN)    = 0._JPRB
+    ZFREZSN5(1:KLEVSN)    = 0._JPRB
+    ZGSNRES5(0:KLEVSN)    = 0._JPRB
+    ZQ5(1:KLEVSN)         = 0._JPRB
+    ZTMP05(1:KLEVSN)      = 0._JPRB
+    ZMELTCHANGE5(1:KLEVSN)= 0._JPRB
+    ZFREZCHANGE5(1:KLEVSN)= 0._JPRB
+    DO JK=1,1
+      ! UPDATE LIQUID WATER FROM FLUX ABOVE 
+      ZWSTAR5(JK) = PWSNM1M5(JL,JK) + ZLIQF5(JK-1)
+      
+      ! PHASE CHANGES 
+      ZTMP05(JK)       = ZSNHC5(JK)*(ZTSTAR5(JK)-RTT)
+      ZMELTCHANGE5(JK) = RLMLT*ZTMST*ZISTAR5(JK) 
+      ZFREZCHANGE5(JK) = -RLMLT*ZTMST*ZWSTAR5(JK)
+      IF (ZTMP05(JK) < ZMELTCHANGE5(JK) ) THEN
+         ZMELTSN5(JK)=ZTMP05(JK)
+      ELSE
+         ZMELTSN5(JK)=RLMLT*ZTMST*ZISTAR5(JK)
+      ENDIF
+      ZMELTSN55(JK)=ZMELTSN5(JK)
+      IF (ZMELTSN5(JK)>0._JPRB) THEN
+         ZMELTSN5(JK)=ZMELTSN5(JK)
+      ELSE
+         ZMELTSN5(JK)=0._JPRB
+      ENDIF
+      IF (ZTMP05(JK) > ZFREZCHANGE5(JK)) THEN
+        ZFREZSN5(JK) = ZTMP05(JK)
+      ELSE
+        ZFREZSN5(JK) = -RLMLT*ZTMST*ZWSTAR5(JK)
+      ENDIF
+      ZFREZSN55(JK)=ZFREZSN5(JK)
+      IF (ZFREZSN5(JK) > 0._JPRB) THEN
+        ZFREZSN5(JK) = 0._JPRB
+      ELSE 
+        ZFREZSN5(JK) = ZFREZSN5(JK)
+      ENDIF
+
+
+      ZQ5(JK)          = ZMELTSN5(JK) + ZFREZSN5(JK)
+      
+      ! FINAL TEMP. UPDATE
+      ZTSTAR5(JK) = ZTSTAR5(JK) - (ZQ5(JK)+ZGSNRES5(JK-1))/ZSNHC5(JK)
+
+      ZTSTAR35(JK) = ZTSTAR5(JK)
+      IF ( ZTSTAR5(JK) > RTT ) THEN
+        ZGSNRES5(JK)=ZSNHC5(JK)*(RTT-ZTSTAR5(JK))
+        ZTSTAR5(JK)=RTT
+      ELSE
+        ZGSNRES5(JK)=0._JPRB
+      ENDIF
+      
+      ! UPDATE SOLID / LIQUID MASS
+      ZWSTAR5(JK) = ZWSTAR5(JK) + ZQ5(JK)/RLMLT*PTMST 
+      ZISTAR5(JK) = ZISTAR5(JK) - ZQ5(JK)/RLMLT*PTMST
+      
+      ! LIQUD WATER BUDGET
+      ZCONSLWC=MAX(0._JPRB,(RLWCSWEA-PRSNM1M5(JL,JK))/RLWCSWEA)
+      ZWCAP5  = ZISTAR5(JK)*(RLWCSWEB+(RLWCSWEC-RLWCSWEB)*ZCONSLWC)
+      ZLIQF5(JK) = (ZWSTAR5(JK)-ZWCAP5)
+      ZLIQF55(JK) = ZLIQF5(JK)
+      IF (ZLIQF5(JK)>0._JPRB) THEN
+        ZLIQF5(JK) = (ZWSTAR5(JK)-ZWCAP5)
+      ELSE
+        ZLIQF5(JK) = 0._JPRB
+      ENDIF
+    ENDDO
+
+    DO JK=KLACT+1,KLEVSN
+      ZTSTAR5(JK) = ZTSTAR5(KLACT)
+    ENDDO  
+      
+    !! FINAL VALUES
+    DO JK=1,KLEVSN
+      IF (ZTSTAR5(JK)<RTT) THEN
+        PTSN5(JL,JK)= ZTSTAR5(JK)
+      ELSE
+        PTSN5(JL,JK)= RTT
+      ENDIF
+    ENDDO
+
+    PGSN5(JL) = ZGSN5 - ZGSNRES5(KLACT) + PSNOTRS5(JL,KLACT+1)
+    
+       IF (ANY(PTSN5(JL,:)<100._JPRB)) THEN
+         write(*,*) 'Very cold snow temperature'
+         write(*,*) 'Tsn-1',PTSNM1M5(JL,:)
+         write(*,*) 'Tsn',PTSN5(JL,:)
+         write(*,*) 'SWE-1',PSSNM1M5(JL,:)
+         
+         CALL ABORT_SURF('Very cold snow temperature')
+       ENDIF 
+    
+  ENDIF 
+!ENDDO
+                           
+  
+! 0.  ADJOINT CALCULATIONS
+!               --------------------
+
+!* Set local variables to zero
+  ZSNOWF(JL)  = 0._JPRB
+  ZRAINF(JL)  = 0._JPRB
+  ZEVAPSN(JL) = 0._JPRB
+  ZHFLUX(JL)  = 0._JPRB
+
+
+!DO JL=KIDIA,KFDIA
+  IF (LLNOSNOW(JL)) THEN 
+    PGSN(JL)   = 0.0_JPRB
+    PTSN(JL,:) = 0._JPRB
+
+  ELSE
+
+     !* Set local variables to zero
+    ZMELTSN             = 0._JPRB
+    ZFREZSN             = 0._JPRB
+    ZGSN                = 0._JPRB
+    ZGSNRES(0:KLEVSN)   = 0._JPRB
+    ZTSTAR(1:KLEVSN)    = 0._JPRB
+    ZSNHC(1:KLEVSN)     = 0._JPRB
+    ZSNCONDH(1:KLEVSN+1)= 0._JPRB
+    ZSNCONDH1           = 0._JPRB
+    ZSNCONDH2           = 0._JPRB
+    ZTR(1:KLEVSN)       = 0._JPRB
+    ZTC(1:KLEVSN)       = 0._JPRB 
+    ZTB(1:KLEVSN)       = 0._JPRB
+    ZTA(1:KLEVSN)       = 0._JPRB
+    ZDSN(1:KLEVSN)      = 0._JPRB
+    ZSOILCOND           = 0._JPRB
+    ZSNVCOND            = 0._JPRB
+    ZSNCOND(1:KLEVSN)   = 0._JPRB
+    ZICE(1:KLEVSN)      = 0._JPRB
+    ZKERSTEN            = 0._JPRB
+    ZLAMBDASAT          = 0._JPRB
+    ZCOND               = 0._JPRB
+    ZLWT                = 0._JPRB
+    ZLIC                = 0._JPRB
+    ZWU                 = 0._JPRB
+    ZFF                 = 0._JPRB
+    ZICE(1:KLEVSN)      = 0._JPRB
+    ZISTAR(1:KLEVSN)    = 0._JPRB
+    ZWSTAR(1:KLEVSN)    = 0._JPRB
+    ZLIQF(0:KLEVSN)     = 0._JPRB
+    ZWCAP               = 0._JPRB
+    ZQ(1:KLEVSN)        = 0._JPRB
+  ! 0. Final values
+
+    ZGSN                = ZGSN + PGSN(JL)
+    ZGSNRES(KLACT)      = ZGSNRES(KLACT) - PGSN(JL)
+    PSNOTRS(JL,KLACT+1) = PSNOTRS(JL,KLACT+1) + PGSN(JL)
+    PGSN(JL) = 0._JPRB
+    
+    !
+    DO JK=KLEVSN,1,-1
+      IF (ZTSTAR5(JK)<RTT) THEN
+        ZTSTAR(JK)  = ZTSTAR(JK) + PTSN(JL,JK)
+        PTSN(JL,JK) = 0._JPRB
+      ELSE
+        PTSN(JL,JK) = 0._JPRB
+      ENDIF
+    ENDDO
+!!
+!!  ! 0. Fill unused levels
+!!
+    DO JK=KLEVSN,KLACT+1,-1
+      ZTSTAR(JK)=0.
+    ENDDO
+
+    ! -- Water balance
+    DO JK=1,1,-1
+      !ZQ      = 0._JPRB
+      ZMELTSN = 0._JPRB
+      ZFREZSN = 0._JPRB
+      ZTMP0   = 0._JPRB
+
+      ! Liquid water budget 
+      IF (ZLIQF55(JK)>0._JPRB) THEN
+        ZWCAP      = ZWCAP - ZLIQF(JK)
+        ZWSTAR(JK) = ZWSTAR(JK) + ZLIQF(JK)
+        ZLIQF(JK)  = 0._JPRB
+      ELSE
+        ZLIQF(JK) = 0._JPRB
+      ENDIF
+      ZCONSLWC=MAX(0._JPRB,(RLWCSWEA-PRSNM1M5(JL,JK))/RLWCSWEA)
+      ZISTAR(JK) = ZISTAR(JK) + ZWCAP*(RLWCSWEB+(RLWCSWEC-RLWCSWEB)*ZCONSLWC)
+      ZWCAP = 0._JPRB
+
+      ! Update solid / liquid mass
+      ZQ(JK)     = ZQ(JK) - ZISTAR(JK)/RLMLT*PTMST
+      ZQ(JK)     = ZQ(JK) + ZWSTAR(JK)/RLMLT*PTMST
+
+      ! Final temperature update
+      IF ( ZTSTAR35(JK) > RTT ) THEN
+        ZTSTAR(JK) = 0._JPRB
+        ZSNHC(JK)  = ZSNHC(JK) + ZGSNRES(JK)*(RTT-ZTSTAR35(JK))
+        ZTSTAR(JK) = ZTSTAR(JK) - ZGSNRES(JK)*ZSNHC5(JK)
+        ZGSNRES(JK)=0._JPRB
+      ELSE
+        ZGSNRES(JK)=0._JPRB
+      ENDIF
+      ZQ(JK)       = ZQ(JK) - ZTSTAR(JK)/ZSNHC5(JK)
+      ZGSNRES(JK-1)= ZGSNRES(JK-1) - ZTSTAR(JK)/ZSNHC5(JK)
+      ZSNHC(JK)    = ZSNHC(JK) + ZTSTAR(JK)*(ZQ5(JK)+ZGSNRES5(JK-1))/ZSNHC5(JK)**2._JPRB
+
+
+      ZMELTSN = ZMELTSN + ZQ(JK)
+      ZFREZSN = ZFREZSN + ZQ(JK)
+      ZQ(JK) = 0._JPRB
+
+      IF (ZFREZSN55(JK) > 0._JPRB) THEN
+        ZFREZSN  = 0._JPRB
+      ELSE
+        ZFREZSN  = ZFREZSN
+      ENDIF
+      IF (ZTMP05(JK) > ZFREZCHANGE5(JK)) THEN
+        ZTMP0    = ZTMP0 +ZFREZSN
+      ELSE
+        ZWSTAR(JK) = ZWSTAR(JK) - ZFREZSN*RLMLT*ZTMST
+      ENDIF
+      ZFREZSN=0._JPRB
+
+      IF (ZMELTSN55(JK)>0._JPRB) THEN
+        ZMELTSN=ZMELTSN
+      ELSE
+        ZMELTSN=0._JPRB
+      ENDIF
+
+      IF (ZTMP05(JK) < ZMELTCHANGE5(JK) ) THEN
+        ZTMP0      = ZTMP0 + ZMELTSN
+      ELSE
+        ZISTAR(JK) = ZISTAR(JK) + ZMELTSN*RLMLT*ZTMST
+      ENDIF
+      ZMELTSN = 0._JPRB
+
+      ! Phase changes 
+      ZSNHC(JK) = ZSNHC(JK) + ZTMP0*(ZTSTAR25(JK)-RTT)
+      ZTSTAR(JK)= ZTSTAR(JK)+ ZTMP0*ZSNHC5(JK)
+      ZTMP0 = 0._JPRB
+
+      ! Update liquid water from flux above
+      ZLIQF(JK-1) = ZLIQF(JK-1) + ZWSTAR(JK)
+      PWSNM1M(JL,JK) = PWSNM1M(JL,JK) + ZWSTAR(JK)
+      ZWSTAR(JK) = 0._JPRB
+    ENDDO
+
+    ZFREZSN = 0._JPRB
+    ZGSNRES = 0._JPRB
+    ZMELTSN = 0._JPRB
+    ZQ      = 0._JPRB
+
+!   Include snowfall and rainfall interception:
+    ZRAINF(JL)  = ZRAINF(JL) + ZLIQF(0)*PTMST
+    ZLIQF(0)    = 0._JPRB
+
+    ZSNOWF(JL)  = ZSNOWF(JL) + ZISTAR(1)*PTMST
+    ZEVAPSN(JL) = ZEVAPSN(JL) + ZISTAR(1)*PTMST
+    ZICE(1)     = ZICE(1) + ZISTAR(1)
+    ZISTAR(1)   = 0._JPRB
+
+    ZLIQF(:)     = 0._JPRB
+
+    PWSNM1M(JL,:)= PWSNM1M(JL,:)+ZWSTAR(:)
+    ZWSTAR(:)    = 0._JPRB
+
+    ZICE(:)      = ZICE(:) + ZISTAR(:)
+    ZISTAR(:)    = 0._JPRB
+
+!*    ! Special case of melting in first layer
+    IF ( ZTSTAR15(1) > RTT ) THEN 
+      IF (KLACT == 1 ) THEN
+        ZSNHC(1) = ZSNHC(1) + ZTSTAR(1)*(&
+                            & -ZHFLUX5(JL)/ZSNHC5(1)**2._JPRB + PSNOTRS5(JL,1)/ZSNHC5(1)**2._JPRB +&
+                            & ZGSN25/ZSNHC5(1)**2._JPRB)
+        ZHFLUX(JL) = ZHFLUX(JL) + ZTSTAR(1)/ZSNHC5(1)
+        PSNOTRS(JL,1) = PSNOTRS(JL,1) - ZTSTAR(1)/ZSNHC5(1)
+        PTSNM1M(JL,1) = PTSNM1M(JL,1) + ZTSTAR(1)
+        ZGSN          = ZGSN - ZTSTAR(1)/ZSNHC5(1)
+        ZTSTAR(1)     = 0._JPRB 
+                     
+        ZSNCONDH(2) = ZSNCONDH(2) + (RTT-PTSURF5(JL))*ZGSN
+        PTSURF(JL)  = PTSURF(JL)  - ZSNCONDH5(2)*ZGSN
+        ZGSN        = 0._JPRB
+      ELSE
+        ZSNHC(1) = ZSNHC(1) + ZTSTAR(1)*(-ZHFLUX5(JL)/ZSNHC5(1)**2._JPRB + PSNOTRS5(JL,1)/ZSNHC5(1)**2._JPRB) 
+        ZHFLUX(JL) = ZHFLUX(JL) + ZTSTAR(1)/ZSNHC5(1)
+        PSNOTRS(JL,1) = PSNOTRS(JL,1) - ZTSTAR(1)/ZSNHC5(1)
+        PTSNM1M(JL,1) = PTSNM1M(JL,1) + ZTSTAR(1)
+        ZSNCONDH(2)   = ZSNCONDH(2)   + ZTSTAR(1)*(ZTSTAR25(2) - ZTSTAR15(1))
+        ZTSTAR(2) = ZTSTAR(2) + ZTSTAR(1)*ZSNCONDH5(2)
+        ZTSTAR(1) = -ZSNCONDH5(2)*ZTSTAR(1)
+
+        ZSNCONDH(KLACT+1) = ZSNCONDH(KLACT+1) + ZGSN*(ZTSTAR25(KLACT)  - PTSURF5(JL))
+        ZTSTAR(KLACT)     = ZTSTAR(KLACT) + ZGSN*ZSNCONDH5(KLACT+1)
+        PTSURF(JL)        = PTSURF(JL)    - ZGSN*ZSNCONDH5(KLACT+1)
+        ZGSN              = 0._JPRB
+
+         CALL TRISOLVERSAD(KLACT,ZTA25,ZTB25,ZTC25,ZTR25,ZTSTAR15,&
+                         &ZTA,ZTB,ZTC,ZTR,ZTSTAR)
+
+        PTSNM1M(JL,:) = PTSNM1M(JL,:) + ZTSTAR(:)
+        ZTSTAR(:)  = 0._JPRB
+
+        ZTR(1)  = 0._JPRB 
+        ZTC(1)  = 0._JPRB 
+        ZTB(1)  = 0._JPRB
+      ENDIF
+    ENDIF
+
+  ! 0. SOLVE TRIDIAG MATRIX
+    IF (KLACT == 1 ) THEN
+      ZSNCONDH(2) = ZSNCONDH(2) + ZGSN*(ZTSTAR15(1)-PTSURF5(JL))
+      ZTSTAR(1)   = ZTSTAR(1)   + ZGSN*ZSNCONDH5(2)
+      PTSURF(JL)  = PTSURF(JL)  - ZGSN*ZSNCONDH5(2)
+      ZGSN        = 0._JPRB    
+
+      ZTR(1)      = ZTR(1) + ZTSTAR(1)*ZTB15(1)/ZTB15(1)**2._JPRB
+      ZTB(1)      = ZTB(1) - ZTSTAR(1)*ZTR15(1)/ZTB15(1)**2._JPRB
+      ZTSTAR(1)   = 0._JPRB
+
+      PSNOTRS(JL,1) = PSNOTRS(JL,1) - ZTR(1)
+      ZHFLUX(JL)    = ZHFLUX(JL) + ZTR(1)
+      ZSNHC(1)      = ZSNHC(1) + PTSNM1M5(JL,1)*ZTR(1)
+      PTSNM1M(JL,1) = PTSNM1M(JL,1) + ZSNHC5(1)*ZTR(1)
+      ZSNCONDH(2)   = ZSNCONDH(2)   + PTSURF5(JL)*ZTR(1)
+      PTSURF(JL)    = PTSURF(JL)    + ZSNCONDH5(2)*ZTR(1)
+      ZTR(1)        = 0._JPRB
+
+      ZSNHC(1)      = ZSNHC(1) + ZTB(1)
+      ZSNCONDH(2)   = ZSNCONDH(2) + ZTB(1)
+      ZTB(1)        = 0._JPRB
+
+      
+    ELSE  
+    ! MULTI LAYER
+      ZSNCONDH(KLACT+1) = ZSNCONDH(KLACT+1) + (ZTSTAR15(KLACT)-PTSURF5(JL))*ZGSN
+      ZTSTAR(KLACT)     = ZTSTAR(KLACT) + ZSNCONDH5(KLACT+1)*ZGSN
+      PTSURF(JL)        = PTSURF(JL)    - ZSNCONDH5(KLACT+1)*ZGSN
+      ZGSN              = 0._JPRB
+      CALL TRISOLVERSAD(KLACT,ZTA15,ZTB15,ZTC15,ZTR15,ZTSTAR05,&
+                       &ZTA,ZTB,ZTC,ZTR,ZTSTAR)
+    ENDIF
+
+    PTSNM1M(JL,:) = PTSNM1M(JL,:) + ZTSTAR(:)
+    ZTSTAR(:)     = 0._JPRB
+    ZGSN          = 0._JPRB
+
+    ! Compute coefficients
+    IF (KLACT > 1 ) THEN 
+      JK=KLACT
+      ZSNHC(JK)      = ZSNHC(JK) + ZTR(JK)*PTSNM1M5(JL,JK)
+      PTSNM1M(JL,JK) = PTSNM1M(JL,JK) + ZTR(JK)*ZSNHC5(JK)
+      ZSNCONDH(JK+1) = ZSNCONDH(JK+1) + ZTR(JK)*PTSURF5(JL)
+      PTSURF(JL)     = PTSURF(JL)     + ZTR(JK)*ZSNCONDH5(JK+1)
+      PSNOTRS(JL,JK) = PSNOTRS(JL,JK) + ZTR(JK)
+      ZTR(JK)        = 0._JPRB
+
+      ZTC(JK)  = 0._JPRB
+
+      ZSNHC(JK)      = ZSNHC(JK) + ZTB(JK)
+      ZSNCONDH(JK)   = ZSNCONDH(JK) + ZTB(JK)
+      ZSNCONDH(JK+1) = ZSNCONDH(JK+1) + ZTB(JK) 
+      ZTB(JK)  = 0._JPRB
+
+      ZSNCONDH(JK) = ZSNCONDH(JK) - ZTA(JK)
+      ZTA(JK)  = 0._JPRB
+
+      DO JK=KLACT-1,2,-1
+        ZSNHC(JK) = ZSNHC(JK) + ZTR(JK)*PTSNM1M5(JL,JK)
+        PTSNM1M(JL,JK) = PTSNM1M(JL,JK) + ZTR(JK)*ZSNHC5(JK)
+        PSNOTRS(JL,JK) = PSNOTRS(JL,JK) + ZTR(JK)
+        ZTR(JK)        = 0._JPRB
+
+        ZSNCONDH(JK+1) = ZSNCONDH(JK+1) - ZTC(JK)
+        ZTC(JK)        = 0._JPRB
+        
+        ZSNHC(JK)      = ZSNHC(JK) + ZTB(JK)
+        ZSNCONDH(JK)   = ZSNCONDH(JK) + ZTB(JK)
+        ZSNCONDH(JK+1) = ZSNCONDH(JK+1) + ZTB(JK)
+        ZTB(JK)        = 0._JPRB
+
+        ZSNCONDH(JK)   = ZSNCONDH(JK) - ZTA(JK)
+        ZTA(JK)        = 0._JPRB
+      ENDDO
+
+      JK=1
+
+      ZHFLUX(JL)     = ZHFLUX(JL) + ZTR(JK)
+      PSNOTRS(JL,JK) = PSNOTRS(JL,JK) - ZTR(JK)
+      PTSNM1M(JL,JK) = PTSNM1M(JL,JK) + ZTR(JK)*ZSNHC5(JK)
+      ZSNHC(JK)      = ZSNHC(JK) + ZTR(JK)*PTSNM1M5(JL,JK)
+      ZTR(JK)        = 0._JPRB
+
+      ZSNCONDH(JK+1) = ZSNCONDH(JK+1) - ZTC(JK)
+      ZTC(JK)=0._JPRB
+
+      ZSNHC(JK)      = ZSNHC(JK) + ZTB(JK)
+      ZSNCONDH(JK+1) = ZSNCONDH(JK+1) + ZTB(JK)
+      ZTB(JK)        = 0._JPRB
+
+      ZTA(JK)        = 0._JPRB
+    ENDIF
+!!
+   ! Snow conductivity on half levels:
+
+   ! Simplified basal heat conduction
+
+    ZDSN(KLACT)      = ZDSN(KLACT) + ZSNCONDH(KLACT+1)*ZFRSN(JL)*(&
+                     & ZSNCOND5(KLACT)*(ZDSN5(KLACT)+ZSOILDEPTH1) -&
+                     & 2._JPRB*(ZDSN5(KLACT)*ZSNCOND5(KLACT)+ZSOILDEPTH1*ZSOILCOND5))/&
+                     & (ZDSN5(KLACT)+ZSOILDEPTH1)**3._JPRB
+    ZSNCOND(KLACT)   = ZSNCOND(KLACT) + ZSNCONDH(KLACT+1)*ZFRSN(JL)*(&
+                     & ZDSN5(KLACT)*(ZDSN5(KLACT)+ZSOILDEPTH1))/&
+                     & (ZDSN5(KLACT)+ZSOILDEPTH1)**3._JPRB
+                       
+    ZSOILCOND        = ZSOILCOND + ZSNCONDH(KLACT+1)*ZFRSN(JL)*(&
+                     & ZSOILDEPTH1*(ZDSN5(KLACT)+ZSOILDEPTH1))/&
+                     & (ZDSN5(KLACT)+ZSOILDEPTH1)**3._JPRB
+    ZSNCONDH(KLACT+1)= 0._JPRB
+    
+    DO JK=KLACT,2,-1
+       ZSNCONDH1   = ZSNCONDH1 + ZSNCONDH(JK)
+       ZSNCONDH2   = ZSNCONDH2 + ZSNCONDH(JK)
+       ZSNCONDH(JK)= 0._JPRB
+
+       ZDSN(JK-1)    = ZDSN(JK-1) + ZSNCONDH2*ZFRSN(JL)*2._JPRB*( &
+                     & 2._JPRB*ZDSN5(JK)*ZSNCOND5(JK))/(ZDSN5(JK-1)+ZDSN5(JK))**3._JPRB
+       ZDSN(JK-1)    = ZDSN(JK-1) + ZSNCONDH1*ZFRSN(JL)*2._JPRB*( &
+                     & ZSNCOND5(JK-1)*(ZDSN5(JK-1)+ZDSN5(JK))-2._JPRB*ZDSN5(JK-1)*ZSNCOND5(JK-1))/&
+                     & (ZDSN5(JK-1)+ZDSN5(JK))**3._JPRB
+       ZSNCOND(JK-1) = ZSNCOND(JK-1) + ZSNCONDH1*ZFRSN(JL)*2._JPRB*( &
+                     & ZDSN5(JK-1)*(ZDSN5(JK-1)+ZDSN5(JK)))/(ZDSN5(JK-1)+ZDSN5(JK))**3._JPRB
+       ZDSN(JK)      = ZDSN(JK)   + ZSNCONDH2*ZFRSN(JL)*2._JPRB*( &
+                     & ZSNCOND5(JK)*(ZDSN5(JK-1)+ZDSN5(JK))-2._JPRB*ZDSN5(JK)*ZSNCOND5(JK)*ZDSN(JK))/&
+                     & (ZDSN5(JK-1)+ZDSN5(JK))**3._JPRB
+       ZDSN(JK)      = ZDSN(JK) + ZSNCONDH1*ZFRSN(JL)*2._JPRB*( &
+                     & 2._JPRB*ZDSN5(JK-1)*ZSNCOND5(JK-1))/(ZDSN5(JK-1)+ZDSN5(JK))**3._JPRB
+       ZSNCOND(JK)   = ZSNCOND(JK) + ZSNCONDH2*ZFRSN(JL)*2._JPRB*( &
+                     & ZDSN5(JK)*(ZDSN5(JK-1)+ZDSN5(JK)))/(ZDSN5(JK-1)+ZDSN5(JK))**3._JPRB
+       ZSNCONDH2   = 0._JPRB     
+       ZSNCONDH1   = 0._JPRB
+    ENDDO
+
+    ZDSN(1)    = ZDSN(1) - ZSNCONDH(1)*8._JPRB*ZFRSN(JL)*ZSNCOND5(1)/ ZDSN5(1)**3._JPRB 
+    ZSNCOND(1) = ZSNCOND(1) + ZSNCONDH(1)*4._JPRB*ZFRSN(JL)/ZDSN5(1)**2._JPRB
+    ZSNCONDH(1) = 0._JPRB
+    ! Preparation
+    DO JK=KLEVSN,1,-1
+    ! snow heat conductivity 
+      ZSNVCOND     = ZSNVCOND + ZSNCOND(JK)
+      ZSNCOND(JK)  = 0._JPRB
+
+    ! heat conductivity from water vapor transport into the snowpack
+      ZTMPCOND=(SNHCONDAV-SNHCONDBV/(PTSNM1M5(JL,JK)-SNHCONDCV)) 
+      IF (ZTMPCOND > 0._JPRB) THEN
+        PAPRS(JL)      = PAPRS(JL) - ZSNVCOND*(SNHCONDPOV*&
+                       & (SNHCONDCV-PTSNM1M5(JL,JK))*&
+                       & (SNHCONDAV*SNHCONDCV-SNHCONDAV*PTSNM1M5(JL,JK) + SNHCONDBV) )/&
+                       & (PAPRS5(JL)**2._JPRB*(PTSNM1M5(JL,JK)-SNHCONDCV)**2._JPRB)
+        PTSNM1M(JL,JK) = PTSNM1M(JL,JK) + ZSNVCOND*(&
+                       & SNHCONDPOV*SNHCONDBV*PAPRS5(JL)/(PAPRS5(JL)**2._JPRB*(PTSNM1M5(JL,JK)-SNHCONDCV)**2._JPRB))
+
+        ZSNVCOND = 0._JPRB
+      ELSE
+        ZSNVCOND =0._JPRB
+      ENDIF      
+!
+      ZTMPHC=(ZICE5(JK)/PRSNM1M5(JL,JK)) 
+      IF (ZTMPHC < RDSNMAX) THEN
+        ZICE(JK)  = ZICE(JK) + ZSNHC(JK)*ZIHCAP*ZTMST
+        PWSNM1M(JL,JK) = PWSNM1M(JL,JK) + ZSNHC(JK)*ZWHCAP*ZTMST
+        ZSNHC(JK)   = 0._JPRB
+        
+      ELSE
+        PWSNM1M(JL,JK) = PWSNM1M(JL,JK) + ZSNHC(JK)*ZWHCAP*ZTMST
+        ZSNHC(JK) = 0._JPRB
+      ENDIF
+
+    ! Limit thermally active snow depth to 1 meter of snow (for glaciers in particular)
+      ZDSN5(JK) = (PSSNM1M5(JL,JK)/ PRSNM1M5(JL,JK)) ! read snow depth (m)
+      IF (ZDSN5(JK) < RDSNMAX) THEN
+        PSSNM1M(JL,JK) = PSSNM1M(JL,JK) + ZDSN(JK)/PRSNM1M5(JL,JK)
+        ZDSN(JK)    = 0._JPRB
+      ELSE
+        ZDSN(JK)    = 0._JPRB
+      ENDIF
+      PSSNM1M(JL,JK) = PSSNM1M(JL,JK) + ZICE(JK)
+      PWSNM1M(JL,JK) = PWSNM1M(JL,JK) - ZICE(JK)
+      ZICE(JK)  = 0._JPRB
+    ENDDO
+!*- Soil heat conductivity (simplified) - copied from srfts
+    JS = KSOTY(JL)
+    ZINVWSAT = 1.0_JPRB/RWSATM(JS)
+
+    ZKERSTEN  = ZKERSTEN + ZSOILCOND*(ZLAMBDASAT5-RLAMBDADRYM(JS))
+    ZLAMBDASAT= ZLAMBDASAT + ZSOILCOND*ZKERSTEN5
+    ZSOILCOND = 0._JPRB
+
+    ZCOND     = ZCOND + ZKERSTEN*RKERST2/(ZLN10*ZCOND5)
+    ZKERSTEN  = 0._JPRB
+
+    IF (PWSURF5(JL)*ZINVWSAT > RKERST1) THEN
+      PWSURF(JL) = PWSURF(JL) + ZCOND*ZINVWSAT
+      ZCOND  = 0._JPRB
+    ELSE
+      ZCOND  = 0.0_JPRB
+    ENDIF
+    
+    ZLWT = ZLWT + ZLAMBDASAT*RLAMSAT1M(JS)*ZLIC5
+    ZLIC = ZLIC + ZLAMBDASAT*RLAMSAT1M(JS)*ZLWT5
+    ZLAMBDASAT  = 0._JPRB
+
+    ZWU   = ZWU - ZLIC*ZLIC5*LOG(RLAMBDAICE)
+    ZLIC  = 0._JPRB
+
+    ZWU   = ZWU + ZLWT*ZLWT5*LOG(RLAMBDAWAT)
+    ZLWT  = 0._JPRB
+    
+    PWSURF(JL) = PWSURF(JL) + ZWU*(1._JPRB - ZFF)
+    ZWU  = 0._JPRB
+    ZFF  = 0._JPRB
+    
+    ! heat flux into the snowpack (not scaled by fraction, it simplifies fraction in
+    ! heat transfer eq.
+
+    PAHFSTI (JL,5) = PAHFSTI (JL,5) + ZHFLUX(JL)*PFRTI(JL,5)
+    PAHFSTI (JL,7) = PAHFSTI (JL,7) + ZHFLUX(JL)*PFRTI(JL,7)
+    PEVAPTI (JL,5) = PEVAPTI (JL,5) + ZHFLUX(JL)*YDCST%RLSTT*PFRTI(JL,5)
+    PEVAPTI (JL,7) = PEVAPTI (JL,7) + ZHFLUX(JL)*YDCST%RLVTT*PFRTI(JL,7)
+    PSSRFLTI (JL,5)= PSSRFLTI (JL,5)+ ZHFLUX(JL)*PFRTI(JL,5)
+    PSSRFLTI (JL,7)= PSSRFLTI (JL,7)+ ZHFLUX(JL)*PFRTI(JL,7)
+    PEVAPSNW (JL)  = PEVAPSNW (JL)  + ZHFLUX(JL)*PFRTI(JL,7)*(YDCST%RLSTT-YDCST%RLVTT)
+    PSLRFL (JL)    = PSLRFL (JL)    + ZHFLUX(JL)*(PFRTI(JL,5)+PFRTI(JL,7))
+
+    ZHFLUX(JL) = 0._JPRB
+  ENDIF
+ENDDO
+
+
+
+
+! Input fields (in srfsn_driver usually)
+
+DO JL=KIDIA,KFDIA
+! Rainfall is only fractional 
+  PTSFC(JL)  = PTSFC(JL) + ZFRSN(JL)*ZRAINF(JL)
+  PTSFL(JL)  = PTSFL(JL) + ZFRSN(JL)*ZRAINF(JL)
+  ZRAINF(JL) = 0._JPRB
+
+! Evap. is only fractional 
+  PEVAPTI(JL,5) = PEVAPTI(JL,5) + ZEVAPSN(JL)*PFRTI(JL,5)
+  PEVAPSNW(JL)  = PEVAPSNW(JL)  + ZEVAPSN(JL)*PFRTI(JL,7)
+  ZEVAPSN(JL)   = 0._JPRB
+
+  IF (LDLAND(JL)) THEN
+    ! Snowfall is all redirected here ! 
+    PSSFC(JL) = PSSFC(JL) + ZSNOWF(JL)
+    PSSFL(JL) = PSSFL(JL) + ZSNOWF(JL)
+    ZSNOWF(JL)= 0._JPRB
+  ELSE
+    ZSNOWF(JL)  = 0.0_JPRB 
+  ENDIF
+ENDDO
+
+
+END ASSOCIATE
+!    -----------------------------------------------------------------
+IF (LHOOK) CALL DR_HOOK('SRFSN_WEBALSAD_MOD:SRFSN_WEBALSAD_MOD',1,ZHOOK_HANDLE)
+
+END SUBROUTINE SRFSN_WEBALSAD
+
+SUBROUTINE TRISOLVERS(KSNLAC,ZA5,ZB5,ZC5,ZF5,ZTSTAR5)
+USE PARKIND1, ONLY : JPIM, JPRB
+IMPLICIT NONE
+
+!! SINGLE POINT TRIDIAGONAL SOLVER ! 
+
+!* DECLARATION OF ARGUMENTS
+INTEGER(KIND=JPIM)  ,INTENT(IN)  :: KSNLAC ! NUMBER OF ACTIVE SNOW LAYERS
+REAL(KIND=JPRB),INTENT(IN),DIMENSION(:)  :: ZA5,ZB5,ZC5,ZF5
+REAL(KIND=JPRB),INTENT(INOUT),DIMENSION(:) :: ZTSTAR5
+
+!* LOCAL VARIABLES  
+INTEGER(KIND=JPIM)  :: JK
+REAL(KIND=JPRB)     :: BET5
+REAL(KIND=JPRB),DIMENSION(SIZE(ZB5)) :: GAM5
+
+BET5=ZB5(1)
+
+ZTSTAR5(1)=ZF5(1)/BET5
+DO JK=2,KSNLAC
+  GAM5(JK)=ZC5(JK-1)/BET5
+  BET5=ZB5(JK)-ZA5(JK)*GAM5(JK)
+  ZTSTAR5(JK)=(ZF5(JK)-ZA5(JK)*ZTSTAR5(JK-1))/BET5
+ENDDO
+DO JK=KSNLAC-1,1,-1
+  ZTSTAR5(JK)=ZTSTAR5(JK)-GAM5(JK+1)*ZTSTAR5(JK+1)
+ENDDO
+
+END SUBROUTINE TRISOLVERS
+
+SUBROUTINE TRISOLVERSAD(KSNLAC,ZA5,ZB5,ZC5,ZF5,ZTSTAR5,&
+                       &ZA,ZB,ZC,ZF,ZTSTAR)
+USE PARKIND1, ONLY : JPIM, JPRB
+USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
+IMPLICIT NONE
+
+! SINGLE POINT TRIDIAGONAL SOLVER ! 
+
+!* DECLARATION OF ARGUMENTS
+INTEGER(KIND=JPIM)  ,INTENT(IN)  :: KSNLAC ! NUMBER OF ACTIVE SNOW LAYERS
+REAL(KIND=JPRB),INTENT(IN),DIMENSION(:)  :: ZA5,ZB5,ZC5,ZF5
+REAL(KIND=JPRB),INTENT(INOUT),DIMENSION(:) :: ZTSTAR5
+! inout adjoint
+REAL(KIND=JPRB),INTENT(INOUT),DIMENSION(:)  :: ZA, ZB, ZC, ZF
+REAL(KIND=JPRB),INTENT(INOUT),DIMENSION(:) :: ZTSTAR
+
+!* LOCAL VARIABLES  
+INTEGER(KIND=JPIM)  :: JK
+REAL(KIND=JPRB),DIMENSION(SIZE(ZB)) :: BET5,BET
+REAL(KIND=JPRB),DIMENSION(SIZE(ZB)) :: GAM5,GAM
+REAL(KIND=JPRB),DIMENSION(SIZE(ZB)) :: ZTSTARIN5,ZTSTARDWS5
+
+REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+!    -----------------------------------------------------------------
+IF (LHOOK) CALL DR_HOOK('SRFSN_WEBALSAD_MOD:TRISOLVERSAD',0,ZHOOK_HANDLE)
+
+ZTSTARIN5(:)=ZTSTAR5(:)
+! start
+! top layer elimination
+BET5(1)=ZB5(1)
+ZTSTAR5(1)=ZF5(1)/BET5(1)
+ZTSTARDWS5(1)=ZTSTAR5(1)
+! First downward scan
+DO JK=2,KSNLAC
+  GAM5(JK)=ZC5(JK-1)/BET5(JK-1)
+  BET5(JK)=ZB5(JK)-ZA5(JK)*GAM5(JK)
+  ZTSTAR5(JK)=(ZF5(JK)-ZA5(JK)*ZTSTARDWS5(JK-1))/BET5(JK)
+  ZTSTARDWS5(JK)=ZTSTAR5(JK)! Store for adjoint
+ENDDO
+
+! Back substitution
+DO JK=KSNLAC-1,1,-1
+  ZTSTAR5(JK)=ZTSTAR5(JK)-GAM5(JK+1)*ZTSTAR5(JK+1)
+ENDDO
+
+!*-------------
+!* Adjoint code
+
+!* Init
+ GAM(1:SIZE(ZB))=0._JPRB
+ BET(1:SIZE(ZB))=0._JPRB
+
+! Back substitution:
+DO JK=1,KSNLAC-1,1
+  ZTSTAR(JK)  = ZTSTAR(JK)
+  ZTSTAR(JK+1)= ZTSTAR(JK+1) - GAM5(JK+1)*ZTSTAR(JK)
+  GAM(JK+1)   = GAM(JK+1) - ZTSTAR5(JK+1)*ZTSTAR(JK)
+ENDDO
+
+! First downward scan
+DO JK=KSNLAC,2,-1
+
+  ZF(JK) = ZF(JK) + ZTSTAR(JK)/BET5(JK)
+  BET(JK)= BET(JK)- ZTSTAR(JK)*(ZF5(JK) - (ZA5(JK)*ZTSTARDWS5(JK-1)))/BET5(JK)**2._JPRB
+  ZA(JK)       = ZA(JK) - ZTSTAR(JK)*ZTSTARDWS5(JK-1)/BET5(JK)
+  ZTSTAR(JK-1) = ZTSTAR(JK-1) - ZTSTAR(JK)*ZA5(JK)/BET5(JK)
+  ZTSTAR(JK)   = 0._JPRB
+
+  ZB(JK) = ZB(JK) + BET(JK)
+  ZA(JK) = ZA(JK) - BET(JK)*GAM5(JK)
+  GAM(JK)= GAM(JK)- BET(JK)*ZA5(JK)
+  BET(JK)= 0._JPRB
+
+  ZC(JK-1)= ZC(JK-1) + GAM(JK)/BET5(JK-1)
+  BET(JK-1)= BET(JK-1)- GAM(JK)*ZC5(JK-1)/BET5(JK-1)**2._JPRB
+  GAM(JK) = 0._JPRB
+
+ENDDO
+
+! top layer elimination
+ZF(1) = ZF(1) + ZTSTAR(1)/BET5(1)
+BET(1)= BET(1)- ZTSTAR(1)*ZF5(1)/BET5(1)**2._JPRB
+ZTSTAR(1) = 0._JPRB
+
+ZB(1) = ZB(1) + BET(1)
+BET(1)= 0._JPRB
+
+!    -----------------------------------------------------------------
+IF (LHOOK) CALL DR_HOOK('SRFSN_WEBALSAD_MOD:TRISOLVERSAD',1,ZHOOK_HANDLE)
+END SUBROUTINE TRISOLVERSAD
+
+END MODULE SRFSN_WEBALSAD_MOD

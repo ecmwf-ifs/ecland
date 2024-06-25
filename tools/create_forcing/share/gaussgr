@@ -1,0 +1,122 @@
+:
+#gaussgr                version:  20070619
+# (C) Copyright 2007- ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+
+
+#=======================================================================
+#
+#     Script gaussgr
+#     --------------
+#
+#     Purpose     : Given spectral resolution and grid type, return
+#     -------       number of gaussian latitudes between pole and equator
+#
+#     Usage       : gaussgr  -r resol  -g gtype
+#     -----
+#
+#     Parameters  : -r resol  - spectral resolution
+#     ----------    -g gtype  - grid type
+#
+#     Return      : gaussian grid number
+#     ------
+#
+#=======================================================================
+
+USAGE="$0  -r resol  -g gtype"
+
+grid=0
+resol=0
+gtype=l_2
+
+while getopts r:g: option
+do
+  case $option in
+    r) resol=$OPTARG;;
+    g) gtype=$OPTARG;;
+   \?) ;;
+  esac
+done
+
+#=======================================================================
+#  Predefined resolutions for full or reduced gaussian grids
+#=======================================================================
+
+if [[ $gtype = l_2 || $gtype = l_full ]] ; then
+# linear reduced or linear regular (full) grid
+  case $resol in
+     31) grid=16;;
+     63) grid=32;;
+     95) grid=48;;
+    127) grid=64;;
+    159) grid=80;;
+    191) grid=96;;
+    255) grid=128;;
+    319) grid=160;;
+    399) grid=200;;
+    511) grid=256;;
+    639) grid=320;;
+    799) grid=400;;
+   1023) grid=512;;
+   1279) grid=640;;
+   1599) grid=800;;
+   2047) grid=1024;;
+   2559) grid=1280;;
+   3199) grid=1600;;
+   3999) grid=2000;;
+   7999) grid=4000;;
+  15999) grid=8000;;
+  esac
+elif [[ $gtype = _3 ]] || [[ $gtype = _4 ]] ;then
+# cubic reduced grid
+  case $resol in
+     63) grid=64;;
+     79) grid=80;;
+     95) grid=96;;
+    127) grid=128;;
+    159) grid=160;;
+    191) grid=192;;
+    199) grid=200;;
+    255) grid=256;;
+    319) grid=320;;
+    399) grid=400;;
+    511) grid=512;;
+    639) grid=640;;
+    799) grid=800;;
+    911) grid=912;;
+   1023) grid=1024;;
+   1279) grid=1280;;
+   1599) grid=1600;;
+   1999) grid=2000;;
+   2047) grid=2048;;
+   2559) grid=2560;;
+   3999) grid=4000;;
+   7999) grid=8000;;
+  esac
+else
+# quadratic reduced or quadratic regular (full) grid
+  case $resol in
+     21) grid=16;;
+     42) grid=32;;
+     63) grid=48;;
+    106) grid=80;;
+    170) grid=128;;
+    213) grid=160;;
+    341) grid=256;;
+    853) grid=640;;
+   1364) grid=1024;;
+   1706) grid=1280;;
+  esac
+fi
+
+echo $grid
+if [[ $grid = 0 ]] ; then
+  echo "Warning: grid definition does not exist"
+fi
+
+exit

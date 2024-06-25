@@ -1,0 +1,220 @@
+MODULE SRFSN_SSRABSSTL_MOD
+CONTAINS
+SUBROUTINE SRFSN_SSRABSSTL(KIDIA,KFDIA,KLON,KLEVSN,&
+ & LLNOSNOW,PFRTI,PSSRFLTI5,&
+ & PSSNM1M5,PRSNM1M5,&
+ & YDSOIL,YDCST,&
+ & PSNOTRS5,&
+! Perturbation
+ & PSSRFLTI, PSSNM1M,&
+ & PSNOTRS )
+
+
+USE PARKIND1 , ONLY : JPIM, JPRB
+USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
+
+USE YOS_SOIL , ONLY : TSOIL 
+USE YOS_CST  , ONLY : TCST
+
+USE ABORT_SURF_MOD
+
+! (C) Copyright 2020- ECMWF.
+!
+! This software is licensed under the terms of the Apache Licence Version 2.0
+! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+! In applying this licence, ECMWF does not waive the privileges and immunities
+! granted to it by virtue of its status as an intergovernmental organisation
+! nor does it submit to any jurisdiction.
+
+!**** *SRFSN_SSRABSSTL* - Shortwave radiation absorption by snow (tangent linear)
+!     PURPOSE.
+!     --------
+!          THIS ROUTINE COMPUTES SW ABSORBED BY EACH SNOWPACK LAYER 
+
+!**   INTERFACE.
+!     ----------
+!          *SRFSN_SSRABSS* IS CALLED FROM *SURFTSTPSTL*.
+
+!     PARAMETER   DESCRIPTION                                    UNITS
+!     ---------   -----------                                    -----
+
+!     INPUT PARAMETERS (INTEGER):
+!    *KIDIA*      START POINT
+!    *KFDIA*      END POINT
+!    *KLON*       NUMBER OF POINTS LON
+!    *KLEVSN*     NUMBER OF MAX VERTICAL SNOW LAYERS
+
+
+!     INPUT PARAMETERS (REAL):
+!    *PFRTI*      TILE FRACTION                                      
+
+!     INPUT PARAMETERS (LOGICAL):
+!    *LLNOSNOW*     SNOW/NO-SNOW MASK (TRUE IF NO-SNOW)
+
+!     INPUT PARAMETERS AT T-1 OR CONSTANT IN TIME (REAL):
+!    Trajectory  Perturbation  Description                        Unit
+!     
+!    *PSSNM1M5*   *PSSNM1M*    SNOW WATER EQUIVALENT T-1          kg/m**2
+!    *PRSNM1M5*      -         SNOW DENSITY          T-1          kg/m**3
+!    *PSSRFLTI5*   *PSSRFLTI*  TILED SHORTWAVE RADIATION AT SURFACE W/m**2
+
+!     OUTPUT FLUX (UNFILTERED,REAL):
+!     PSNOTRS5    *PSNOTRS*   SOLAR RADIATION ABSORBED BY EACH SNOW LAYER W/m**2
+
+!     METHOD.
+!     -------
+          
+
+!     EXTERNALS.
+!     ----------
+!          NONE.
+
+!     REFERENCE.
+!     ----------
+!          
+
+!     Modifications:
+!     Original   G. Arduini      ECMWF     01/07/2020
+
+!     ------------------------------------------------------------------
+
+IMPLICIT NONE
+
+! Declaration of arguments 
+INTEGER(KIND=JPIM), INTENT(IN)   :: KIDIA
+INTEGER(KIND=JPIM), INTENT(IN)   :: KFDIA
+INTEGER(KIND=JPIM), INTENT(IN)   :: KLON
+INTEGER(KIND=JPIM), INTENT(IN)   :: KLEVSN
+LOGICAL           , INTENT(IN)   :: LLNOSNOW(:) 
+
+REAL(KIND=JPRB)   , INTENT(IN)   :: PFRTI(:,:)
+! Trajectories
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSRFLTI5(:,:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PSSNM1M5(:,:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PRSNM1M5(:,:)
+
+TYPE(TSOIL)       , INTENT(IN)   :: YDSOIL
+TYPE(TCST)        , INTENT(IN)   :: YDCST
+
+REAL(KIND=JPRB)   , INTENT(OUT)  :: PSNOTRS5(:,:)
+
+!Perturbation
+REAL(KIND=JPRB),    INTENT(IN)   :: PSSRFLTI(:,:)
+REAL(KIND=JPRB)   , INTENT(IN)   :: PSSNM1M(:,:)
+
+REAL(KIND=JPRB)   , INTENT(OUT)  :: PSNOTRS(:,:)
+
+! Local variables 
+REAL(KIND=JPRB)    :: ZDSN5(KLEVSN),        ZDSN(KLEVSN)
+REAL(KIND=JPRB)    :: ZSNOTRSTMP5(KLEVSN+1),ZSNOTRSTMP(KLEVSN+1)
+REAL(KIND=JPRB)    :: ZSNSOABS5(KLON),      ZSNSOABS(KLON)
+REAL(KIND=JPRB)    :: ZSNQRAD5(KLEVSN),             ZSNQRAD(KLEVSN)
+
+REAL(KIND=JPRB)    :: ZSNEXTCOEFF5(KLEVSN)
+REAL(KIND=JPRB)    :: ZGSNS5
+
+REAL(KIND=JPRB)    :: ZFRSN(KLON)
+REAL(KIND=JPRB)    :: ZEPSILON
+INTEGER(KIND=JPIM) :: KLACT
+INTEGER(KIND=JPIM) :: KSNTILES
+
+INTEGER(KIND=JPIM) :: JL,JK,JT,JTILE
+REAL(KIND=JPHOOK)  :: ZHOOK_HANDLE
+
+!! INCLUDE FUNCTIONS
+
+!    -----------------------------------------------------------------
+IF (LHOOK) CALL DR_HOOK('SRFSN_SSRABSSTL_MOD:SRFSN_SSRABSSTL',0,ZHOOK_HANDLE)
+
+!    -----------------------------------------------------------------
+ASSOCIATE(RDSNMAX=>YDSOIL%RDSNMAX, SSAG1=>YDSOIL%SSAG1, SSAG2=>YDSOIL%SSAG2, &
+         & SSAG3=>YDSOIL%SSAG3, SSAGSNSMAX=>YDSOIL%SSAGSNSMAX, SSASNEXTMIN=>YDSOIL%SSASNEXTMIN, &
+         & SSASNEXTMAX=>YDSOIL%SSASNEXTMAX, SSASNEXTCNST=>YDSOIL%SSASNEXTCNST )
+
+KSNTILES=2 ! nr of snow tiles
+ZEPSILON=1._JPRB*EPSILON(ZEPSILON)
+
+KLACT=1
+DO JT=1,KSNTILES
+  SELECT CASE(JT)
+  CASE(1)
+    JTILE=5
+    ZFRSN(KIDIA:KFDIA)=PFRTI(KIDIA:KFDIA,JTILE)
+  CASE(2)
+    JTILE=7
+    ZFRSN(KIDIA:KFDIA)=PFRTI(KIDIA:KFDIA,JTILE)
+  END SELECT
+  DO JL=KIDIA,KFDIA
+    IF (LLNOSNOW(JL)) THEN 
+      PSNOTRS(JL,1:KLEVSN+1)  = 0.0_JPRB
+      PSNOTRS5(JL,1:KLEVSN+1) = 0.0_JPRB
+    ELSE
+      
+  !! Preparation
+      DO JK=1,KLEVSN
+        IF (PSSNM1M5(JL,JK) > ZEPSILON ) KLACT=JK
+      ENDDO
+      ZSNOTRSTMP(1:KLEVSN+1) = 0._JPRB
+      ZSNOTRSTMP5(1:KLEVSN+1)= 0._JPRB
+      ZSNEXTCOEFF5(1:KLEVSN) = 25._JPRB
+      ZSNQRAD(1:KLEVSN)  = 0._JPRB
+      ZSNQRAD5(1:KLEVSN) = 0._JPRB
+      ZSNSOABS5(JL) = 0._JPRB
+
+      DO JK=1, KLACT
+        IF (PSSNM1M5(JL,JK)/PRSNM1M5(JL,JK)<RDSNMAX) THEN
+          ZDSN(JK)  = PSSNM1M(JL,JK)/PRSNM1M5(JL,JK)
+          ZDSN5(JK) = PSSNM1M5(JL,JK)/PRSNM1M5(JL,JK)
+        ELSE
+          ZDSN(JK)  = 0._JPRB
+          ZDSN5(JK) = RDSNMAX
+        ENDIF
+        ! grain size from Anderson 1976 (parameter)
+        ZGSNS5=MIN(SSAGSNSMAX,(SSAG1 + SSAG3*PRSNM1M5(JL,JK)**(4._JPRB) ))
+        ! snow extinction coeff from Jordan 1991 (parameter)
+        ZSNEXTCOEFF5(JK)=MAX(SSASNEXTMIN, MIN(SSASNEXTMAX, SSASNEXTCNST*PRSNM1M5(JL,JK)/ZGSNS5**0.5_JPRB ) )
+      ENDDO
+      ZSNSOABS5(JL)=EXP(-ZSNEXTCOEFF5(1)*ZDSN5(1))
+      IF (ZSNSOABS5(JL) < ZEPSILON) THEN
+        ZSNSOABS5(JL) = ZEPSILON
+        ZSNSOABS(JL)  = 0._JPRB
+      ELSE
+        ZSNSOABS(JL)  = -ZSNEXTCOEFF5(1)*ZDSN(1)*ZSNSOABS5(JL)
+      ENDIF
+
+      ZSNOTRSTMP(1)  = PSSRFLTI(JL,JTILE)*ZSNSOABS5(JL) + PSSRFLTI5(JL,JTILE)*ZSNSOABS(JL)
+      ZSNOTRSTMP5(1) = PSSRFLTI5(JL,JTILE)*ZSNSOABS5(JL)
+
+      ZSNQRAD(1)        = PSSRFLTI(JL,JTILE)*ZSNSOABS5(JL) + PSSRFLTI5(JL,JTILE)*ZSNSOABS(JL)
+      ZSNQRAD5(1)       = PSSRFLTI5(JL,JTILE)-PSSRFLTI5(JL,JTILE)*(1._JPRB-ZSNSOABS5(JL))
+      IF (KLACT > 1) THEN
+        DO JK=2, KLACT
+          ZSNSOABS5(JL) = EXP(-ZSNEXTCOEFF5(JK)*ZDSN5(JK)) ! if KLACT>1, no tiny layers
+          ZSNSOABS(JL)  = -ZSNEXTCOEFF5(JK)*ZDSN(JK)*ZSNSOABS5(JL)
+
+          ZSNOTRSTMP(JK) = ZSNQRAD(JK-1) - (ZSNQRAD(JK-1)*ZSNSOABS5(JL) + ZSNQRAD5(JK-1)*ZSNSOABS(JL))
+          ZSNOTRSTMP5(JK)= ZSNQRAD5(JK-1)*(1._JPRB-ZSNSOABS5(JL))
+
+          ZSNQRAD(JK)  = ZSNQRAD(JK-1)-ZSNOTRSTMP(JK)
+          ZSNQRAD5(JK) = ZSNQRAD5(JK-1)-ZSNOTRSTMP5(JK)
+        ENDDO
+      ENDIF
+      ZSNOTRSTMP(KLACT+1)  = ZSNQRAD(KLACT)
+      ZSNOTRSTMP5(KLACT+1) = ZSNQRAD5(KLACT)
+
+  ! Weighted average with tile fraction:
+      DO JK=1, KLACT+1
+        PSNOTRS(JL,JK)  = PSNOTRS(JL,JK) + ZFRSN(JL)*ZSNOTRSTMP(JK)
+        PSNOTRS5(JL,JK) = PSNOTRS5(JL,JK)+ ZFRSN(JL)*ZSNOTRSTMP5(JK)
+      ENDDO
+    ENDIF !ENDIF In LLNOSNOW 
+  ENDDO   !ENDDO IN JL
+END DO    !ENDDO IN JT
+
+END ASSOCIATE
+!    -----------------------------------------------------------------
+IF (LHOOK) CALL DR_HOOK('SRFSN_SSRABSSTL_MOD:SRFSN_SSRABSSTL',1,ZHOOK_HANDLE)
+
+END SUBROUTINE SRFSN_SSRABSSTL
+
+END MODULE SRFSN_SSRABSSTL_MOD

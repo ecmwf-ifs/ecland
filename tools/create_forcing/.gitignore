@@ -1,0 +1,8 @@
+# contents of .gitignore
+
+# specific ignores
+__pycache__/
+
+# tests for internal ecmwf
+tests/config_2D_ecmwf.yaml
+
