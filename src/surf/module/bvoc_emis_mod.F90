@@ -114,8 +114,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KVTYPE,&
   REAL(KIND=JPRB)    :: ZGAMMA_T(KLON)                         ! Temperature activity factor
   REAL(KIND=JPRB)    :: ZGAMMA_P(KLON)                         ! light response activity factor
 
-  LOGICAL            :: LDLAND(KLON)
-  
+!  LOGICAL            :: LDLAND(KLON)
 
 ! VEGETATION TYPES ARE:
 ! 1  DECIDUOUS
@@ -188,7 +187,7 @@ REAL(KIND=JPRB), PARAMETER :: ZH = 1.4614
 REAL(KIND=JPRB), PARAMETER :: ZCSTAR = 585
 REAL(KIND=JPRB), PARAMETER :: ZMMR_TO_VMR = 28.96 / 44.0 * 1E6_JPRB   ! Conversion of CO2 from kg/kg to ppmv
 REAL(KIND=JPRB), PARAMETER :: ZSRFD_FUDGE_FAC=1./2.2_JPRB ! Division of IFS SSRD by factor 2.2, proposed by Katerina Sindelarova, May 2023
-
+REAL(KIND=JPRB), PARAMETER :: ZGAMMA_LAI_FUDGE_FAC=2.0               ! Tuning factor for GAMMA-LAI
 
   !     -------------------------------------------------------------------------
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -293,13 +292,13 @@ DO JL=KIDIA,KFDIA
   ! Activity factor due to temperature:
   ZT_DAILY=MAX(240._JPRB,PTSOIL(JL))
   ZT_HR=PTM1(JL)
-  ZT_OPT=313._JPRB+(0.6*(ZT_DAILY-297._JPRB)) ! eq 8 20006
+  ZT_OPT=313._JPRB+(0.6_JPRB*(ZT_DAILY-297._JPRB)) ! eq 8 20006
   ZX=(1._JPRB/ZT_OPT - 1._JPRB/ZT_HR)/0.00831_JPRB ! eq 14
   ZE_OPT=1.75_JPRB*EXP(0.08_JPRB*(ZT_DAILY-297._JPRB))   !  eq 14
-  ZGAMMA_T(JL)= ( ZE_OPT*ZC_T2*EXP(ZC_T1*ZX) ) / ( ZC_T2 - ZC_T1*(1-EXP(ZC_T2*ZX))  ) ! eq 14
+  ZGAMMA_T(JL)= ( ZE_OPT*ZC_T2*EXP(ZC_T1*ZX) ) / ( ZC_T2 - ZC_T1*(1._JPRB-EXP(ZC_T2*ZX))  ) ! eq 14
 
   ! Activity factor due to LAI
-  ZGAMMA_LAI(JL)=0.49_JPRB * PLAI(JL) / SQRT(1._JPRB + 0.2*PLAI(JL)*PLAI(JL))  ! eq 15
+  ZGAMMA_LAI(JL)=ZGAMMA_LAI_FUDGE_FAC * 0.49_JPRB * PLAI(JL) / SQRT(1._JPRB + 0.2_JPRB*PLAI(JL)*PLAI(JL))  ! eq 15
 
   ! Light activity factor..
   ZSZA = ACOS(PMU0(JL))
@@ -317,7 +316,7 @@ DO JL=KIDIA,KFDIA
                       !      following eqn. 11 of Sindelarova (2017)
     ZPPFD=PSRFD(JL)*RW_TO_MOL_BVOC*ZSRFD_FUDGE_FAC !Application of fudge factor - check if this is still needed.
     ZPHI=ZPPFD/(PMU0(JL) * ZP_TOA)
-    ZGAMMA_P(JL)=MAX(0._JPRB,PMU0(JL)*(2.46*ZPHI*(1+0.0005*(ZP_DAILY-400._JPRB))-0.9*ZPHI*ZPHI )) ! eq 11b
+    ZGAMMA_P(JL)=MAX(0._JPRB,PMU0(JL)*(2.46_JPRB*ZPHI*(1._JPRB+0.0005_JPRB*(ZP_DAILY-400._JPRB))-0.9_JPRB*ZPHI*ZPHI )) ! eq 11b
   ELSE 
     ZGAMMA_P(JL)=0._JPRB
   ENDIF
@@ -355,7 +354,7 @@ DO JL=KIDIA,KFDIA
       ZT_DAILY = PTSOIL(JL)
       ! time parameters t, t_i, t_m [days]
       IF (ZT_DAILY <= 303) THEN 
-        ZT_I = 5._JPRB + 0.7 * (300 - ZT_DAILY) ! eq 18a
+        ZT_I = 5._JPRB + 0.7_JPRB * (300._JPRB - ZT_DAILY) ! eq 18a
       ELSE
         ZT_I = 2.9_JPRB   ! eq 18b
       ENDIF
@@ -388,7 +387,7 @@ ENDDO
 IF (IC5H8 > 0 ) THEN 
   DO JL=KIDIA,KFDIA
     ZCA = PCM1(JL) * ZMMR_TO_VMR
-    ZGAMMA_CO2(JL,IC5H8)=ZINH_MAX - ( ZINH_MAX * (0.7 * ZCA)**ZH / ( ZCSTAR**ZH + (0.7*ZCA)**ZH  )  )  ! eq 14
+    ZGAMMA_CO2(JL,IC5H8)=ZINH_MAX - ( ZINH_MAX * (0.7_JPRB * ZCA)**ZH / ( ZCSTAR**ZH + (0.7_JPRB*ZCA)**ZH  )  )  ! eq 14
   ENDDO
 ENDIF
 
