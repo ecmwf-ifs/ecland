@@ -1,0 +1,123 @@
+! (C) Copyright 2005- ECMWF.
+!
+! This software is licensed under the terms of the Apache Licence Version 2.0
+! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+! In applying this licence, ECMWF does not waive the privileges and immunities
+! granted to it by virtue of its status as an intergovernmental organisation
+! nor does it submit to any jurisdiction.
+
+&NAMCT01S
+    NSTART={nstart}          ! first timestep of model 0
+    NSTOP={nstop}            ! last timestep of model
+    NFRPOS={nfreq_post}      ! frequency of post-processing events (time-steps)
+    NFRRES=0                 ! frequency of writing intermediate restart files (time-steps)
+    LNF=.TRUE.               ! .T. = start, .F. = restart
+    NCYCLE=1                ! number of the experiment
+    CNMEXP="DEFAULT"            ! name of the experiment
+    /
+&NAMDYN1S
+    TSTEP={tstep}           !  TSTEP   : length of the timestep in seconds
+    NACCTYPE=2              ! =0  Forcing fluxes assument centered on timestamp (linear interp.)
+                            ! =1  forward accumulation (starting at timestamp)
+                            ! =2  backward accumulation (ending at timestamp)
+    LSWINT=.FALSE.          ! SWdown solar angle interpolation if true
+    LPREINT=.FALSE.         ! precipitation interpolation if true
+    LFLXINT=.FALSE.         ! SWdown/LWdown linear interpolation if true
+    TCOUPFREQ=86400.        ! Coupling frequency with CaMa-flood
+    /
+&NAMDIM
+    NLAT={nlat}              ! number of latitudes
+    NLON={nlon}              ! number of longitudes
+    NDFORC={nforcing}        ! namelist forcing dimension
+    NCSS=4                   ! number of vertical layers in the soil
+    NCSNEC=5                 ! number of vertical layer in the snow 
+    /
+&NAMRIP
+    NINDAT={iniDate}       ! run initial date in the form YYYYMMDD
+    NSSSSS={iniSec}       ! initial time in seconds (e.g. for 12h, 43200)
+    /
+&NAM1S
+    CFFORC='netcdf'          ! CHARACTER: IDENTIFIES THE FORCING DATA SET
+    CFOUT='netcdf'           ! CHARACTER: IDENTIFIES THE OUTPUT DATA SET
+    CFSURF='netcdf'          ! CHARACTER: IDENTIFIES THE SURFACE CLIMATOLOGY DATA SET
+    CFINIT='netcdf'          ! CHARACTER: IDENTIFIES THE INITIALIZATION DATA SET
+    CMODID='EcLand'         ! CHARACTER: MODEL IDENTIFICATION
+    LACCUMW=.TRUE.           ! LOGICAL : WRITE OUT ACCUMULATED FLUXES (DEFAULT=TRUE)
+    LRESET=.TRUE.            ! LOGICAL : RESET ACCUMULATION EVERY WRITE OUT TIME STEP
+    NACCUR=1               ! INTEGER : OUTPUT CDF ACCURACY: 1=SINGLE PREC, 2=DOUBLE PREC
+    NDIMCDF={ndimcdf}         ! INTEGER : NR OF GRID DIMENSIONS
+    NDLEVEL=0                ! INTEGER : Level of netcdf4 compression 0-9: 0== no compression -faster output
+    NCDFTYPE=4                ! type of netcdf output
+    LWRGG=.TRUE.              ! logical, write o_gg  - output instantaneus prognostics
+    LWRCLM=.FALSE.            ! logical, write o_fix - output fix soil properties
+    LWRGGD=.FALSE.            ! logical, write o_ggd - output mean prognostic evolution
+    LWREFL=.TRUE.            ! logical, write o_efl - output surface energy balance
+    LWRWAT=.TRUE.            ! logical, write o_wat - output water balance
+    LWRD2M=.FALSE.            ! logical, write o_d2m - output 2 meters diagnostics
+    LWRSUS=.FALSE.            ! logical, write o_sus - output surface state variables (vegT,albedo, etc..)
+    LWREVA=.FALSE.            ! logical, write o_eva - output evaporation components
+    LWRCLD=.FALSE.            ! logical, write o_cld - output cold processes variables
+    LWRCO2=.FALSE.           ! logical, write o_co2 - output cO2 fluxes
+    LWRBIO=.FALSE.           ! logical, write o_bio - output biomass
+    LWRVEG=.FALSE.           ! logical, write o_veg - output vegetation 2D high/low veg
+    LWRVTY=.FALSE.           ! logical, write o_vty - output vegetation 2D high/low veg biomass
+    LWRTIL=.FALSE.           ! logical, write o_til - output tiles 2D (tile) state
+    LWRLKE=.FALSE.           ! logical, write o_lke - output lake variables - not active for now...
+    LSEMISS=.FALSE.          ! LOGICAL : EMISSIVITY SET TO CONSTANT VALUE REMISS
+    LDBGS1=.FALSE.           ! LOGICAL : PRINT DEBUG INFO, EG FORCING DATA (DEFAULT=FALSE)
+    IDBGS1=1                 ! Debug level : output printing
+    LNCSNC=.FALSE.           ! if true sync netcdf output every writting step (slows down run)
+    /
+&NAMFORC
+    ZPHISTA={zphista}            ! REFERENCE LEVEL (FOR T, Q)   - insitu forcing height
+    ZUV={zuv}                ! REFERENCE LEVEL FOR WIND  - insitu forcing height
+    ZDTFORC={forcing_step}              ! FORCING TIME STEP
+    INSTFC=0                 ! NUMBER OF TIME STEPS TO BE READ (0 = ALL)
+    NDIMFORC={ndimcdf}        ! NUMBER OF GRID DIMENSIONS in FORCING
+    LOADIAB=.FALSE.          ! FLAG FOR APPLYING ADIABATIC HEIGHT CORRECTION
+    CFORCV="forcing"
+    CFORCU="forcing"
+    CFORCT="forcing"
+    CFORCQ="forcing"
+    CFORCP="forcing"
+    CFORCRAIN="forcing"
+    CFORCSNOW="forcing"
+    CFORCSW="forcing"
+    CFORCLW="forcing"
+    /
+&NAMPHY
+    LEVGEN=.TRUE.                  ! LOGICAL : TURN THE VAN GENUCHTEN HYDROLOGY ON
+    LESSRO=.TRUE.                  ! LOGICAL : TURN THE SUB-GRID SURFACE RUNOFF ON
+    LEFLAKE=.TRUE.                 ! LOGICAL : TURN THE FLAKE ON
+    LESN09=.TRUE.                  ! LOGICAL : TURN THE NEW SNOW PARAMETERIZATION ON
+    LELAIV=.TRUE.                  ! LOGICAL : TURN THE LAI SEASONAL ON
+    LECTESSEL=.TRUE.               ! LOGICAL : TURN CTESSEL ON
+    LEAGS=.FALSE.                  ! LOGICAL : TURN AGS EVAPORATION
+    LEFARQUHAR=.TRUE.              ! LOGICAL : TURN ON FARQUHAR PHOTOSYNTHESIS (true: Farquhar; false: A-gs)
+    LEOPTSURF=.FALSE.              ! LOGICAL : USE FARQUHAR PARAMETERS FROM NAMELIST (OTHERWISE USE DEFAULT VALUES)
+    LEAIRCO2COUP=.FALSE.           ! LOGICAL : TURN ATM CO2 COUPLING WITH PHOTOSYNTHESIS
+    LEC4MAP=.TRUE.                 ! LOGICAL : Use C3/C4 photosynthesis pathway map from climate fields (if false it assigns C3/C4 according to PFT)
+    RLAIINT=0                      ! Coefecient for interactive LAI relaxation with clim
+                                   ! (1 fully interactive; 0 fully clim)
+    LECLIM10D=.F.                  ! LOGICAL : TURN usage of 10-day Climatology for Alb and LAI
+    LEINTWIND=.T.
+    LESNML=.TRUE.
+    LECMF1WAY=.F.    ! Logical : Turn on Coupling with CaMa-Flood
+    LECMF2LAKEC=0    ! Integer: 2way coupling : 0 -> off, 1 -> replace , 2 -> add
+    /
+&NAMOPTSURF
+   /
+&NAMPHYOFF
+    LEWBCHECK=.FALSE.
+    LEWBCHECKAbort=.FALSE.
+    LESNCHECK=.FALSE.
+    LESNCHECKAbort=.FALSE.
+    LEWBSOILFIX=.TRUE.
+    LESKTI5=.FALSE.               ! LOGICAL: turn on variable skin conductivity over exposed snow tile.
+    LESKTI8=.FALSE.               ! LOGICAL: turn on variable skin conductivity over bare soil.
+    LEWARMSTART=.FALSE.           
+    LECOLDSTART=.FALSE.
+    LESOILCOND=.TRUE.
+    LESNWBCON=.FALSE.
+    LEROLAKE=.TRUE.
+    /
