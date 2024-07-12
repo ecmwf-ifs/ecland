@@ -99,6 +99,7 @@ REAL(KIND=JPRB),    INTENT(IN)   :: PSSRFLTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PGSN(:) ! snow over seaice
 LOGICAL,            INTENT(IN)   :: LNEMOICETHK
 REAL(KIND=JPRB),    INTENT(IN)   :: PTHKICE(:)
+
 LOGICAL,            INTENT(IN)   :: LDICE(:)
 LOGICAL,            INTENT(IN)   :: LDNH(:)
 

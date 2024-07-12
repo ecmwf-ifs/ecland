@@ -10,6 +10,7 @@
 
 list( APPEND module_src
     abort_surf_mod.F90
+    bvoc_emis_mod.F90
     canalb_mod.F90
     ccetr_mod.F90
     cotwo_mod.F90
@@ -41,6 +42,7 @@ list( APPEND module_src
     sppcflsad_mod.F90
     sppcflstl_mod.F90
     sppgust_mod.F90
+    srfbvoc_mod.F90
     srfcotwo_mod.F90
     srfene_mod.F90
     srfi_mod.F90
@@ -120,6 +122,7 @@ list( APPEND module_src
     surfws_massadj_mod.F90
     surfws_tsnadj_mod.F90
     surwn_mod.F90
+    susbvoc_mod.F90
     suscst_mod.F90
     susdp_dflt_ctl_mod.F90
     susflake_mod.F90
@@ -157,6 +160,7 @@ list( APPEND module_src
     yomlun.F90
     yos_agf.F90
     yos_ags.F90
+    yos_bvoc.F90
     yos_cst.F90
     yos_dim.F90
     yos_exc.F90
