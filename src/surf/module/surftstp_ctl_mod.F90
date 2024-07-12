@@ -518,7 +518,6 @@ REAL(KIND=JPRB) :: ZCDAWZ(KLON,KLEVS)
 REAL(KIND=JPRB) :: ZSLRFLTI(KLON,KTILES)
 REAL(KIND=JPRD) :: ZTSPHY
 REAL(KIND=JPRB) :: ZHOH2O
-REAL(KIND=JPRB) :: ZRSNM1M(KLON)
 REAL(KIND=JPRB) :: ZEPSILON
 
 INTEGER(KIND=JPIM) :: JK, JL, JT,KLMAX
@@ -893,6 +892,8 @@ DO JL =KIDIA,KFDIA
       ZTLSF(JL) = RC_SHAPE
       ZTLICE(JL)= ZTIA(JL,1)
       IF (LDSICE(JL)) THEN  ! The sea-ice presence is used to set a ice-depth over ocean (capped to 0.1m)
+      ! We use ZHLML mixed layer depth and ZHLICE ice thickness as container for snow
+      ! depth and ice thickness over sea-ice respectively
          IF ( LNEMOICETHK ) THEN
            ZHLICE(JL) = MAX(PTHKICE(JL), 0.28_JPRB)
          ELSE
@@ -1005,12 +1006,20 @@ DO JK=1,KLEVS
          & (1.0_JPRB-PCIL(JL))*(ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
 
     ELSE
+    ! This assumes that when LDSICE, PFRTI(5) is only active over sea-ice.
+    ! Needs rechecking when moving to fractional land-sea mask.
        IF (LESNICE) THEN
-         PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-         & (PCIL(JL)*&
-         & (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
-         & (1.0_JPRB-PCIL(JL))*&
-         & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
+         IF (LDSICE(JL)) THEN
+           PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+           & ((PFRTI(JL,2)+PFRTI(JL,5)) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
+           & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)-PFRTI(JL,5))*&
+           & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY
+         ELSE
+           PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+           & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
+           & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
+           & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY
+         ENDIF
        ELSE
          PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
          & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
