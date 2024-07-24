@@ -78,7 +78,7 @@ USE YOMGPD1S , ONLY : GPD &
                      &,VFALUVI,VFALUVV,VFALUVG &
                      &,VFALNII,VFALNIV,VFALNIG &
                      &,VFCVL, VFCUR &
-                     &,VFCVH,VFTVL,VFTVH,VFSST,VFCI,VFSOTY &
+                     &,VFCVH,VFTVL,VFTVH,VFSST,VFCI,VFCIL,VFSOTY &
                      &,VFSDOR, VFCO2TYP&
                      &,VFLDEPTH,VFCLAKE, VFCLAKEF &
                      &,VFZO,VFHO,VFHO_INV,VFDO,VFOCDEPTH,VFADVT &
@@ -359,16 +359,16 @@ ENDDO
 
 !! 2D FIELDS
 IF (LEURBAN) THEN
-NVARS2D=18
+NVARS2D=19
 CVARS2D(1:NVARS2D)=(/'landsea','geopot ','cvl    ', &
                       'cvh    ','tvl    ','tvh    ','cu     ','sotype ','sdor   ',&
-                      'sst    ','seaice ','LDEPTH ','CLAKE  ','z0m    ','lz0h   ',&
+                      'sst    ','seaice ','glacieMask','LDEPTH ','CLAKE  ','z0m    ','lz0h   ',&
                       'x      ','CLAKEF ','Ctype  '/)
 ELSE
-NVARS2D=17
+NVARS2D=18
 CVARS2D(1:NVARS2D)=(/'landsea','geopot ','cvl    ', &
                       'cvh    ','tvl    ','tvh    ','sotype ','sdor   ',&
-                      'sst    ','seaice ','LDEPTH ','CLAKE  ','z0m    ','lz0h   ',&
+                      'sst    ','seaice ','glacierMask','LDEPTH ','CLAKE  ','z0m    ','lz0h   ',&
                       'x      ','CLAKEF ','Ctype  '/)
 VFCUR(1:NPOI)=0._JPRB !Creates an array of zeros if urban is not used
 ENDIF
@@ -419,6 +419,9 @@ DO IVAR=1,NVARS2D
     CASE('seaice')
       IF ( STATUS /= 0 ) ZBUF(:) = 0._JPRB
       VFCI(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
+    CASE('glacierMask')
+      IF ( STATUS /= 0 ) ZBUF(:) = 0._JPRB
+      VFCIL(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
     CASE('LDEPTH')
       IF ( STATUS /= 0 ) ZBUF(:) = 10._JPRB
       VFLDEPTH(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))

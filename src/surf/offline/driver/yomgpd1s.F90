@@ -45,6 +45,7 @@ SAVE
 ! VFSDOR  - orographic standard deviation
 ! VFSST   - Sea Surface temperature
 ! VFCI    - sea ice fraction
+! VFCIL   - land ice fraction
 ! VFLDEPTH- LAKE DEPTH                                           !FLAKE
 ! VFCLAKE - LAKE FRACTION                                        !FLAKE
 ! VFZO    - vertical layer depth of ocean mixed layer model      !KPP
@@ -225,6 +226,7 @@ REAL(KIND=JPRB),POINTER:: VFSOTY(:)
 REAL(KIND=JPRB),POINTER:: VFSDOR(:)
 REAL(KIND=JPRB),POINTER:: VFSST(:)
 REAL(KIND=JPRB),POINTER:: VFCI(:)
+REAL(KIND=JPRB),POINTER:: VFCIL(:)
 REAL(KIND=JPRB),POINTER:: VDLSP(:)
 REAL(KIND=JPRB),POINTER:: VDCP(:)
 REAL(KIND=JPRB),POINTER:: VDSF(:)
