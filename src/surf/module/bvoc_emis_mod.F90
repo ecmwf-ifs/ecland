@@ -4,7 +4,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
      & PPPFD_TOA, &
      & PTM1,PCM1, PTSKM1M, PTSOIL,&
      & PLAI, PLAIP, PSRFD, PMU0, PLAT, PAVGPAR, PISOP_EP, &
-     & YDBVOC,YDAGF,PBVOCDIAG,PBVOCFLUX)
+     & YDBVOC,YDAGF,PBVOCFLUX)
 
   !**   *BVOC_EMIS* - CALCULATES NET Biogenic VOC emissions per land use type  
 
@@ -54,7 +54,6 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
 
   !     *PBVOCFLUX*    net tile-specific BVOC emissions,     KG_BVOC/M2/S
   !                    positive downwards, to be changed for diagnostic output
-  !     *PBVOCDIAG*    net tile-specific BVOC emission diagnostics,   [check units]
 
   !     METHOD
   !     ------
@@ -62,7 +61,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
 
   !     REFERENCE
   !     ---------
-  !     Huijnen (CAMS2_35 report D2.3.2), Sindelarova (CAMS81 report D81.6.1.1) and/or MEGANv2.1, Guenther et al. (2012) 
+  !     (Sindelarova?)
 
   !     ------------------------------------------------------------------------
 
@@ -98,7 +97,6 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
   TYPE(TBVOC)       ,INTENT(IN)    :: YDBVOC
   TYPE(TAGF)        ,INTENT(IN)    :: YDAGF
   REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
-  REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCDIAG(KLON,2)
 
   !*         0.     LOCAL VARIABLES.
   !                 ----- ----------
@@ -192,7 +190,7 @@ REAL(KIND=JPRB), PARAMETER :: ZH = 1.4614
 REAL(KIND=JPRB), PARAMETER :: ZCSTAR = 585
 REAL(KIND=JPRB), PARAMETER :: ZMMR_TO_VMR = 28.96 / 44.0 * 1E6_JPRB   ! Conversion of CO2 from kg/kg to ppmv
 REAL(KIND=JPRB), PARAMETER :: ZSRFD_FUDGE_FAC=1./2.2_JPRB ! Division of IFS SSRD by factor 2.2, proposed by Katerina Sindelarova, May 2023
-REAL(KIND=JPRB), PARAMETER :: ZGAMMA_LAI_FUDGE_FAC=1.5               ! Tuning factor for GAMMA-LAI
+REAL(KIND=JPRB), PARAMETER :: ZGAMMA_LAI_FUDGE_FAC=2.0               ! Tuning factor for GAMMA-LAI
 
   !     -------------------------------------------------------------------------
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -425,17 +423,6 @@ ENDIF
      ELSE
         PBVOCFLUX(JL,1:NEMIS_BVOC)=0._JPRB
      ENDIF
-  ENDDO
-
-
-!*       5.1     Fill output diagnostics array
-!               ---------- ----------
-
-
-  DO JL=KIDIA,KFDIA
-     PBVOCDIAG(JL,1)=EMIS_FAC(1,KVTYPE_MEGAN(JL)) ! emission potential output
-     !VH PBVOCDIAG(JL,2)=ZGAMMA_AGE(JL)
-     PBVOCDIAG(JL,2)=ZGAMMA_CE(JL,1)
   ENDDO
 
 END ASSOCIATE

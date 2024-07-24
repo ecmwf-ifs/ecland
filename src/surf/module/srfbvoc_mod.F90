@@ -5,7 +5,6 @@ SUBROUTINE SRFBVOC(KIDIA,KFDIA,KLON,KTILES,&
  & PFRTI,&
  & YDBVOC,&
  & PBVOCFLUXVT, &
- & PBVOCDIAGVT, &
 ! more data..
  & PBVOCFLUX, &
  & PDHBVOCS )
@@ -42,7 +41,6 @@ SUBROUTINE SRFBVOC(KIDIA,KFDIA,KLON,KTILES,&
 !            4 : DRY SNOW-FREE LOW-VEG  8 : BARE SOIL
 
 !     *PBVOCFLUXVT*    Tiled input biogenic VOC FLUXES                      KG_BVOC/M2/S
-!     *PBVOCDIAGVT*    Tiled biogenic VOC diagnostics output               [variable]
 
 
 
@@ -77,7 +75,6 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:)
 TYPE(TBVOC)       ,INTENT(IN)    :: YDBVOC
 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PBVOCFLUXVT(:,:,:)
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PBVOCDIAGVT(KLON,2,KTILES)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHBVOCS(:,:,:)
 
@@ -132,24 +129,20 @@ DO JVT=1,KTILES
 
   IVT=1
   IF (JVT == 3) THEN
-    ! Now attribute wet skin to high veg. tile. Need to make this wet tile more advanced?
-    IVT=2
+    ! Need to make this wet tile more advanced..
+    IVT=1
+  ! ELSEIF ((JVT == 4) .OR. (JVT == 5)) THEN
+  !  IVT=1
   ELSEIF ((JVT == 6) .OR. (JVT == 7)) THEN
     IVT=2
   ENDIF
  
- ! WRITE(*,*)'DEBUG BVOC diag 1 tile',JVT,':',SUM(PBVOCDIAGVT(KIDIA:KFDIA,1,JVT))/(KFDIA-KIDIA+1)
- ! WRITE(*,*)'DEBUG BVOC diag 2 tile',JVT,':',SUM(PBVOCDIAGVT(KIDIA:KFDIA,2,JVT))/(KFDIA-KIDIA+1)
- ! WRITE(*,*)'DEBUG BVOC emis tile',JVT,':',SUM(PBVOCFLUXVT(KIDIA:KFDIA,1,JVT))/(KFDIA-KIDIA+1), SUM(PFRTI(KIDIA:KFDIA,JVT))/(KFDIA-KIDIA+1)
- 
-       
   DO JL=KIDIA,KFDIA
-      PDHBVOCS(JL,IVT,1)=PDHBVOCS(JL,IVT,1) + PFRTI(JL,JVT)*PBVOCDIAGVT(JL,1,JVT) ! Fields 1-2 : Get output for isoprene emission potential
-      PDHBVOCS(JL,IVT,2)=PDHBVOCS(JL,IVT,2) + PBVOCDIAGVT(JL,2,JVT) ! Fields 3-4 
+    ! not normalised to grid square
+    PDHBVOCS(JL,IVT,1)=PDHBVOCS(JL,IVT,1)+PBVOCFLUXVT(JL,1,JVT) !VH *(-1._JPRB)
+    PDHBVOCS(JL,IVT,2)=PDHBVOCS(JL,IVT,2)+PBVOCFLUXVT(JL,2,JVT) !VH *(-1._JPRB)
   ENDDO
-
-
-ENDDO
+ ENDDO
 
 
 
