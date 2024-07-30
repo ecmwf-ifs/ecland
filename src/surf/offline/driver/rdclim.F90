@@ -362,7 +362,7 @@ IF (LEURBAN) THEN
 NVARS2D=19
 CVARS2D(1:NVARS2D)=(/'landsea','geopot ','cvl    ', &
                       'cvh    ','tvl    ','tvh    ','cu     ','sotype ','sdor   ',&
-                      'sst    ','seaice ','glacieMask','LDEPTH ','CLAKE  ','z0m    ','lz0h   ',&
+                      'sst    ','seaice ','glacierMask','LDEPTH ','CLAKE  ','z0m    ','lz0h   ',&
                       'x      ','CLAKEF ','Ctype  '/)
 ELSE
 NVARS2D=18
