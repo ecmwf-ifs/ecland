@@ -171,6 +171,9 @@ SELECT CASE(CNAME)
   CASE('seaice')
     CLNAME='sea ice fraction'
     CUNITS='-'
+  CASE('glacierMask')
+    CLNAME='land-ice fraction'
+    CUNITS='-'
   CASE('CanopInt')
     CLNAME='canopy interception depth'
     CUNITS='kg m-2'
