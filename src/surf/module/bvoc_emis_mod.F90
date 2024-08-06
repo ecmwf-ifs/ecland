@@ -60,7 +60,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KVTYPE,&
 
   !     REFERENCE
   !     ---------
-  !     (Sindelarova?)
+  !     Huijnen (CAMS2_35 report D2.3.2), Sindelarova (CAMS81 report D81.6.1.1) and/or MEGANv2.1, Guenther et al. (2012) 
 
   !     ------------------------------------------------------------------------
 
