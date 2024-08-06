@@ -211,6 +211,8 @@ It uses the default namelist file that is contained in namelists/namelist_ecland
 
     # Assuming data have been already downloaded from get.ecmwf.int
     module load prgenv/intel intel/2021.4 python3/3.10.10-01
+    module load hpcx-openmpi/2.9 netcdf4/4.9.1
+
     GROUP=ESM-SnowMIP
     FORCING_TYPE=insitu
     INPUT_DIR=/perm/${USER}/ecland_input/
@@ -225,14 +227,17 @@ It uses the default namelist file that is contained in namelists/namelist_ecland
                           -w ${WORK_DIR}
 
 #### Example script for ECMWF HPC and intel installation, single point (1D) for a TERENO point
-This example performs 3 loops on a point. Forcing and initial conditions are extracted from ERA5 at the nearest gridpoint to a TERENO site.
+This example performs 3 loops on a point. Forcing and initial conditions were extracted from ERA5 at the nearest gridpoint to a TERENO site.
 A run for a single site could be specified by adding the option `-s <sitename>` to the option list of the call to ecland-run-experiment script.
 It uses the default namelist file that is contained in namelists/namelist_ecland_48R1 .
 
 
     # Assuming data have been already downloaded from get.ecmwf.int
     module load prgenv/intel intel/2021.4 python3/3.10.10-01
+    module load hpcx-openmpi/2.9 netcdf4/4.9.1
+
     GROUP=TERENO
+    SITE="TE-001_2022-2022"
     FORCING_TYPE=era5
     INPUT_DIR=/perm/${USER}/ecland_input/
     OUTPUT_DIR=/scratch/${USER}/
@@ -241,6 +246,7 @@ It uses the default namelist file that is contained in namelists/namelist_ecland
     NLOOP=3
 
     ecland-run-experiment -g ${GROUP}\
+                          -s ${SITE}\
                           -t ${FORCING_TYPE}\
                           -i ${INPUT_DIR}\
                           -o ${OUTPUT_DIR}\
@@ -255,6 +261,8 @@ It runs 2 loops and uses 2 MPI tasks and 8 openMP threads. It uses the default n
 
     # Assuming data have been created with the create_forcing tool
     module load prgenv/intel intel/2021.4 python3/3.10.10-01
+    module load hpcx-openmpi/2.9 netcdf4/4.9.1
+
     GROUP=TEST_2D
     DOMAIN=EU-001_2022-2022
     FORCING_TYPE=2D

@@ -8,10 +8,10 @@ install
 # definition file related
 documents/
 work/
-clim/
-forcing/
 benchmark/
 observations/
+#clim/
+#forcing/
 
 # example script to run ecLand on atos hpc
 ecland_run.sh
