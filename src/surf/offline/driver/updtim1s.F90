@@ -17,7 +17,7 @@ USE YOMGPD1S , ONLY : VFALBF   ,&
      &                VFALUVP,VFALUVD,VFALNIP,VFALNID , &
      &                VFALUVI,VFALUVV,VFALUVG, &
      &                VFALNII,VFALNIV,VFALNIG, &
-     &                VFLAIL,VFLAIH ,VFFWET,VFTVL,VFTVH
+     &                VFLAIL,VFLAIH ,VFFWET,VFTVL,VFTVH, VBVOCLAIL, VBVOCLAIH
 
 USE YOMDPHY  , ONLY : NPOI
 USE YOEPHY, ONLY: LECTESSEL, LECLIM10D
@@ -89,7 +89,7 @@ INTEGER(KIND=JPIM) :: ITIME,IPR,NRADFR,ISTADD,ISTASS,IYMD,IHM,IDD,&
      &      IMM,IYYYY,IHH,ISS,IMT1,IMT2,IYT1,IYT2,JL,IMT11,IMT12,IDD1,IDD2
 INTEGER(KIND=JPIB) :: IZT
 REAL(KIND=JPRD) :: ZTETA,ZSTATI,ZHGMT,ZDEASOM,ZDECLIM,ZEQTIMM,ZSOVRM,&
-     &      ZWSOVRM,ZJUL,ZTIMTR,ZT1,ZT2,ZT,ZWEI1,ZWEI2
+     &      ZWSOVRM,ZJUL,ZTIMTR,ZT1,ZT2,ZT,ZT_BVOC,ZWEI1,ZWEI2,ZWEI1_BVOC,ZWEI2_BVOC
 !          ,ZRVCOV(0:20) !original CTESSEL (0:7)
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -265,9 +265,15 @@ ENDIF  ! LECLIM10D
 
 
 ! zt=RTIME(iyyyy,imm,idd,iss)
-zt=RTIME(iyyyy,imm,idd,0)  !updated assuming we're at 00UTC 
+zt=RTIME(iyyyy,imm,idd,0)  !updated assuming we're at 00UTC
 zwei1=(zt2-zt)/(zt2-zt1)
 zwei2=1.-zwei1
+
+zt_bvoc=RTIME(iyyyy,imm,idd-10,0) ! new bvoc emission module
+zwei1_bvoc=(zt2-zt_bvoc)/(zt2-zt1)
+zwei2_bvoc=1.-zwei1_bvoc
+VBVOCLAIL(:)=zwei1_bvoc*VCLAIL(:,imt11)+zwei2_bvoc*VCLAIL(:,imt12)
+VBVOCLAIH(:)=zwei1_bvoc*VCLAIH(:,imt11)+zwei2_bvoc*VCLAIH(:,imt12)
 
 
 vfalbf(:)=zwei1*vcalb(:,imt11)+zwei2*vcalb(:,imt12)
