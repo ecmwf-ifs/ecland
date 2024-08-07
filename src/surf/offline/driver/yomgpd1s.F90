@@ -33,6 +33,8 @@ SAVE
 ! VFTVH   - high vegetation type
 ! VFLAIL  - low vegetation lai
 ! VFLAIH  - high vegetation lai
+! VFLAIL  - low vegetation lai from 10 days before
+! VFLAIH  - high vegetation lai from 10 days before
 ! VFCO2TYP- photosynthesis pathway (C3/C4) (only applicable to low vegetation types)
 ! VFRSML  - low  vegetation minimum stomatal resistance
 ! VFRSMH  - high vegetation minimum stomatal resistance
@@ -211,6 +213,8 @@ REAL(KIND=JPRB),POINTER:: VFCVH(:)
 REAL(KIND=JPRB),POINTER:: VFCUR(:)
 REAL(KIND=JPRB),POINTER:: VFTVL(:)
 REAL(KIND=JPRB),POINTER:: VFTVH(:)
+REAL(KIND=JPRB),POINTER:: VBVOCLAIH(:)
+REAL(KIND=JPRB),POINTER:: VBVOCLAIL(:)
 REAL(KIND=JPRB),POINTER:: VFLAIL(:)
 REAL(KIND=JPRB),POINTER:: VFLAIH(:)
 REAL(KIND=JPRB),POINTER:: VFCO2TYP(:)
