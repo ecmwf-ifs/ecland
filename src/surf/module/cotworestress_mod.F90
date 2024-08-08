@@ -142,7 +142,7 @@ SUBROUTINE COTWORESTRESS(KIDIA,KFDIA,KLON,KVTYPE,KTILE,KCO2TYP,PFRTI,&
 
   INTEGER(KIND=JPIM) :: JL,JINT   ! index for loops
 
-  REAL(KIND=JPRB)    :: ZTSK(KLON), ZIA(KLON), ZGAMMT(KLON), ZRHO(KLON), ZQSURF(KLON), &
+  REAL(KIND=JPRB)    :: ZTSK(KLON), PAVGPAR(KLON), ZGAMMT(KLON), ZRHO(KLON), ZQSURF(KLON), &
        & ZDSP(KLON), ZCO2(KLON), ZMU0(KLON), ZAMMAX(KLON), ZGMEST(KLON), &
        & ZTAN(KLON), ZTAG(KLON), ZTRD(KLON), ZTGS(KLON), ZXIA(KLON), &
        & ZAN0(KLON), ZAG0(KLON), ZRD0(KLON), ZGS0(KLON), ZXTGS(KLON), &
@@ -185,7 +185,7 @@ SUBROUTINE COTWORESTRESS(KIDIA,KFDIA,KLON,KVTYPE,KTILE,KCO2TYP,PFRTI,&
 ! (20) ! Water and Land Mixtures		=>! 4  C3 GRASS
 
   !  ZTSK    = surface/skin temperature (degrees C) 
-  !  ZIA     = absorbed PAR at the top of the canopy (W m-2) 
+  !  PAVGPAR     = absorbed PAR at the top of the canopy (W m-2) 
   !  ZGAMMT  = CO2 compensation point at T=Tskin (kgCO2 kgAir-1)
   !  ZRHO    = air density (kg m-3)
   !  ZQSURF  = specific humidity near the surface
@@ -256,7 +256,7 @@ ELSE
     LDLAND(JL)=((PFRTI(JL,1)+PFRTI(JL,2))<=0.5_JPRB)
   ENDDO
 ENDIF
-ZIA(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
+PAVGPAR(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
 
 ! initialization of local variables
   DO JL=KIDIA,KFDIA
@@ -293,7 +293,8 @@ ZIA(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
      ZTSK(JL)=PTSKM1M(JL)-RTT  
      Z1(JL)=0.1_JPRB*(ZTSK(JL)-25._JPRB)
      ! Absorbed PAR
-     ZIA(JL)=PSRFD(JL)*RPARCF               
+     ! RPARCF = 0.48_JPRB
+     PAVGPAR(JL)=PSRFD(JL)*0.48_JPRB         
   !-------------------------------------
   ! moisture stress response (offensive/defensive strategy) for woody (trees) and 
   ! herbaceaus (grass,crops) vegetation: 
@@ -490,7 +491,7 @@ ELSE
      ! jint=1 is the lowest part of the canopy, jint=size(rabc) is the highest part. 
      !  Diffusion of incident radiation:
 
-     CALL CCETR(KIDIA,KFDIA,KLON,KVTYPE,KTILE,LDLAND,ZIA,ZMU0,RABC(JINT),PLAI,PSSDP2,YDAGS,ZXIA)
+     CALL CCETR(KIDIA,KFDIA,KLON,KVTYPE,LDLAND,PAVGPAR,ZMU0,RABC(JINT),PLAI,PSSDP2,YDAGS,ZXIA)
 
      !  Compute conductance and assimilation of CO2: 
      CALL COTWO(KIDIA,KFDIA,KLON,LDLAND,ZAN0,ZAG0,ZRD0,ZGS0,ZRVGC,ZCO2, &
