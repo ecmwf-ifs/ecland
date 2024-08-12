@@ -425,9 +425,10 @@ IF( MYPROC == 1 ) THEN
 ! * -- CO2 fluxes 
 !******************************************************************
     IF( NPOS == NPOSCO2 )THEN
-      NVARS3D=7
+      NVARS3D=8
       CVARS3D(1:NVARS3D)=(/'Ag          ','Rd          ','An          ',&
-                           'Rsoil_str   ','Reco        ','CO2flux     ','CH4flux     '/)
+                           'Rsoil_str   ','Reco        ','CO2flux     ',&
+                           'CH4flux     ','BVOCflux    '/)
       DO IVAR=1,NVARS3D
         CALL INIT_NCDF_VAR(YD_VARINFO,TRIM(CVARS3D(IVAR)),CCOORD_IN="time lat lon")
         CALL NC_DEF_VAR(NPOS,YD_VARINFO,IDIMID3(1:IDIM3),VARID)
