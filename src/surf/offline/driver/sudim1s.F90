@@ -139,6 +139,7 @@ NVSF=NVSF+1 ! +FWET
 NVSF=NVSF+1 ! add VFPBLOB - global gaussian reduced index 
 NVSF=NVSF+1 ! add MVFCLAKEF  lake + flood 
 NVSF=NVSF+1 ! Include urban
+NVSF=NVSF+1 ! Include pavgpar
 NVSF=NVSF+1 ! Include land ice
 
 IVSFNVT=9 ! yomgpd1s: z0f,albf,itm,geo,z0h,sst,ci,soty,aror, climatology 
