@@ -11,13 +11,14 @@ USE YOMCST   , ONLY : RPI      ,RDAY     ,REA      ,RI0, REPSM
 USE YOERIP   , ONLY : RIP0M    ,RCODECM  ,RSIDECM  ,RCOVSRM  ,&
      &            RSIVSRM
 USE YOMDYN1S , ONLY : NSTEP    ,TSTEP
-USE YOMCC1S  , ONLY : VCALB ,VCLAIL   ,VCLAIH,VCFWET
+USE YOMCC1S  , ONLY : VCALB ,VCLAIL   ,VCLAIH,VCFWET,VCAVGPAR
 
 USE YOMGPD1S , ONLY : VFALBF   ,&
      &                VFALUVP,VFALUVD,VFALNIP,VFALNID , &
      &                VFALUVI,VFALUVV,VFALUVG, &
      &                VFALNII,VFALNIV,VFALNIG, &
-     &                VFLAIL,VFLAIH ,VFFWET,VFTVL,VFTVH, VBVOCLAIL, VBVOCLAIH
+     &                VFLAIL,VFLAIH ,VFFWET,VFTVL,VFTVH, VBVOCLAIL, VBVOCLAIH, &
+     &                VFAVGPAR
 
 USE YOMDPHY  , ONLY : NPOI
 USE YOEPHY, ONLY: LECTESSEL, LECLIM10D
@@ -284,6 +285,7 @@ VFALNID(:)=zwei1*vcalb(:,imt11)+zwei2*vcalb(:,imt12)
 VFLAIL(:)=zwei1*VCLAIL(:,imt11)+zwei2*VCLAIL(:,imt12)
 VFLAIH(:)=zwei1*VCLAIH(:,imt11)+zwei2*VCLAIH(:,imt12)
 VFFWET(:)=zwei1*VCFWET(:,imt11)+zwei2*VCFWET(:,imt12)
+VFAVGPAR(:)=zwei1*VCAVGPAR(:,imt11)+zwei2*VCAVGPAR(:,imt12)
 
 ! 6-component MODIS albedo: to use an albedo independent of solar
 ! zenith angle, set only the isotropic component

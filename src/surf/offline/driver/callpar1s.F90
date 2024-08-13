@@ -24,7 +24,7 @@ SUBROUTINE CALLPAR1S (CDCONF &
      & , PALUVI , PALUVV , PALUVG &
      & , PALNII , PALNIV , PALNIG &
      & , PCVL   , PCVH   , PCUR    , PTVL   , PCO2TYP, PTVH   &
-     & , PLAILC,  PLAIHC, PFWET, PRSML, PRSMH &
+     & , PLAILC,  PLAIHC, PFWET, PAVGPAR, PRSML, PRSMH &
      & , PSOTY  , PSDOR   &
      & , PCI , PCIL, PSST , PGEMU, PLAT, PCFLX &
      & , PUSTRTI, PVSTRTI, PAHFSTI, PEVAPTI, PTSKTI &
@@ -421,6 +421,7 @@ REAL(KIND=JPRB) :: PUSTRTI(KLON,KTILES),PVSTRTI(KLON,KTILES), &
 REAL(KIND=JPRB) :: PUSTOKES(KLON),PVSTOKES(KLON),PTAUOCX(KLON),PTAUOCY(KLON), &
      &     PPHIOC(KLON),PWSEMEAN(KLON),PWSFMEAN(KLON) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFWET(KLON)                                    !CTESSEL
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPAR(KLON)                                  !CTESSEL
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRSML(KLON)                                    !CTESSEL
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRSMH(KLON)                                    !CTESSEL 
 REAL(KIND=JPRB) ,INTENT(INOUT)   :: PANDAYVT(KLON,KVTYPES)                          !CTESSEL
@@ -616,7 +617,8 @@ ENDIF
 
 !* Initialize dummy AVGPAR array
   DO JL=KIDIA,KFDIA
-    ZAVGPARC(JL) = 50._JPRB ! W/m2
+    ! ZAVGPARC(JL) = 50._JPRB ! W/m2
+    ZAVGPARC(JL) = PAVGPAR(JL) ! W/m2
   ENDDO
 
 
