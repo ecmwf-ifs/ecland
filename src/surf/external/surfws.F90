@@ -1,6 +1,6 @@
 SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON, KLEVS, KLEVSN, KTILES, PSDOR, &
                     & LDSICE,&
-                    & PLSM,    PFRTI, PMU0,                          &
+                    & PLSM, PCIL,    PFRTI, PMU0,                     &
                     & PTSAM1M, PTSKIN,PALBSN,                         &
                     & PTSNM1M, PSNM1M,                                &
                     & PRSNM1M, PWSNM1M                                )
@@ -34,6 +34,7 @@ SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON, KLEVS, KLEVSN, KTILES, PSDOR, &
 
 !     INPUT PARAMETERS (REAL):
 !     *PLSM*         LAND-SEA MASK                                  (0-1)
+!     *PCIL*         LAND-ICE FRACTION                              (0-1)
 !     *PSNM1M*       SNOW MASS (per unit area)                      kg/m**2
 !     *PRSNM1M*      SNOW DENSITY                                   kg/m**3
 
@@ -76,6 +77,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVSN
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTILES
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLSM(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PCIL(:)
 LOGICAL   ,INTENT(IN)    :: LDSICE(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSDOR(:)
@@ -104,6 +106,10 @@ YSURF => GET_SURF(YDSURF)
 
 IF(UBOUND(PLSM,1) < KLON) THEN
   CALL ABORT_SURF('SURFWS: PLSM TOO SHORT!')
+ENDIF
+
+IF(UBOUND(PCIL,1) < KLON) THEN
+  CALL ABORT_SURF('SURFWS: PCIL TOO SHORT!')
 ENDIF
 
 IF(UBOUND(LDSICE,1) < KLON) THEN
@@ -173,7 +179,7 @@ ENDIF
 
 
 CALL SURFWS_CTL   (KIDIA, KFDIA, KLON, KLEVSN, PSDOR, &
- & LDSICE,PLSM, PFRTI, PMU0,                         &
+ & LDSICE,PLSM, PCIL, PFRTI, PMU0,                         &
  & PTSAM1M, PTSKIN, PALBSN,                    &
  & PTSNM1M, PSNM1M, PRSNM1M, PWSNM1M,          &  
  & YSURF%YCST, YSURF%YSOIL                     )  

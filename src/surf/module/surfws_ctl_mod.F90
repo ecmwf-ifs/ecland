@@ -2,7 +2,7 @@ MODULE SURFWS_CTL_MOD
 CONTAINS
 SUBROUTINE SURFWS_CTL( KIDIA, KFDIA, KLON, KLEVSN,  &
                      & PSDOR,LDSICE, &
-                     & LSMASK, PFRTI,PMU0,          &
+                     & LSMASK, PCIL, PFRTI,PMU0,          &
                      & PTSA, PTSKIN, PALBSN,        &
                      & PTSN, PSSN, PRSN, PWSN,      &
                      & YDCST, YDSOIL                )
@@ -54,12 +54,11 @@ USE ABORT_SURF_MOD
 !    *KLEVSN*     Snow vertical levels
 
 !     INPUT PARAMETERS (REAL):
+!     *PCIL*         LAND-ICE FRACTION                                  (0-1)
 !    *PSDOR*      sub grid scale orography   (m)
 !    *PFRTI*      tile fractions             (-)
 !    *PMU0*       cos solar zenith angle     (-)
-
-!     INPUT PARAMETERS (LOGICAL):
-!    *LSMASK*     LAND/SEA MASK         (TRUE/FALSE)
+!    *LSMASK*     LAND/SEA MASK              (-)
 
 !     INPUT PARAMETERS AT T-1  (REAL):
 !    *PTSA*       soil temperature t-1       (K)
@@ -98,6 +97,7 @@ IMPLICIT NONE
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA, KFDIA, KLON, KLEVSN
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSDOR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PCIL(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSA(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSKIN(:)
@@ -236,7 +236,7 @@ ENDDO
 !******************************************************************
 ! 1.2 Define snow vertical grid and mean quantities for computation
 CALL SRFSN_VGRID(KIDIA,KFDIA,KLON,KLEVSN, LLNOSNOW, &
-               & PSDOR,PSDOR,LDLAND,               & ! to be fixed second PSDOR should be PCIL
+               & PSDOR,PCIL,LDLAND,               & ! to be fixed second PSDOR should be PCIL
                & PSSN,PRSN,                         &
                & ZLEVMIN,ZLEVMAX, &
                & ZLEVMIN_GL,ZLEVMAX_GL, &
@@ -270,34 +270,6 @@ ZSSN(KIDIA:KFDIA) = SUM(PSSN(KIDIA:KFDIA, :), DIM=2)
 ! routine
 ZWSN(KIDIA:KFDIA)    = 0._JPRB 
 
-!**! snow layer to absorbe residuals 
-!**!!KSNACC          = MINLOC(YDSOIL%RLEVSNMAX, DIM=1 )
-!**!!ZLEVMAX(KSNACC) = 1.E10_JPRB 
-!**
-!**! accumulated min snow depth 
-!**ZLEVMINA(1)    = ZLEVMIN(1)
-!**DO JK=2, KLEVSN
-!**  ZLEVMINA(JK) = ZLEVMINA(JK-1) + ZLEVMIN(JK)
-!**ENDDO
-!**
-!**! 1.3 Find # of active snow layer
-!**DO JL=KIDIA,KFDIA
-!**  IF ( LLNOSNOW(JL) ) THEN
-!**    KLEVSNA(JL) = 1
-!**  ELSE
-!**    KLEVSNA(JL) = 1
-!**    DO JK=2, KLEVSN
-!**    ! IF ( ZDSNTOT(JL) < ZLEVMINA(JK) ) THEN
-!**      IF ( ZDSNTOTREAL(JL) < ZLEVMINA(JK) ) THEN
-!**        KLEVSNA(JL) = JK-1
-!**        EXIT
-!**      ELSE
-!**        KLEVSNA(JL) = JK 
-!**      ENDIF
-!**    ENDDO
-!**  ENDIF 
-!**ENDDO 
-
 ! ZSNDEPTH is the depth of each layer with respect to zero.
 
 IF (NSNMLWS == 3_JPIM) THEN
@@ -317,11 +289,21 @@ ENDDO
 !------ SURFWS_INIT -----!
 ! Basic initialization warm start fields:
 DO JL=KIDIA,KFDIA
-    ZTSNWS(JL,1:KLEVSN)   = ZTSN(JL)
-    ZRSNWS(JL,1:KLEVSN)   = ZRSN(JL)
-    ZSSNWS(JL,1)          = ZSSN(JL)
-    ZSSNWS(JL,2:KLEVSN)   = 0._JPRB
-    ZWSNWS(JL,1:KLEVSN)   = 0._JPRB
+  ! Assuming glaciers are always initialised, either from 
+  ! warm start or from climatological values
+  !*IF (PCIL(JL) <= 0.50_JPRB) THEN 
+  ZTSNWS(JL,1:KLEVSN)   = ZTSN(JL)
+  ZRSNWS(JL,1:KLEVSN)   = ZRSN(JL)
+  ZSSNWS(JL,1)          = ZSSN(JL)
+  ZSSNWS(JL,2:KLEVSN)   = 0._JPRB
+  ZWSNWS(JL,1:KLEVSN)   = 0._JPRB
+  !*ELSE
+  !*  ZTSNWS(JL,1:KLEVSN)   = PTSN(JL, 1:KLEVSN)
+  !*  ZRSNWS(JL,1:KLEVSN)   = PRSN(JL, 1:KLEVSN)
+  !*  ZSSNWS(JL,1)          = PSSN(JL, 1:KLEVSN)
+  !*  ZSSNWS(JL,2:KLEVSN)   = 0._JPRB
+  !*  ZWSNWS(JL,1:KLEVSN)   = 0._JPRB
+  !*ENDIF
 ENDDO
 ZTCONSTAVG=0._JPRB
 ZTCONSTSTD=0._JPRB
@@ -418,7 +400,7 @@ ENDIF
 !************************************
 ! 2.4 Final update of snow variables:
 DO JL=KIDIA,KFDIA
-  IF (.NOT. LLNOSNOW(JL) .AND. KLEVSNA(JL)>1 ) THEN
+  IF (.NOT. LLNOSNOW(JL) .AND. KLEVSNA(JL)>1 .AND. PCIL(JL)<=0.50_JPRB) THEN
     ! Safety check to avoid crashes in surfws
     IF ( (.NOT. ANY(ZTSNWS(JL,1:KLEVSN)<100._JPRB)) .AND. (.NOT. ANY(ZTSNWS(JL,1:KLEVSN)>RTT)) ) THEN
       PTSN(JL,1:KLEVSN)=ZTSNWS(JL,1:KLEVSN) 

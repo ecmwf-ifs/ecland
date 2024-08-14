@@ -50,6 +50,7 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !     *PAVGPARC*     Average PAR for use in BVOC emissions module   ?
 !     *PLSM*         LAND-SEA MASK                                  (0-1)
 !     *PCI*          SEA-ICE FRACTION                               (0-1)
+!     *PCIL*         LAND-ICE FRACTION                                  (0-1)
 !     *PCLAKE*       LAKE FRACTION                                  (0-1)
 !     *PHLICE*       LAKE ICE THICKNESS                               m 
 !     *PGEMU*        COSINE OF LATITUDE
