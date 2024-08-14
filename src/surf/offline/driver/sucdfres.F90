@@ -159,8 +159,8 @@ ENDIF
     IDIMID3(2) = NMONID
     IDIM3=2
   ENDIF
-  NVARS3D=4
-  CVARS3D(1:NVARS3D)=(/'Malbedo','Mlail  ','Mlaih  ','fwet   '/)
+  NVARS3D=5
+  CVARS3D(1:NVARS3D)=(/'Malbedo','Mlail  ','Mlaih  ','fwet   ','par_avg' /)
   DO IVAR=1,NVARS3D
     CALL INIT_NCDF_VAR(YD_VARINFO,TRIM(CVARS3D(IVAR)),IACCUR_IN=NF90_DOUBLE,&
                        CCOORD_IN="month lat lon")
