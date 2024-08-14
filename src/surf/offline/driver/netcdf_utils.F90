@@ -264,6 +264,9 @@ SELECT CASE(CNAME)
   CASE('fwet')
     CLNAME='climatological wetland fraction'
     CUNITS='-'
+  CASE('par_avg')
+    CLNAME='climatological PAR'
+    CUNITS='W m-2'
   CASE('Anday','An')
     CLNAME='net CO2 assimilation'
     CUNITS='kg m-2 s-1'
