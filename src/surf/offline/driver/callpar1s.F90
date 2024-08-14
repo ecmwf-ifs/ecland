@@ -819,7 +819,7 @@ PFRTH(KIDIA:KFDIA,KLEV)=ZEMIS(KIDIA:KFDIA)* &
 IF ( (KSTEP==KSTART) .AND. (LEWARMSTART) )  THEN
   CALL SURFWS(YDSURF, KIDIA, KFDIA, KLON, KLEVS, KLEVSN, KTILES  &
              ,PSDOR,LLSICE                                       &
-             ,PLSM, ZFRTI, PMU0M                                 &
+             ,PLSM,PCIL, ZFRTI, PMU0M                                 &
              ,PTSA, PTL,PASN                                     &
              ,PTSN, PSNS, PRSN, PWSN                           )
 ENDIF
