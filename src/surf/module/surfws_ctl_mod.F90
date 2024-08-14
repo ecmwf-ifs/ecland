@@ -291,19 +291,18 @@ ENDDO
 DO JL=KIDIA,KFDIA
   ! Assuming glaciers are always initialised, either from 
   ! warm start or from climatological values
-  !*IF (PCIL(JL) <= 0.50_JPRB) THEN 
+  IF (PCIL(JL) <= 0.50_JPRB) THEN 
   ZTSNWS(JL,1:KLEVSN)   = ZTSN(JL)
   ZRSNWS(JL,1:KLEVSN)   = ZRSN(JL)
   ZSSNWS(JL,1)          = ZSSN(JL)
   ZSSNWS(JL,2:KLEVSN)   = 0._JPRB
   ZWSNWS(JL,1:KLEVSN)   = 0._JPRB
-  !*ELSE
-  !*  ZTSNWS(JL,1:KLEVSN)   = PTSN(JL, 1:KLEVSN)
-  !*  ZRSNWS(JL,1:KLEVSN)   = PRSN(JL, 1:KLEVSN)
-  !*  ZSSNWS(JL,1)          = PSSN(JL, 1:KLEVSN)
-  !*  ZSSNWS(JL,2:KLEVSN)   = 0._JPRB
-  !*  ZWSNWS(JL,1:KLEVSN)   = 0._JPRB
-  !*ENDIF
+  ELSE
+    ZTSNWS(JL,1:KLEVSN)   = PTSN(JL, 1:KLEVSN)
+    ZRSNWS(JL,1:KLEVSN)   = PRSN(JL, 1:KLEVSN)
+    ZSSNWS(JL,1:KLEVSN)   = PSSN(JL, 1:KLEVSN)
+    ZWSNWS(JL,1:KLEVSN)   = PWSN(JL, 1:KLEVSN)
+  ENDIF
 ENDDO
 ZTCONSTAVG=0._JPRB
 ZTCONSTSTD=0._JPRB
