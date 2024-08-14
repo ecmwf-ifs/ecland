@@ -66,6 +66,7 @@ USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
 !      E. Dutra 07/2014 : netcdf4 
 !      R. Hogan 15/01/2019   6-component MODIS albedo
 !      A. Agusti-Panareda 17/06/2021: Add C3/C4 type of photosynthetic pathway
+!      V. Huijnen 13/08/2024: Add Avg PAR
 !      G. Arduini fixes for regular lat/lon      
 !
 !     ------------------------------------------------------------------
@@ -321,6 +322,24 @@ VFAVGPAR(1:NPOI)=SUM(VCAVGPAR(1:NPOI,1:NCLIMDAT),DIM=2)/NCLIMDAT
 
 
 
+!
+!* -- climatological PAR (AVGPAR)
+IF( MYPROC == 1 ) THEN
+  CALL NCERROR( NF90_INQ_VARID(NCID, 'par_avg', NVARID),'getting varid par_avg' )
+  CALL NCERROR( NF90_GET_VAR(NCID,NVARID,ZREAL3D,ISTART3,ICOUNT3),'READING par_avg')
+ENDIF
+VCAVGPAR(1:NPOI,1:NCLIMDAT)=0._JPRB
+
+DO JMON=1,NCLIMDAT
+  IF( MYPROC == 1 ) THEN
+   WRITE(CDUM,'(A6,I2.2)')'AVGPAR',JMON
+   !ZREALD(:)=ZREAL3D(:,JMON)
+   CALL MINMAX(CDUM,ZREAL3D(:,JMON),NMX,NMY,LMASK,NULOUT)
+  ENDIF
+  CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL3D(:,JMON),KSENDCOUNTS=NPOIP(:),CDSTRING="RDCLIM:VCAVGPAR")
+  VCAVGPAR(:,JMON)=PACK(ZBUF(:),LMASK(ISTP:IENP))
+ENDDO
+VFAVGPAR(1:NPOI)=SUM(VCAVGPAR(1:NPOI,1:NCLIMDAT),DIM=2)/NCLIMDAT
 
 
 
