@@ -170,6 +170,11 @@ if (nstep == 0 .OR. ihm == 0000 .or. nstep==nstart) then
   idd=ndd(iymd)
   imm=nmm(iymd)
   iyyyy=nccaa(iymd)
+!START BVOC EMISSION MODULE
+  idd_bvoc=ndd(iymd-10)
+  imm_bvoc=nmm(iymd-10)
+  iyyyy_bvoc=nccaa(iymd-10)
+!END NEW BVOC EMISSION MODULE
   ihh=ihm/100
   iss=60*ihh+60*mod(ihm,100)
 
@@ -262,6 +267,34 @@ ELSE ! LECLIM10D FALSE
 
   imt11=imt1
   imt12=imt2
+
+  ! START NEW BVOC EMISSION MODULE
+     if (idd_bvoc >= 15) then
+      imt1=imm_bvoc
+      imt2=1+mod(imm_bvoc,12)
+      iyt1=iyyyy_bvoc
+     if(imt2 == 1) then
+      iyt2=iyt1+1
+     else
+      iyt2=iyt1
+     endif
+  else
+    imt1=1+mod(imm_bvoc+10,12)
+    imt2=imm_bvoc
+    if(imt1 == 12) then
+      iyt1=iyyyy_bvoc-1
+    else
+      iyt1=iyyyy_bvoc
+    endif
+    iyt2=iyyyy_bvoc
+  endif
+  zt1_bvoc=RTIME(iyt1,imt1,15,0)
+  zt2_bvoc=RTIME(iyt2,imt2,15,0)
+
+  imt11_bvoc=imt1
+  imt12_bvoc=imt2
+  !END NEW BVOC EMISSION MODULE
+  
 ENDIF  ! LECLIM10D
 
 
@@ -273,8 +306,8 @@ zwei2=1.-zwei1
 zt_bvoc=RTIME(iyyyy,imm,idd-10,0) ! new bvoc emission module
 zwei1_bvoc=(zt2-zt_bvoc)/(zt2-zt1)
 zwei2_bvoc=1.-zwei1_bvoc
-VBVOCLAIL(:)=zwei1_bvoc*VCLAIL(:,imt11)+zwei2_bvoc*VCLAIL(:,imt12)
-VBVOCLAIH(:)=zwei1_bvoc*VCLAIH(:,imt11)+zwei2_bvoc*VCLAIH(:,imt12)
+VBVOCLAIL(:)=zwei1_bvoc*VCLAIL(:,imt11_bvoc)+zwei2_bvoc*VCLAIL(:,imt12_bvoc)
+VBVOCLAIH(:)=zwei1_bvoc*VCLAIH(:,imt11_bvoc)+zwei2_bvoc*VCLAIH(:,imt12_bvoc)
 
 
 vfalbf(:)=zwei1*vcalb(:,imt11)+zwei2*vcalb(:,imt12)
