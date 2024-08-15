@@ -760,6 +760,7 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
 !*         2.3c   Biogenic VOC emissions - including wet skin tile
 
 IF ( LEMIS_BVOC ) THEN   
+  PBVOCFLUX(KIDIA:KFDIA,:)=0._JPRB
   IF (KTILE==3 .OR. KTILE==4 .OR. KTILE==6 .OR. KTILE==7 ) THEN
 
     IF (KTILE==3) THEN 
