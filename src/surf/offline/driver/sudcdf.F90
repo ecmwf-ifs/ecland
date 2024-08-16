@@ -465,12 +465,13 @@ IF( MYPROC == 1 ) THEN
 ! * -- vegetation variables 2
 !******************************************************************
     IF( NPOS == NPOSVTY )THEN
-      NVARS4D=15
+      NVARS4D=16
       CVARS4D(1:NVARS4D)=(/'vtfr        ','lai         ','biomass     ',&
                            'Bloss       ','Bgain       ','Biomstr     ',&
                            'Biomstr2    ','Ag          ','Rd          ',&
                            'An          ','Rsoil_str   ','Reco        ',&
-                           'CO2flux     ','RnoQ10      ','BVOCflux    '/)
+                           'CO2flux     ','RnoQ10      ','BVOCflux1   ',&
+                           'BVOCflux2   '/)
       DO IVAR=1,NVARS4D
         CALL INIT_NCDF_VAR(YD_VARINFO,TRIM(CVARS4D(IVAR)),CCOORD_IN="time vtype lat lon")
         CALL NC_DEF_VAR(NPOS,YD_VARINFO,IDIMID4VEG(1:IDIM4VEG),VARID)
