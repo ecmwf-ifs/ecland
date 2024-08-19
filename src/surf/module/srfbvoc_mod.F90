@@ -50,6 +50,7 @@ SUBROUTINE SRFBVOC(KIDIA,KFDIA,KLON,KTILES,&
 
 
 !     *PBVOCFLUX*     Grid-box average biogenic VOC FLUXES                  KG_BVOC/M2/S
+!     *PBVOCDIAGVT*    Tiled biogenic VOC diagnostics output               [variable]
 
 !     *PDHBVOC*      Diagnostic array for BVOC (see module yomcdh) 
 !                    (kgBVOC m-2 s-1 for fluxes)
