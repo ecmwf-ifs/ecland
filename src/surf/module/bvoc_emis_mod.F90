@@ -4,7 +4,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
      & PPPFD_TOA, &
      & PTM1,PCM1, PTSKM1M, PTSOIL,&
      & PLAI, PLAIP, PSRFD, PMU0, PLAT, PAVGPAR, PISOP_EP, &
-     & YDBVOC,YDAGF,PBVOCFLUX)
+     & YDBVOC,YDAGF,PBVOCDIAG,PBVOCFLUX)
 
   !**   *BVOC_EMIS* - CALCULATES NET Biogenic VOC emissions per land use type  
 
@@ -54,6 +54,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
 
   !     *PBVOCFLUX*    net tile-specific BVOC emissions,     KG_BVOC/M2/S
   !                    positive downwards, to be changed for diagnostic output
+  !     *PBVOCDIAG*    net tile-specific BVOC emission diagnostics,   [check units]
 
   !     METHOD
   !     ------
@@ -97,6 +98,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
   TYPE(TBVOC)       ,INTENT(IN)    :: YDBVOC
   TYPE(TAGF)        ,INTENT(IN)    :: YDAGF
   REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
+  REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCDIAG(:,:)
 
   !*         0.     LOCAL VARIABLES.
   !                 ----- ----------
@@ -425,6 +427,15 @@ ENDIF
      ELSE
         PBVOCFLUX(JL,1:NEMIS_BVOC)=0._JPRB
      ENDIF
+  ENDDO
+
+!*       5.1     Fill output diagnostics array
+!               ---------- ----------
+
+
+  DO JL=KIDIA,KFDIA
+     PBVOCDIAG(JL,1)=ZGAMMA_CE(JL,1)
+     PBVOCDIAG(JL,2)=ZGAMMA_AGE(JL)
   ENDDO
 
 END ASSOCIATE
