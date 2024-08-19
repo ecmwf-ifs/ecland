@@ -95,7 +95,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KVTYPE,&
   TYPE(TBVOC)       ,INTENT(IN)    :: YDBVOC
   TYPE(TAGF)        ,INTENT(IN)    :: YDAGF
   REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
-  REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCDIAG(:,:)
+  REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCDIAG(KLON,2)
 
   !*         0.     LOCAL VARIABLES.
   !                 ----- ----------
@@ -391,7 +391,7 @@ IF (IC5H8 > 0 ) THEN
     ZCA = PCM1(JL) * ZMMR_TO_VMR
     ZGAMMA_CO2(JL,IC5H8)=ZINH_MAX - ( ZINH_MAX * (0.7_JPRB * ZCA)**ZH / ( ZCSTAR**ZH + (0.7_JPRB*ZCA)**ZH  )  )  ! eq 14
   ENDDO
-ENDIF
+ENDIFP
 
 !*       5.     Compute net BVOC emissions, accounting for activity factors
 !               ---------- ----------
