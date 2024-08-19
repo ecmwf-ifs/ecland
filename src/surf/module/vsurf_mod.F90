@@ -15,7 +15,7 @@ SUBROUTINE VSURF(KIDIA,KFDIA,KLON,KTILES,KLEVS,KTILE,&
  & PWETB ,PCPTS ,PWETL, PWETLU, PWETH, PWETHS , &  
  & PEVAP ,&
  & PAN,PAG,PRD ,PPWLIQ ,&
- & PBVOCFLUX, &
+ & PBVOCFLUX, PBVOCDIAG, &
  & PDHVEGS, PEXDIAG, &
  & PSSDP2, PSSDP3, &
  & YDCST, YDVEG, YDBVOC, YDEXC, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB)
@@ -157,6 +157,7 @@ USE YOMSURF_SSDP_MOD
 !     *PRD*          DARK RESPIRATION                          KG_CO2/M2/S
 !                    positive upwards
 !     *PBVOCFLUX*    Biogenic VOC flux                         KG_BVOC/M2/S
+!     *PBVOCDIAG*    Biogenic VOC flux diagnostics             [variable]
 
 !     METHOD
 !     ------
@@ -193,6 +194,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHVEGS(:,:,:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PEXDIAG(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCO2FLUX(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCDIAG(:,:)
 
 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIL(:)
@@ -770,7 +772,7 @@ IF ( LEMIS_BVOC ) THEN
          & PPPFD_TOA, &
          & PTMLEV,PCMLEV,ZTSK, ZTSOIL, & 
          & PLAI_WET,PLAIP_WET, PSRFD, PMU0, PLAT, PAVGPAR, &
-         & YDBVOC,YDAGF,PBVOCFLUX)
+         & YDBVOC,YDAGF,PBVOCDIAG,PBVOCFLUX)
 
   ENDIF
 ENDIF
