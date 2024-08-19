@@ -132,10 +132,8 @@ DO JVT=1,KTILES
 
   IVT=1
   IF (JVT == 3) THEN
-    ! Need to make this wet tile more advanced..
-    IVT=1
-  ! ELSEIF ((JVT == 4) .OR. (JVT == 5)) THEN
-  !  IVT=1
+    ! Now attribute wet skin to high veg. tile. Need to make this wet tile more advanced?
+    IVT=2
   ELSEIF ((JVT == 6) .OR. (JVT == 7)) THEN
     IVT=2
   ENDIF
@@ -145,13 +143,13 @@ DO JVT=1,KTILES
     ! PDHBVOCS(JL,IVT,1)=PDHBVOCS(JL,IVT,1)+PBVOCFLUXVT(JL,1,JVT) !VH *(-1._JPRB) 
     ! PDHBVOCS(JL,IVT,2)=PDHBVOCS(JL,IVT,2)+PBVOCFLUXVT(JL,2,JVT) !VH *(-1._JPRB) 
     ! VH test diagnostics fields..
-    IF (IVT == 1_JPIM) THEN
-      PDHBVOCS(JL,IVT,1)=PBVOCDIAGVT(JL,1,1)
-      PDHBVOCS(JL,IVT,2)=PBVOCDIAGVT(JL,1,2)
-    ELSE
-      PDHBVOCS(JL,IVT,1)=PBVOCDIAGVT(JL,2,1)
-      PDHBVOCS(JL,IVT,2)=PBVOCDIAGVT(JL,2,2)
-    ENDIF
+    !IF (IVT == 1_JPIM) THEN
+      PDHBVOCS(JL,IVT,1)=PDHBVOCS(JL,IVT,1) + PBVOCDIAGVT(JL,1,JVT) ! Fields 1-2
+      PDHBVOCS(JL,IVT,2)=PDHBVOCS(JL,IVT,2) + PBVOCDIAGVT(JL,2,JVT) ! Fields 3-4 
+    !ELSE
+    !  PDHBVOCS(JL,IVT,1)=PDHBVOCS(JL,IVT,1) + PBVOCDIAGVT(JL,1,JVT) ! Field 2
+    !  PDHBVOCS(JL,IVT,2)=PDHBVOCS(JL,IVT,1) + PBVOCDIAGVT(JL,2,JVT) ! Field 4
+    !ENDIF
   ENDDO
 
 ENDDO
