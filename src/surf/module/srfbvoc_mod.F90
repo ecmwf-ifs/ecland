@@ -5,6 +5,7 @@ SUBROUTINE SRFBVOC(KIDIA,KFDIA,KLON,KTILES,&
  & PFRTI,&
  & YDBVOC,&
  & PBVOCFLUXVT, &
+ & PBVOCDIAGVT, &
 ! more data..
  & PBVOCFLUX, &
  & PDHBVOCS )
@@ -41,6 +42,7 @@ SUBROUTINE SRFBVOC(KIDIA,KFDIA,KLON,KTILES,&
 !            4 : DRY SNOW-FREE LOW-VEG  8 : BARE SOIL
 
 !     *PBVOCFLUXVT*    Tiled input biogenic VOC FLUXES                      KG_BVOC/M2/S
+!     *PBVOCDIAGVT*    Tiled biogenic VOC diagnostics output               [variable]
 
 
 
