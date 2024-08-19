@@ -391,7 +391,7 @@ IF (IC5H8 > 0 ) THEN
     ZCA = PCM1(JL) * ZMMR_TO_VMR
     ZGAMMA_CO2(JL,IC5H8)=ZINH_MAX - ( ZINH_MAX * (0.7_JPRB * ZCA)**ZH / ( ZCSTAR**ZH + (0.7_JPRB*ZCA)**ZH  )  )  ! eq 14
   ENDDO
-ENDIFP
+ENDIF
 
 !*       5.     Compute net BVOC emissions, accounting for activity factors
 !               ---------- ----------
