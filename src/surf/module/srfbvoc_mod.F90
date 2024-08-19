@@ -144,17 +144,16 @@ DO JVT=1,KTILES
       PDHBVOCS(JL,IVT,2)=PDHBVOCS(JL,IVT,2) + PBVOCDIAGVT(JL,2,JVT) ! Fields 3-4 
   ENDDO
 
-  DO JL=KIDIA,KFDIA
-    ! not normalised to grid square
-    IF (IVT == 1_JPIM) THEN
-      PDHBVOCS(JL,IVT,1)=1. ! Fields 1-2
-      PDHBVOCS(JL,IVT,2)=3. ! Fields 3-4 
-    ELSE
-      PDHBVOCS(JL,IVT,1)=2. ! Field 2
-      PDHBVOCS(JL,IVT,2)=4. ! Field 4
-    ENDIF
-  ENDDO
-
+  ! Test output..
+  ! DO JL=KIDIA,KFDIA
+  !  IF (IVT == 1_JPIM) THEN
+  !    PDHBVOCS(JL,IVT,1)=1. ! Fields 1-2
+  !    PDHBVOCS(JL,IVT,2)=3. ! Fields 3-4 
+  !  ELSE
+  !    PDHBVOCS(JL,IVT,1)=2. ! Field 2
+  !    PDHBVOCS(JL,IVT,2)=4. ! Field 4
+  !  ENDIF
+  ! ENDDO
 
  ENDDO
 
