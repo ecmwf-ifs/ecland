@@ -1,6 +1,6 @@
 MODULE BVOC_EMIS_MOD
 CONTAINS
-SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KVTYPE,&
+SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
      & PPPFD_TOA, &
      & PTM1,PCM1, PTSKM1M, PTSOIL,&
      & PLAI, PLAIP, PSRFD, PMU0, PLAT, PAVGPAR, &
@@ -80,6 +80,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KVTYPE,&
   INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA
   INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA
   INTEGER(KIND=JPIM),INTENT(IN)    :: KLON
+  INTEGER(KIND=JPIM),INTENT(IN)    :: KTILE
   INTEGER(KIND=JPIM),INTENT(IN)    :: KVTYPE(:)
   REAL(KIND=JPRB)   ,INTENT(IN)    :: PPPFD_TOA
   REAL(KIND=JPRB)   ,INTENT(IN)    :: PTM1(:)
@@ -212,6 +213,8 @@ DO JL=KIDIA,KFDIA
   ZLAT(JL)=PLAT(JL)*57.29_JPRB ! 180/3.1415
 ENDDO
 
+IF (KTILE ==3 ) WRITE(*,*)'BVOC DEBUG 1a'
+
 !*       2.     Identify MEGAN PFT type for different ECLand vegetation types.
 !               ---------- ----------
 ! Remember:
@@ -277,6 +280,8 @@ DO JL=KIDIA,KFDIA
 
 ENDDO
 
+IF (KTILE ==3 ) WRITE(*,*)'BVOC DEBUG 1b'
+
 !*       3.     Specify BVOC emissions under standard conditions
 !               ---------- ----------
 
@@ -286,6 +291,8 @@ DO JSP=1,NEMIS_BVOC
       ZBVOCFLUX(JL,JSP)=EMIS_FAC(JSP,KVTYPE_MEGAN(JL))
   ENDDO
 ENDDO
+
+IF (KTILE ==3 ) WRITE(*,*)'BVOC DEBUG 1c'
 
 !*       4.1     Evaluate local modification of activity factors: Canopy environment
 !               ---------- ----------
@@ -324,12 +331,16 @@ DO JL=KIDIA,KFDIA
   ENDIF
 ENDDO
 
+IF (KTILE ==3 ) WRITE(*,*)'BVOC DEBUG 1d'
+
 DO JSP=1,NEMIS_BVOC
   DO JL=KIDIA,KFDIA
       ZGAMMA_CE(JL,JSP)=ZGAMMA_LAI(JL)*ZGAMMA_T(JL)*((1._JPRB-LDF(JSP)+ZGAMMA_P(JL)*LDF(JSP))) ! eq 10
      !  ((1._JPRB-LDF(JSP)+ZGAMMA_P(JL)*LDF(JSP))  is the overall adjustement factor from corrigendum to Alex 2006
   ENDDO
 ENDDO
+
+IF (KTILE ==3 ) WRITE(*,*)'BVOC DEBUG 1e'
 
 !*       4.2     Evaluate local modification of activity factors: leaf age activity factor
 !  
@@ -381,6 +392,8 @@ DO JL=KIDIA,KFDIA
     ZGAMMA_AGE(JL)=1.0_JPRB
   ENDIF
 ENDDO
+IF (KTILE ==3 ) WRITE(*,*)'BVOC DEBUG 1f'
+
 
 !*       4.3     Evaluate local modification of activity factors: CO2 inhibition 
 !                Only to be applied to isoprene
@@ -392,6 +405,9 @@ IF (IC5H8 > 0 ) THEN
     ZGAMMA_CO2(JL,IC5H8)=ZINH_MAX - ( ZINH_MAX * (0.7_JPRB * ZCA)**ZH / ( ZCSTAR**ZH + (0.7_JPRB*ZCA)**ZH  )  )  ! eq 14
   ENDDO
 ENDIF
+
+IF (KTILE ==3 ) WRITE(*,*)'BVOC DEBUG 1g'
+
 
 !*       5.     Compute net BVOC emissions, accounting for activity factors
 !               ---------- ----------
@@ -406,6 +422,8 @@ ENDIF
         PBVOCFLUX(JL,1:NEMIS_BVOC)=0._JPRB
      ENDIF
   ENDDO
+
+IF (KTILE ==3 ) WRITE(*,*)'BVOC DEBUG 1h'
 
 !*       5.1     Fill output diagnostics array
 !               ---------- ----------
