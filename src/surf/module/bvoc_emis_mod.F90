@@ -298,6 +298,7 @@ IF (KTILE ==3 ) WRITE(*,*)'BVOC DEBUG 1c'
 !               ---------- ----------
 DO JL=KIDIA,KFDIA
 
+  IF (KTILE ==3 ) WRITE(*,*)'BVOC DEBUG 1c1',JL,PTM1(JL),PTSOIL(JL),",LAI:",PLAI(JL),PMU0(JL)
   ! Activity factor due to temperature:
   ZT_DAILY=MAX(240._JPRB,PTSOIL(JL))
   ZT_HR=PTM1(JL)
