@@ -336,7 +336,7 @@ ENDDO
 
 DO JL=KIDIA,KFDIA
   ! For deciduous PFTs the gamma_age should be devided into four parts
-  IF ( ANY(MEGAN_DECIDUOUS_PFT == KVTYPE_MEGAN(JL) ) ) THEN
+  IF ( ANY(MEGAN_DECIDUOUS_PFT == KVTYPE_MEGAN(JL) ) .AND. ( PLAI(JL) > 0._JPRB ) ) THEN
     ! Current LAI 
     ZLAI_C = PLAI(JL)
     !  LAI of previous time
