@@ -757,33 +757,6 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
   ENDIF !vegetation tiles, shaded snow tile
 
 
-!*         2.3c   Biogenic VOC emissions - including wet skin tile
-
-IF ( LEMIS_BVOC ) THEN   
-  PBVOCFLUX(KIDIA:KFDIA,:)=0._JPRB
-  IF (KTILE==3 .OR. KTILE==4 .OR. KTILE==6 .OR. KTILE==7 ) THEN
-
-    IF (KTILE==3) THEN 
-      IVEG_BVOC(KIDIA:KFDIA)=KVEG_WET(KIDIA:KFDIA)
-    ELSE
-      IVEG_BVOC(KIDIA:KFDIA)=KVEG(KIDIA:KFDIA,KTILE)
-    ENDIF
-    CALL BVOC_EMIS(KIDIA,KFDIA,KLON,IVEG_BVOC(:),&
-         & PPPFD_TOA, &
-         & PTMLEV,PCMLEV,ZTSK, ZTSOIL, & 
-         & PLAI_WET,PLAIP_WET, PSRFD, PMU0, PLAT, PAVGPAR, &
-         & YDBVOC,YDAGF,PBVOCDIAG,PBVOCFLUX)
-
-    ! Extra debuggin
-    IF (KTILE==3)THEN
-      WRITE(*,*)'DEBUG WET:',IVEG_BVOC(KIDIA),PBVOCFLUX(KIDIA,1),PBVOCDIAG(KIDIA,1)
-      WRITE(*,*)'DEBUG WET LAI:',PLAI_WET(KIDIA),PLAIP_WET(KIDIA)
-    ENDIF
-    ! end debug
-
-  ENDIF
-ENDIF
-
 ! bare soil (& urban)
   IF( KTILE == 8 .OR. KTILE == 10 ) THEN
     DO JL=KIDIA,KFDIA 
