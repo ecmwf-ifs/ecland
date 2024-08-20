@@ -658,6 +658,20 @@ DO JTILE=2,KTILES
   ENDDO
 ENDDO
 
+! Separate check on wet tile - make sure to have always a definition of LAI and KVEG
+DO JL=KIDIA,KFDIA
+           IF (PCVL(JL) .GT. PCVH (JL)) THEN
+              ZLAIVT_WET(JL,3) =PLAIL(JL)
+              ZLAIVTP_WET(JL,3)=PLAILP(JL)
+             KVEG_WET(JL)=KTVL(JL)
+            ELSE
+              ZLAIVT_WET(JL,3) =PLAIH(JL)
+              ZLAIVTP_WET(JL,3)=PLAIHP(JL)
+             KVEG_WET(JL)=KTVH(JL)
+           ENDIF
+         ENDIF
+ENDDO
+
 !*         Use tile average (log) Z0 for M and H
 ZBLENDZ0=RBLENDZ0/PRPLRG
 ZCBLENDM(KIDIA:KFDIA)=PFRTI(KIDIA:KFDIA,1)&
