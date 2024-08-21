@@ -831,6 +831,13 @@ IF ( LEMIS_BVOC ) THEN
   IF (KTILE==3 .OR. KTILE==4 .OR. KTILE==6 .OR. KTILE==7 ) THEN
   !VH IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 ) THEN
 
+
+!   Set the soil temperature to be used for acclimation of photosynthetic traits
+!   Soil layer 3  (28 - 100cm) as it matches best with past 30-day mean of air T
+    DO JL=KIDIA,KFDIA  
+       ZTSOIL(JL) = PTSAM1M(JL,3)
+    ENDDO
+
     IF (KTILE==3) THEN 
       WRITE(*,*)'DEBUG W0:',KTILE
       IVEG_BVOC(KIDIA:KFDIA)=KVEG_WET(KIDIA:KFDIA)
