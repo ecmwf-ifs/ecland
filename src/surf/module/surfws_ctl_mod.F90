@@ -289,20 +289,11 @@ ENDDO
 !------ SURFWS_INIT -----!
 ! Basic initialization warm start fields:
 DO JL=KIDIA,KFDIA
-  ! Assuming glaciers are always initialised, either from 
-  ! warm start or from climatological values
-  IF (PCIL(JL) <= 0.50_JPRB) THEN 
   ZTSNWS(JL,1:KLEVSN)   = ZTSN(JL)
   ZRSNWS(JL,1:KLEVSN)   = ZRSN(JL)
   ZSSNWS(JL,1)          = ZSSN(JL)
   ZSSNWS(JL,2:KLEVSN)   = 0._JPRB
   ZWSNWS(JL,1:KLEVSN)   = 0._JPRB
-  ELSE
-    ZTSNWS(JL,1:KLEVSN)   = PTSN(JL, 1:KLEVSN)
-    ZRSNWS(JL,1:KLEVSN)   = PRSN(JL, 1:KLEVSN)
-    ZSSNWS(JL,1:KLEVSN)   = PSSN(JL, 1:KLEVSN)
-    ZWSNWS(JL,1:KLEVSN)   = PWSN(JL, 1:KLEVSN)
-  ENDIF
 ENDDO
 ZTCONSTAVG=0._JPRB
 ZTCONSTSTD=0._JPRB
@@ -399,7 +390,7 @@ ENDIF
 !************************************
 ! 2.4 Final update of snow variables:
 DO JL=KIDIA,KFDIA
-  IF (.NOT. LLNOSNOW(JL) .AND. KLEVSNA(JL)>1 .AND. PCIL(JL)<=0.50_JPRB) THEN
+  IF (.NOT. LLNOSNOW(JL) .AND. KLEVSNA(JL)>1 ) THEN
     ! Safety check to avoid crashes in surfws
     IF ( (.NOT. ANY(ZTSNWS(JL,1:KLEVSN)<100._JPRB)) .AND. (.NOT. ANY(ZTSNWS(JL,1:KLEVSN)>RTT)) ) THEN
       PTSN(JL,1:KLEVSN)=ZTSNWS(JL,1:KLEVSN) 
