@@ -145,20 +145,10 @@ DO JVT=1,KTILES
  
  
   DO JL=KIDIA,KFDIA
-      PDHBVOCS(JL,IVT,1)=PDHBVOCS(JL,IVT,1) + PBVOCDIAGVT(JL,1,JVT) ! Fields 1-2
+      PDHBVOCS(JL,IVT,1)=PDHBVOCS(JL,IVT,1) + PFRTI(JL,JVT)*PBVOCDIAGVT(JL,1,JVT) ! Fields 1-2 : Get output for isoprene emission potential
       PDHBVOCS(JL,IVT,2)=PDHBVOCS(JL,IVT,2) + PBVOCDIAGVT(JL,2,JVT) ! Fields 3-4 
   ENDDO
 
-  ! Test output..
-  ! DO JL=KIDIA,KFDIA
-  !  IF (IVT == 1_JPIM) THEN
-  !    PDHBVOCS(JL,IVT,1)=1. ! Fields 1-2
-  !    PDHBVOCS(JL,IVT,2)=3. ! Fields 3-4 
-  !  ELSE
-  !    PDHBVOCS(JL,IVT,1)=2. ! Field 2
-  !    PDHBVOCS(JL,IVT,2)=4. ! Field 4
-  !  ENDIF
-  ! ENDDO
 
  ENDDO
 
