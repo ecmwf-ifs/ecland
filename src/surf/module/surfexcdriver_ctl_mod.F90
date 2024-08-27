@@ -638,18 +638,6 @@ DO JTILE=2,KTILES
 !* low-vegetation (4) if present or bare soil (8) 
          IF (PFRTI(JL,8).GT.0.0_JPRB) IFRLMAX(JL)=8
          IF (PFRTI(JL,4).GT.0.0_JPRB) IFRLMAX(JL)=4
-         IF (PCVL(JL)+PCVH(JL) > 0.5) THEN
-           IF (PCVL(JL) .GT. PCVH (JL)) THEN
-              ZLAIVT_WET(JL,3) =PLAIL(JL)
-              ZLAIVTP_WET(JL,3)=PLAILP(JL)
-              KVEG_WET(JL)=KTVL(JL)
-            ELSE
-              ZLAIVT_WET(JL,3) =PLAIH(JL)
-              ZLAIVTP_WET(JL,3)=PLAIHP(JL)
-              KVEG_WET(JL)=KTVH(JL)
-           ENDIF
-         ENDIF
-
 !        IF (PFRTI(JL,4).GT.PFRTI(JL,8)) IFRLMAX(JL)=4
 !        IF (PFRTI(JL,8).GT.0.0_JPRB) IFRLMAX(JL)=8
 !        IF (PFRTI(JL,4).GT.PFRTI(JL,8)) IFRLMAX(JL)=4
