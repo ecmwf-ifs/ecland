@@ -829,7 +829,6 @@ ENDIF !tiles 4, 6, 7 , 8, 10
 IF ( LEMIS_BVOC ) THEN   
   PBVOCFLUX(KIDIA:KFDIA,:)=0._JPRB
   IF (KTILE==3 .OR. KTILE==4 .OR. KTILE==6 .OR. KTILE==7 ) THEN
-  !VH IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 ) THEN
 
 
 !   Set the soil temperature to be used for acclimation of photosynthetic traits
