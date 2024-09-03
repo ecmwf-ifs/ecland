@@ -595,9 +595,6 @@ REAL(KIND=JPHOOK) ::    ZHOOK_HANDLE
 REAL(KIND=JPRB) ::    ZTHKICE(KLON),ZSNTICE(KLON),PRPLRG
 REAL(KIND=JPRB) ::    ZATMCO2(KLON)
 
-!Dummy variables, so far not linked to actual LAI / avg PAR
-REAL(KIND=JPRB) ::    ZLAILP(KLON),ZLAIHP(KLON),ZAVGPAR(KLON)
-
 REAL(KIND=JPRB) ::    ZPPFD_TOA
 !LOGICAL         ::    LNEMOLIMTHK
 LOGICAL         ::    LSICOUP
@@ -722,10 +719,6 @@ ENDDO
 !*         1.4 EMIS_BVOC related input parameters
 ! simply specify default value (not used)
 ZPPFD_TOA=3000._JPRB
-! initialis
-ZLAILP(KIDIA:KFDIA) = 0.0_JPRD
-ZLAIHP(KIDIA:KFDIA) = 0.0_JPRD 
-ZAVGPAR(KIDIA:KFDIA) = 0.0_JPRD 
 
 
 !*         2.  Compute all surface related quantities
