@@ -722,10 +722,6 @@ ENDDO
 !*         1.4 EMIS_BVOC related input parameters
 ! simply specify default value (not used)
 ZPPFD_TOA=3000._JPRB
-! initialis
-ZLAILP(KIDIA:KFDIA) = 0.0_JPRD
-ZLAIHP(KIDIA:KFDIA) = 0.0_JPRD 
-ZAVGPAR(KIDIA:KFDIA) = 0.0_JPRD 
 
 
 !*         2.  Compute all surface related quantities
