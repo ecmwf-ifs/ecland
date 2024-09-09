@@ -611,7 +611,7 @@ IF ( LESNML ) THEN
   ENDIF
   CALL SRFSN_DRIVER(KIDIA   ,KFDIA   ,KLON   ,KLEVSN, PTSPHY, LDLAND,&
   & LDSNOWOVERICE, &
-  & PSDOR, LDSICE, PCIL,&
+  & PSDOR, LDSICE, PCIL,LDNH,&
   ! input at T-1 prognostics
   & PSNM1M, PTSNM1M, PRSNM1M  ,PWSNM1M, PASNM1M, &
   ! input at T-1 fluxes or constants 
