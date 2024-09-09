@@ -95,6 +95,7 @@ REAL(KIND=JPRB)   , INTENT(OUT)  :: PASN(:)
 ! Local variables 
 INTEGER(KIND=JPIM) :: JL
 REAL(KIND=JPRB)    :: ZALBRESET, ZALBMIN, ZALBMAX, ZRTAU_A,ZTSNTHR
+REAL(KIND=JPRB)    :: ZRTAUF_GL
 REAL(KIND=JPRB)    :: ZASN_L, ZASN_I
 REAL(KIND=JPRB)    :: ZEPSILON
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -111,6 +112,7 @@ ZALBMAX=0.82_JPRB ! RALFMINPSN albedo glacier
 !* Value tested over PROMICE Sites giving good results:
 !* ZALBMAX=0.81_JPRB
 ZRTAU_A=0.004     ! RTAU/2
+ZRTAUF_GL=0.11_JPRB
 ZTSNTHR=5._JPRB
 ZEPSILON=100._JPRB*EPSILON(ZEPSILON)
 
@@ -137,8 +139,14 @@ IF(LSNOWLANDONLY(JL))THEN
     !ELSE
     ! Ice part of the grid-cell
       IF (PTSNM1M(JL,1) > YDCST%RTT-ZTSNTHR) THEN
+         ! MELTING CONDITIONS, modified minimum albedo and use different RTAUF.
+         ! ZRTAUF_GL gives a rate of change of albedo in between RTAUF and the linear 
+         ! relationship over a continuous change over 10-days.
+         ZASN_I=(PASNM1M(JL)-ZALBMIN)*EXP(-ZRTAUF_GL*PTMST/YDCST%RDAY)+ZALBMIN
          ! MELTING CONDITIONS, modified minimum albedo
-         ZASN_I=(PASNM1M(JL)-ZALBMIN)*EXP(-YDSOIL%RTAUF*PTMST/YDCST%RDAY)+ZALBMIN
+         !*ZASN_I=(PASNM1M(JL)-ZALBMIN)*EXP(-YDSOIL%RTAUF*PTMST/YDCST%RDAY)+ZALBMIN
+         !* Use linear relationship also in melting conditions.
+         !*ZASN_I=MAX(ZALBMIN,PASNM1M(JL)-YDSOIL%RTAUA*PTMST/YDCST%RDAY)
       ELSE
          ZASN_I=PASNM1M(JL)
       !*   ! NORMAL CONDITIONS, modified minimum albedo and tau_a
