@@ -46,6 +46,7 @@ list( APPEND module_src
     srfcotwo_mod.F90
     srfene_mod.F90
     srfi_mod.F90
+    srfil_mod.F90
     srfis_mod.F90
     srfisad_mod.F90
     srfistl_mod.F90
