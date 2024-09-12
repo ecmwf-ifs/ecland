@@ -491,7 +491,7 @@ ELSE
      ! jint=1 is the lowest part of the canopy, jint=size(rabc) is the highest part. 
      !  Diffusion of incident radiation:
 
-     CALL CCETR(KIDIA,KFDIA,KLON,KVTYPE,LDLAND,PAVGPAR,ZMU0,RABC(JINT),PLAI,PSSDP2,YDAGS,ZXIA)
+     CALL CCETR(KIDIA,KFDIA,KLON,KVTYPE,KTILE,LDLAND,ZIA,ZMU0,RABC(JINT),PLAI,PSSDP2,YDAGS,ZXIA)
 
      !  Compute conductance and assimilation of CO2: 
      CALL COTWO(KIDIA,KFDIA,KLON,LDLAND,ZAN0,ZAG0,ZRD0,ZGS0,ZRVGC,ZCO2, &

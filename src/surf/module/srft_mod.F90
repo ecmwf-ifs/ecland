@@ -5,7 +5,7 @@ SUBROUTINE SRFT(KIDIA  , KFDIA , KLON   , KTILES, KLEVS ,&
  & PFRTI  , PAHFSTI, PEVAPTI ,&
  & PSLRFLTI , PSSRFLTI, PGSN   ,PGLICE,&
  & PCTSA  , LDLAND , PCIL,&
- & PSSDP3 ,&
+ & PSSDP3, &
  & YDCST  , YDSOIL , YDFLAKE, YDURB,&
  & PTSA   , PTSDFL , PDHTTS)  
   
@@ -107,6 +107,7 @@ USE YOMSURF_SSDP_MOD
 !     J. McNorton   24/08/2022  urban tile
 !     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
 !     G. Arduini    2024        glacier component
+!     G. Arduini           Sept 2024 Snow over land-ice
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -218,11 +219,6 @@ DO JL=KIDIA,KFDIA
     IF ( LEFLAKE ) THEN
       IF ( PFRTI(JL,9) > RFRSMALL ) THEN
         ZSURFL(JL)=PGSN(JL)+PCIL(JL)*PGLICE(JL)
-
-        !*IF ( (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8)) > RFRSMALL ) THEN
-        !*  ZSURFL(JL)=(1._JPRB-PFRTI(JL,2))*PGSN(JL)+(ZSSRFL+ZSLRFL+ZTHFL) & 
-        !*          & / (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8))
-        !*ENDIF
         IF ( ZCLAND> RFRSMALL ) THEN
           ZSURFL(JL)=(PCIL(JL)*PGLICE(JL)+PGSN(JL)+ZSSRFL+ZSLRFL+ZTHFL) & 
                   & / ZCLAND

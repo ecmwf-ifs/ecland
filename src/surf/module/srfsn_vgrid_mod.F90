@@ -149,13 +149,12 @@ DO JL=KIDIA,KFDIA
    ! total snow depth 
   ZDSNTOT = SUM(ZDSN(1:KLEVSN),DIM=1)
   IF (LDLAND(JL))THEN
-!  IF (PCIL(JL) >= 1._JPRB - ZEPSILON) THEN ! fully resolved glacier
   IF (PCIL(JL) >= 0.99_JPRB) THEN ! fully resolved glacier
       ZRLEVSNMIN(1:KLEVSN) = RLEVSNMIN_GL(1:KLEVSN)
       ZRLEVSNMAX(1:KLEVSN) = RLEVSNMAX_GL(1:KLEVSN)
     ELSEIF  (ZDSNTOT>ZDSNTHR ) THEN
       ZDSNDIFF=ZDSNTOT-ZDSNTHR
-     ! std dev oro
+      ! std dev oro
       IF (PSDOR(JL) < ZOROTHR_MIN) THEN 
       ! we do not change discretization over flat terrain
         ZRLEVSNMIN(1:KLEVSN) = RLEVSNMIN(1:KLEVSN) 
@@ -177,9 +176,6 @@ DO JL=KIDIA,KFDIA
   ELSE
     ZRLEVSNMAX(1:KLEVSN) = RLEVSNMAX_GL(1:KLEVSN)
     ZRLEVSNMIN(1:KLEVSN) = RLEVSNMIN_GL(1:KLEVSN)
-  !*ELSE 
-  !*    ZRLEVSNMAX(1:KLEVSN) = RLEVSNMAX(1:KLEVSN) 
-  !*    ZRLEVSNMIN(1:KLEVSN) = RLEVSNMIN(1:KLEVSN) 
   ENDIF
 
   ! snow layer to absorbe residuals 

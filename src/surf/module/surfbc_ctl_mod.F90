@@ -5,11 +5,11 @@ SUBROUTINE SURFBC_CTL(KIDIA, KFDIA, KLON, KTILES,KLEVSN, &
  & PLAILC, PLAIHC, PLAILI, PLAIHI, &
  & PLAILCP,PLAIHCP, PAVGPARC, &
  & PLSM, PCI,PCIL, PCLAKE, PHLICE, PGEMU, PSNM1M, PWLM1M, PRSNM1M, LESNICE, &  
- & LDLAND, LDSICE, LDLAKE, LDNH, LDOCN_KPP, &      
+ & LDLAND, LDSICE, LDLICE, LDLAKE, LDNH, LDOCN_KPP, &      
  & KTVL, KCO2TYP, KTVH, KSOTY, &
- & PCVL, PCVH, PCUR, PCIL, PLAIL, PLAIH, PLAILP, PLAIHP, PAVGPAR, &
+ & PCVL, PCVH, PCUR, PLAIL, PLAIH, PLAILP, PLAIHP, PAVGPAR, &
  & PWLMX, PFRTI, &
- & PCSN, PSSDP2, &
+ & PSSDP2, &
  & YDSOIL, YDVEG, YDFLAKE, YDURB, YDOCEAN_ML)  
 
 USE PARKIND1,     ONLY : JPIM, JPRB
@@ -97,7 +97,6 @@ USE YOMSURF_SSDP_MOD
 !            3 : WET SKIN               7 : SNOW UNDER HIGH-VEG
 !            4 : DRY SNOW-FREE LOW-VEG  8 : BARE SOIL
 !            9 : LAKE                  10 : URBAN
-!     *PCSN*         SNOW COVER FRACTION (diagnostic)                (0-1)
 
 !     OUTPUT PARAMETERS (INTEGER):
 !     *KTVL*         LOW VEGETATION COVER
@@ -128,6 +127,7 @@ USE YOMSURF_SSDP_MOD
 !                                               use of parameter values defined in namelist
 !     I. Ayan-Miguez         June 2023 Add refactorization of RVCOV
 !     J. McNorton           24/08/2022  urban tile
+!     G. Arduini             2024 general land/sea ice tile
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -191,8 +191,6 @@ REAL(KIND=JPRB),    INTENT(OUT) :: PFRTI(:,:)
 
 REAL(KIND=JPRB),    INTENT(IN)  :: PSSDP2(:,:)
 
-! Diagnostic output
-REAL(KIND=JPRB),    INTENT(OUT) :: PCSN(:)
 
 TYPE(TSOIL),        INTENT(IN)  :: YDSOIL
 TYPE(TVEG),         INTENT(IN)  :: YDVEG
@@ -302,7 +300,6 @@ DO JL=KIDIA,KFDIA
     ENDIF
   ENDIF
 
-  PCSN(JL)=ZCVS(JL)
   PWLMX(JL)=RWLMAX*(1.0_JPRB-PCVL(JL)-PCVH(JL)&
    & +PCVL(JL)*PLAIL(JL)&
    & +PCVH(JL)*PLAIH(JL))
