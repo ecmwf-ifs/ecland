@@ -152,6 +152,7 @@ USE YOMSURF_SSDP_MOD
 !     J. McNorton           24-08-2022 urban tile
 !     G. Arduini            2024       Glacier component
 !     I. Ayan-Miguez (BSC)  Sep 2023   Added PSSDP3 object for spatially distributed parameters
+!     G. Arduini            Sep 2024   Land and sea ice tile
 !-----------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -226,7 +227,7 @@ REAL(KIND=JPRB) :: ZAPTI1,ZAPTI2,ZAPTI3,ZAPTI4,ZAPTI5,ZAPTI6,ZAPTI7,ZAPTI8
 REAL(KIND=JPRB) :: ZADTI9,ZAPTI9 
 REAL(KIND=JPRB) :: ZADTI10,ZAPTI10
 
-INTEGER(KIND=JPIM) :: JL, JNU, JSW, IM1, IM2
+INTEGER(KIND=JPIM) :: JL, JS, JNU, JSW, IM1, IM2
 
 REAL(KIND=JPRB) :: ZBSPE, ZPROP, ZALBICE_AR, ZALBICE_AN &
  & , ZALBD, ZALBP, ZLEN, ZW1, ZW2,ZSTAND,ZWCP  

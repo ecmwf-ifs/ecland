@@ -82,7 +82,8 @@ USE SRFWDIF_MOD
 !     P.VITERBO/A.BELJAARS      E.C.M.W.F.     15/03/1999
 !     Modified P. Viterbo       17-05-2000  Surface DDH for TILES
 !     Modified J.F. Estrade *ECMWF* 03-10-01 move in surf vob
-
+!              G. Arduini       Jan 2024     Variable ice thickness
+!              G. Arduini       Sept 2024 Land-ice fraction 
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -124,6 +125,7 @@ REAL(KIND=JPRB) :: ZDAI(KLON,KLEVS)
 REAL(KIND=JPRB) :: ZDARLICE
 REAL(KIND=JPRB) :: ZCSN_I
 
+REAL(KIND=JPRB) :: ZEPSILON
 LOGICAL :: LLDOICE(KLON)
 REAL(KIND=JPRB) :: ZRES
 REAL(KIND=JPRB) :: ZTHICK,ZTHICK2
@@ -133,8 +135,8 @@ INTEGER(KIND=JPIM) :: ZKLEVI
 INTEGER(KIND=JPIM) :: JK, JL
 
 REAL(KIND=JPRB) :: ZCONS1, ZCONS2, ZSLRFL, ZSSRFL, ZTHFL, ZTMST
-REAL(KIND=JPRB) :: ZTMP0
 REAL(KIND=JPRB) :: ZTHICKICE_ENERGY
+REAL(KIND=JPRB) :: ZTMP0
 REAL(KIND=JPRB) :: ZEPSILON
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 

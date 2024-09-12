@@ -9,6 +9,7 @@
 
 list(APPEND cmflood_src
     cmf_calc_diag_mod.F90
+    cmf_ctrl_damout_mod.F90
     cmf_calc_fldstg_mod.F90
     cmf_calc_outflw_mod.F90
     cmf_calc_pthout_mod.F90

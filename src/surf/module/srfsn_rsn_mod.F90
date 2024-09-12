@@ -1,6 +1,6 @@
 MODULE SRFSN_RSN_MOD
 CONTAINS
-SUBROUTINE SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,LSNOWLANDONLY,PCIL,LDLAND,&
+SUBROUTINE SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,PCIL,LDLAND,&
                     &PRSNM1M,PSSNM1M,PTSNM1M,PWSNM1M,PWSN,&
                     &PSNOWF,PUSRF,PVSRF,PTSRF,&
                     &YDSOIL,YDCST,PRSN,PDHTSS)
@@ -74,7 +74,7 @@ USE YOS_CST  , ONLY : TCST
 !     Modifications:
 !     Original   E. Dutra      ECMWF     04/12/2015
 !                G. Arduini    ECMWF     01/09/2021
-
+!     Modified   G. Arduini    ECMWF     Sept 2024    snow over land-ice
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -88,7 +88,6 @@ REAL(KIND=JPRB)   , INTENT(IN)   :: PTMST
 REAL(KIND=JPRB)   , INTENT(IN)   :: PCIL(:)
 LOGICAL           , INTENT(IN)   :: LLNOSNOW(:) 
 LOGICAL           , INTENT(IN)   :: LDLAND(:)
-LOGICAL           , INTENT(IN)   :: LSNOWLANDONLY(:)
 
 REAL(KIND=JPRB)   , INTENT(IN)   :: PRSNM1M(:,:)
 REAL(KIND=JPRB)   , INTENT(IN)   :: PSSNM1M(:,:)
@@ -145,7 +144,6 @@ ZTMST = 1.0_JPRB/PTMST
 
 ZEPS=10._JPRB*10._JPRB**(-PRECISION(1._JPRB))
 DO JL=KIDIA,KFDIA
-IF (LSNOWLANDONLY(JL))THEN
   IF (LLNOSNOW(JL)) THEN
     PRSN(JL,:)=RHOMINSN
   ELSE
@@ -222,7 +220,6 @@ IF (LSNOWLANDONLY(JL))THEN
 
 
   ENDIF
-ENDIF
 ENDDO
   
 END ASSOCIATE

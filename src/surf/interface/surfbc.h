@@ -5,11 +5,11 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
  & PLAILCP, PLAIHCP, PAVGPARC, &
  & PLSM   ,PCI    ,PCIL, PCLAKE ,PHLICE,&
  & PGEMU  ,PSNM1M ,PWLM1M ,PRSNM1M, LESNICE,&  
- & LDLAND ,LDSICE ,LDLAKE ,LDNH, LDOCN_KPP,&
+ & LDLAND ,LDSICE , LDLICE, LDLAKE ,LDNH, LDOCN_KPP,&
  & KTVL   ,KCO2TYP, KTVH   ,KSOTY,&
  & PCVL   ,PCVH, PCUR, PLAIL, PLAIH, PLAILP, PLAIHP, PAVGPAR,&
  & PWLMX  ,PFRTI, &
- & PCSN)
+ & )
 
 ! (C) Copyright 1999- ECMWF.
 !
@@ -60,6 +60,7 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !     OUTPUT PARAMETERS (LOGICAL):
 !     *LDLAND*       LAND INDICATOR
 !     *LDSICE*       SEA-ICE INDICATOR
+!     *LDLICE*       LAND-ICE INDICATOR
 !     *LDLAKE*       LAKE INDICATOR
 !     *LDNH*         NORTHERN HEMISPHERE INDICATOR
 !     *LDOCN_KPP*    KPP MODEL INDICATOR 
@@ -77,7 +78,6 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !            2 : ICE                    6 : DRY SNOW-FREE HIGH-VEG
 !            3 : WET SKIN               7 : SNOW UNDER HIGH-VEG
 !            4 : DRY SNOW-FREE LOW-VEG  8 : BARE SOIL
-!     *PCSN*         SNOW COVER FRACTION (diagnostic)                (0-1)
 
 !     OUTPUT PARAMETERS (INTEGER):
 !     *KTVL*         LOW VEGETATION TYPE
@@ -99,6 +99,8 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !     Y. Takaya        07-10-2008       Add flag for ocean mixed layer model
 !     S. Boussetta/G.Balsamo May 2009 Add lai
 !     I. Ayan-Miguez June 2023        Add object with spatailly distributed parameters
+!     G. Arduini     Jan 2024        snow over sea-ice
+!     G. Arduini     Sept 2024        Land-ice fraction
 !     ------------------------------------------------------------------
 
 USE PARKIND1, ONLY : JPIM, JPRB
@@ -143,6 +145,7 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PHLICE(:)
 LOGICAL           ,INTENT(IN)    :: LESNICE 
 LOGICAL           ,INTENT(OUT)   :: LDLAND(:) 
 LOGICAL           ,INTENT(OUT)   :: LDSICE(:) 
+LOGICAL           ,INTENT(OUT)   :: LDLICE(:) 
 LOGICAL           ,INTENT(OUT)   :: LDNH(:) 
 LOGICAL           ,INTENT(OUT)   :: LDLAKE(:)  
 LOGICAL           ,INTENT(OUT)   :: LDOCN_KPP(:)  
@@ -160,8 +163,6 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PLAIHP(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAVGPAR(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWLMX(:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PFRTI(:,:) 
-
-REAL(KIND=JPRB),    INTENT(OUT) :: PCSN(:)
 
 !     ------------------------------------------------------------------
 
