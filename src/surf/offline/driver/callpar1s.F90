@@ -1132,7 +1132,7 @@ IF ( LESURF ) THEN
      & ZCVT, ZLAIVT, ZLAIL, ZLAIH, &                          !CTESSEL
      & PCIL, &
      & PLAILC,  PLAIHC, &
-     & LLLAND, LLSICE, LESICE, LLNH, LLOCN_KPP,&              !KPP
+     & LLLAND, LLSICE,LLLICE, LESICE, LLNH, LLOCN_KPP,&              !KPP
      & PSNS  ,PTSN,PASN,PRSN,PWSN,ZPAPSRF,PTL,PTSA,PTIA,&
      & PWL  ,PWSA,&
      & PTLICE,PTLMNW,PTLWML,PTLBOT,PTLSF, &                   !FLAKE

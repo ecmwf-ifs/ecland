@@ -166,7 +166,7 @@ ZEPSILON=EPSILON(ZEPSILON)
 !             -------------------------------------
 
 DO JL=KIDIA,KFDIA
-  LLDOICE(JL)=LDICE(JL) .and. LDLAND(JL)
+  LLDOICE(JL)=LDICE(JL) !.and. LDLAND(JL)
 
   IF (LLDOICE(JL)) THEN
     ! This need to be weighted properly:
