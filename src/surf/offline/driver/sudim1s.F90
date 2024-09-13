@@ -140,7 +140,7 @@ NVSF=NVSF+1 ! add VFPBLOB - global gaussian reduced index
 NVSF=NVSF+1 ! add MVFCLAKEF  lake + flood 
 NVSF=NVSF+1 ! Include urban
 NVSF=NVSF+1 ! Include land ice
-NVSF=NVSF+1 ! Include pavgpar
+NVSF=NVSF+2 ! Include pavgpar + ISOP_EP
 
 IVSFNVT=9 ! yomgpd1s: z0f,albf,itm,geo,z0h,sst,ci,soty,aror, climatology 
 IVSFVT=6 ! yomgpd1s: for each vegetation type: tile fraction, LAI, coverage,type,(rsmin),R0VT
