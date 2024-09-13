@@ -3,7 +3,7 @@ CONTAINS
 SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
      & PPPFD_TOA, &
      & PTM1,PCM1, PTSKM1M, PTSOIL,&
-     & PLAI, PLAIP, PSRFD, PMU0, PLAT, PAVGPAR, &
+     & PLAI, PLAIP, PSRFD, PMU0, PLAT, PAVGPAR, PISOP_EP, &
      & YDBVOC,YDAGF,PBVOCDIAG,PBVOCFLUX)
 
   !**   *BVOC_EMIS* - CALCULATES NET Biogenic VOC emissions per land use type  
@@ -46,6 +46,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
   !     *PMU0*         LOCAL COSINE OF INSTANTANEOUS MEAN SOLAR ZENITH ANGLE
   !     *PLAT*         LATITUDE (Radians)
   !     *PAVGPAR*      (Climatological) AVG PHOTOSYNTHETIC ACTIVE RADIATION W/M2
+  !     *PISOP_EP*     Isoprene Emission potential                   ug/m2/hour
   !     *PF2*	       SOIL MOISTURE STRESS FUNCTION 	           -
   !     *PQS*          SATURATION Q AT SURFACE			   KG/KG
 
@@ -93,6 +94,7 @@ SUBROUTINE BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,KVTYPE,&
   REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(:)
   REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAT(:)
   REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPAR(:)
+  REAL(KIND=JPRB)   ,INTENT(IN)    :: PISOP_EP(:)
   TYPE(TBVOC)       ,INTENT(IN)    :: YDBVOC
   TYPE(TAGF)        ,INTENT(IN)    :: YDAGF
   REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
@@ -289,6 +291,16 @@ DO JSP=1,NEMIS_BVOC
       ZBVOCFLUX(JL,JSP)=EMIS_FAC(JSP,KVTYPE_MEGAN(JL))
   ENDDO
 ENDDO
+! Overwrite the isoprene EF with information from offline field..
+IF (IC5H8 > 0 ) THEN 
+  DO JL=KIDIA,KFDIA
+    ! Conversion from ug/m2/hour to kg/m2/sec:
+    ! 1E-9_JPRB / 3600._JPRB
+    ZBVOCFLUX(JL,IC5H8)=PISOP_EP(JL)*2.77778E-13
+  ENDDO
+ENDIF
+
+
 
 !*       4.1     Evaluate local modification of activity factors: Canopy environment
 !               ---------- ----------

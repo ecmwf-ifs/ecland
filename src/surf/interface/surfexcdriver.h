@@ -9,7 +9,7 @@ SUBROUTINE SURFEXCDRIVER    (YDSURF, CDCONF &
 ! input data, non-tiled
  & , KTVL, KCO2TYP, KTVH, PCVL, PCVH, PCUR &
  & , PLAIL, PLAIH &
- & , PLAILP, PLAIHP, PAVGPAR &
+ & , PLAILP, PLAIHP, PAVGPAR, PISOP_EP &
  & , PFWET, PLAT &
  & , PSNM , PRSN &
  & , PMU0 , PCARDI &
@@ -130,6 +130,7 @@ USE ISO_C_BINDING
 !      PLAILP   :    Low vegetation LAI previous time step
 !      PLAIHP   :    High vegetation LAI previous time step
 !      PAVGPAR  :    Average PAR
+!      ISOP_EP  :    Isoprene emission potential
 
 !     PSNM      :       SNOW MASS (per unit area)                      kg/m**2
 !     PRSN      :      SNOW DENSITY                                   kg/m**3
@@ -308,6 +309,7 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILP(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHP(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPAR(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PISOP_EP(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFWET(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAT(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSNM(:,:)

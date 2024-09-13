@@ -9,7 +9,7 @@ SUBROUTINE SURFEXCDRIVER_CTL(CDCONF &
 ! input data, non-tiled
  & , KTVL, KCO2TYP, KTVH, PCVL, PCVH, PCUR &
  & , PLAIL, PLAIH &
- & , PLAILP, PLAIHP, PAVGPAR &
+ & , PLAILP, PLAIHP, PAVGPAR, PISOP_EP &
  & , PFWET, PLAT &
  & , PSNM , PRSN &
  & , PMU0 , PCARDI &
@@ -173,6 +173,7 @@ USE EC_LUN       , ONLY : NULERR
 !      PLAILP   :    LOW VEGETATION LAI previous time step           m2/m2
 !      PLAIHP   :    HIGH VEGETATION LAI previous time step          m2/m2
 !      PAVGPAR  :    Average PAR for use in BVOC emissions module    W/m2
+!      PISOP_EP :    Isoprene emission potential                     ug/m2/hour
 
 !     PSNM      :       SNOW MASS (per unit area)                      kg/m**2
 !     PRSN      :      SNOW DENSITY                                   kg/m**3
@@ -346,6 +347,7 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILP(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHP(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPAR(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PISOP_EP(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFWET(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAT(:)
 
@@ -785,7 +787,7 @@ DO JTILE=1,KTILES
    & ZLAIVT(:,KVTTL(JTILE)),ZLAIVT_WET(:,KVTTL(JTILE)),& 
    & ZLAIVTP_WET(:,KVTTL(JTILE)),& 
    & PMU0,PLAT, PCO2FLUX,&
-   & PFRTI, PLAIL, PLAIH,PAVGPAR,&
+   & PFRTI, PLAIL, PLAIH,PAVGPAR,PISOP_EP,&
    & PTMLEV  ,PQMLEV  , PCMLEV, PAPHMS,&
    & PTSKTI(:,JTILE),PWSAM1M,PTSAM1M,KSOTY,&
    & ZSRFD,PRAQTI(:,JTILE),ZQSATI(:,JTILE),&
