@@ -80,7 +80,7 @@ USE YOMGPD1S , ONLY : GPD &
                      &,VFALNII,VFALNIV,VFALNIG &
                      &,VFCVL, VFCUR &
                      &,VFCVH,VFTVL,VFTVH,VFSST,VFCI,VFCIL,VFSOTY &
-                     &,VFSDOR, VFCO2TYP,VFISOP_EP,&
+                     &,VFSDOR, VFCO2TYP,VFISOP_EP &
                      &,VFLDEPTH,VFCLAKE, VFCLAKEF &
                      &,VFZO,VFHO,VFHO_INV,VFDO,VFOCDEPTH,VFADVT &
                      &,VFADVS, VFTRI0, VFTRI1, VFSWDK_SAVE &
