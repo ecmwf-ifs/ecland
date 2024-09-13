@@ -80,7 +80,7 @@ USE YOMGPD1S , ONLY : GPD &
                      &,VFALNII,VFALNIV,VFALNIG &
                      &,VFCVL, VFCUR &
                      &,VFCVH,VFTVL,VFTVH,VFSST,VFCI,VFCIL,VFSOTY &
-                     &,VFSDOR, VFCO2TYP&
+                     &,VFSDOR, VFCO2TYP,VFISOP_EP,&
                      &,VFLDEPTH,VFCLAKE, VFCLAKEF &
                      &,VFZO,VFHO,VFHO_INV,VFDO,VFOCDEPTH,VFADVT &
                      &,VFADVS, VFTRI0, VFTRI1, VFSWDK_SAVE &
@@ -462,6 +462,9 @@ DO IVAR=1,NVARS2D
     CASE('LDEPTH')
       IF ( STATUS /= 0 ) ZBUF(:) = 10._JPRB
       VFLDEPTH(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
+    CASE('ISOP_EP')
+      IF ( STATUS /= 0 ) ZBUF(:) = 0._JPRB
+      VFISOP_EP(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
     CASE('CLAKE')
        IF ( STATUS /= 0 ) ZBUF(:) = 0._JPRB
        VFCLAKE(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))

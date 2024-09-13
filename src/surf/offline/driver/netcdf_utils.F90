@@ -267,6 +267,9 @@ SELECT CASE(CNAME)
   CASE('par_avg')
     CLNAME='climatological PAR'
     CUNITS='W m-2'
+  CASE('ISOP_EP')
+    CLNAME='Isoprene emission potential'
+    CUNITS='ug m-2 s-1'
   CASE('Anday','An')
     CLNAME='net CO2 assimilation'
     CUNITS='kg m-2 s-1'

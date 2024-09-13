@@ -35,6 +35,8 @@ SAVE
 ! VFLAIH  - high vegetation lai
 ! VFLAIL  - low vegetation lai from 10 days before
 ! VFLAIH  - high vegetation lai from 10 days before
+! VFAVGPAR- Climatological photosynthetic active radiation
+! VFISOP_EP- Isoprene emission potential
 ! VFCO2TYP- photosynthesis pathway (C3/C4) (only applicable to low vegetation types)
 ! VFRSML  - low  vegetation minimum stomatal resistance
 ! VFRSMH  - high vegetation minimum stomatal resistance
@@ -209,6 +211,7 @@ REAL(KIND=JPRB),POINTER:: VFGEO(:)
 REAL(KIND=JPRB),POINTER:: VFZ0H(:)
 REAL(KIND=JPRB),POINTER:: VFFWET(:)
 REAL(KIND=JPRB),POINTER:: VFAVGPAR(:)
+REAL(KIND=JPRB),POINTER:: VFISOP_EP(:)
 REAL(KIND=JPRB),POINTER:: VFCVL(:)
 REAL(KIND=JPRB),POINTER:: VFCVH(:)
 REAL(KIND=JPRB),POINTER:: VFCUR(:)
