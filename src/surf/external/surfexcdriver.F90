@@ -8,7 +8,7 @@ SUBROUTINE SURFEXCDRIVER    (YDSURF, CDCONF &
 ! input data, non-tiled
  & , KTVL, KCO2TYP, KTVH, PCVL, PCVH, PCUR &
  & , PLAIL, PLAIH &
- & , PLAILP, PLAIHP, PAVGPAR &
+ & , PLAILP, PLAIHP, PAVGPAR, PISOP_EP &
  & , PFWET, PLAT &
  & , PSNM , PRSN &
  & , PMU0 , PCARDI &
@@ -138,6 +138,7 @@ USE SURFEXCDRIVER_CTL_MOD
 !      PLAILP   :    Low vegetation LAI previous time step
 !      PLAIHP   :    High vegetation LAI previous time step
 !      PAVGPAR  :    Average PAR
+!      PISOP_EP :    Isoprene Emission Potential 
 
 !     PSNM      :       SNOW MASS (per unit area)                      kg/m**2
 !     PRSN      :      SNOW DENSITY                                   kg/m**3
@@ -321,6 +322,7 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILP(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHP(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPAR(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PISOP_EP(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFWET(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAT(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSNM(:,:)
@@ -487,6 +489,10 @@ ENDIF
 
 IF(UBOUND(PAVGPAR,1) < KLON) THEN
   CALL ABORT_SURF('SURFEXCDRIVER: PAVGPAR TOO SHORT!')
+ENDIF
+
+IF(UBOUND(PISOP_EP,1) < KLON) THEN
+  CALL ABORT_SURF('SURFEXCDRIVER: PISOP_EP TOO SHORT!')
 ENDIF
 
 IF(UBOUND(PSNM,1) < KLON) THEN
@@ -1048,7 +1054,7 @@ CALL SURFEXCDRIVER_CTL(CDCONF &
  & , PPPFD_TOA &
  & , KTVL, KCO2TYP, KTVH, PCVL, PCVH, PCUR & 
  & , PLAIL, PLAIH &
- & , PLAILP, PLAIHP, PAVGPAR &
+ & , PLAILP, PLAIHP, PAVGPAR, PISOP_EP &
  & , PFWET, PLAT &
  & , PSNM , PRSN &
  & , PMU0 , PCARDI &
