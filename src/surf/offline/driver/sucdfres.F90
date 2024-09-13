@@ -110,7 +110,7 @@ ENDIF
                       'SnowT    ','SAlbedo  ','snowdens ','AvgSurfT ','TLICE    ',&
                       'TLMNW    ','TLWML    ','TLBOT    ','TLSF     ','HLICE    ',&
                       'HLML     ','LDEPTH   ','CLAKE    ','x        ','CLAKEF   ',&
-                      'cu       '/)
+                      'cu       ','ISOP_EP  '/)
 
   IF (LEC4MAP) THEN
 
