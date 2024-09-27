@@ -109,10 +109,9 @@ IF (LHOOK) CALL DR_HOOK('SRFSN_ASN_MOD:SRFSN_ASN',0,ZHOOK_HANDLE)
 
 ! Glacier variables
 ZALBMIN=0.65_JPRB
-!*ZALBMAX=0.82_JPRB ! RALFMINPSN albedo glacier, ihkn
+ZALBMAX=0.82_JPRB ! RALFMINPSN albedo glacier
 !* Value tested over PROMICE Sites giving good results:
-!ZALBMAX=0.815_JPRB !tested in ihlx
-ZALBMAX=0.81_JPRB !tested in ...
+!ZALBMAX=0.815_JPRB 
 ZRTAU_A=0.004     ! RTAU/2
 ZRTAUF_GL=0.11_JPRB
 ZTSNTHR=5._JPRB
@@ -148,21 +147,17 @@ DO JL=KIDIA,KFDIA
        & (YDSOIL%RALFMAXSN-ZASN_L)
       ZASN_L=MIN(YDSOIL%RALFMAXSN,MAX(ZASN_L,YDSOIL%RALFMINSN))
     
-    !ELSE
     ! Ice part of the grid-cell
       IF (PTSNM1M(JL,1) > YDCST%RTT-ZTSNTHR) THEN
          ! MELTING CONDITIONS, modified minimum albedo and use different RTAUF.
          ! ZRTAUF_GL gives a rate of change of albedo in between RTAUF and the linear 
          ! relationship over a continuous change over 10-days.
          ZASN_I=(PASNM1M(JL)-ZALBMIN)*EXP(-ZRTAUF_GL*PTMST/YDCST%RDAY)+ZALBMIN
-         ! MELTING CONDITIONS, modified minimum albedo
-         !*ZASN_I=(PASNM1M(JL)-ZALBMIN)*EXP(-YDSOIL%RTAUF*PTMST/YDCST%RDAY)+ZALBMIN
          !* Use linear relationship also in melting conditions.
          !*ZASN_I=MAX(ZALBMIN,PASNM1M(JL)-YDSOIL%RTAUA*PTMST/YDCST%RDAY)
       ELSE
+         ! Do not modify albedo in normal conditions.
          ZASN_I=PASNM1M(JL)
-      !*   ! NORMAL CONDITIONS, modified minimum albedo and tau_a
-      !*   PASN(JL)=MAX(ZALBMIN,PASNM1M(JL)-ZRTAU_A*PTMST/YDCST%RDAY)
       ENDIF
       ! UPDATE ALBEDO DUE TO SNOWFALL EVENTS, modified threhshold to 5 instead of 10 kg m-2
       ZASN_I=ZASN_I+ MIN(MAX(PSNOWF(JL)*PTMST , 0._JPRB)/ZALBRESET(JL) , 1._JPRB) *&
