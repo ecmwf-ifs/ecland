@@ -52,7 +52,7 @@ REAL(KIND=JPRB) :: RLPDD    ! CONSTANT FROM THE LOUIS ET AL. FORMULATION
 !      ----      ----        -------
 
 
-!$acc declare copyin( RITBL, DRITBL, RIMAX, RCHBA, RCHBB, RCHBC, RCHBD, RCHB23A, &
+!$acc declare create( RITBL, DRITBL, RIMAX, RCHBA, RCHBB, RCHBC, RCHBD, RCHB23A, &
 !$acc  & RCHBBCD, RCHBCD, RCHETA, RCHETB, RCHBHDL, RCDHALF, RCDHPI2, RLPBB, RLPCC, RLPDD )
 
 !     ------------------------------------------------------------------
