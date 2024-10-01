@@ -8,7 +8,7 @@ SUBROUTINE SPPCFL(KIDIA, KFDIA, KLON,KTILE &
  & , PBLEND, PFBLEND, PUCURR, PVCURR &
  & , YDCST, YDEXC &
  ! OUTPUTS
- & , PU10, PV10, P10NU, P10NV, PUST, PT2, PD2, PQ2, PRPLRG &
+ & , PU10, PV10, P10NU, P10NV, PUST, PT2, PD2, PQ2, PRHW2, PRPLRG &
  & , LWIND )  
 
 USE PARKIND1  , ONLY : JPIM, JPRB, JPRD
@@ -38,6 +38,7 @@ USE YOS_EXC    ,ONLY : TEXC
 !     N.Semane+P.Bechtold 04-10-2012 Add PRPLRG factor for small planet
 !     F. Vana  05-Mar-2015  Support for single precision
 !     A. van Niekerk 05/2023 Remove limiter for 10m wind
+!     P. Berrisford 19-Sep-2024 Add 2m relative humidity wrt water
 
 !     PURPOSE
 !     -------
@@ -87,6 +88,7 @@ USE YOS_EXC    ,ONLY : TEXC
 !     *PT2*          TEMPERATURE AT 2 M
 !     *PD2*          DEW POINT TEMPERATURE AT 2 M
 !     *PQ2*          SPECIFIC HUMIDITY AT 2 M
+!     *PRHW2*        RELATIVE HUMIDITY AT 2 M
 
 !     METHOD
 !     ------
@@ -129,6 +131,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PUST(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PT2(:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PD2(:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQ2(:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRHW2(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRPLRG
 
 !*    LOCAL STORAGE
@@ -141,6 +144,7 @@ REAL(KIND=JPRD) :: Z10DNL,Z10DNN, Z10M, Z10MP, Z2M, Z2MP,&
  & ZF1, ZFRAC, ZHTQ, ZL, ZNLEV, ZPRH0, ZPRH1, &
  & ZPRH2, ZPRM0, ZPRM1, ZPRM10, ZPRM2, ZPRQ0, &
  & ZWIND, ZZQM1, ZDUMMY,&
+ & ZRHMIN, ZRHMAX,&
  & ZNLEV_S, ZDL_S, ZL_S
 REAL(KIND=JPRB) :: ZEPSILON
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -327,6 +331,23 @@ DO JL=KIDIA,KFDIA
 
   PD2(JL)=MIN(PT2(JL),PD2(JL))
 ENDDO
+
+!     ------------------------------------------------------------------
+!       4.    COMPUTE 2m RELATIVE HUMIDITY WRT WATER
+!             --------------------------------------
+
+! Use Tetens with 2T and 2D
+  DO JL=KIDIA,KFDIA
+    PRHW2(JL)=EXP(R3LES*(RTT-R4LES)*(PD2(JL)-PT2(JL))/((PD2(JL)-R4LES)*(PT2(JL)-R4LES)))
+  ENDDO
+
+! Convert 2m RHW to per cent and set range
+  ZRHMIN=0._JPRB
+  ZRHMAX=100._JPRB
+  DO JL=KIDIA,KFDIA
+    PRHW2(JL)=100._JPRB*PRHW2(JL)
+    PRHW2(JL)=MAX(ZRHMIN,MIN(PRHW2(JL),ZRHMAX))
+  ENDDO
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SPPCFL_MOD:SPPCFL',1,ZHOOK_HANDLE)

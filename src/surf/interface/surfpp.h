@@ -13,7 +13,7 @@ SUBROUTINE SURFPP(YDSURF, KIDIA, KFDIA, KLON, KTILES, KDHVTLS, KDHFTLS &
  & , PAHFSTI, PEVAPTI, PTSKE1, PTSKTIP1 &
 ! output
  & , PDIFTSLEV, PDIFTQLEV, PUSTRTI, PVSTRTI, PTSKTI, PAHFLEV, PAHFLSB, PFWSB  &
- & , PU10M, PV10M, PT2M, PD2M, PQ2M &
+ & , PU10M, PV10M, PT2M, PD2M, PQ2M, PRHW2M &
  & , PGUST, P10NU, P10NV, PUST &
 ! output DDH
  & , PDHTLS &
@@ -118,6 +118,7 @@ USE YOS_SURF, ONLY : TSURF
 !      PT2M      :  TEMPERATURE AT 2M                                K
 !      PD2M      :  DEW POINT TEMPERATURE AT 2M                      K
 !      PQ2M      :  SPECIFIC HUMIDITY AT 2M                          kg/kg
+!      PRHW2M    :  RELATIVE HUMIDITY AT 2M                          per cent
 !      PGUST     :  GUST AT 10 M                                     m/s
 !      PDHTLS    :  Diagnostic array for tiles (see module yomcdh)
 !                      (Wm-2 for energy fluxes, kg/(m2s) for water fluxes)
@@ -206,6 +207,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PUST(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PT2M(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PD2M(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQ2M(KLON)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRHW2M(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PGUST(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTLS(KLON,KTILES,KDHVTLS+KDHFTLS)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRPLRG
