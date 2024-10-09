@@ -342,7 +342,7 @@ ENDDO
   ENDDO
 
 ! Convert 2m RHW to per cent and set range
-  ZRHMIN=0._JPRB
+  ZRHMIN=2._JPRB
   ZRHMAX=100._JPRB
   DO JL=KIDIA,KFDIA
     PRHW2(JL)=100._JPRB*PRHW2(JL)
