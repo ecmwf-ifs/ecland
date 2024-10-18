@@ -1,26 +1,26 @@
-MODULE SRFIL_MOD
+MODULE SRFILS_MOD
 CONTAINS
-SUBROUTINE SRFIL(KIDIA  , KFDIA  , KLON , KLEVS  , KLEVI  ,LDLAND, PCIL,PSDOR,&
+SUBROUTINE SRFILS(KIDIA  , KFDIA  , KLON , KLEVI  ,LDLAND, PCIL,&
  & PTMST  ,PTIAM1M ,PFRTI , PAHFSTI, PEVAPTI,PGSNICE,&
  & PSLRFL ,PSSRFLTI, PTSOIL, LDICE  , LDNH   ,&
  & YDCST  ,YDSOIL  ,&
- & PTIA   ,PMELT, PGICE, PDHTIS)  
- 
+ & PTIA   ,PGICE)
+
 USE PARKIND1 , ONLY : JPIM, JPRB
 USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_CST  , ONLY : TCST
 USE YOS_SOIL , ONLY : TSOIL
 
-USE SRFWDIF_MOD
+USE SRFWDIFS_MOD
 
-!**** *SRFIL* - Computes temperature changes in land ice
+!**** *SRFILS* - Computes temperature changes in land ice (simplified)
 
 !     PURPOSE.
 !     --------
-!**   Computes temperature evolution of sea ice  
+!**   Computes temperature evolution of land ice  
 !**   INTERFACE.
 !     ----------
-!          *SRFIL* IS CALLED FROM *SURF*.
+!          *SRFILS* IS CALLED FROM *SURF*.
 
 !     PARAMETER   DESCRIPTION                                    UNITS
 !     ---------   -----------                                    -----
@@ -28,11 +28,8 @@ USE SRFWDIF_MOD
 !    *KIDIA*      START POINT
 !    *KFDIA*      END POINT
 !    *KLON*       NUMBER OF GRID POINTS PER PACKET
-!    *KLEVS*      NUMBER OF SOIL LAYERS
 !    *KTILES*     NUMBER OF SURFACE TILES
-!    *KLEVI*      Number of sea ice layers (diagnostics)
-!    *KDHVTIS*    Number of variables for sea ice energy budget
-!    *KDHFTIS*    Number of fluxes for sea ice energy budget
+!    *KLEVI*      Number of ice layers
 
 !     INPUT PARAMETERS (REAL):
 !    *PTMST*      TIME STEP                                      S
@@ -56,11 +53,7 @@ USE SRFWDIF_MOD
 !    *PGSN* .     SNOW basal heat flux between snow and ice       W/M2
 !     UPDATED PARAMETERS AT T+1 (UNFILTERED,REAL):
 !    *PTIA*       SOIL TEMPERATURE                               K
-!    *PMELT*      MELTWATER FLUX FROM LAND ICE                    K
 !    *PGICE*      BASAL HEAT FLUX FROM LAND ICE  to soil          K
-
-!     OUTPUT PARAMETERS (DIAGNOSTIC):
-!    *PDHTIS*     Diagnostic array for ice T (see module yomcdh)
 
 !     METHOD.
 !     -------
@@ -73,9 +66,7 @@ USE SRFWDIF_MOD
 !     REFERENCE.
 !     ----------
 !          See documentation.
-!     P.VITERBO/A.BELJAARS      E.C.M.W.F.     15/03/1999
-!     Modified P. Viterbo       17-05-2000  Surface DDH for TILES
-!     Modified J.F. Estrade *ECMWF* 03-10-01 move in surf vob
+!     G. Arduini                2024 Adapted from SRFIS
 
 !     ------------------------------------------------------------------
 
@@ -86,12 +77,9 @@ IMPLICIT NONE
 INTEGER(KIND=JPIM), INTENT(IN)   :: KIDIA
 INTEGER(KIND=JPIM), INTENT(IN)   :: KFDIA
 INTEGER(KIND=JPIM), INTENT(IN)   :: KLON
-INTEGER(KIND=JPIM), INTENT(IN)   :: KLEVS
 INTEGER(KIND=JPIM), INTENT(IN)   :: KLEVI
 LOGICAL, INTENT(IN)   :: LDLAND(:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PCIL(:)
-REAL(KIND=JPRB),    INTENT(IN)   :: PSDOR(:)
-
 REAL(KIND=JPRB),    INTENT(IN)   :: PTMST
 REAL(KIND=JPRB),    INTENT(IN)   :: PTIAM1M(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PFRTI(:,:)
@@ -106,28 +94,25 @@ LOGICAL,            INTENT(IN)   :: LDNH(:)
 TYPE(TCST),         INTENT(IN)   :: YDCST
 TYPE(TSOIL),        INTENT(IN)   :: YDSOIL
 REAL(KIND=JPRB),    INTENT(OUT)  :: PTIA(:,:)
-REAL(KIND=JPRB),    INTENT(OUT)  :: PMELT(:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PGICE(:)
-REAL(KIND=JPRB),    INTENT(OUT)  :: PDHTIS(:,:,:)
 
 !      LOCAL VARIABLES
 
 REAL(KIND=JPRB) :: ZSURFL(KLON)
-REAL(KIND=JPRB) :: ZRHS(KLON,KLEVS), ZCDZ(KLON,KLEVS),&
- & ZLST(KLON,KLEVS),&
- & ZTIA(KLON,KLEVS)  
-REAL(KIND=JPRB) :: ZDAI(KLON,KLEVS)
+REAL(KIND=JPRB) :: ZRHS(KLON,KLEVI), ZCDZ(KLON,KLEVI),&
+ & ZLST(KLON,KLEVI),&
+ & ZTIA(KLON,KLEVI)  
+REAL(KIND=JPRB) :: ZDAI(KLON,KLEVI)
 REAL(KIND=JPRB) :: ZDARLICE
 REAL(KIND=JPRB) :: ZCSN_I
 
 REAL(KIND=JPRB) :: ZEPSILON
 LOGICAL :: LLDOICE(KLON)
+LOGICAL ::LLALLAYS
 
 INTEGER(KIND=JPIM) :: JK, JL
 
 REAL(KIND=JPRB) :: ZCONS1, ZCONS2, ZSLRFL, ZSSRFL, ZTHFL, ZTMST
-REAL(KIND=JPRB) :: ZTMP0
-REAL(KIND=JPRB) :: zc1, zc2, zc3, ZTAU_ICE
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 !*         1. SET UP SOME CONSTANTS.
@@ -137,24 +122,12 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 !     -------- ----------
 
 
-IF (LHOOK) CALL DR_HOOK('SRFIL_MOD:SRFIL',0,ZHOOK_HANDLE)
+IF (LHOOK) CALL DR_HOOK('SRFILS_MOD:SRFILS',0,ZHOOK_HANDLE)
 ASSOCIATE(RLSTT=>YDCST%RLSTT, RTT=>YDCST%RTT, RLMLT=>YDCST%RLMLT, &
  & RCONDSICE=>YDSOIL%RCONDSICE, RDAI=>YDSOIL%RDAI, RDANSICE=>YDSOIL%RDANSICE, &
  & RDARSICE=>YDSOIL%RDARSICE, RRCSICE=>YDSOIL%RRCSICE, RSIMP=>YDSOIL%RSIMP, &
  & RTFREEZSICE=>YDSOIL%RTFREEZSICE, RTMELTSICE=>YDSOIL%RTMELTSICE, &
  & RHOCI=>YDSOIL%RHOCI,RHOICE=>YDSOIL%RHOICE)
-
-
-DO JK=1,KLEVS-1
-  DO JL=KIDIA,KFDIA
-    ZDAI(JL,JK)=RDAI(JK)
-  ENDDO
-ENDDO
-
-ZDARLICE=10.86_JPRB ! equivalent to 10000/920, previous tests: 30._JPRB
-DO JL=KIDIA,KFDIA
-  ZDAI(JL,KLEVS)=ZDARLICE-(RDAI(1)+RDAI(2)+RDAI(3))
-ENDDO
 
 !*    COMPUTATIONAL CONSTANTS.
 !     ------------- ----------
@@ -164,11 +137,26 @@ ZCONS1=PTMST*RSIMP*2.0_JPRB
 ZCONS2=1.0_JPRB-1.0_JPRB/RSIMP
 ZEPSILON=EPSILON(ZEPSILON)
 
+!    Set up the ice layer thicknesses.
+ZDARLICE=10.86_JPRB ! equivalent to 10000/920, previous tests: 30._JPRB
+DO JK=1,KLEVI-1
+  DO JL=KIDIA,KFDIA
+    ZDAI(JL,JK)=RDAI(JK)
+  ENDDO
+ENDDO
+
+DO JL=KIDIA,KFDIA
+  ZDAI(JL,KLEVI)=ZDARLICE-(RDAI(1)+RDAI(2)+RDAI(3))
+ENDDO
+
+LLALLAYS = .TRUE.    ! done for all layers
+
+
 !*         2. Compute net heat flux at the surface.
 !             -------------------------------------
 
 DO JL=KIDIA,KFDIA
-  LLDOICE(JL)=LDICE(JL) !.and. LDLAND(JL)
+  LLDOICE(JL)=LDICE(JL) 
 
   IF (LLDOICE(JL)) THEN
     ! This need to be weighted properly:
@@ -176,7 +164,11 @@ DO JL=KIDIA,KFDIA
       ZSLRFL=PFRTI(JL,2)*PSLRFL(JL)
       ZTHFL=PFRTI(JL,2)*PAHFSTI(JL,2)+RLSTT*PFRTI(JL,2)*PEVAPTI(JL,2)
     ! PGSNICE(JL) only applies to the fraction of snow over the ice fraction.
-      ZSURFL(JL)=(PGSNICE(JL)+ZSSRFL+ZSLRFL+ZTHFL)/MAX(ZEPSILON,PCIL(JL))
+      IF (PCIL(JL) > ZEPSILON) THEN
+        ZSURFL(JL)=(PGSNICE(JL)+ZSSRFL+ZSLRFL+ZTHFL)/PCIL(JL)
+      ELSE
+        ZSURFL(JL)=(PGSNICE(JL)+ZSSRFL+ZSLRFL+ZTHFL)/ZEPSILON
+      ENDIF
   ELSE
     ZSURFL(JL)=0.0_JPRB
   ENDIF
@@ -186,7 +178,6 @@ ENDDO
 !             ----------
 
 PGICE(KIDIA:KFDIA)=0.0_JPRB
-PMELT(KIDIA:KFDIA)=0.0_JPRB
 !     Layer 1
 
 JK=1
@@ -198,9 +189,9 @@ DO JL=KIDIA,KFDIA
   ENDIF
 ENDDO
 
-!     Layers 2 to KLEVS-1
+!     Layers 2 to KLEVI-1
 
-DO JK=2,KLEVS-1
+DO JK=2,KLEVI-1
   DO JL=KIDIA,KFDIA
     IF (LLDOICE(JL)) THEN
       ZLST(JL,JK)=ZCONS1*RCONDSICE/(ZDAI(JL,JK)+ZDAI(JL,JK+1))
@@ -210,15 +201,15 @@ DO JK=2,KLEVS-1
   ENDDO
 ENDDO
 
-!     Layers KLEVS
+!     Layers KLEVI
 
-JK=KLEVS
+JK=KLEVI
 DO JL=KIDIA,KFDIA
   IF (LLDOICE(JL)) THEN
     ! We use soil temperature as bottom boundary condition
       ! This we can do better and compute average conductivity with
       ! half soil layer like in srfsn_
-      ZLST(JL,JK)=ZCONS1*RCONDSICE/(2.*ZDAI(JL,JK))
+      ZLST(JL,JK)=ZCONS1*RCONDSICE/(2._JPRB*ZDAI(JL,JK))
       ZCDZ(JL,JK)=RRCSICE*ZDAI(JL,JK)
       ZRHS(JL,JK)=(PTSOIL(JL)/RSIMP)*ZLST(JL,JK)/ZCDZ(JL,JK)
   ENDIF
@@ -227,112 +218,19 @@ ENDDO
 !*         4. Call tridiagonal solver
 !             -----------------------
 
-CALL SRFWDIF(KIDIA,KFDIA,KLON,KLEVS,PTIAM1M,ZLST,ZRHS,ZCDZ,YDSOIL,ZTIA,LLDOICE)
+CALL SRFWDIFS(KIDIA,KFDIA,KLON,KLEVI,PTIAM1M,ZLST,ZRHS,ZCDZ,&
+ &            ZTIA,LLDOICE,LLALLAYS,YDSOIL)
 
-
-!* 4.1 Ice meltwater flux for land-ice. Still no mass balance:
-DO JL=KIDIA,KFDIA
-  PMELT(JL) = 0.0_JPRB
-  IF (LLDOICE(JL)) THEN
-    ZTMP0 = (RHOCI*ZDAI(JL,1)*ZTMST)*(ZTIA(JL,1)-RTT)
-    PMELT(JL) = MAX(0._JPRB, MIN( ZTMP0 , RLMLT*ZTMST*(ZDAI(JL,1)*RHOICE) ) )
-    ! Temperature update
-    ZTIA(JL,1) = MIN( RTT, ZTIA(JL,1) - PMELT(JL)/(RHOCI*ZDAI(JL,1)*ZTMST) )
-    ! Water flux
-    PMELT(JL)=PMELT(JL)/RLMLT
-  ENDIF
-
-!***
-!*zc1=0.30_JPRB
-!*zc2=25.0_JPRB
-!*zc3=140.0_JPRB ! Not used
-!*ZTAU_ICE=zc1+zc2*exp(-2.0*PSDOR(JL)/50.0_JPRB)
-!*PMELT(JL)=MIN(PMELT(JL), PMELT(JL)/(86400.0*ZTAU_ICE)) ! in seconds
-!*** 
-ENDDO
-
-
-
-!*          5. DDH diagnostics
-!              ---------------
-
-IF (SIZE(PDHTIS) > 0) THEN
-  DO JL=KIDIA,KFDIA
-    IF (LLDOICE(JL)) THEN
-! Sensible heat flux
-      PDHTIS(JL,1,9)=PFRTI(JL,2)*PAHFSTI(JL,2)
-! Latent heat flux
-      PDHTIS(JL,1,10)=RLSTT*PFRTI(JL,2)*PEVAPTI(JL,2)
-    ELSE
-      PDHTIS(JL,1,9)=0.0_JPRB
-      PDHTIS(JL,1,10)=0.0_JPRB
-      PDHTIS(JL,1,13)=0.0_JPRB
-    ENDIF
-  ENDDO
-  
-  DO JK=2,KLEVI
-    DO JL=KIDIA,KFDIA
-      PDHTIS(JL,JK,9)=0.0_JPRB
-      PDHTIS(JL,JK,10)=0.0_JPRB
-    ENDDO
-  ENDDO
-! Flux ice-soil
-  DO JK=1,KLEVI
-    DO JL=KIDIA,KFDIA
-      PDHTIS(JL,JK,13)=0.0_JPRB
-    ENDDO
-  ENDDO
-
-  DO JK=1,KLEVI
-    DO JL=KIDIA,KFDIA
-      IF (LLDOICE(JL)) THEN
-! Heat capacity per unit surface
-        PDHTIS(JL,JK,1)=RRCSICE*ZDAI(JL,JK)
-! Soil temperature
-        PDHTIS(JL,JK,2)=PTIAM1M(JL,JK)
-! Layer energy per unit surface
-        PDHTIS(JL,JK,3)=RRCSICE*ZDAI(JL,JK)*PTIAM1M(JL,JK)
-! Layer depth
-        PDHTIS(JL,JK,4)=ZDAI(JL,JK)
-      ELSE
-        PDHTIS(JL,JK,1:4)=0.0_JPRB
-      ENDIF
-    ENDDO
-  ENDDO
-! Ice water phase changes
-  DO JK=1,KLEVI
-    DO JL=KIDIA,KFDIA
-      PDHTIS(JL,JK,12)=0.0_JPRB
-    ENDDO
-  ENDDO
-
-  DO JK=1,KLEVI-1
-    DO JL=KIDIA,KFDIA
-      IF (LLDOICE(JL)) THEN
-! Ground heat flux
-        PDHTIS(JL,JK,11)=RSIMP*(ZTIA(JL,JK)-ZTIA(JL,JK+1))*ZLST(JL,JK)*ZTMST
-      ELSE
-        PDHTIS(JL,JK,11)=0.0_JPRB
-      ENDIF
-    ENDDO
-  ENDDO
-  DO JL=KIDIA,KFDIA
-    IF (LLDOICE(JL)) THEN
-      PDHTIS(JL,KLEVS,11)=RSIMP*(ZTIA(JL,KLEVS)-RTFREEZSICE)*ZLST(JL,JK)*ZTMST
-    ELSE
-      PDHTIS(JL,KLEVS,11)=0.0_JPRB
-    ENDIF
-  ENDDO
-ENDIF
-
-!*         6. New temperatures
+!*         5. New temperatures
 !             ----------------
 
 DO JK=1,KLEVI
   DO JL=KIDIA,KFDIA
     IF (LLDOICE(JL)) THEN
       PTIA(JL,JK)=PTIAM1M(JL,JK)*ZCONS2+ZTIA(JL,JK)
-      PTIA(JL,JK)=MIN(PTIA(JL,JK),RTT)
+      IF (PTIA(JL,JK) > RTT) THEN
+        PTIA(JL,JK)=RTT
+      ENDIF
     ELSEIF (LDLAND(JL)) THEN
       PTIA(JL,JK)=RTT
     ELSE
@@ -342,12 +240,12 @@ DO JK=1,KLEVI
     ! 6.1 Compute amount of ice temperature flux to the soil underneath.
     !     this is scaled by gridbox fraction as for the snowpack and passed to srft.
     IF (JK==KLEVI)THEN
-      PGICE(JL)=PCIL(JL)*RCONDSICE*(PTIA(JL,KLEVS)-PTSOIL(JL))
+      PGICE(JL)=PCIL(JL)*RCONDSICE*(PTIA(JL,KLEVI)-PTSOIL(JL))
     ENDIF
   ENDDO
 ENDDO
 END ASSOCIATE
-IF (LHOOK) CALL DR_HOOK('SRFIL_MOD:SRFIL',1,ZHOOK_HANDLE)
+IF (LHOOK) CALL DR_HOOK('SRFILS_MOD:SRFILS',1,ZHOOK_HANDLE)
 
-END SUBROUTINE SRFIL
-END MODULE SRFIL_MOD
+END SUBROUTINE SRFILS
+END MODULE SRFILS_MOD

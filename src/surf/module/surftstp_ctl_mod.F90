@@ -993,6 +993,9 @@ DO JK=1,KLEVS
            & ((PFRTI(JL,2)+PFRTI(JL,5)) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
            & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2)-PFRTI(JL,5))*&
            & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY
+         ELSEIF (LDLICE(JL)) THEN
+           PTSAE1(JL,JK)=PTSAE1(JL,JK) + &
+           & (ZTSA(JL,JK)-PTSAM1M(JL,JK))*ZTSPHY
          ELSE
            PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
            & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
@@ -1000,10 +1003,15 @@ DO JK=1,KLEVS
            & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY
          ENDIF
        ELSE
-         PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-         & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
-         & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
-         & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
+         IF (LDLICE(JL)) THEN
+           PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+           & (ZTSA(JL,JK)-PTSAM1M(JL,JK))*ZTSPHY
+         ELSE
+           PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+           & (PFRTI(JL,2) * (ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
+           & (1.0_JPRB-PFRTI(JL,1)-PFRTI(JL,2))*&
+           & (ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
+         ENDIF
        ENDIF
     ENDIF
   ENDDO
