@@ -980,10 +980,8 @@ ENDDO
 DO JK=1,KLEVS
   DO JL=KIDIA,KFDIA
     IF (PFRTI(JL,9).GT.0.0_JPRB) THEN 
-         PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
-         & (PCIL(JL)*(ZTIA(JL,JK)-PTIAM1M(JL,JK))+&
-         & (1.0_JPRB-PCIL(JL))*(ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
-
+       PTSAE1(JL,JK)=PTSAE1(JL,JK)+&
+       & ((ZTSA(JL,JK)-PTSAM1M(JL,JK)))*ZTSPHY  
     ELSE
     ! This assumes that when LDSICE, PFRTI(5) is only active over sea-ice.
     ! Needs rechecking when moving to fractional land-sea mask.
