@@ -192,7 +192,8 @@ REAL(KIND=JPRB), PARAMETER :: ZH = 1.4614
 REAL(KIND=JPRB), PARAMETER :: ZCSTAR = 585
 REAL(KIND=JPRB), PARAMETER :: ZMMR_TO_VMR = 28.96 / 44.0 * 1E6_JPRB   ! Conversion of CO2 from kg/kg to ppmv
 REAL(KIND=JPRB), PARAMETER :: ZSRFD_FUDGE_FAC=1./2.2_JPRB ! Division of IFS SSRD by factor 2.2, proposed by Katerina Sindelarova, May 2023
-REAL(KIND=JPRB), PARAMETER :: ZGAMMA_LAI_FUDGE_FAC=1.5               ! Tuning factor for GAMMA-LAI
+!REAL(KIND=JPRB), PARAMETER :: ZGAMMA_LAI_FUDGE_FAC=1.5               ! Tuning factor for GAMMA-LAI
+REAL(KIND=JPRB), PARAMETER :: ZGAMMA_LAI_FUDGE_FAC=1.0               ! Tuning factor for GAMMA-LAI
 REAL(KIND=JPRB), PARAMETER :: ZBVOC_SCALE_C5H8=1.5                   ! Tuning factor for C5H8, can be array 1:NEMIS_BVOC
 
   !     -------------------------------------------------------------------------
