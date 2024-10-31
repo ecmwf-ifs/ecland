@@ -190,7 +190,9 @@ REAL(KIND=JPRB), PARAMETER :: ZH = 1.4614
 REAL(KIND=JPRB), PARAMETER :: ZCSTAR = 585
 REAL(KIND=JPRB), PARAMETER :: ZMMR_TO_VMR = 28.96 / 44.0 * 1E6_JPRB   ! Conversion of CO2 from kg/kg to ppmv
 REAL(KIND=JPRB), PARAMETER :: ZSRFD_FUDGE_FAC=1./2.2_JPRB ! Division of IFS SSRD by factor 2.2, proposed by Katerina Sindelarova, May 2023
-REAL(KIND=JPRB), PARAMETER :: ZGAMMA_LAI_FUDGE_FAC=2.0               ! Tuning factor for GAMMA-LAI
+!REAL(KIND=JPRB), PARAMETER :: ZGAMMA_LAI_FUDGE_FAC=1.5               ! Tuning factor for GAMMA-LAI
+REAL(KIND=JPRB), PARAMETER :: ZGAMMA_LAI_FUDGE_FAC=1.0               ! Tuning factor for GAMMA-LAI
+REAL(KIND=JPRB), PARAMETER :: ZBVOC_SCALE_C5H8=1.5                   ! Tuning factor for C5H8, can be array 1:NEMIS_BVOC
 
   !     -------------------------------------------------------------------------
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -294,7 +296,7 @@ IF (IC5H8 > 0 ) THEN
   DO JL=KIDIA,KFDIA
     ! Conversion from ug/m2/hour to kg/m2/sec:
     ! 1E-9_JPRB / 3600._JPRB
-    ZBVOCFLUX(JL,IC5H8)=PISOP_EP(JL)*2.77778E-13
+    ZBVOCFLUX(JL,IC5H8)=ZBVOC_SCALE_C5H8*PISOP_EP(JL)*2.77778E-13
   ENDDO
 ENDIF
 
