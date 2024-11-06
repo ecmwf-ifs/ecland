@@ -443,7 +443,7 @@ PAVGPAR(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
     IF (PCM1(JL) > 0.0_JPRB) THEN
     ! Variable atmospheric CO2
        ZCO2(JL)=PCM1(JL)
-    ELSE 
+    ELSE
        ! CALL ABORT_SURF('COTWORESTRESS_MOD: ATM CO2 SHOULD BE POSITIVE ')
     ENDIF
 
@@ -494,7 +494,7 @@ ELSE
 
   !$loki nodep
   DO JINT=1,SIZE(RABC)
-     ! jint=1 is the lowest part of the canopy, jint=size(rabc) is the highest part. 
+     ! jint=1 is the lowest part of the canopy, jint=size(rabc) is the highest part.
      !  Diffusion of incident radiation:
 
      CALL CCETR(KIDIA,KFDIA,KLON,KVTYPE,KTILE,LDLAND,PAVGPAR,ZMU0,RABC(JINT),PLAI,PSSDP2,YDAGS,ZXIA)
