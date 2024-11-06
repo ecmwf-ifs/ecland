@@ -169,7 +169,7 @@ REAL(KIND=JPRB) :: ZA, ZAUX1, ZAUX2, ZB, ZCDNH,&
  & ZCQ, ZDRORO, ZETA, ZETA1, ZHU, ZIPBL, &
  & ZL, ZPRH, ZPRH0, ZPRH1, ZPRM, ZPRM0, ZPRM1, &
  & ZPRQ, ZPRQ0, ZRIB1, ZRHO, ZUABS, ZWST2, &
- & ZX2, ZPRC0, ZPRC  
+ & ZX2, ZPRC0, ZPRC
 
 ! for snow sublimation due to wind blowing
 LOGICAL           :: LESNOWSUBL
