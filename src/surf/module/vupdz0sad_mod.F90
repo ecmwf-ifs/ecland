@@ -235,6 +235,9 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 !             ------- -------- ------ ---------
 #include "fcz0.h"
 
+! Function to compute Z0M for neutral wind conditions
+#include "fcz0wn.intfb.h"
+
 !     ------------------------------------------------------------------
 
 !*       1.     INITIALIZE CONSTANTS
@@ -897,8 +900,5 @@ ENDDO
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('VUPDZ0SAD_MOD:VUPDZ0SAD',1,ZHOOK_HANDLE)
 END SUBROUTINE VUPDZ0SAD
-
-! Function to compute Z0M for neutral wind conditions
-#include "fcz0wn.h"
 
 END MODULE VUPDZ0SAD_MOD

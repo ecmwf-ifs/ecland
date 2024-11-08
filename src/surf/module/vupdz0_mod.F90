@@ -213,6 +213,8 @@ LOGICAL :: LLCURR,LLINIT
 !             ------- -------- ------ ---------
 #include "fcz0.h"
 
+#include "fcz0wn.intfb.h"
+
 !     ------------------------------------------------------------------
 
 !*       1.     INITIALIZE CONSTANTS
@@ -577,8 +579,6 @@ IF (LHOOK) CALL DR_HOOK('VUPDZ0_MOD:VUPDZ0',1,ZHOOK_HANDLE)
 
 END SUBROUTINE VUPDZ0
 
-! Function to compute Z0M for neutral wind conditions
-#include "fcz0wn.h"
 !  Function to compute Z0H and Z0Q over sea ice
 #include "fcz0sice.h"
 

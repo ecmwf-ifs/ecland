@@ -18,6 +18,7 @@
 
 FUNCTION PZ0WN(PWIND, PGEO, PCHAR, PG, PNUM, PKAP, NITER, ACD, &
                & BCD, XEPS, USTMIN, PCHARMAX, Z0FG)
+USE PARKIND1  , ONLY : JPIM, JPRB, JPRD
 
 IMPLICIT NONE
 
@@ -57,6 +58,8 @@ REAL(KIND=JPRB) :: Z0FG
 INTEGER(KIND=JPIM) :: ITER
 REAL(KIND=JPRB) :: ZLEV, XZLEV, PCHAROG, XKPWIND, XOLOGZ0
 REAL(KIND=JPRB) :: UST, USTOLD, Z0, Z0CH, Z0VIS, F, DELF
+
+!$loki routine seq
 
 ! ------------------------------------------------------------------
 
