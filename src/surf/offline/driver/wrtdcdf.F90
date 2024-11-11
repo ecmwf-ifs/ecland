@@ -270,10 +270,9 @@ DO JK=1,NCSS
   ZLIQ(1:NPOI,JK)=QLQNUA(1:NPOI,JK)
 ENDDO
 
-
-!* store snow and ice fraction for later use, instantaneous
-ZSNOFR(1:NPOI)=D1SNFR2(1:NPOI,IA)   
-ZICEFR(1:NPOI)=D1STIFR2(1:NPOI,2,IA)
+!* store instantaneous (index=1) snow and ice fraction for later use
+ZSNOFR(1:NPOI)=D1SNFR2(1:NPOI,1)
+ZICEFR(1:NPOI)=D1STIFR2(1:NPOI,2,1)
 
 !* calculation of snow depth
 ZSNDEP(:)=SUM(FSNNUA(:,:)/RSNNUA(:,:),DIM=2)
