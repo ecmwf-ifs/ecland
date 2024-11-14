@@ -62,8 +62,8 @@ SUBROUTINE SUPHEC(KULOUT)
 !        A. Agusti-Panareda   Nov 2020    Include variable air CO2 switch LEAIRCO2COUP in photosynthesis
 !        A. Agusti-Panareda   Jul 2021    Include LEFARQUHAR switch fro photosynthesis
 !        J. McNorton          24-08-2022  Urban tile
-!        I. Ayan-Miguez       Oct 2023    Include reading of surface global parameters
 !        V. Huijnen           31-10-2023  Support for online BVOC emissions
+!        I. Ayan-Miguez       Oct 2023    Include reading of surface global parameters
 
 !     ----------------------------------------------------------------
 
@@ -84,8 +84,8 @@ USE YOEPHY   , ONLY : RTHRFRTI, LEVGEN   ,LESSRO   ,LESN09   ,&
             &NALBEDOSCHEME, NEMISSSCHEME,LEOCWA, LEOCCO, LEOCSA, LEOCLA,&
             &LEFLAKE,LEURBAN,LELAIV ,LECTESSEL, LEAGS, LEAIRCO2COUP, LEFARQUHAR, RLAIINT, & 
             &LWCOU,LWCOU2W,LWCOUHMF, LBVOC_EMIS,&
-            &LEOCML,LESNML,LESNICE, LEWARMSTART, LECOLDSTART, NSNMLWS, RALFMINPSN, TMP_SURF, &
-            &NBVOC_EMIS, BVOC_NAMES, NBVOC_EMIS_DEFAULT, DELTA_DAY_LAI_EMIS_BVOC
+            &LEOCML,LESNML,LESNICE, LEWARMSTART, LECOLDSTART, NSNMLWS, RALFMINPSN, &
+            &NBVOC_EMIS, BVOC_NAMES, NBVOC_EMIS_DEFAULT, DELTA_DAY_LAI_EMIS_BVOC, TMP_SURF
 
             
 USE YOEOPTSURF, ONLY : RVR0VT, RVCMAX25, RHUMREL, RA1, RB1, RG0, RGM25, RE_VCMAX, RE_JMAX
