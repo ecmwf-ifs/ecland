@@ -13,7 +13,7 @@ USE YOS_CST   , ONLY : TCST
 USE YOS_VEG   , ONLY : TVEG
 USE YOS_SOIL  , ONLY : TSOIL
 USE YOS_URB   , ONLY : TURB
-USE YOMSURF_SSDP_MOD
+USE YOMSURF_SSDP_MOD, ONLY: SSDP2D_ID, NSSDP2D, SSDP3D_ID, NSSDP3D
 ! (C) Copyright 2016- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
