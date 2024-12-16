@@ -224,9 +224,11 @@ DO JL=KIDIA,KFDIA
                   & / ZCLAND
         ENDIF
         IF ( LEURBAN ) THEN
-          IF ( (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8)+PFRTI(JL,10)) > RFRSMALL ) THEN
-            ZSURFL(JL)=PGSN(JL)+(ZSSRFL+ZSLRFL+ZTHFL) &
-                    & / (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8)+PFRTI(JL,10))
+          IF ( ZCLAND > RFRSMALL ) THEN
+            ZSURFL(JL)=(PCIL(JL)*PGLICE(JL)+PGSN(JL)+ZSSRFL+ZSLRFL+ZTHFL) &
+                    & / ZCLAND
+            !*ZSURFL(JL)=PGSN(JL)+(ZSSRFL+ZSLRFL+ZTHFL) &
+            !*        & / (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8)+PFRTI(JL,10))
           ENDIF
         ENDIF
       ENDIF
