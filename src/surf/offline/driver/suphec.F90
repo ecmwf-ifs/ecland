@@ -176,7 +176,7 @@ RTWAT_RTICECU_R=1.0_JPRB/(RTWAT-RTICECU)
 ! Albedo of permanent snow (Antarctica, Greenland) - should match the
 ! value in ifs/setup/su0phy.F90.  0.835 matches the value up to cycle
 ! 46r1.  0.8 would be in better agreement with measurements.
-RALFMINPSN = 0.835_JPRB
+RALFMINPSN = 0.82_JPRB
 
 !     ------------------------------------------------------------------
 
