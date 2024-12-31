@@ -118,10 +118,10 @@ ZTSNTHR=5._JPRB
 ZEPSILON=100._JPRB*EPSILON(ZEPSILON)
 
 !*ZALBRESET=10._JPRB ! mm to reset to alfa_max
-! Test use different albedo reset over Antarctica or NH Glaciers:
+! Use different albedo reset over Antarctica or NH Glaciers:
 DO JL=KIDIA,KFDIA
   IF (LDNH(JL))THEN
-     ZALBRESET(JL)=10._JPRB ! mm to reset to alfa_max in NH
+     ZALBRESET(JL)=5._JPRB ! mm to reset to alfa_max in NH
   ELSE
      ZALBRESET(JL)=5._JPRB ! mm to reset to alfa_max in SH (~Antarctica)
   ENDIF
@@ -169,9 +169,7 @@ DO JL=KIDIA,KFDIA
     ELSE
       PASN(JL)=ZASN_I
     ENDIF
-    ! UPDATE ALBEDO DUE TO SNOWFALL EVENTS
-    PASN(JL)=PASN(JL)+ MIN(MAX(PSNOWF(JL)*PTMST , 0._JPRB)/(10._JPRB) , 1._JPRB) *&
-     & (YDSOIL%RALFMAXSN-PASN(JL))
+    ! Additional safety check, assuming RALFMAXSN (max asn seasonal snow) > RALFMINPSN (max asn glaciers)
     PASN(JL)=MIN(YDSOIL%RALFMAXSN,MAX(PASN(JL),YDSOIL%RALFMINSN))
 
    ENDIF
