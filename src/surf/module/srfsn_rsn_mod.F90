@@ -23,6 +23,8 @@ USE YOS_CST  , ONLY : TCST
 !     PURPOSE.
 !     --------
 !          THIS ROUTINE COMPUTES THE SNOW DENSITY
+!          As a single prognostic snowpack for seasonal snow and land ice is used,
+!          the two different contributions are weighted by PCIL for sub-grid ice.
 
 !**   INTERFACE.
 !     ----------

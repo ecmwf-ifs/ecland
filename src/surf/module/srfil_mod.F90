@@ -18,6 +18,7 @@ USE SRFWDIF_MOD
 !     PURPOSE.
 !     --------
 !**   Computes temperature evolution of land ice  
+
 !**   INTERFACE.
 !     ----------
 !          *SRFIL* IS CALLED FROM *SURF*.
@@ -63,7 +64,8 @@ USE SRFWDIF_MOD
 
 !     METHOD.
 !     -------
-!          Parameters are set and the tridiagonal solver is called.
+!          Parameters are set and the tridiagonal solver is called. 
+!          Solved only over land-ice points (LDICE=LDLICE=.TRUE.)
 
 !     EXTERNALS.
 !     ----------
