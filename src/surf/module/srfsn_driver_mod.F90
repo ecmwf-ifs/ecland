@@ -447,7 +447,7 @@ PGSN(KIDIA:KFDIA)=(1._JPRB - PCIL(KIDIA:KFDIA))*PGSN(KIDIA:KFDIA) ! this is alre
 !             -----------------------------------------------------------
 
 CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,PCIL,LDLAND,&
-              &ZRSNM1M,ZSSNM1M,ZTSNM1M,ZWSNM1M,PWSN,&
+              &ZFRSN,ZRSNM1M,ZSSNM1M,ZTSNM1M,ZWSNM1M,PWSN,&
               &ZSNOWF,PUSRF,PVSRF,PTSRF,&
               &YDSOIL,YDCST,PRSN,PDHTSS)
  
