@@ -117,6 +117,9 @@ USE YOMSURF_SSDP_MOD
 !     METHOD.
 !     -------
 !          
+!          As a single prognostic snowpack for seasonal snow and land ice is used,
+!          the two different contributions for density and albedo evolutions 
+!          are weighted by PCIL for sub-grid ice.
 
 !     EXTERNALS.
 !     ----------

@@ -22,6 +22,8 @@ USE YOS_CST  , ONLY : TCST
 !     PURPOSE.
 !     --------
 !          THIS ROUTINE CONTROLS THE ALBEDO EVOLUTION
+!          As a single prognostic snowpack for seasonal snow and land ice is used,
+!          the two different contributions are weighted by PCIL for sub-grid ice.
 
 !**   INTERFACE.
 !     ----------
@@ -69,6 +71,7 @@ USE YOS_CST  , ONLY : TCST
 !     Modifications:
 !     Original   E. Dutra      ECMWF     04/12/2015
 !                G. Arduini    ECMWF     01/09/2021
+!                G. Arduini    ECMWF     Sept 2024 snow over land-ice
 
 !     ------------------------------------------------------------------
 
@@ -159,7 +162,7 @@ DO JL=KIDIA,KFDIA
          ! Do not modify albedo in normal conditions.
          ZASN_I=PASNM1M(JL)
       ENDIF
-      ! UPDATE ALBEDO DUE TO SNOWFALL EVENTS, modified threhshold to 5 instead of 10 kg m-2
+      ! UPDATE ALBEDO DUE TO SNOWFALL EVENTS, modified threhshold 
       ZASN_I=ZASN_I+ MIN(MAX(PSNOWF(JL)*PTMST , 0._JPRB)/ZALBRESET(JL) , 1._JPRB) *&
               & (ZALBMAX_GL-ZASN_I)
       ZASN_I=MIN(ZALBMAX_GL,MAX(ZASN_I,ZALBMIN))
@@ -170,6 +173,7 @@ DO JL=KIDIA,KFDIA
       PASN(JL)=ZASN_I
     ENDIF
     ! Additional safety check, assuming RALFMAXSN (max asn seasonal snow) > RALFMINPSN (max asn glaciers)
+    !                                   RALFMINSN (min asn seasonal snow) < ZALBMIN (min asn glaciers)
     PASN(JL)=MIN(YDSOIL%RALFMAXSN,MAX(PASN(JL),YDSOIL%RALFMINSN))
 
    ENDIF
