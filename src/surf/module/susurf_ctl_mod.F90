@@ -136,6 +136,7 @@ USE SUSSURF_PARAMS_MOD
 
 !      KSW       : NUMBER OF SHORTWAVE SPECTRAL INTERVALS
 !      KCSS      : Number of soil levels
+!      KCWS      : Number of layers to merge at the end for the soil water profile (for > 4layers)
 !      KCSNEC    : Number of snow levels 
 !      KSIL      : NUMBER OF (infrared) SPECTRAL INTERVALS
 !      KCOM      : Number of layers in mixed layer model
@@ -210,6 +211,7 @@ IMPLICIT NONE
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSW 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTHRFRTI
 INTEGER(KIND=JPIM),INTENT(IN)    :: KCSS
+INTEGER(KIND=JPIM),INTENT(IN)    :: KCWS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KCSNEC 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSIL 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KCOM 
@@ -297,6 +299,7 @@ ASSOCIATE(NCSS=>YDDIM%NCSS, NMONTH=>YDDIM%NMONTH, NTILES=>YDDIM%NTILES,NCSNEC=>Y
 ! Initialise dimensions
 
 NCSS=KCSS
+!NCWS=KCWS
 NTILES=KTILES
 NMONTH=12
 NCSNEC=KCSNEC
@@ -333,7 +336,7 @@ ENDIF
 ! Initialise vegetation constants
 
 CALL SUSVEG(LD_LELAIV,LD_LECTESSEL,LD_LEAGS,LD_LEFARQUHAR,LD_LEAIRCO2COUP,PRLAIINT,&
-          & YDDIM,YDCST,YDSOIL,YDVEG)
+          & KCWS,YDDIM,YDCST,YDSOIL,YDVEG)
 
 ! Initialise CTESSEL constants
 IF (LD_LECTESSEL) then
