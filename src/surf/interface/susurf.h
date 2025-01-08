@@ -1,5 +1,5 @@
 INTERFACE
-SUBROUTINE SUSURF(KSW,KCSS,KCSNEC,KSIL,KCOM,KTILES,KTSW,KLWEMISS,&
+SUBROUTINE SUSURF(KSW,KCSS,KCWS,KCSNEC,KSIL,KCOM,KTILES,KTSW,KLWEMISS,&
  & KBVOC_EMIS,KBVOC_DELTA_DAY_LAI,&
  & LD_LEFLAKE, LD_LEURBAN, LD_LEOCML, LD_LOCMLTKE,&       
  & LD_LWCOU, LD_LWCOU2W, LD_LWCOUHMF,&
@@ -80,7 +80,8 @@ USE, INTRINSIC :: ISO_C_BINDING
 
 !      KSW       : NUMBER OF SHORTWAVE SPECTRAL INTERVALS
 !      KCSS      : Number of soil levels
-!      KCSS      : Number of snow levels
+!      KCWS      : Number of layers to merge at the end for the soil water profile (for > 4layers)
+!      KCSNEC    : Number of snow levels
 !      KSIL      : NUMBER OF (infrared) SPECTRAL INTERVALS
 !      KCOM      : Number of layers in mixed layer model 
 !      KTILES    : Number of surface tiles
@@ -133,7 +134,8 @@ IMPLICIT NONE
 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSW 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTHRFRTI
-INTEGER(KIND=JPIM),INTENT(IN)    :: KCSS  
+INTEGER(KIND=JPIM),INTENT(IN)    :: KCSS
+INTEGER(KIND=JPIM),INTENT(IN)    :: KCWS  
 INTEGER(KIND=JPIM),INTENT(IN)    :: KCSNEC 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSIL 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KCOM 
