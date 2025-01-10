@@ -248,7 +248,7 @@ IF (KCWS .gt. 0_JPIM) THEN
   ILEVM1_WB=KLEVS_WB-1
 ELSE
   KLEVS_WB=KLEVS
-  ILEVM1_WB=KLEVS_WB-1
+  ILEVM1_WB=KLEVS-1
 ENDIF
 !     ------------------------------------------------------------------
 !*          2. COMPUTATION OF THE MODIFIED DIFFUSIVITY COEFFICIENTS
@@ -710,9 +710,14 @@ IF (SIZE(PDHWLS) > 0) THEN
 ! Root extraction (<0) without condensation on tile 4 6 7 8
   DO JL=KIDIA,KFDIA
     PDHWLS(JL,1,7)=ZSAWEXT(JL,1)-ZCONDS(JL)
-    DO JK=2,KLEVS
+    DO JK=2,KLEVS_WB
       PDHWLS(JL,JK,7)=ZSAWEXT(JL,JK)
     ENDDO
+    IF (KCWS .gt. 0_JPIM) THEN
+     DO JK=KLEVS_WB+1,KLEVS
+      PDHWLS(JL,JK,7)=0.0_JPRB
+     ENDDO
+    ENDIF
   ENDDO
 ! Bare ground evaporation including mismatches from snow and interception layer
   DO JL=KIDIA,KFDIA
