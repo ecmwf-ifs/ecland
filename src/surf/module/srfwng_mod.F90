@@ -144,7 +144,7 @@ IF (KCWS .gt. 0_JPIM) THEN
   ILEVM1_WB=KLEVS_WB-1
 ELSE
   KLEVS_WB=KLEVS
-  ILEVM1_WB=KLEVS_WB-1
+  ILEVM1_WB=KLEVS-1
 ENDIF
 
 !     ------------------------------------------------------------------
