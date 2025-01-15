@@ -13,13 +13,13 @@ MODULE CMF_CALC_OUTFLW_MOD
 ! See the License for the specific language governing permissions and limitations under the License.
 !==========================================================
 USE PARKIND1,           ONLY: JPIM, JPRB, JPRD
-USE YOS_CMF_INPUT,      ONLY: DT,       PDSTMTH,  PMANFLD,  PGRV,     LFLDOUT, LSLOPEMOUTH
+USE YOS_CMF_INPUT,      ONLY: DT,       PDSTMTH,  PMANFLD,  PGRV,     LFLDOUT, LPTHOUT, LSLOPEMOUTH
 USE YOS_CMF_MAP,        ONLY: I1NEXT,   NSEQALL,  NSEQRIV,  NSEQMAX
 USE YOS_CMF_MAP,        ONLY: D2RIVELV, D2ELEVTN, D2NXTDST, D2RIVWTH, D2RIVHGT
 USE YOS_CMF_MAP,        ONLY: D2RIVLEN, D2RIVMAN, D2DWNELV, D2ELEVSLOPE
 USE YOS_CMF_PROG,       ONLY: P2RIVSTO, D2RIVOUT, P2FLDSTO, D2FLDOUT
 USE YOS_CMF_PROG,       ONLY: D2RIVOUT_PRE, D2RIVDPH_PRE, D2FLDOUT_PRE, D2FLDSTO_PRE
-USE YOS_CMF_DIAG,       ONLY: D2RIVDPH, D2RIVVEL, D2RIVINF, D2FLDDPH, D2FLDINF, D2SFCELV
+USE YOS_CMF_DIAG,       ONLY: D2RIVDPH, D2RIVVEL, D2RIVINF, D2FLDDPH, D2FLDINF, D2SFCELV, D2STORGE
 !
 CONTAINS
 !####################################################################
@@ -36,10 +36,10 @@ REAL(KIND=JPRB)            :: D2FLDDPH_PRE(NSEQMAX,1)                      !! fl
 INTEGER(KIND=JPIM),SAVE    :: ISEQ, JSEQ
 REAL(KIND=JPRB),SAVE       :: DSLOPE,   DOUT_PRE,   DFLW,   DFLW_PRE,   DFLW_IMP,   DAREA 
 REAL(KIND=JPRB),SAVE       :: DSLOPE_F, DOUT_PRE_F, DFLW_F, DFLW_PRE_F, DFLW_IMP_F, DARE_F, DARE_PRE_F, DARE_IMP_F
-REAL(KIND=JPRB),SAVE       :: DSFCMAX,  DSFCMAX_PRE
+REAL(KIND=JPRB),SAVE       :: DSFCMAX,  DSFCMAX_PRE, RATE
 !$OMP THREADPRIVATE    (JSEQ, DSLOPE,   DOUT_PRE,   DFLW,   DFLW_PRE,   DFLW_IMP,   DAREA  )
 !$OMP THREADPRIVATE    (      DSLOPE_F, DOUT_PRE_F, DFLW_F, DFLW_PRE_F, DFLW_IMP_F, DARE_F, DARE_PRE_F, DARE_IMP_F  )
-!$OMP THREADPRIVATE    (      DSFCMAX,  DSFCMAX_PRE )
+!$OMP THREADPRIVATE    (      DSFCMAX,  DSFCMAX_PRE, RATE )
 !================================================
 
 !$OMP PARALLEL DO
@@ -98,6 +98,14 @@ DO ISEQ=1, NSEQRIV                                                    !! for nor
     ENDIF
   
     IF( D2FLDOUT(ISEQ,1)*D2RIVOUT(ISEQ,1)<0._JPRB ) D2FLDOUT(ISEQ,1)=0._JPRB  !! stabilization
+  ENDIF
+
+!! Storage change limitter to prevent sudden increase of "upstream" water level when backwardd flow (v423)
+  IF( D2RIVOUT(ISEQ,1)<0._JPRB )THEN
+    RATE = 0.05 * D2STORGE(ISEQ,1) / ( (-D2RIVOUT(ISEQ,1)-D2FLDOUT(ISEQ,1))*DT )
+    RATE= min(RATE, 1.0_JPRB )
+    D2RIVOUT(ISEQ,1)=D2RIVOUT(ISEQ,1)*RATE
+    D2FLDOUT(ISEQ,1)=D2FLDOUT(ISEQ,1)*RATE
   ENDIF
 END DO
 !$OMP END PARALLEL DO
@@ -164,17 +172,22 @@ END SUBROUTINE CMF_CALC_OUTFLW
 !####################################################################
 SUBROUTINE CMF_CALC_INFLOW
 USE PARKIND1,           ONLY: JPIM, JPRB, JPRD
-USE YOS_CMF_MAP,        ONLY: NSEQMAX
+USE YOS_CMF_MAP,        ONLY: NSEQMAX,  NPTHOUT, NPTHLEV, I2MASK, PTH_UPST, PTH_DOWN
+USE YOS_CMF_PROG,       ONLY: D1PTHFLW
+USE YOS_CMF_DIAG,       ONLY: D2PTHOUT, D1PTHFLWSUM
 IMPLICIT NONE
+!*** Local
 REAL(KIND=JPRD)            :: P2STOOUT(NSEQMAX,1)                      !! total outflow from a grid     [m3]
 REAL(KIND=JPRD)            :: P2RIVINF(NSEQMAX,1)                      !! 
 REAL(KIND=JPRD)            :: P2FLDINF(NSEQMAX,1)                      !! 
 
+REAL(KIND=JPRD)            :: P2PTHOUT(NSEQMAX,1)                  !! for water conservation
+
 REAL(KIND=JPRB)            :: D2RATE(NSEQMAX,1)                        !! outflow correction
 ! SAVE for OpenMP
-INTEGER(KIND=JPIM),SAVE    :: ISEQ, JSEQ
-REAL(KIND=JPRB),SAVE       :: OUT_R1, OUT_R2, OUT_F1, OUT_F2, DIUP, DIDW
-!$OMP THREADPRIVATE     (JSEQ,OUT_R1, OUT_R2, OUT_F1, OUT_F2, DIUP, DIDW)
+INTEGER(KIND=JPIM),SAVE    :: ISEQ, JSEQ, IPTH, ILEV
+REAL(KIND=JPRB),SAVE       :: OUT_R1, OUT_R2, OUT_F1, OUT_F2, DIUP, DIDW, ISEQP, JSEQP
+!$OMP THREADPRIVATE     (JSEQ,OUT_R1, OUT_R2, OUT_F1, OUT_F2, DIUP, DIDW, ISEQP, JSEQP,ILEV)
 !================================================
   
 !*** 1. initialize & calculate P2STOOUT for normal cells
@@ -183,6 +196,7 @@ REAL(KIND=JPRB),SAVE       :: OUT_R1, OUT_R2, OUT_F1, OUT_F2, DIUP, DIDW
 DO ISEQ=1, NSEQALL
   P2RIVINF(ISEQ,1) = 0._JPRD
   P2FLDINF(ISEQ,1) = 0._JPRD
+  P2PTHOUT(ISEQ,1) = 0._JPRD
   P2STOOUT(ISEQ,1) = 0._JPRD
   D2RATE(ISEQ,1) = 1._JPRB
 END DO
@@ -221,6 +235,36 @@ DO ISEQ=NSEQRIV+1, NSEQALL
   P2STOOUT(ISEQ,1) = P2STOOUT(ISEQ,1) + OUT_R1*DT + OUT_F1*DT
 END DO
 !$OMP END PARALLEL DO
+
+!! for bifurcation channels ------------
+IF( LPTHOUT )THEN
+#ifndef NoAtom_CMF
+!$OMP PARALLEL DO  !! No OMP Atomic for bit-identical simulation (set in Mkinclude)
+#endif
+  DO IPTH=1, NPTHOUT  
+    ISEQP=PTH_UPST(IPTH)
+    JSEQP=PTH_DOWN(IPTH)
+    !! Avoid calculation outside of domain
+    IF (ISEQP<=0 .OR. JSEQP<=0 ) CYCLE
+    IF (I2MASK(ISEQP,1)>0 .OR. I2MASK(JSEQP,1)>0 ) CYCLE  !! I2MASK is for 1: kinemacit 2: dam  no bifurcation
+  
+    OUT_R1 = max(  D1PTHFLWSUM(IPTH),0._JPRB )
+    OUT_R2 = max( -D1PTHFLWSUM(IPTH),0._JPRB )
+    DIUP=(OUT_R1)*DT
+    DIDW=(OUT_R2)*DT
+#ifndef NoAtom_CMF
+!$OMP ATOMIC
+#endif
+    P2STOOUT(ISEQP,1) = P2STOOUT(ISEQP,1) + DIUP
+#ifndef NoAtom_CMF
+!$OMP ATOMIC
+#endif
+    P2STOOUT(JSEQP,1) = P2STOOUT(JSEQP,1) + DIDW
+  END DO
+#ifndef NoAtom_CMF
+!$OMP END PARALLEL DO  !! No OMP Atomic for bit-identical simulation (set in Mkinclude)
+#endif
+ENDIF
 
 !============================
 !*** 2. modify outflow
@@ -267,10 +311,51 @@ DO ISEQ=NSEQRIV+1, NSEQALL
 END DO
 !$OMP END PARALLEL DO
 
-D2RIVINF(1:NSEQALL,1)=P2RIVINF(1:NSEQALL,1)
-D2FLDINF(1:NSEQALL,1)=P2FLDINF(1:NSEQALL,1)
+!! bifurcation channels --------
+IF( LPTHOUT )THEN
+#ifndef NoAtom_CMF
+!$OMP PARALLEL DO  !! No OMP Atomic for bit-identical simulation (set in Mkinclude)
+#endif
+  DO IPTH=1, NPTHOUT  
+    ISEQP=PTH_UPST(IPTH)
+    JSEQP=PTH_DOWN(IPTH)
+    !! Avoid calculation outside of domain
+    IF (ISEQP<=0 .OR. JSEQP<=0 ) CYCLE
+    IF (I2MASK(ISEQP,1)>0 .OR. I2MASK(JSEQP,1)>0 ) CYCLE  !! I2MASK is for 1: kinemacit 2: dam  no bifurcation
+  
+    DO ILEV=1, NPTHLEV
+      IF( D1PTHFLW(IPTH,ILEV) >= 0._JPRB )THEN                                  !! total outflow from each grid
+        D1PTHFLW(IPTH,ILEV) = D1PTHFLW(IPTH,ILEV)*D2RATE(ISEQP,1)
+      ELSE
+        D1PTHFLW(IPTH,ILEV) = D1PTHFLW(IPTH,ILEV)*D2RATE(JSEQP,1)
+      ENDIF
+    END DO
+
+    IF( D1PTHFLWSUM(IPTH) >= 0._JPRB )THEN                                  !! total outflow from each grid
+      D1PTHFLWSUM(IPTH) = D1PTHFLWSUM(IPTH)*D2RATE(ISEQP,1)
+    ELSE
+      D1PTHFLWSUM(IPTH) = D1PTHFLWSUM(IPTH)*D2RATE(JSEQP,1)
+    ENDIF    
+
+#ifndef NoAtom_CMF
+!$OMP ATOMIC
+#endif
+    P2PTHOUT(ISEQP,1) = P2PTHOUT(ISEQP,1) + D1PTHFLWSUM(IPTH)
+#ifndef NoAtom_CMF
+!$OMP ATOMIC
+#endif
+    P2PTHOUT(JSEQP,1) = P2PTHOUT(JSEQP,1) - D1PTHFLWSUM(IPTH)
+
+  END DO
+#ifndef NoAtom_CMF
+!$OMP END PARALLEL DO  !! No OMP Atomic for bit-identical simulation (set in Mkinclude)
+#endif
+ENDIF
+
+D2RIVINF(:,:)=P2RIVINF(:,:)  !! needed for SinglePrecisionMode
+D2FLDINF(:,:)=P2FLDINF(:,:)
+D2PTHOUT(:,:)=P2PTHOUT(:,:)
 
 END SUBROUTINE CMF_CALC_INFLOW
 !####################################################################
-
 END MODULE CMF_CALC_OUTFLW_MOD
