@@ -23,6 +23,7 @@ MODULE CMF_CTRL_FORCING_MOD
 !==========================================================
 USE PARKIND1,                ONLY: JPIM, JPRB, JPRM
 USE YOS_CMF_INPUT,           ONLY: LOGNAM
+USE YOS_CMF_MAP,             ONLY: INPX, INPY, INPA, INPXI, INPYI, INPAI, INPNI
 !============================
 IMPLICIT NONE
 SAVE
@@ -71,18 +72,6 @@ INTEGER(KIND=JPIM)              :: NSTART      !! Start date of netNDF (in KMIN)
 END TYPE TYPEROF
 TYPE(TYPEROF)                   :: ROFCDF      !! Derived type for Runoff input 
 #endif
-
-! input matrix (converted from NX:NY*INPN to NSEQMAX*INPN)
-INTEGER(KIND=JPIM),ALLOCATABLE  :: INPX(:,:)        !! INPUT GRID XIN
-INTEGER(KIND=JPIM),ALLOCATABLE  :: INPY(:,:)        !! INPUT GRID YIN
-REAL(KIND=JPRB),ALLOCATABLE     :: INPA(:,:)        !! INPUT AREA
-
-! input matrix Inverse
-INTEGER(KIND=JPIM),ALLOCATABLE  :: INPXI(:,:,:)        !! OUTPUT GRID XOUT
-INTEGER(KIND=JPIM),ALLOCATABLE  :: INPYI(:,:,:)        !! OUTPUT GRID YOUT
-REAL(KIND=JPRB),ALLOCATABLE     :: INPAI(:,:,:)        !! OUTPUT AREA
-INTEGER(KIND=JPIM)              :: INPNI               !! MAX INPUT NUMBER for inverse interpolation
-
 
 CONTAINS
 !####################################################################
@@ -454,9 +443,14 @@ END SUBROUTINE CMF_FORCING_INIT
 
 !####################################################################
 SUBROUTINE CMF_FORCING_GET(PBUFF)
+USE YOS_CMF_INPUT,           ONLY: NXIN,NYIN,LROSPLIT, RMIS
+USE CMF_UTILS_MOD,           ONLY: CMF_CheckNanB  !! check Udefined value
 ! read runoff from file
 IMPLICIT NONE
 REAL(KIND=JPRB),INTENT(INOUT)   :: PBUFF(:,:,:)
+
+INTEGER(KIND=JPIM),SAVE         ::  IXIN, IYIN  !! FOR OUTPUT
+!$OMP THREADPRIVATE                (IXIN)
 !================================================
 IF( LINPCDF ) THEN
 #ifdef UseCDF_CMF
@@ -465,6 +459,31 @@ IF( LINPCDF ) THEN
 ELSE
   CALL CMF_FORCING_GET_BIN(PBUFF(:,:,:))
 ENDIF 
+
+!$OMP PARALLEL DO
+DO IYIN=1,NYIN
+  DO IXIN=1,NXIN
+    IF( CMF_CheckNanB(PBUFF(IXIN,IYIN,1),0._JPRB) )THEN !! Check if PRUFINN(IX,IY) is NaN (Not-A-Number) ot not
+      PBUFF(IXIN,IYIN,1)=RMIS 
+    ENDIF
+    PBUFF(IXIN,IYIN,1)=max(PBUFF(IXIN,IYIN,1),0._JPRB)    !! negative Runoff not assumed
+  ENDDO
+ENDDO
+!$OMP END PARALLEL DO
+
+IF ( LROSPLIT ) THEN
+!$OMP PARALLEL DO
+  DO IYIN=1,NYIN
+    DO IXIN=1,NXIN
+      IF( CMF_CheckNanB(PBUFF(IXIN,IYIN,2),0._JPRB) )THEN !! Check if PRUFINN(IX,IY) is NaN (Not-A-Number) ot not
+        PBUFF(IXIN,IYIN,2)=RMIS 
+      ENDIF
+      PBUFF(IXIN,IYIN,2)=max(PBUFF(IXIN,IYIN,2),0._JPRB)    !! negative Runoff not assumed
+    ENDDO
+  ENDDO
+!$OMP END PARALLEL DO
+ENDIF
+
 
 CONTAINS
 !==========================================================
@@ -591,16 +610,16 @@ IMPLICIT NONE
 REAL(KIND=JPRB),INTENT(IN)      :: PBUFFIN(:,:)     !! CaMa-Flood variable on catchment (NX*NY)
 REAL(KIND=JPRB),INTENT(OUT)     :: PBUFFOUT(:,:)    !! output on target grid = input runoff grid (NXIN * NYIN)
 
-INTEGER(KIND=JPIM)  :: IX,IY,INP,IXIN,IYIN
-
+INTEGER(KIND=JPIM)              :: IX,IY,INP,IXIN,IYIN
+! ========================================================
 IF ( INPNI == -1 ) THEN
   WRITE(LOGNAM,*) "INPNI==-1, no inverse interpolation possible"
   STOP 9
 ENDIF
 PBUFFOUT(:,:)=1._JPRB 
 
-DO IXIN=1,NXIN
-  DO IYIN=1,NYIN
+DO IYIN=1,NYIN
+  DO IXIN=1,NXIN
     PBUFFOUT(IXIN,IYIN)=0._JPRB
     DO INP=1,INPNI
       IX=INPXI(IXIN,IYIN,INP)
@@ -665,7 +684,6 @@ CONTAINS
 !==========================================================
 SUBROUTINE ROFF_INTERP(PBUFFIN,PBUFFOUT)
 ! interporlate runoff using "input matrix"
-USE CMF_UTILS_MOD,           ONLY: CMF_CheckNanB
 USE YOS_CMF_MAP,             ONLY: NSEQALL
 USE YOS_CMF_INPUT,           ONLY: NXIN, NYIN, INPN, RMIS
 IMPLICIT NONE
@@ -688,13 +706,13 @@ DO ISEQ=1, NSEQALL
         WRITE(LOGNAM,*)  'XXX',ISEQ,INPI,IXIN,IYIN
         CYCLE
       ENDIF
+
       IF( PBUFFIN(IXIN,IYIN).NE.RMIS )THEN
         PBUFFOUT(ISEQ,1) = PBUFFOUT(ISEQ,1) + PBUFFIN(IXIN,IYIN) * INPA(ISEQ,INPI) / DROFUNIT   !! DTIN removed in v395
       ENDIF
-      IF( CMF_CheckNanB(PBUFFIN(IXIN,IYIN),0._JPRB) ) PBUFFOUT(ISEQ,1)=0._JPRB  !! treat NaN runoff input 
+
     ENDIF
   END DO
-  PBUFFOUT(ISEQ,1)=MAX(PBUFFOUT(ISEQ,1), 0._JPRB)
 END DO
 !$OMP END PARALLEL DO
 END SUBROUTINE ROFF_INTERP
