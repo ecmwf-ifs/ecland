@@ -33,7 +33,7 @@ SUBROUTINE SURFEXCDRIVER(YDSURF &
  & , PZ0MTIW, PZ0HTIW, PZ0QTIW, PZDLTI, PQSAPPTI, PCPTSPPTI &
 ! output data, non-tiled
  & , PKHLEV, PKCLEV, PCFMLEV, PKMFL, PKHFL, PKQFL, PEVAPSNW &
- & , PZ0MW, PZ0HW, PZ0QW, PBLENDPP, PCPTSPP, PQSAPP, PBUOMPP, PZDLPP &
+ & , PZ0MW, PZ0HW, PZ0QW, PBLENDPP, PCPTSPP, PQSAPP, PBUOMPP, PZDLPP, PZL &
 ! output data, non-tiled CO2
  & , PAN,PAG,PRD,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX&
 ! output data: Biogenic VOC (BVOC) emissions
@@ -238,6 +238,7 @@ USE YOMSURF_SSDP_MOD, ONLY: NSSDP2D, NSSDP3D
 !                     of weather parameters
 !      PBUOMPP  :    Buoyancy flux, for post-processing of gustiness  ????
 !      PZDLPP   :    z/L for post-processing of weather parameters    -
+!      PZL      :    1/L for diagnostics on dominant tile
 !      PDHTLS   :    Diagnostic array for tiles (see module yomcdh)
 !                      (Wm-2 for energy fluxes, kg/(m2s) for water fluxes)
 !      PDHTSS   :    Diagnostic array for snow T (see module yomcdh)
@@ -395,6 +396,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPP(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPP(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBUOMPP(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZDLPP(KLON)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZL(KLON)
 ! Tile depend
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0MTIW(KLON,KTILES)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0HTIW(KLON,KTILES)
@@ -469,7 +471,7 @@ CALL SURFEXCDRIVER_CTL( &
  & , PCPTSTIU, PCSATTIU, PCAIRTIU, PRAQTI, PTSRF, PLAMSK &
  & , PZ0MTIW, PZ0HTIW, PZ0QTIW, PZDLTI, PQSAPPTI, PCPTSPPTI &
  & , PKHLEV, PKCLEV, PCFMLEV, PKMFL, PKHFL, PKQFL, PEVAPSNW &
- & , PZ0MW, PZ0HW, PZ0QW, PBLENDPP, PCPTSPP, PQSAPP, PBUOMPP, PZDLPP &
+ & , PZ0MW, PZ0HW, PZ0QW, PBLENDPP, PCPTSPP, PQSAPP, PBUOMPP, PZDLPP, PZL &
  & , PAN,PAG,PRD,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX,PBVOCFLUX &
  & , PWETB, PWETL, PWETLU, PWETH, PWETHS &
  & , PDHTLS, PDHTSS, PDHTTS, PDHTIS &

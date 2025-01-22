@@ -36,7 +36,7 @@ SUBROUTINE SURFEXCDRIVER_CTL(&
  & , PZ0MTIW, PZ0HTIW, PZ0QTIW, PZDLTI, PQSAPPTI, PCPTSPPTI &
 ! output data, non-tiled
  & , PKHLEV, PKCLEV, PCFMLEV, PKMFL, PKHFL, PKQFL, PEVAPSNW &
- & , PZ0MW, PZ0HW, PZ0QW, PBLENDPP, PCPTSPP, PQSAPP, PBUOMPP, PZDLPP &
+ & , PZ0MW, PZ0HW, PZ0QW, PBLENDPP, PCPTSPP, PQSAPP, PBUOMPP, PZDLPP, PZL &
 ! output data, non-tiled CO2
  & , PAN,PAG,PRD,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX&
 ! output data: Biogenic VOC (BVOC) emissions
@@ -267,6 +267,7 @@ USE EC_LUN       , ONLY : NULERR
 !                     of weather parameters
 !      PBUOMPP  :    Buoyancy flux, for post-processing of gustiness  ???? 
 !      PZDLPP   :    z/L for post-processing of weather parameters    -
+!      PZL      :    1/L for diagnostics on dominant tile
 !      PDHTLS   :    Diagnostic array for tiles (see module yomcdh)
 !                      (Wm-2 for energy fluxes, kg/(m2s) for water fluxes)
 !      PDHTSS   :    Diagnostic array for snow T (see module yomcdh)
@@ -433,6 +434,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPP(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPP(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBUOMPP(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZDLPP(KLON)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZL(KLON) ! dominant tile 1/L
 ! Tile depend
 REAL(KIND=JPRB)   ,INTENT(OUT)    :: PZ0MTIW(KLON,KTILES)
 REAL(KIND=JPRB)   ,INTENT(OUT)    :: PZ0HTIW(KLON,KTILES)
@@ -1130,6 +1132,7 @@ DO JL=KIDIA,KFDIA
   PQSAPP(JL)=ZZQSATI(JL,JTILE)
   PBUOMPP(JL)=ZBUOMTI(JL,JTILE)
   PZDLPP(JL)=ZZDLTI(JL,JTILE)
+  PZL(JL)=ZZDLTI(JL,JTILE)/(PGEOMLEV(JL)*ZRG + ZZ0MTI(JL,JTILE)) ! Dominant tile 1/L - divide z/L by (zn + z0m)
 ENDDO
 
 !          PP: STORE TILE-DEPENDENT QUANTITIES FOR T2M/D2M per TILE CALCULATION 
