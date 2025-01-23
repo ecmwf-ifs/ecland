@@ -116,7 +116,7 @@ ZALBMAX_GL=YDSOIL%RALFMINPSN ! max albedo glacier
 !* Value tested over PROMICE Sites giving good results:
 !ZALBMAX_GL=0.815_JPRB 
 ZRTAUA_GL=YDSOIL%RTAUA/2._JPRB     ! RTAUA/2
-ZRTAUF_GL=0.11_JPRB
+ZRTAUF_GL=0.085 !0.11_JPRB
 ZTSNTHR=5._JPRB
 ZEPSILON=100._JPRB*EPSILON(ZEPSILON)
 
@@ -126,7 +126,7 @@ DO JL=KIDIA,KFDIA
   IF (LDNH(JL))THEN
      ZALBRESET(JL)=5._JPRB ! mm to reset to alfa_max in NH
   ELSE
-     ZALBRESET(JL)=5._JPRB ! mm to reset to alfa_max in SH (~Antarctica)
+     ZALBRESET(JL)=4._JPRB !5._JPRB ! mm to reset to alfa_max in SH (~Antarctica)
   ENDIF
 ENDDO
 
