@@ -130,7 +130,7 @@ USE ISO_C_BINDING
 !      PLAILP   :    Low vegetation LAI previous time step
 !      PLAIHP   :    High vegetation LAI previous time step
 !      PAVGPAR  :    Average PAR
-!      ISOP_EP  :    Isoprene emission potential
+!      PISOP_EP  :    Isoprene emission potential
 
 !     PSNM      :       SNOW MASS (per unit area)                      kg/m**2
 !     PRSN      :      SNOW DENSITY                                   kg/m**3
