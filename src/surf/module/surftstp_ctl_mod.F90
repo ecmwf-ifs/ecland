@@ -677,11 +677,9 @@ ENDIF
 ZROFS(KIDIA:KFDIA)=0._JPRB
 
 
-!Permanent snow reset is set to 10000 mm as land-ice is introduced.
-ZSNPERT=10000.0_JPRB ! permanent snow threshold, do not allow more than 3.0m snow accumulation in open-loop simulations 
-!*ZSNPERT=1500.0_JPRB ! permanent snow threshold, do not allow more than 3.0m snow accumulation in open-loop simulations 
-                    ! with density of 500 kg m-3
-KLMAX=KLEVSN ! permanent snow max index
+!Snow is reset to 10000 mm as land-ice is introduced, to avoid large accumulations
+ZSNPERT=10000.0_JPRB ! permanent snow threshold is kept to 10m of water equivalent
+KLMAX=KLEVSN         ! permanent snow max index
 IF ( .NOT. LESNML ) KLMAX=1
 DO JL=KIDIA,KFDIA
   IF (YDSOIL%LESNICE) THEN

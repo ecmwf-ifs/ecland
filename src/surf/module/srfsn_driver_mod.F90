@@ -227,11 +227,12 @@ REAL(KIND=JPRB) :: ZMICE_TOTAL(KLON)
 INTEGER(KIND=JPIM) :: KLACT
 
 REAL(KIND=JPRB) :: ZFF              ! Frozen soil fraction
-LOGICAL          :: LLNOSNOW(KLON)       ! FALSE to compute snow 
+LOGICAL         :: LLNOSNOW(KLON)    ! FALSE to compute snow 
 REAL(KIND=JPRB)    :: ZEPSILON
 
 
 INTEGER(KIND=JPIM) :: JL,JK
+LOGICAL            :: LEROGLACIER
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
@@ -248,6 +249,10 @@ ASSOCIATE(RTF1=>YDSOIL%RTF1, RTF2=>YDSOIL%RTF2, RTF3=>YDSOIL%RTF3, RTF4=>YDSOIL%
 !*         1.1 Global computations 
 !*             Snow fraction, total heat and precip/snow to the snow scheme 
 !             -----------------------------------------------------------
+
+! Modified runoff generation over glacier points is turned off by default.
+LEROGLACIER=.FALSE.
+
 ZEPSILON=EPSILON(ZEPSILON)
 
 DO JL=KIDIA,KFDIA
@@ -418,31 +423,36 @@ PGSNICE(KIDIA:KFDIA)=0._JPRB
 
 ZMICE_TOTAL(KIDIA:KFDIA)=PCIL(KIDIA:KFDIA)*PMSN(KIDIA:KFDIA)
 PMICE(KIDIA:KFDIA)=ZMICE_TOTAL(KIDIA:KFDIA)
-!* scale PMICE by the slope parameter following, Langen et al. 2017
-! Runoff=pmice/tau_ice (*dt <-- this done in surftstp for consistency with the other fluxes) 
-! The remaining water is readded to PWSN as excess of water that "lingers" over the impearmeable surface.
-! Using parameters from Zuo and Orleamans as dealing with runoff over ice as here.
-! It should be the slope parameter in there, but we can use the standard deviation of the orography scaled by a factor
-zc1=0.30_JPRB
-zc1=1.50_JPRB
-zc2=25.0_JPRB
-zc3=140.0_JPRB ! Not used
-!**DO JL=KIDIA,KFDIA
-!**  ZTAU_ICE=zc1+zc2*exp(-2.0*PSDOR(JL)/50.0_JPRB)
-!**  !*PMICE(JL)=MAX(0._JPRB, (ZMICE_TOTAL(JL)-ZMICE_TOTAL(JL)*PTMST/(86400.0*ZTAU_ICE))) ! in seconds
-!**  PMICE(JL)=MAX(0._JPRB, (ZMICE_TOTAL(JL)*PTMST/(86400.0*ZTAU_ICE))) ! in seconds
-!**
-!**  ! Find last layer with liquid water, use same epsilon as in srfsn_webal
-!**  DO JK=1,KLEVSN
-!**      IF (PSSNM1M(JL,JK) > 10._JPRB*EPSILON(ZEPSILON) ) KLACT=JK
-!**  ENDDO
-!**  PWSN(JL,KLACT)=PWSN(JL,KLACT) + (ZMICE_TOTAL(JL) - PMICE(JL))*PTMST
-!**ENDDO
 
 PGSNICE(KIDIA:KFDIA)=PCIL(KIDIA:KFDIA)*PGSN(KIDIA:KFDIA) ! This is already scaled by Csn
 
 PMSN(KIDIA:KFDIA)=(1._JPRB - PCIL(KIDIA:KFDIA))*PMSN(KIDIA:KFDIA)
 PGSN(KIDIA:KFDIA)=(1._JPRB - PCIL(KIDIA:KFDIA))*PGSN(KIDIA:KFDIA) ! this is already scaled by Csn
+
+!** scale PMICE by the slope parameter following, Langen et al. 2017, not used yet
+IF (LEROGLACIER) THEN
+! Runoff=pmice/tau_ice (*dt <-- this done in surftstp for consistency with the other fluxes)
+! The remaining water is readded to PWSN as excess of water that "lingers" over the impearmeable surface.
+! Using parameters from Zuo and Orleamans as dealing with runoff over ice as here.
+! It should be the slope parameter in there, but we can use the standard deviation of the orography scaled by a factor
+   zc1=0.30_JPRB
+   zc1=1.50_JPRB
+   zc2=25.0_JPRB
+   zc3=140.0_JPRB ! Not used
+   DO JL=KIDIA,KFDIA
+     ZTAU_ICE=zc1+zc2*exp(-2.0*PSDOR(JL)/50.0_JPRB)
+     !*PMICE(JL)=MAX(0._JPRB, (ZMICE_TOTAL(JL)-ZMICE_TOTAL(JL)*PTMST/(86400.0*ZTAU_ICE))) ! in seconds
+     PMICE(JL)=MAX(0._JPRB, (ZMICE_TOTAL(JL)*PTMST/(86400.0*ZTAU_ICE))) ! in seconds
+
+     ! Find last layer with liquid water, use same epsilon as in srfsn_webal
+     DO JK=1,KLEVSN
+         IF (PSSNM1M(JL,JK) > 10._JPRB*EPSILON(ZEPSILON) ) KLACT=JK
+     ENDDO
+     PWSN(JL,KLACT)=PWSN(JL,KLACT) + (ZMICE_TOTAL(JL) - PMICE(JL))*PTMST
+   ENDDO
+ENDIF
+!**
+
 
 !     ------------------------------------------------------------------
 !*         4. Update snow density 

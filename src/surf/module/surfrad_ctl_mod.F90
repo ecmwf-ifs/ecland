@@ -607,14 +607,10 @@ DO JSW=1,KSW
     ENDIF
     IF (LDLAND(JL))THEN ! land-ice
       IF (LDNH(JL)) THEN
-        !*ZADTI2=MIN(ZALBICE_AR,0.60_JPRB)
-        !*ZAPTI2=MIN(ZALBICE_AR,0.60_JPRB)
         ! 0.40 as used in Avanzi et al. for land ice...
         ZADTI2=0.40_JPRB !0.60_JPRB
         ZAPTI2=0.40_JPRB !0.60_JPRB
       ELSE
-        !*ZADTI2=MIN(ZALBICE_AN,0.60_JPRB)
-        !*ZAPTI2=MIN(ZALBICE_AN,0.60_JPRB)
         ZADTI2=0.40_JPRB !*0.60_JPRB
         ZAPTI2=0.40_JPRB !*0.60_JPRB
       ENDIF
