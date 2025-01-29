@@ -226,9 +226,7 @@ DO JL=KIDIA,KFDIA
     
     ZSURFL(JL)=ZSSRFL+ZSLRFL+ZTHFL+PGSN(JL)+PGLICE(JL)
 
-    !*ZCLAND=1._JPRB - PFRTI(JL,9)
     IF ( LEFLAKE ) THEN
-      !ZCLAND=1._JPRB - ( PFRTI(JL,9) + PFRTI(JL,1) )
       IF ( PFRTI(JL,9) > RFRSMALL ) THEN
         ZSURFL(JL)=PGSN(JL)+PGLICE(JL)
         IF ( LEURBAN ) THEN
@@ -242,10 +240,6 @@ DO JL=KIDIA,KFDIA
              & / (PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,6)+PFRTI(JL,8))
           ENDIF
         ENDIF
-        !*IF ( ZCLAND> RFRSMALL ) THEN
-        !*    ZSURFL(JL)=(PCIL(JL)*PGLICE(JL)+PGSN(JL)+ZSSRFL+ZSLRFL+ZTHFL) & 
-        !*    & / ZCLAND
-        !*ENDIF
 
       ENDIF
     ENDIF

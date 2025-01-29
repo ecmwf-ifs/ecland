@@ -175,7 +175,8 @@ REAL(KIND=JPRB) :: ZA, ZAUX1, ZAUX2, ZB, ZCDNH,&
  & ZX2, ZPRC0, ZPRC  
 
 ! for snow sublimation due to wind blowing
-REAL(KIND=JPRB) :: ZSUBLSNW,ZUT,ZUV,ZASUB, ZBSUB
+LOGICAL           :: LESNOWSUBL
+REAL(KIND=JPRB)   :: ZSUBLSNW,ZUT,ZUV,ZASUB, ZBSUB
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 !             INCLUDE STABILITY FUNCTIONS
@@ -201,6 +202,8 @@ ZCON3  =RKAP**2
 
 ZIPBL=RPARZI
 
+! Wind blowing snow sublimation is turned off by default
+LESNOWSUBL=.FALSE. 
 !     ------------------------------------------------------------------
 
 !*       2.   COMPUTATION OF BASIC QUANTITIES
@@ -502,22 +505,23 @@ DO JL=KIDIA,KFDIA
 
 ! GA: snow sublimation due to wind blowing increases the transfer coefficient
 !       for moisture in exposed snow and forest snow
-! Running on single point with full snow 5 tile, glacier
-! Also density always below 350
-  !*IF (KTILE == 5 ) THEN
-  !*  ZUT=6.98_JPRB+0.0033_JPRB*(PTMLEV(JL)-245.88_JPRB)**2._JPRB
-  !*  ZUV=MIN(25._JPRB,SQRT(PUMLEV(JL)**2+PVMLEV(JL)**2)) ! Added a safety limiter to wind speed to avoid too large sublimation
-  !*  ZASUB=0.0018_JPRB
-  !*  ZBSUB=3.6_JPRB
-  !*  !*IF (ZUV>ZUT .AND. PRSN(JL) <= 350._JPRB)THEN
-  !*  IF (ZUV>ZUT)THEN
-  !*    ZSUBLSNW=ZASUB*(273.16/PTMLEV(JL))**4._JPRB*(ZUV/ZUT)**(ZBSUB-1_JPRB)
-  !*  ELSE
-  !*    ZSUBLSNW=0._JPRB
-  !*  ENDIF
+        ! Also density always below 350
+  IF (LESNOWSUBL) THEN
+    IF (KTILE == 5 ) THEN
+      ZUT=6.98_JPRB+0.0033_JPRB*(PTMLEV(JL)-245.88_JPRB)**2._JPRB
+      ZUV=MIN(25._JPRB,SQRT(PUMLEV(JL)**2+PVMLEV(JL)**2)) ! Added a safety limiter to wind speed to avoid too large sublimation
+      ZASUB=0.0018_JPRB
+      ZBSUB=3.6_JPRB
+      !*IF (ZUV>ZUT .AND. PRSN(JL) <= 350._JPRB)THEN
+      IF (ZUV>ZUT)THEN
+        ZSUBLSNW=ZASUB*(273.16/PTMLEV(JL))**4._JPRB*(ZUV/ZUT)**(ZBSUB-1_JPRB)
+      ELSE
+        ZSUBLSNW=0._JPRB
+      ENDIF
 
-  !*  PCFQ(JL)=PCFQ(JL) + ZUABS*ZRHO*ZSUBLSNW ! rho*|U|*Cq + rho*|U|*Cq_snsub
-  !*ENDIF
+      PCFQ(JL)=PCFQ(JL) + ZUABS*ZRHO*ZSUBLSNW ! rho*|U|*Cq + rho*|U|*Cq_snsub
+    ENDIF
+  ENDIF
 
 ENDDO
 
