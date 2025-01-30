@@ -23,6 +23,7 @@ list(APPEND cmflood_src
     cmf_ctrl_physics_mod.F90
     cmf_ctrl_restart_mod.F90
     cmf_ctrl_time_mod.F90
+    cmf_ctrl_tracer_mod.F90
     cmf_ctrl_vars_mod.F90
     cmf_drv_advance_mod.F90
     cmf_drv_control_mod.F90

@@ -304,10 +304,6 @@ DO JL=KIDIA,KFDIA
   ENDIF
 
   PCSN(JL)=ZCVS(JL)
-!   IF (ZCVS(JL) < 0.5) THEN
-!     ZCVS(JL)=MAX(0._JPRB,MIN(1.0_JPRB,SQRT(MAX(0._JPRB,SUM(PSNM1M(JL,:)/PRSNM1M(JL,:)))/0.2_JPRB)))
-!   ENDIF
-
   PWLMX(JL)=RWLMAX*(1.0_JPRB-PCVL(JL)-PCVH(JL)&
    & +PCVL(JL)*PLAIL(JL)&
    & +PCVH(JL)*PLAIH(JL))
@@ -329,8 +325,6 @@ DO JT=1,KTILES
 ENDDO
 DO JL=KIDIA,KFDIA
   IF (.NOT. LDLAND(JL) .AND. .NOT. LDLAKE(JL) ) THEN 
-    ! Use sea ice fraction for ZFRTIT
-    ZFRTIT=MAX(0._JPRB,MIN(PCI(JL),1.0_JPRB))
     IF (LDSICE(JL)) THEN
         IF (LESNICE) THEN
        ! Snow over sea-ice (it applies only if LESNICE == True and snow
