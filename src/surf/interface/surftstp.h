@@ -459,6 +459,8 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PTAUOCY(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PPHIOC(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSEMEAN(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSFMEAN(:)
+LOGICAL           ,INTENT(IN)    :: LNEMOICETHK
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PTHKICE(:)
 
 
 !     ------------------------------------------------------------------

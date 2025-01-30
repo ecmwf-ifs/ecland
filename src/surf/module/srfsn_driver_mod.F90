@@ -334,6 +334,7 @@ DO JL=KIDIA,KFDIA
         ZSURFCOND(JL) = RCONDSICE
         ZTSURF(JL)    = PTIAM1M(JL,1)
       ENDIF
+
     ELSE
       IF (LDLAND(JL)) THEN
         ZTSURF(JL)  = PTSAM1M(JL,1)
@@ -357,7 +358,6 @@ DO JL=KIDIA,KFDIA
        ZSURFCOND(JL) = RCONDSICE 
        ZTSURF(JL)    = PTIAM1M(JL,1)
      ENDIF
-
       ELSE
         ZTSURF(JL)  = PTIAM1M(JL,1)
         ZFF=1.0_JPRB

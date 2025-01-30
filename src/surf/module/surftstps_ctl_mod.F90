@@ -345,6 +345,7 @@ IF (YDSOIL%LESNML) THEN
    & PSSDP3,&
    & YDSOIL,YDCST,&
    & ZTSN, ZGSN)
+
    ! Compute fraction of basal heat going to the ice and land part of the grid-box.
    ZGSNICE(KIDIA:KFDIA) = PCIL(KIDIA:KFDIA)*ZGSN(KIDIA:KFDIA)
    ZGSN(KIDIA:KFDIA)=(1._JPRB - PCIL(KIDIA:KFDIA))*ZGSN(KIDIA:KFDIA) ! this is already scaled by Csn
