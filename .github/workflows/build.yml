@@ -1,0 +1,116 @@
+name: build
+
+# Controls when the action will run
+on:
+
+  # Trigger the workflow on all pushes, except on tag creation
+  push:
+    branches:
+    - '**'
+    tags-ignore:
+    - '**'
+
+  # Trigger the workflow on all pull requests
+  pull_request: ~
+
+  # Allow workflow to be dispatched on demand
+  workflow_dispatch: ~
+
+env:
+  ECLAND_TOOLS: ${{ github.workspace }}/.github/tools
+  CTEST_PARALLEL_LEVEL: 1
+  CACHE_SUFFIX: v1         # Increase to force new cache to be created
+
+jobs:
+  ci:
+    name: ci
+
+    strategy:
+      fail-fast: false  # false: try to complete all jobs
+
+      matrix:
+        # build_type: [Release,Debug] # Debug tests takes too long
+        build_type: [Release]
+        prec: ['DP', 'SP']
+        name:
+          - linux gnu-10
+
+        include:
+
+          - name: linux gnu-10
+            os: ubuntu-20.04
+            compiler: gnu-10
+            compiler_cc: gcc-10
+            compiler_cxx: g++-10
+            compiler_fc: gfortran-10
+            ctest_options: -V -E memory
+            python-version: '3.8'
+            caching: true
+
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Environment
+      run:  |
+        echo "DEPS_DIR=${{ runner.temp }}/deps" >> $GITHUB_ENV
+        echo "CC=${{ matrix.compiler_cc }}"     >> $GITHUB_ENV
+        echo "CXX=${{ matrix.compiler_cxx }}"   >> $GITHUB_ENV
+        echo "FC=${{ matrix.compiler_fc }}"     >> $GITHUB_ENV
+
+        sudo apt-get update
+        sudo apt-get install ninja-build
+        sudo apt-get install libnetcdff-dev
+
+        pip3 install numpy
+
+        printenv
+
+    - name: Install MPI
+      shell: bash -eux {0}
+      run: |
+        FCFLAGS=-fPIC CFLAGS=-fPIC FFLAGS=-fPIC ${ECLAND_TOOLS}/install-mpi.sh --mpi openmpi --prefix  ${DEPS_DIR}/openmpi
+        [ -f ${DEPS_DIR}/openmpi/env.sh ] && source ${DEPS_DIR}/openmpi/env.sh
+        [ -z ${MPI_HOME+x} ] || echo "MPI_HOME=${MPI_HOME}" >> $GITHUB_ENV
+
+    - name: Set Build & Test Environment
+      run: |
+
+        # Add mpirun to path for testing
+        [ -z ${MPI_HOME+x} ] || echo "${MPI_HOME}/bin" >> $GITHUB_PATH
+
+    - name: Build & Test
+      id: build-test
+      uses: ecmwf-actions/build-package@v2
+      with:
+        self_coverage: false
+        force_build: true
+        cache_suffix: "${{ matrix.build_type }}-${{ env.CACHE_SUFFIX }}"
+        recreate_cache: ${{ matrix.caching == false }}
+        dependencies: |
+          ecmwf/ecbuild
+          ecmwf/eccodes
+        dependency_branch: develop
+        dependency_cmake_options: |
+          ecmwf/eccodes: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF"
+        cmake_options: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.cmake_options }} -DENABLE_MPI=ON -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' }}"
+        ctest_options: "${{ matrix.ctest_options }}"
+
+    - name: Verify tools
+      run: |
+        export PATH=${{ steps.build-test.outputs.bin_path }}:$PATH
+
+        echo "+ ecland --info"
+        ecland --info
+
+#    - name: Codecov Upload
+#      if: steps.build-test.outputs.coverage_file
+#      uses: codecov/codecov-action@v2
+#      with:
+#        files: ${{ steps.build-test.outputs.coverage_file }}
