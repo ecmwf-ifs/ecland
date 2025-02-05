@@ -103,7 +103,7 @@ ELSE
   IDIM2 = 1
 ENDIF
 
-  NVARS2D=32
+  NVARS2D=33
   CVARS2D(1:NVARS2D)=(/'Mask     ','z0m      ','lz0h     ','landsea  ','geopot   ',&
                       'cvl      ','cvh      ','tvl      ','tvh      ','sotype   ',&
                       'sdor     ','sst      ','seaice   ','glaciMask','CanopInt ','SWE      ',&
