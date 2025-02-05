@@ -107,11 +107,16 @@ jobs:
           echo "SDKROOT=$(xcrun --show-sdk-path)"         >> $GITHUB_ENV
           brew install ninja
           brew install libomp
-          brew install netcdf-fortran
+          brew install libaec
           brew install coreutils
+          brew install netcdf-fortran
         else
           sudo apt-get update
-          sudo apt-get install ninja-build
+          sudo apt-get install libaec-dev
+          sudo apt-get install ninja-build libcurl4-openssl-dev
+        fi
+
+        if [[ "${{ matrix.compiler }}" =~ gnu ]]; then
           sudo apt-get install libnetcdff-dev
         fi
 
@@ -179,6 +184,35 @@ jobs:
 
         # Add mpirun to path for testing
         [ -z ${MPI_HOME+x} ] || echo "${MPI_HOME}/bin" >> $GITHUB_PATH
+
+    - name: Install HDF5
+      if: contains( matrix.compiler, 'intel' )
+      run: |
+        if [[ -f ${{ env.DEPS_DIR }}/hdf5/lib/libhdf5.settings ]]; then
+          echo "::debug::HDF5 restored from cache"
+        else
+          ${ECLAND_TOOLS}/install-hdf5.sh --prefix ${{ env.DEPS_DIR }}/hdf5
+        fi
+        echo "HDF5_ROOT=${{ env.DEPS_DIR }}/hdf5" >> $GITHUB_ENV
+
+    - name: Install NetCDF C
+      if: contains( matrix.compiler, 'intel' )
+      run: |
+        if [[ -f ${{ env.DEPS_DIR }}/netcdf/bin/nc-config ]]; then
+          echo "::debug::NetCDF C restored from cache"
+        else
+          ${ECLAND_TOOLS}/install-netcdf-c.sh --prefix ${{ env.DEPS_DIR }}/netcdf --hdf5-root ${HDF5_ROOT}
+        fi
+        echo "NETCDF_ROOT=${{ env.DEPS_DIR }}/netcdf" >> $GITHUB_ENV
+
+    - name: Install NetCDF Fortran
+      if: contains( matrix.compiler, 'intel' )
+      run: |
+        if [[ -f ${NETCDF_ROOT}/bin/nf-config ]]; then
+          echo "::debug::NetCDF Fortran restored from cache"
+        else
+          ${ECLAND_TOOLS}/install-netcdf-fortran.sh --prefix ${{ env.DEPS_DIR }}/netcdf --netcdf-root ${NETCDF_ROOT}
+        fi
 
     - name: Build & Test
       id: build-test
