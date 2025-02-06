@@ -671,7 +671,9 @@ ELSE
       ZRSN(KIDIA:KFDIA,JK) = ZRSN(KIDIA:KFDIA,1)
     ENDDO
   ENDIF   
-
+  ! Initialise land-ice related array to zero
+  ZGSNICE(KIDIA:KFDIA)=0._JPRB
+  ZMSNICE(KIDIA:KFDIA)=0._JPRB
 
 ENDIF
 ZROFS(KIDIA:KFDIA)=0._JPRB
