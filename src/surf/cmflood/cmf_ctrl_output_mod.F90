@@ -316,6 +316,7 @@ DO JF=1,NVARSOUT
 
   IF( LOUTCDF )THEN
     IF( REGIONTHIS==1 )THEN
+      CALL CMF_MIO_INITIALISE
       CALL CREATE_OUTCDF
     ENDIF
   ELSE
@@ -418,12 +419,149 @@ WRITE(LOGNAM,*) 'OPEN IN UNIT: ',VAROUT(JF)%NCID
 END SUBROUTINE CREATE_OUTCDF
 !==========================================================
 
-END SUBROUTINE CMF_OUTPUT_INIT
+SUBROUTINE ctl_stop(s1, s2)
+  IMPLICIT NONE
+  CHARACTER(LEN=*), INTENT(IN) :: s1, s2
+  WRITE(*,*) TRIM(s1)//TRIM(s2)
+  CALL EXIT(1)
+END SUBROUTINE ctl_stop
+
+SUBROUTINE CMF_MIO_INITIALISE
+use MPI, ONLY: mpi_comm_world
+USE MULTIO_API,         ONLY: &
+  MULTIO_HANDLE, &
+  multio_configuration, &
+  multio_metadata, &
+  MULTIO_SUCCESS, &
+  multio_initialise, &
+  multio_error_string
+
+IMPLICIT NONE
+INTEGER(8)                    :: mio_parent_comm = mpi_comm_world
+type(multio_configuration)    :: conf_ctx
+type(multio_handle)           :: mio_handle
+TYPE(multio_metadata)         :: mio_md
+CHARACTER(LEN=16)             :: client_id
+CHARACTER(len=16)             :: err_str
+INTEGER :: err, return_comm, local_comm, global_comm, gl_size, i, s
+integer, PARAMETER :: NX = 1440
+integer, PARAMETER :: NY = 720
+REAL(KIND=JPRB)               :: pfield2d(NX, NY)
+character(len=11) :: cmf_names(11)
+
+cmf_names = [ &
+  'rivsto     ', 'totout     ', 'fldsto     ', 'rivdph     ', 'flddph     ', 'fldfrc     ', &
+  'fldare     ', 'outins     ', 'rofsfc     ', 'rofsub     ', 'wevap      ' &
+]
+
+client_id = 'for_cmf_mpi_id'
+
+err = multio_initialise()
+if (err /= MULTIO_SUCCESS) then
+    CALL ctl_stop( 'Initializing multio failed: ', multio_error_string(err))
+end if
+
+! Prepare context and check errors explicitly until everything is set up - then failure handler is used
+err = conf_ctx%new()
+if (err /= MULTIO_SUCCESS) then
+    CALL ctl_stop( 'Creating multio configuration context failed: ', multio_error_string(err))
+end if
+! err = conf_ctx%mpi_allow_world_default_comm(.FALSE._1)
+! if (err /= MULTIO_SUCCESS) then
+!     CALL ctl_stop( 'conf_ctx%mpi_allow_world_default_comm(.FALSE._1) failed: ', multio_error_string(err))
+! end if
+! ! err = conf_ctx%mpi_client_id(client_id)
+! ! if (err /= MULTIO_SUCCESS) then
+! !     CALL ctl_stop( 'conf_ctx%mpi_client_id(', TRIM(client_id),') failed: ', multio_error_string(err))
+! ! end if
+! err = conf_ctx%mpi_return_client_comm(return_comm)
+! if (err /= MULTIO_SUCCESS) then
+!     WRITE (err_str, "(I)"), return_comm
+!     CALL ctl_stop( 'conf_ctx%mpi_return_client_comm('//err_str//') failed: ', multio_error_string(err))
+! end if
+! err = conf_ctx%mpi_parent_comm(int(mio_parent_comm))
+! if (err /= MULTIO_SUCCESS) then
+!     WRITE (err_str, "(I)"), mio_parent_comm
+!     CALL ctl_stop( 'conf_ctx%mpi_parent_comm('//err_str//') failed: ', multio_error_string(err))
+! end if
+
+err = mio_handle%new(conf_ctx)
+if (err /= MULTIO_SUCCESS) then
+    CALL ctl_stop( 'mio_handle%new(conf_ctx) failed: ', multio_error_string(err))
+end if
+
+
+err = mio_handle%open_connections()
+write(*,*) 'mio_handle%open_connections() err: ', err
+
+pfield2d = 1.0
+pfield2d(:, 1) = -1.0
+
+do s = 0, 48, 24
+  do i = 1, 11
+
+  err = mio_md%new(mio_handle)
+
+  ! set time
+  ! err = mio_md%set_int("step-frequency", 1)
+  err = mio_md%set_int("startDate", 20250101)
+  err = mio_md%set_int("startTime", 0)
+
+  ! set grid
+  err = mio_md%set_string("gridType", "regular_ll")
+  err = mio_md%set_int("globalSize", NX * NY)
+  err = mio_md%set_int("level", 1)
+  err = mio_md%set_int("Ni", NX)
+  err = mio_md%set_int("Nj", NY)
+  err = mio_md%set_float("north", 89.875)
+  err = mio_md%set_float("south", -89.875)
+  err = mio_md%set_float("west", -179.875)
+  err = mio_md%set_float("east", 180.125)  ! multio removes one increment
+  err = mio_md%set_float("west_east_increment", 0.25)
+  err = mio_md%set_float("south_north_increment", 0.25)
+
+  select case (cmf_names(i))
+    ! accumulated/averaged fields
+    case ("totout", "rofsfc", "runoff", "rofsub", "subrunoff", "wevap")
+      err = mio_md%set_string("category", "rivers-average")
+      err = mio_md%set_int("startStep", s)
+      err = mio_md%set_int("endStep", s + 12)
+    ! instantanoous fields
+    case default
+      err = mio_md%set_string("category", "rivers-instant")
+      err = mio_md%set_int("step", s)
+  end select
+  
+  ! write field
+  err = mio_md%set_string("cmf-name", cmf_names(i))
+  err = mio_md%set_float("missingValue", -1.)
+  err = mio_md%set_bool("bitmapPresent", .True.)
+  err = mio_md%set_bool("toAllServers", .FALSE.)  ! neeeded?
+
+  err = mio_handle%write_field(mio_md, pfield2d)
+  if (err /= MULTIO_SUCCESS) then
+    CALL ctl_stop( 'mio_handle%write_field() failed: ', multio_error_string(err))
+  end if
+
+  err = mio_handle%flush(mio_md)
+  err = mio_md%delete()
+end do
+end do
+
+err = mio_handle%delete();
+err = conf_ctx%delete()
+if (err /= MULTIO_SUCCESS) then
+    CALL ctl_stop( 'conf_ctx%delete() failed: ', multio_error_string(err))
+end if
+
+! only needed when using io server
+! err = mio_handle%close_connections();
+
+end SUBROUTINE CMF_MIO_INITIALISE
 !####################################################################
 
-
-
-
+END SUBROUTINE CMF_OUTPUT_INIT
+!####################################################################
 
 !####################################################################
 SUBROUTINE CMF_OUTPUT_WRITE
