@@ -159,6 +159,9 @@ REAL (KIND = JPRD):: ZR_H_ICESNOW      ! Dimensionless ratio, used to store inte
 REAL (KIND = JPRD):: ZR_RHO_C_ICESNOW  ! Dimensionless ratio, used to store intermediate results
 REAL (KIND = JPRD):: ZR_TI_ICESNOW     ! Dimensionless ratio, used to store intermediate results
 REAL (KIND = JPRD):: ZR_TSTAR_ICESNOW  ! Dimensionless ratio, used to store intermediate results
+REAL (KIND = JPRD):: ZR_TRATIO         ! Ratio of thermocline to total depth
+REAL (KIND = JPRD):: ZFLK_THERHP       ! Heat content of thermcoline on previous timestep
+REAL (KIND = JPRD):: ZFLK_C_T_LIMIT    ! Maximum value of C_T when ML is retreating
 
 !  The shape factor(s) at the previous time step ("p") and the updated value(s) ("n") 
 REAL (KIND = JPRD):: ZC_TT_FLK       ! Dimensionless parameter (thermocline)
@@ -221,7 +224,7 @@ ASSOCIATE(RC_CBL_1=>YDFLAKE%RC_CBL_1, RC_CBL_2=>YDFLAKE%RC_CBL_2, &
 !------------------------------------------------------------------------------
 ZEPS=10._JPRB*EPSILON(ZEPS)           ! Small epsilon
 ZC_T_CON=(RC_T_MAX+RC_T_MIN)/2._JPRD  ! Average lake shape factor
-ZD_C_T_DT_MAX=(RC_T_MAX-RC_T_MIN)/(86400._JPRD*RD_C_T_DT_MAX_A) ! Maximum abs C_T tendency
+ZD_C_T_DT_MAX=(RC_T_MAX-RC_T_MIN)/(3600._JPRD*1._JPRD) ! Maximum abs C_T tendency now 1 hour, not 30 days
 
 !_dm 
 ! Security. Set time-rate-of-change of prognostic variables to zero.
@@ -526,10 +529,20 @@ ELSE HTC_WATER                                      ! Open water
   END IF 
 
 ! The rate of change of C_T
-  ZD_C_T_DT = MAX(ZW_STAR_SFC_FLK, PU_STAR_W_FLK(JL), RU_STAR_MIN_FLK)**2_JPIM
-  ZD_C_T_DT = ZN_T_MEAN*(ZDEPTH_W(JL)-PH_ML_P_FLK(JL))**2_JPIM       &
-           /RC_RELAX_C/ZD_C_T_DT                                 ! Relaxation time scale for C_T
-  ZD_C_T_DT = (RC_T_MAX-RC_T_MIN)/MAX(ZD_C_T_DT, RC_SMALL_FLK)     ! Rate-of-change of C_T 
+  IF(.TRUE.) THEN   ! New faster rate of change of C_T supplied by DWD (Feb 2025)
+    IF (ZN_T_MEAN.GT.0._JPRD)  then !stratification exists
+! scale with thermocline depth, note hardcoded value of RC_RELAX_C=0.005
+      ZD_C_T_DT = 0.005_JPRB*(RC_T_MAX-RC_T_MIN)&
+         /MAX((ZDEPTH_W(JL)-PH_ML_P_FLK(JL))/MAX(ZW_STAR_SFC_FLK, PU_STAR_W_FLK(JL), RU_STAR_MIN_FLK), RC_SMALL_FLK)
+    ELSE
+      ZD_C_T_DT =0.0_JPRB
+    END IF
+  ELSE
+    ZD_C_T_DT = MAX(ZW_STAR_SFC_FLK, PU_STAR_W_FLK(JL), RU_STAR_MIN_FLK)**2_JPIM
+    ZD_C_T_DT = ZN_T_MEAN*(ZDEPTH_W(JL)-PH_ML_P_FLK(JL))**2_JPIM       &
+             /RC_RELAX_C/ZD_C_T_DT                                 ! Relaxation time scale for C_T
+    ZD_C_T_DT = (RC_T_MAX-RC_T_MIN)/MAX(ZD_C_T_DT, RC_SMALL_FLK)     ! Rate-of-change of C_T 
+  ENDIF
 
 ! Compute the shape factor and the mixed-layer depth, 
 ! using different formulations for convection and wind mixing
@@ -659,9 +672,40 @@ ELSE HTC_WATER                                      ! Open water
       ZFLK_STR_2 = ZFLK_STR_2*(PT_WML_P_FLK(JL)-PT_BOT_P_FLK(JL))*ZD_C_T_DT
       ZD_T_BOT_DT = ZD_T_BOT_DT + ZFLK_STR_2       ! Add dC_T/dt term
       
+      IF(.TRUE.) THEN
+! Check to avoid violating second law of thermodynamics
+! If ML deepens too quickly, C_T does not respond fast enough, and T_BOT is decreased to
+! ensure the total heat content remains consistent with the temperature profile. This is
+! a particular for equatorial lakes where f is near 0 and stratification is weak, leading to
+! large quilibrium mixed layer depths when buoyancy forcing becomes small (Eq 38 in Mirinov 2008).
+! To prevent this, we either have to speed up C_T or slow down ML deepening. Consistent with the
+! approach for mixed layer retreat, we choose to increase C_T.
+        IF((PT_WML_N_FLK(JL)>PT_BOT_N_FLK(JL)).AND.(ZD_T_BOT_DT<0.0_JPRB)) THEN
+          PC_T_N_FLK(JL)=PC_T_N_FLK(JL)*(1.0_JPRB-ZD_T_BOT_DT/MAX((PT_WML_N_FLK(JL)-PT_BOT_N_FLK(JL)),RC_SMALL_FLK)
+          PC_T_N_FLK(JL)=MIN(RC_T_MAX, MAX(PC_T_N_FLK(JL), RC_T_MIN)) ! Keep C_T limits
+          ZD_T_BOT_DT = 0._JPRD
+        ENDIF
+! Apply same check for inverted temperature profiles, although this is probably less important 
+        IF((PT_WML_N_FLK(JL)<PT_BOT_N_FLK(JL)).AND.(ZD_T_BOT_DT>0.0_JPRB)) THEN
+          PC_T_N_FLK(JL)=PC_T_N_FLK(JL)*(1.0_JPRB+ZD_T_BOT_DT/MAX((PT_BOT_N_FLK(JL)-PT_WML_N_FLK(JL)),RC_SMALL_FLK)
+          PC_T_N_FLK(JL)=MIN(RC_T_MAX, MAX(PC_T_N_FLK(JL), RC_T_MIN)) ! Keep C_T limits
+          ZD_T_BOT_DT = 0._JPRD
+        ENDIF
+      ENDIF
+
     ELSE                                ! Mixed-layer retreat or stationary state
       ZD_T_BOT_DT = 0._JPRD             ! dT_bot/dt=0
-    END IF
+! Adjust C_T if necessary to prevent counter-gradient heat transport from thermocline to mixed layer
+      IF(.TRUE.) THEN
+        ZFLK_THERHP=((1.0_JPRB-PC_T_P_FLK(JL))*(ZDEPTH_W(JL)-PH_ML_P_FLK(JL))+ &
+     &     (PH_ML_P_FLK(JL)-PH_ML_N_FLK(JL)))*(PT_WML_P_FLK(JL)-PT_BOT_P_FLK(JL))  ! previous heat content of new thermocline
+        ZR_TRATIO=1.0_JPRB-PH_ML_N_FLK(JL)/ZDEPTH_W(JL)
+        ZFLK_STR_2=(ZDEPTH_W(JL)-PH_ML_N_FLK(JL))*(PT_MNW_N_FLK(JL)-PT_BOT_N_FLK(JL))
+        ZFLK_C_T_LIMIT=(ZFLK_STR_2-ZFLK_THERHP)/MAX((ZFLK_STR_2-ZR_TRATIO*ZFLK_THERHP),RC_SMALL_FLK) ! C_T_N must be less than or equal to this
+        PC_T_N_FLK(JL)=MIN(PC_T_N_FLK(JL),ZFLK_C_T_LIMIT)
+        PC_T_N_FLK(JL) = MIN(RC_T_MAX, MAX(PC_T_N_FLK(JL), RC_T_MIN)) ! Keep C_T limits to ensure consistency with subsequent timesteps
+      ENDIF
+    ENDIF
 
     PT_BOT_N_FLK(JL) = PT_BOT_P_FLK(JL) + ZD_T_BOT_DT*PDEL_TIME  ! Update T_bot  
     PT_BOT_N_FLK(JL) = MAX(PT_BOT_N_FLK(JL), RTPL_T_F)           ! Security, limit T_bot by the freezing point
