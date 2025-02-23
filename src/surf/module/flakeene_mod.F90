@@ -681,13 +681,13 @@ ELSE HTC_WATER                                      ! Open water
 ! To prevent this, we either have to speed up C_T or slow down ML deepening. Consistent with the
 ! approach for mixed layer retreat, we choose to increase C_T.
         IF((PT_WML_N_FLK(JL)>PT_BOT_N_FLK(JL)).AND.(ZD_T_BOT_DT<0.0_JPRB)) THEN
-          PC_T_N_FLK(JL)=PC_T_N_FLK(JL)*(1.0_JPRB-ZD_T_BOT_DT/MAX((PT_WML_N_FLK(JL)-PT_BOT_N_FLK(JL)),RC_SMALL_FLK)
+          PC_T_N_FLK(JL)=PC_T_N_FLK(JL)*(1.0_JPRB-ZD_T_BOT_DT/MAX((PT_WML_N_FLK(JL)-PT_BOT_N_FLK(JL)),RC_SMALL_FLK))
           PC_T_N_FLK(JL)=MIN(RC_T_MAX, MAX(PC_T_N_FLK(JL), RC_T_MIN)) ! Keep C_T limits
           ZD_T_BOT_DT = 0._JPRD
         ENDIF
 ! Apply same check for inverted temperature profiles, although this is probably less important 
         IF((PT_WML_N_FLK(JL)<PT_BOT_N_FLK(JL)).AND.(ZD_T_BOT_DT>0.0_JPRB)) THEN
-          PC_T_N_FLK(JL)=PC_T_N_FLK(JL)*(1.0_JPRB+ZD_T_BOT_DT/MAX((PT_BOT_N_FLK(JL)-PT_WML_N_FLK(JL)),RC_SMALL_FLK)
+          PC_T_N_FLK(JL)=PC_T_N_FLK(JL)*(1.0_JPRB+ZD_T_BOT_DT/MAX((PT_BOT_N_FLK(JL)-PT_WML_N_FLK(JL)),RC_SMALL_FLK))
           PC_T_N_FLK(JL)=MIN(RC_T_MAX, MAX(PC_T_N_FLK(JL), RC_T_MIN)) ! Keep C_T limits
           ZD_T_BOT_DT = 0._JPRD
         ENDIF
