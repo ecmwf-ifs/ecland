@@ -53,6 +53,8 @@ SUBROUTINE FLAKEENE                                                      &
 !  Fixes for coupled atmospheric runs
 !            17.12.2015     F. Vana
 !  Support for single precision
+!            26.02.2025     T. Stockdale
+!  Faster evolution of shape factor, plus new second-law thermodynamic constraints
 !  M. Kelbling and S. Thober (UFZ) 11/6/2020 use of parameter values defined in namelist
 
 !
@@ -529,7 +531,7 @@ ELSE HTC_WATER                                      ! Open water
   END IF 
 
 ! The rate of change of C_T
-  IF(.TRUE.) THEN   ! New faster rate of change of C_T supplied by DWD (Feb 2025)
+  IF(.TRUE.) THEN   ! New faster rate of change of C_T as recommended by DWD (Feb 2025)
     IF (ZN_T_MEAN.GT.0._JPRD)  then !stratification exists
 ! scale with thermocline depth, note hardcoded value of RC_RELAX_C=0.005
       ZD_C_T_DT = 0.005_JPRB*(RC_T_MAX-RC_T_MIN)&
@@ -676,10 +678,10 @@ ELSE HTC_WATER                                      ! Open water
 ! Check to avoid violating second law of thermodynamics
 ! If ML deepens too quickly, C_T does not respond fast enough, and T_BOT is decreased to
 ! ensure the total heat content remains consistent with the temperature profile. This is
-! a particular for equatorial lakes where f is near 0 and stratification is weak, leading to
-! large quilibrium mixed layer depths when buoyancy forcing becomes small (Eq 38 in Mirinov 2008).
-! To prevent this, we either have to speed up C_T or slow down ML deepening. Consistent with the
-! approach for mixed layer retreat, we choose to increase C_T.
+! a particular issue for equatorial lakes where f is near 0 and stratification is weak, leading to
+! large quilibrium mixed layer depths when buoyancy forcing becomes small (Eq 38 in Mironov 2008).
+! To prevent this, we either have to speed up C_T adjustment or slow down ML deepening. Consistent
+! with the approach for mixed layer retreat, we choose to adjust C_T.
         IF((PT_WML_N_FLK(JL)>PT_BOT_N_FLK(JL)).AND.(ZD_T_BOT_DT<0.0_JPRB)) THEN
           PC_T_N_FLK(JL)=PC_T_N_FLK(JL)*(1.0_JPRB-ZD_T_BOT_DT/MAX((PT_WML_N_FLK(JL)-PT_BOT_N_FLK(JL)),RC_SMALL_FLK))
           PC_T_N_FLK(JL)=MIN(RC_T_MAX, MAX(PC_T_N_FLK(JL), RC_T_MIN)) ! Keep C_T limits
