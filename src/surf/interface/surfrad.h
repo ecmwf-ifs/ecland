@@ -40,7 +40,7 @@ USE, INTRINSIC :: ISO_C_BINDING
 ! KMON   : length of the 12 months
 ! KSECO  : Number of seconds since 00 UTC on the initial day of the forecast
 ! LDNH   : LOGICAL  : .TRUE. FOR Northern Hemisphere
-! LDLAND : LOGICAL  : .TRUE. FOR Land 
+! LDLAND : LOGICAL  : .TRUE. FOR Land
 ! PALBF  : REAL     : FIXED BACKGROUND SURFACE SHORTWAVE ALBEDO
 ! PALBICEF REAL     : FIXED SEA-ICE ALBEDO (FROM COUPLER)
 ! PALCOEFF : REAL   : MODIS albedo coefficients
