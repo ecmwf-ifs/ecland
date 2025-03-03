@@ -149,6 +149,7 @@ INTEGER(KIND=JPIM), INTENT(IN)   :: KLEVSN
 REAL(KIND=JPRB)   , INTENT(IN)   :: PTMST
 LOGICAL           , INTENT(IN)   :: LDLAND(:)
 LOGICAL           , INTENT(IN)   :: LDSICE(:)
+LOGICAL           , INTENT(IN)   :: LDSNOWICE
 REAL(KIND=JPRB)   , INTENT(IN)   :: PSDOR(:)
 REAL(KIND=JPRB)   , INTENT(IN)   :: PCIL(:)
 LOGICAL,            INTENT(IN)   :: LDNH(:)
@@ -228,10 +229,12 @@ INTEGER(KIND=JPIM) :: KLACT
 
 REAL(KIND=JPRB) :: ZFF              ! Frozen soil fraction
 LOGICAL         :: LLNOSNOW(KLON)    ! FALSE to compute snow 
-REAL(KIND=JPRB)    :: ZEPSILON
+LOGICAL         :: LSNOWLANDONLY(KLON)  ! TRUE to compute snow only over land
+REAL(KIND=JPRB) :: ZTBOTTOM(KLON)   ! Temperature bottom boundary condition
 
 INTEGER(KIND=JPIM) :: JL,JK
 LOGICAL            :: LEROGLACIER
+REAL(KIND=JPRB)    :: ZEPSILON
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
@@ -271,9 +274,18 @@ DO JL=KIDIA,KFDIA
     LLNOSNOW(JL)=.FALSE.
   ENDIF
   
-! NET RAINFALL & SNOWFALL 
-! this needs to be checked carefully for points with subgrid-scale lakes: 
-! we're not sure if this partition is correct 
+  LSNOWLANDONLY(JL)=.TRUE. ! By default, compute over all points.
+  ! if we are over ocean (ice) points, and there is snow and we want to 
+  ! account for its thermodynamic effect, then use snowML only over Land points.
+  ! Snow over sea-ice will be considered by single-layer for the time being.
+  !*IF (.NOT. LDLAND(JL) .AND. .NOT. LLNOSNOW(JL) .AND. .NOT. LDSNOWICE)THEN
+  !*  LLNOSNOW(JL)=.TRUE.
+  !*  LSNOWLANDONLY(JL)=.FALSE.
+  !*ENDIF
+
+!        NET RAINFALL & SNOWFALL 
+!        this needs to be checked carefully for points with subgrid-scale lakes: 
+!        we're not sure if this partition is correct 
   IF (LDLAND(JL)) THEN
     ! Snowfall is all redirected here ! 
     ZSNOWF(JL) = PSSFC(JL) + PSSFL(JL)
@@ -283,6 +295,7 @@ DO JL=KIDIA,KFDIA
   
   ! Evap. is only fractional 
   ZEVAPSN(JL) = PFRTI(JL,5)*PEVAPTI(JL,5) + PFRTI(JL,7)*PEVAPSNW(JL)
+  ZTBOTTOM(JL)=PTSAM1M(JL,1)
   IF (LLNOSNOW(JL)) THEN
     ZHFLUX(JL) = 0.0_JPRB 
     ZRAINF(JL) = 0.0_JPRB
@@ -379,7 +392,7 @@ CALL SRFSN_VGRID(KIDIA,KFDIA,KLON,KLEVSN,LLNOSNOW,PSDOR,PCIL,LDLAND,&
                  ZZSSNM1M,PRSNM1M,&
                  YDSOIL%RLEVSNMIN,YDSOIL%RLEVSNMAX,&
                  YDSOIL%RLEVSNMIN_GL,YDSOIL%RLEVSNMAX_GL,&
-                 ZDSNOUT,KLEVSNA)
+                 ZDSNOUT,KLEVSNA,LDLAND)
 
 !     ------------------------------------------------------------------
 !*         1.1b REGRID FIELDS IF VERTICAL DISCRETIZATION CHANGED
@@ -395,7 +408,7 @@ CALL SRFSN_REGRID(KIDIA,KFDIA,KLON,KLEVSN,LLNOSNOW,&
 !*         2. Absorption of solar radiation by snow
 ZSNOTRS(KIDIA:KFDIA,1:KLEVSN+1)=0._JPRB
 CALL SRFSN_SSRABS(KIDIA,KFDIA,KLON,KLEVSN,&
-                  LLNOSNOW,PFRTI,PSSRFLTI,&
+                  LLNOSNOW,LSNOWLANDONLY,PFRTI,PSSRFLTI,&
                   ZSSNM1M,ZRSNM1M,&
                   YDSOIL,YDCST,&
                   ZSNOTRS)
@@ -406,9 +419,9 @@ CALL SRFSN_SSRABS(KIDIA,KFDIA,KLON,KLEVSN,&
 !             -----------------------------------------------------------
 
 CALL SRFSN_WEBAL(KIDIA,KFDIA,KLON,KLEVSN, LDLAND,&
- & PTMST,LLNOSNOW,ZFRSN,&
+ & PTMST,LLNOSNOW,LSNOWLANDONLY,ZFRSN,&
  & ZSSNM1M,ZWSNM1M,ZRSNM1M,ZTSNM1M,&
- & ZTSURF,ZHFLUX,ZSNOTRS,ZSNOWF,ZRAINF,ZEVAPSN,ZSURFCOND,&
+ & ZTBOTTOM,ZTSURF,ZHFLUX,ZSNOTRS,ZSNOWF,ZRAINF,ZEVAPSN,ZSURFCOND,&
  & PAPRS,&
  & YDSOIL,YDCST,&
  & PSSN,PWSN,PTSN,&
@@ -457,7 +470,7 @@ ENDIF
 !*             
 !             -----------------------------------------------------------
 
-CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,PCIL,LDLAND,&
+CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,PCIL,LDLAND,LSNOWLANDONLY,&
               &ZFRSN,ZRSNM1M,ZSSNM1M,ZTSNM1M,ZWSNM1M,PWSN,&
               &ZSNOWF,PUSRF,PVSRF,PTSRF,&
               &YDSOIL,YDCST,PRSN,PDHTSS)
@@ -467,7 +480,7 @@ CALL SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,PCIL,LDLAND,&
 !*             
 !             -----------------------------------------------------------
 ZPHASE(KIDIA:KFDIA)=ZMELTSN(KIDIA:KFDIA,1)-ZFREZSN(KIDIA:KFDIA,1)
-CALL SRFSN_ASN(KIDIA,KFDIA,KLON,PTMST,LLNOSNOW,PASNM1M,&
+CALL SRFSN_ASN(KIDIA,KFDIA,KLON,PTMST,LLNOSNOW,LSNOWLANDONLY,PASNM1M,&
  & PCIL,LDNH, &
  & ZPHASE,ZTSNM1M,ZSNOWF,YDSOIL,YDCST,PASN)
 
