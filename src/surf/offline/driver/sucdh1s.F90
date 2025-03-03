@@ -109,7 +109,7 @@ NDHFCO2S = 7 ! gross assimilation, dark respiration, net assimilation,
 NDHVBIOS = 0
 NDHFBIOS = 5 ! leaf biomass, leaf biomass loss, leaf biomass gain, above ground
              ! structural biomass, below ground structural biomass
-! Number of biogenic VOC emission species 
+! Number of biogenic VOC emission species
 NDHVBVOCS = 2
 ! Variables per vegetation type, not normalized to grid square	   
 NDHVVEGS = 7 ! fraction, LAI (m2/m2), 

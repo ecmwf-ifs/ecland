@@ -463,6 +463,7 @@ LOGICAL           ,INTENT(IN)    :: LNEMOICETHK
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTHKICE(:)
 
 
+
 !     ------------------------------------------------------------------
 
 END SUBROUTINE SURFTSTP
