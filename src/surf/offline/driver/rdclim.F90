@@ -384,16 +384,16 @@ ENDDO
 !! 2D FIELDS
 IF (LEURBAN) THEN
 NVARS2D=20
-CVARS2D(1:NVARS2D)=(/'landsea','geopot ','cvl    ', &
-                      'cvh    ','tvl    ','tvh    ','cu     ','sotype ','sdor   ',&
-                      'sst    ','seaice ','glaMask','LDEPTH ','CLAKE  ','z0m    ','lz0h   ',&
-                      'x      ','CLAKEF ','Ctype  ','ISOP_EP'/)
+CVARS2D(1:NVARS2D)=(/ 'landsea    ','geopot     ','cvl        ', &
+                      'cvh        ','tvl        ','tvh        ','cu         ','sotype     ','sdor       ',&
+                      'sst        ','seaice     ','glacierMask','LDEPTH     ','CLAKE      ','z0m        ','lz0h       ',&
+                      'x          ','CLAKEF     ','Ctype      ','ISOP_EP    '/)
 ELSE
 NVARS2D=19
-CVARS2D(1:NVARS2D)=(/'landsea','geopot ','cvl    ', &
-                      'cvh    ','tvl    ','tvh    ','sotype ','sdor   ',&
-                      'sst    ','seaice ','glaMask','LDEPTH ','CLAKE  ','z0m    ','lz0h   ',&
-                      'x      ','CLAKEF ','Ctype  ','ISOP_EP'/)
+CVARS2D(1:NVARS2D)=(/ 'landsea    ','geopot     ','cvl        ', &
+                      'cvh        ','tvl        ','tvh        ','sotype     ','sdor       ',&
+                      'sst        ','seaice     ','glacierMask','LDEPTH     ','CLAKE      ','z0m        ','lz0h       ',&
+                      'x          ','CLAKEF     ','Ctype      ','ISOP_EP    '/)
 VFCUR(1:NPOI)=0._JPRB !Creates an array of zeros if urban is not used
 ENDIF
 

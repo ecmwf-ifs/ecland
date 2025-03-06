@@ -104,13 +104,13 @@ ELSE
 ENDIF
 
   NVARS2D=33
-  CVARS2D(1:NVARS2D)=(/'Mask     ','z0m      ','lz0h     ','landsea  ','geopot   ',&
-                      'cvl      ','cvh      ','tvl      ','tvh      ','sotype   ',&
-                      'sdor     ','sst      ','seaice   ','glaciMask','CanopInt ','SWE      ',&
-                      'SnowT    ','SAlbedo  ','snowdens ','AvgSurfT ','TLICE    ',&
-                      'TLMNW    ','TLWML    ','TLBOT    ','TLSF     ','HLICE    ',&
-                      'HLML     ','LDEPTH   ','CLAKE    ','x        ','CLAKEF   ',&
-                      'cu       ','ISOP_EP  '/)
+  CVARS2D(1:NVARS2D)=(/'Mask       ','z0m        ','lz0h       ','landsea    ','geopot     ',&
+                       'cvl        ','cvh        ','tvl        ','tvh        ','sotype     ',&
+                       'sdor       ','sst        ','seaice     ','glacierMask','CanopInt   ','SWE        ',&
+                       'SnowT      ','SAlbedo    ','snowdens   ','AvgSurfT   ','TLICE      ',&
+                       'TLMNW      ','TLWML      ','TLBOT      ','TLSF       ','HLICE      ',&
+                       'HLML       ','LDEPTH     ','CLAKE      ','x          ','CLAKEF     ',&
+                       'cu         ','ISOP_EP    '/)
 
   IF (LEC4MAP) THEN
 
