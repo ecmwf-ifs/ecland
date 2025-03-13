@@ -212,8 +212,7 @@ DO NSTEP=NSTART,NSTOP
     ENDDO        
       
     !* Coupling: 
-    !IF ( MOD(NSTEP*TSTEP,TCOUPFREQ*3600) == 0 .AND. NSTEP /= NSTART ) THEN
-! Note that double precision is required for long NSTEPS and "small" TCOUPFREQ (e.g. equal to 1)
+! Note that changed the condition to double precision as it is required for long NSTEPS and "small" TCOUPFREQ (e.g. equal to 1)
    IF ( MOD((REAL(NSTEP,KIND=JPRD)*REAL(TSTEP,KIND=JPRD)),REAL(TCOUPFREQ*3600,KIND=JPRD)) == 0 &
       & .AND. REAL(NSTEP,KIND=JPRD) /= REAL(NSTART,KIND=JPRD) ) THEN
       ZTT1C = OMP_GET_WTIME()
