@@ -23,3 +23,5 @@ foreach( test ${tests} )
             INPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}/input
     )
 endforeach()
+
+add_subdirectory( ifsbench )
