@@ -1,0 +1,104 @@
+arch:
+  # Specify architecture definitions here.
+
+  # Default architecture. Uses mpirun and no additional hardware information.
+  default:
+    launcher:
+      launcher_type: MpirunLauncher
+    cpu_config: {}
+
+  atos:
+    launcher:
+      launcher_type: SrunLauncher
+    cpu_config:
+      sockets_per_node: 2
+      cores_per_socket: 64
+      threads_per_core: 2
+      gpus_per_node: 0
+
+  # Architecture for runs on the LUMI-C partition. Specifies default account
+  # and partition. Change this if necessary.
+  lumi-c:
+    launcher:
+      launcher_type: SrunLauncher
+    cpu_config:
+      sockets_per_node: 2
+      cores_per_socket: 64
+      threads_per_core: 2
+      gpus_per_node: 0
+    account: project_465000527
+    partition: small
+
+science:
+  # Specify science definitions here.
+
+  v1_EU_default: &v1_EU
+    # Path to the actual ecland executable. 
+    binary_path: @CMAKE_BINARY_DIR@/bin/ecland-master
+
+    # Paths to the three standard input files. These should be given as URLs,
+    # so either as https://something or file:///home/me/something.
+    forcing_url: https://get.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/met_2DHT_EU-001_20220101-20220102.nc
+    soil_url: https://get.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/surfinit_EU-001_20220101-20220102.nc
+    surfclim_url: https://get.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/surfclim_EU-001_20220101-20220102.nc
+
+    # Path to the default namelist.
+    namelist_url: file://@CMAKE_CURRENT_SOURCE_DIR@/namelist_v1_EU
+
+    # Default parallel setup. May be overwritten at runtime by command line flags.
+    job:
+      tasks: 1
+      cpus_per_task: 1
+
+  v1_EU_centered:
+    # Use YAML anchor/alias here to essentially copy the content of v1_EU_default
+    # here and just override the namelists.
+    <<: *v1_EU
+    namelists:
+      # Set additional namelist flags here. `mode` can also be `delete` or
+      # `append`.
+      - mode: set
+        namelist: NAMDYN1S
+        entry: NACCTYPE
+        value: 0
+
+  v1_EU_forward:
+    <<: *v1_EU
+    namelists:
+      - mode: set
+        namelist: NAMDYN1S
+        entry: NACCTYPE
+        value: 1
+
+  v1_EU_multiprocess:
+    <<: *v1_EU
+    job:
+      tasks: 4
+
+  v1_EU_multithread:
+    <<: *v1_EU
+    job:
+      tasks: 1
+      threads: 4
+
+  v1_EU_multiprocess_thread:
+    <<: *v1_EU
+    job:
+      tasks: 4
+      threads: 4
+
+tech:
+  # Specify technical setups here.
+  default: {}
+
+  debug:
+    namelists:
+      - mode: set
+        namelist: NAM1S
+        entry: LDBGS1
+        value: true
+      - mode: set
+        namelist: NAM1S
+        entry: IDBGS1
+        value: 1
+
