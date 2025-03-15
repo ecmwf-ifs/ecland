@@ -443,7 +443,7 @@ PAVGPAR(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
     ! Variable atmospheric CO2
        ZCO2(JL)=PCM1(JL)
     ELSE
-       ! CALL ABORT_SURF('COTWORESTRESS_MOD: ATM CO2 SHOULD BE POSITIVE ')
+       CALL ABORT_SURF('COTWORESTRESS_MOD: ATM CO2 SHOULD BE POSITIVE ')
     ENDIF
 
 
