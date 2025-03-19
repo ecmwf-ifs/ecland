@@ -5,7 +5,7 @@
 MODULE SUSFLAKE_MOD
 
 CONTAINS
-SUBROUTINE SUSFLAKE(LD_LEFLAKE,YDFLAKE)
+SUBROUTINE SUSFLAKE(LD_LEFLAKE,KFLAKEV,YDFLAKE)
 
     ! (C) Copyright 2005- ECMWF.
 !
@@ -50,12 +50,14 @@ SUBROUTINE SUSFLAKE(LD_LEFLAKE,YDFLAKE)
 USE PARKIND1 , ONLY : JPIM, JPRB, JPRD
 USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_FLAKE, ONLY : TFLAKE, NBAND_OPTIC_MAX, ROPTICPAR_MEDIUM
+USE ABORT_SURF_MOD
 
 !==============================================================================
 
 IMPLICIT NONE
 
-LOGICAL,      INTENT(IN)    :: LD_LEFLAKE 
+LOGICAL,            INTENT(IN) :: LD_LEFLAKE 
+INTEGER(KIND=JPIM), INTENT(IN) :: KFLAKEV
 TYPE(TFLAKE), INTENT(INOUT) :: YDFLAKE
 
 !==============================================================================
@@ -93,7 +95,7 @@ ASSOCIATE(LEFLAKE=>YDFLAKE%LEFLAKE, RC_B1=>YDFLAKE%RC_B1, RC_B2=>YDFLAKE%RC_B2, 
  & RTPL_RHO_I=>YDFLAKE%RTPL_RHO_I, RTPL_RHO_W_R=>YDFLAKE%RTPL_RHO_W_R, &
  & RTPL_T_F=>YDFLAKE%RTPL_T_F, RTPL_T_R=>YDFLAKE%RTPL_T_R, &
  & RTPSF_L_EVAP=>YDFLAKE%RTPSF_L_EVAP, &
- & RU_STAR_MIN_FLK=>YDFLAKE%RU_STAR_MIN_FLK, &
+ & RU_STAR_MIN_FLK=>YDFLAKE%RU_STAR_MIN_FLK, NFLAKEV=>YDFLAKE%NFLAKEV,&
  & ROPT_WAT_EXTC1_REF=>YDFLAKE%ROPT_WAT_EXTC1_REF, &
  & ROPT_WAT_FRAC1_TRANS=>YDFLAKE%ROPT_WAT_FRAC1_TRANS, &
  & ROPT_WAT_FRAC2_TRANS=>YDFLAKE%ROPT_WAT_FRAC2_TRANS, &
@@ -102,6 +104,30 @@ ASSOCIATE(LEFLAKE=>YDFLAKE%LEFLAKE, RC_B1=>YDFLAKE%RC_B1, RC_B2=>YDFLAKE%RC_B2, 
  & ROPT_WICE_EXTC1_REF=>YDFLAKE%ROPT_WICE_EXTC1_REF, &
  & ROPT_BICE_EXTC1_REF=>YDFLAKE%ROPT_BICE_EXTC1_REF, &
  & ROPT_ICE_EXTC1_OP=>YDFLAKE%ROPT_ICE_EXTC1_OP)
+
+! Control variables
+LEFLAKE=LD_LEFLAKE
+NFLAKEV=KFLAKEV
+IF(LEFLAKE) THEN
+  IF(.NOT.((NFLAKEV==1).OR.(NFLAKEV==2))) THEN
+    CALL ABORT_SURF('SUSFLAKE: NFLAKEV must be 1 or 2')
+  ENDIF
+ENDIF
+
+!  Dimensionless constants 
+!  in the equations for the mixed-layer depth 
+!  and for the shape factor with respect to the temperature profile in the thermocline
+RC_CBL_1       = 0.17_JPRD             ! Constant in the CBL entrainment equation
+RC_CBL_2       = 1._JPRD               ! Constant in the CBL entrainment equation
+RC_SBL_ZM_N    = 0.5_JPRD              ! Constant in the ZM1996 equation for the equilibrium SBL depth
+RC_SBL_ZM_S    = 10._JPRD              ! Constant in the ZM1996 equation for the equilibrium SBL depth
+RC_SBL_ZM_I    = 20._JPRD              ! Constant in the ZM1996 equation for the equilibrium SBL depth
+RC_RELAX_H     = 0.030_JPRD            ! Constant in the relaxation equation for the SBL depth
+IF(NFLAKEV==1) THEN
+  RC_RELAX_C   = 0.030_JPRD           ! Constant with respect to the temperature profile in the thermocline
+ELSE
+  RC_RELAX_C    =0.005_JPRD
+ENDIF
 
 !  Parameters of the shape functions 
 !  Indices refer to T - thermocline, S - snow, I - ice,

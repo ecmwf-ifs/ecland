@@ -51,10 +51,8 @@ SUBROUTINE FLAKEENE                                                      &
 !  Set lake shape factor to constant 0.65 value for safety (instability issues)
 ! 1.03       11.11.2010     G. Balsamo 
 !  Fixes for coupled atmospheric runs
-!            17.12.2015     F. Vana
-!  Support for single precision
-!            26.02.2025     T. Stockdale
-!  Faster evolution of shape factor, plus new second-law thermodynamic constraints
+! 17.12.2015  F. Vana       Support for single precision
+! 26.02.2025  T. Stockdale  Faster evolution of shape factor plus second-law constraints
 !  M. Kelbling and S. Thober (UFZ) 11/6/2020 use of parameter values defined in namelist
 
 !
@@ -213,7 +211,7 @@ ASSOCIATE(RC_CBL_1=>YDFLAKE%RC_CBL_1, RC_CBL_2=>YDFLAKE%RC_CBL_2, &
  & RTPL_KAPPA_W=>YDFLAKE%RTPL_KAPPA_W, RTPL_L_F=>YDFLAKE%RTPL_L_F, &
  & RTPL_RHO_I=>YDFLAKE%RTPL_RHO_I, RTPL_RHO_W_R=>YDFLAKE%RTPL_RHO_W_R, &
  & RTPL_T_F=>YDFLAKE%RTPL_T_F, RTPL_T_R=>YDFLAKE%RTPL_T_R, &
- & RU_STAR_MIN_FLK=>YDFLAKE%RU_STAR_MIN_FLK, &
+ & RU_STAR_MIN_FLK=>YDFLAKE%RU_STAR_MIN_FLK, NFLAKEV=>YDFLAKE%NFLAKEV, &
  & RDEPTH_W_MAX=>YDFLAKE%RDEPTH_W_MAX, RDEPTH_W_MIN=>YDFLAKE%RDEPTH_W_MIN, &
  & RD_C_T_DT_MAX_A=>YDFLAKE%RD_C_T_DT_MAX_A, RC_I_FLK_A=>YDFLAKE%RC_I_FLK_A, &
  & RH_ICE_FUSION_A=>YDFLAKE%RH_ICE_FUSION_A, RH_ICE_FUSION_B=>YDFLAKE%RH_ICE_FUSION_B, &
@@ -226,7 +224,11 @@ ASSOCIATE(RC_CBL_1=>YDFLAKE%RC_CBL_1, RC_CBL_2=>YDFLAKE%RC_CBL_2, &
 !------------------------------------------------------------------------------
 ZEPS=10._JPRB*EPSILON(ZEPS)           ! Small epsilon
 ZC_T_CON=(RC_T_MAX+RC_T_MIN)/2._JPRD  ! Average lake shape factor
-ZD_C_T_DT_MAX=(RC_T_MAX-RC_T_MIN)/(3600._JPRD*1._JPRD) ! Maximum abs C_T tendency now 1 hour, not 30 days
+IF(NFLAKEV==1) THEN
+  ZD_C_T_DT_MAX=(RC_T_MAX-RC_T_MIN)/(86400._JPRD*30._JPRD) ! Maximum abs C_T tendency 30 day timescale
+ELSE
+  ZD_C_T_DT_MAX=(RC_T_MAX-RC_T_MIN)/(3600._JPRD*1._JPRD) ! Maximum abs C_T tendency 1 hour timescale
+ENDIF
 
 !_dm 
 ! Security. Set time-rate-of-change of prognostic variables to zero.
@@ -531,19 +533,18 @@ ELSE HTC_WATER                                      ! Open water
   END IF 
 
 ! The rate of change of C_T
-  IF(.TRUE.) THEN   ! New faster rate of change of C_T as recommended by DWD (Feb 2025)
-    IF (ZN_T_MEAN.GT.0._JPRD)  then !stratification exists
-! scale with thermocline depth, note hardcoded value of RC_RELAX_C=0.005
-      ZD_C_T_DT = 0.005_JPRB*(RC_T_MAX-RC_T_MIN)&
-         /MAX((ZDEPTH_W(JL)-PH_ML_P_FLK(JL))/MAX(ZW_STAR_SFC_FLK, PU_STAR_W_FLK(JL), RU_STAR_MIN_FLK), RC_SMALL_FLK)
-    ELSE
-      ZD_C_T_DT =0.0_JPRB
-    END IF
-  ELSE
+  IF(NFLAKEV==1) THEN
     ZD_C_T_DT = MAX(ZW_STAR_SFC_FLK, PU_STAR_W_FLK(JL), RU_STAR_MIN_FLK)**2_JPIM
     ZD_C_T_DT = ZN_T_MEAN*(ZDEPTH_W(JL)-PH_ML_P_FLK(JL))**2_JPIM       &
              /RC_RELAX_C/ZD_C_T_DT                                 ! Relaxation time scale for C_T
     ZD_C_T_DT = (RC_T_MAX-RC_T_MIN)/MAX(ZD_C_T_DT, RC_SMALL_FLK)     ! Rate-of-change of C_T 
+  ELSE ! New faster rate of change of C_T as recommended by DWD (Feb 2025)
+    IF (ZN_T_MEAN.GT.0._JPRD)  then !stratification exists, scale linearly by thermocline depth
+      ZD_C_T_DT = RC_RELAX_C*(RC_T_MAX-RC_T_MIN)&
+         /MAX((ZDEPTH_W(JL)-PH_ML_P_FLK(JL))/MAX(ZW_STAR_SFC_FLK, PU_STAR_W_FLK(JL), RU_STAR_MIN_FLK), RC_SMALL_FLK)
+    ELSE
+      ZD_C_T_DT =0.0_JPRB
+    END IF
   ENDIF
 
 ! Compute the shape factor and the mixed-layer depth, 
@@ -674,7 +675,7 @@ ELSE HTC_WATER                                      ! Open water
       ZFLK_STR_2 = ZFLK_STR_2*(PT_WML_P_FLK(JL)-PT_BOT_P_FLK(JL))*ZD_C_T_DT
       ZD_T_BOT_DT = ZD_T_BOT_DT + ZFLK_STR_2       ! Add dC_T/dt term
       
-      IF(.TRUE.) THEN
+      IF(NFLAKEV>=2) THEN
 ! Check to avoid violating second law of thermodynamics
 ! If ML deepens too quickly, C_T does not respond fast enough, and T_BOT is decreased to
 ! ensure the total heat content remains consistent with the temperature profile. This is
@@ -697,8 +698,8 @@ ELSE HTC_WATER                                      ! Open water
 
     ELSE                                ! Mixed-layer retreat or stationary state
       ZD_T_BOT_DT = 0._JPRD             ! dT_bot/dt=0
+      IF(NFLAKEV>=2) THEN
 ! Adjust C_T if necessary to prevent counter-gradient heat transport from thermocline to mixed layer
-      IF(.TRUE.) THEN
         ZFLK_THERHP=((1.0_JPRB-PC_T_P_FLK(JL))*(ZDEPTH_W(JL)-PH_ML_P_FLK(JL))+ &
      &     (PH_ML_P_FLK(JL)-PH_ML_N_FLK(JL)))*(PT_WML_P_FLK(JL)-PT_BOT_P_FLK(JL))  ! previous heat content of new thermocline
         ZR_TRATIO=1.0_JPRB-PH_ML_N_FLK(JL)/ZDEPTH_W(JL)
