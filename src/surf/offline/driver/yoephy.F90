@@ -161,6 +161,7 @@ INTEGER (KIND=JPIM) :: NCWS ! Number of layers to merge at the end for the soil 
 !       (1) MODIS 4 component (UV-Vis+NIR)x(direct+diffuse), (2) MODIS 6 component
 ! NEMISSSCHEME : INTEGER : (0) 2-band emissivity (window, non-window), 6-band emissivity
 ! LEFLAKE: LOGICAL : IF TRUE USE FLAKE OVER LAKES 
+! NFLAKEV: INTEGER : FLAKE VERSION, (1) original ECMWF scheme, (2) with second law constraints
 ! LEOCML : LOGICAL : IF TRUE USE OCEAN MIXED LAYER MODEL
 ! LEOCML : LOGICAL : IF TRUE USE LAI MONTHLY CLIMATOLOGY
 ! LESN09 : LOGICAL  : IF TRUE use snow 2009 
