@@ -194,8 +194,6 @@ ROPTICPAR_ICE_OPAQUE = ROPTICPAR_MEDIUM(1,                         & ! Opaque ic
 & (/1._JPRD     , (0._JPRD    , J=2,NBAND_OPTIC_MAX)/),          &
 & (/ROPT_ICE_EXTC1_OP, (1.E+10_JPRD, J=2,NBAND_OPTIC_MAX)/))
 
-LEFLAKE=LD_LEFLAKE
- 
 !==============================================================================
 
 END ASSOCIATE
