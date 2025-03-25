@@ -47,7 +47,6 @@ jobs:
             compiler_cc: gcc-10
             compiler_cxx: g++-10
             compiler_fc: gfortran-10
-            python-version: '3.9'
             caching: true
 
           # - name: linux nvhpc-23.5
@@ -57,7 +56,6 @@ jobs:
           #   compiler_cxx: nvc++
           #   compiler_fc: nvfortran
           #   cmake_options: -DCMAKE_CXX_FLAGS=--diag_suppress177
-          #   python-version: '3.9'
           #   caching: true
 
           - name : linux intel-classic
@@ -66,7 +64,6 @@ jobs:
             compiler_cc: icc
             compiler_cxx: icpc
             compiler_fc: ifort
-            python-version: '3.9'
             caching: true
 
           - name: macos
@@ -76,16 +73,10 @@ jobs:
             compiler_cc: ~
             compiler_cxx: ~
             compiler_fc: gfortran-13
-            python-version: '3.11'
             caching: true
 
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
     - name: Checkout Repository
       uses: actions/checkout@v2
 
