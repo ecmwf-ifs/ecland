@@ -29,12 +29,11 @@ jobs:
       fail-fast: false  # false: try to complete all jobs
 
       matrix:
-        # build_type: [Release,Debug] # Debug tests takes too long
-        build_type: [Release]
-        # prec: ['DP', 'SP'] # Standalone driver not SP compatible yet
-        prec: ['DP'] # Standalone driver not SP compatible yet
+        build_type: [Bit] # Not passing tests with Release
+        prec: ['DP'] # Standalone driver not 'SP' compatible yet
         name:
           - linux gnu-10
+          - linux gnu-14
           # - linux nvhpc-23.5  # Not yet passing tests...
           - linux intel-classic
           - macos
@@ -47,6 +46,14 @@ jobs:
             compiler_cc: gcc-10
             compiler_cxx: g++-10
             compiler_fc: gfortran-10
+            caching: true
+
+          - name: linux gnu-14
+            os: ubuntu-24.04
+            compiler: gnu-14
+            compiler_cc: gcc-14
+            compiler_cxx: g++-14
+            compiler_fc: gfortran-14
             caching: true
 
           # - name: linux nvhpc-23.5
