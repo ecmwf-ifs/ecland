@@ -195,8 +195,8 @@ N2DDIAUX=(2*2+13*NVHILO)+I3DVAAUX*NTILES+I2DVAAUX*NCSS+I1DVAAUX
 !            --------------------
 ALLOCATE (GDI1S(I1D,N2DDI,I3D))
 ALLOCATE (GDIAUX1S(I1DAUX,N2DDIAUX,I3D))
-GDI1S(:,:,:)=0.
-GDIAUX1S(:,:,:)=0.
+GDI1S(:,:,:)=0._JPRB
+GDIAUX1S(:,:,:)=0._JPRB
 
 !*       3.  POINTER STUFF.
 !            --------------

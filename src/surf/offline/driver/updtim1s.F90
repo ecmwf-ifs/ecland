@@ -304,11 +304,11 @@ ENDIF  ! LECLIM10D
 ! zt=RTIME(iyyyy,imm,idd,iss)
 zt=RTIME(iyyyy,imm,idd,0)  !updated assuming we're at 00UTC
 zwei1=(zt2-zt)/(zt2-zt1)
-zwei2=1.-zwei1
+zwei2=1._JPRB-zwei1
 
 zt_bvoc=RTIME(iyyyy_bvoc,imm_bvoc,idd_bvoc,0) ! new bvoc emission module
 zwei1_bvoc=(zt2_bvoc-zt_bvoc)/(zt2_bvoc-zt1_bvoc)
-zwei2_bvoc=1.-zwei1_bvoc
+zwei2_bvoc=1._JPRB-zwei1_bvoc
 VBVOCLAIL(:)=zwei1_bvoc*VCLAIL(:,imt11_bvoc)+zwei2_bvoc*VCLAIL(:,imt12_bvoc)
 VBVOCLAIH(:)=zwei1_bvoc*VCLAIH(:,imt11_bvoc)+zwei2_bvoc*VCLAIH(:,imt12_bvoc)
 

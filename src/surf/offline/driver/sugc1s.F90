@@ -144,9 +144,9 @@ ELSE
   ALLOCATE (DZLAT(NPOI))
   ALLOCATE (DZLON(NPOI))
 
-  RLAT = 45.00
-  RLON = 00.00
-  RMASK= 1.
+  RLAT = 45.00_JPRB
+  RLON = 00.00_JPRB
+  RMASK= 1._JPRB
 
 !      ----------------------------------------------------------------
 
@@ -168,18 +168,18 @@ ELSE
 !*        3.  CONVERSION FROM DEGREES TO RADIANS.
 !             -----------------------------------
 
-  GELAT(1)=RLAT*RPI/180.
-  GELAM(1)=RLON*RPI/180.
+  GELAT(1)=RLAT*RPI/180._JPRB
+  GELAM(1)=RLON*RPI/180._JPRB
 
   IF (GELAM(1) < 0.) THEN
-    GELAM(1)=GELAM(1)+2.*RPI
+    GELAM(1)=GELAM(1)+2._JPRB*RPI
   ENDIF
 
 !*        4.  MASK.
 !             -----------------------------------
 
  
-  LMASK(1)=(ABS(RMASK-1.) < 0.0001)
+  LMASK(1)=(ABS(RMASK-1._JPRB) < 0.0001_JPRB)
 
 !      ----------------------------------------------------------------
 
@@ -344,7 +344,7 @@ DO ICT = 1,NPOI
   GSQM2(ICT)=COS(GELAT(ICT))
   GESLO(ICT)=SIN(GELAM(ICT))
   GECLO(ICT)=COS(GELAM(ICT))
-  RCORI(ICT)=2.*ROMEGA*GEMU(ICT)
+  RCORI(ICT)=2._JPRB*ROMEGA*GEMU(ICT)
 ENDDO
 
 

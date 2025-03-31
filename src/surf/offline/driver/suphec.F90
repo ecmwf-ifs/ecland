@@ -197,8 +197,8 @@ NSW    = 2
 LONEWSW=.TRUE.
 LCCNL  =.FALSE.
 LCCNO  =.FALSE.
-RCCNSEA = 0.
-RCCNLND = 0.
+RCCNSEA = 0._JPRB
+RCCNLND = 0._JPRB
 ! Number of longwave emissivity intervals
 IF (NEMISSSCHEME == 1) THEN
   NLWEMISS = 6
