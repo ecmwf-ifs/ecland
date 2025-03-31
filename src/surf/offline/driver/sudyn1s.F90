@@ -70,7 +70,7 @@ IF (LHOOK) CALL DR_HOOK('SUDYN1S',0,ZHOOK_HANDLE)
 
 !        1.1 Set implicit default values
 
-TSTEP=1800.
+TSTEP=1800._JPRB
 TDT  =TSTEP
 NSTEP=0
 NACCTYPE=0 ! Forcing fluxes assument centered on timestamp (linear interp.)

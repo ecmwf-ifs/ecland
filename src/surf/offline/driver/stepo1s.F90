@@ -93,14 +93,14 @@ IF (LHOOK) CALL DR_HOOK('STEPO1S',0,ZHOOK_HANDLE)
 IA=MOD(NSTEP-NSTART,NFRPOS)
 
 IF (IA == 0) THEN
-  ZFAC=0.5
+  ZFAC=0.5_JPRB
   IF (CFOUT=='netcdf') THEN
      CALL WRTPCDF
     ELSE
      CALL WRTP1S
   ENDIF
 ELSE
-   ZFAC=1.
+   ZFAC=1._JPRB
 ENDIF
 
 IF(NSTEP == NSTART+1) THEN
@@ -117,13 +117,13 @@ ENDIF
 
 IF(NSTEP == NSTART)THEN
   GPA(:,1:NGPP)=GP0(:,1:NGPP)
-  GPA(:,NGPP+1:NGPA)=0.
+  GPA(:,NGPP+1:NGPA)=0._JPRB
 ELSE
   GPA(:,1:NGPP)=GPA(:,1:NGPP)+ZFAC*GP0(:,1:NGPP)
 !Note since Soil Liquid Water is not available at NSTART
 !the value at NSTART+1 is used.
   IF(NSTEP == NSTART+1)THEN
-    QLQNUA(:,:)=0.5*D1SWAFR(:,:)+ZFAC*D1SWAFR(:,:)
+    QLQNUA(:,:)=0.5_JPRB*D1SWAFR(:,:)+ZFAC*D1SWAFR(:,:)
   ELSE
     QLQNUA(:,:)=QLQNUA(:,:)+ZFAC*D1SWAFR(:,:)
   ENDIF
@@ -151,18 +151,18 @@ IF (LACCUMW) THEN
 
     IF(LRESET)THEN
       DO J=1,N2DDI
-        GDI1S(1:NPOI,J,2)=0.
+        GDI1S(1:NPOI,J,2)=0._JPRB
       ENDDO
       DO J=1,N2DDIAUX
-        GDIAUX1S(1:NPOI,J,2)=0.
+        GDIAUX1S(1:NPOI,J,2)=0._JPRB
       ENDDO
     ENDIF
 
 !*      3b.   Re-initialize average prognostic quantities
 !             -------------------------------------------
 
-    GPA(:,1:NGPP) = 0.5*GP0(:,1:NGPP)
-    QLQNUA(:,:)=0.5*D1SWAFR(:,:)
+    GPA(:,1:NGPP) = 0.5_JPRB*GP0(:,1:NGPP)
+    QLQNUA(:,:)=0.5_JPRB*D1SWAFR(:,:)
 
   ENDIF
 ENDIF
@@ -172,7 +172,7 @@ ENDIF
 !*       3.    Write restart file
 !              ---------------
 if (CFOUT=='netcdf') THEN
-   IF(NFRRES <= 0.)THEN
+   IF(NFRRES <= 0._JPRB)THEN
       IA=-1
    ELSE
       IA=MOD(NSTEP,NFRRES)

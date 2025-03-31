@@ -90,9 +90,9 @@ WRITE(NULOUT,*) CFOUT
 IF (CFOUT == 'netcdf')THEN
 !*     open NetCDF files
 
-  RMISS = 1.E20
-  ZMISS = 1.E20
-  DMISS = 1.E20
+  RMISS = 1.E20_JPRB
+  ZMISS = 1.E20_JPRB
+  DMISS = 1.E20_JPRB
   IMISS = 2147483647  ! maximum allowed integer4
   IF ( NCDFTYPE == 4 ) THEN
     NCTYPE = NF90_NETCDF4

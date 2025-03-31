@@ -285,7 +285,7 @@ BSTR2NUA => GP1(:,MBSTR2NU:MBSTR2NU+NVHILO-1)
 
 !*         1.  Initialisation to absurd values
 
-GP0(:,:)=-999.
+GP0(:,:)=-999._JPRB
 
 !*    Exit routine if no reading required
 
@@ -333,7 +333,7 @@ ELSE
 
 
   DO J=1,NGPP
-    IF (GP0(1,J) == -999.) THEN
+    IF (GP0(1,J) == -999._JPRB) THEN
       WRITE(KULOUT,*) 'PB WITH SOIL INITIALISATION'
       !CALL ABORT
     ENDIF

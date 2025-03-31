@@ -477,12 +477,12 @@ ENDIF
 
 IST=1
 IEND=NPOI
-GPD(IST:IEND,1:NVSF)=-999.
+GPD(IST:IEND,1:NVSF)=-999._JPRB
 
 ! Initialise the rest as well
 GPD(IST:IEND,NVSF+1:NVPD)=0.0_JPRB
 
-GPCC(IST:IEND,NCLIMDAT,1:NGCC)=-999.
+GPCC(IST:IEND,NCLIMDAT,1:NGCC)=-999._JPRB
 
 
 IF ( CFSURF == 'netcdf' ) THEN
@@ -496,7 +496,7 @@ ELSE
 
 !*       2.    Modifies default values.
 
-  VGEO=0. ! Default value | VGEO is not in namelist namgpd1s 
+  VGEO=0._JPRB ! Default value | VGEO is not in namelist namgpd1s 
   
 
 !        2.1   Read namelist
@@ -510,7 +510,7 @@ ELSE
   VFRSML=VRSML
   VFRSMH=VRSMH
 
-  VGEO=0.
+  VGEO=0._JPRB
   VFZ0F=VZ0F
   VFITM=VITM
   VFGEO=VGEO
@@ -565,14 +565,14 @@ ELSE
 !*       3.    Print final values.
 
   DO J=1,NVSF
-    IF (GPD(1,J) == -999.) THEN
+    IF (GPD(1,J) == -999._JPRB) THEN
       WRITE(KULOUT,*) 'PB WITH SURFACE PROPERTIES ', J,"VARIABLE"
       CALL ABORT
     ENDIF
   ENDDO
   DO J=1,NGCC
     do jmo=1,NCLIMDAT
-      IF (GPCC(1,jmo,J) == -999.) THEN
+      IF (GPCC(1,jmo,J) == -999._JPRB) THEN
         WRITE(KULOUT,*) 'PB WITH SURFACE SEASONAL PROPERTIES '
         CALL ABORT
       ENDIF

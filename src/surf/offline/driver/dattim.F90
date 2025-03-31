@@ -105,7 +105,7 @@ CALL INCDAT(NINDAT,IDAY,KYMD)
 iyy=nccaa(nindat)
 ztim1jan=rtime(iyy,1,1,0)
 !CBH      pjul=(ztimcur-ztim1jan+1.)/rday
-pjul=(ztimcur-ztim1jan)/rday+1.
+pjul=(ztimcur-ztim1jan)/rday+1._JPRB
 
 IF (LHOOK) CALL DR_HOOK('DATTIM',1,ZHOOK_HANDLE)
 
