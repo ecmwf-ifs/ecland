@@ -31,9 +31,12 @@ function trace () {
 
 # Helper functions
 function log () {
-  # Send stdout/stderr both to file and terminal
-  ("$@" | tee -a stdout.log) 3>&1 1>&2 2>&3 | tee -a stderr.log
-  # "$@" 1> stdout.log 2>&1
+  if [[ ${VERBOSE} = true ]]; then
+    # Send stdout/stderr both to file and terminal
+    ("$@" | tee -a stdout.log) 3>&1 1>&2 2>&3 | tee -a stderr.log
+  else
+    "$@" 1> stdout.log 2>&1
+  fi
 }
 
 # Script to run ECLand on sites or regional domains
@@ -55,7 +58,8 @@ NPROC=${NPROC:-1}
 NTHREADS=${NTHREADS:-1}
 LRESTART=false
 NLOOP=1
-while getopts ":s:b:w:o:f:i:F:p:t:n:R:c:l:" opt; do
+VERBOSE=false
+while getopts ":s:b:w:o:f:i:F:p:t:n:R:c:l:v:" opt; do
   case $opt in
     s) STA="$OPTARG" ;;
     b) ECLAND_MASTER="$OPTARG" ;;
@@ -70,6 +74,7 @@ while getopts ":s:b:w:o:f:i:F:p:t:n:R:c:l:" opt; do
     c) NAMELIST_CMF=("$OPTARG") ;;
     R) LRESTART="$OPTARG" ;;
     l) NLOOP="$OPTARG" ;;
+    v) VERBOSE=true ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       exit 1
