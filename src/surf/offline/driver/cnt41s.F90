@@ -27,8 +27,10 @@ USE MPL_MODULE
 USE YOMLOG1S , ONLY: NDIMCDF
 USE YOMDPHY  , ONLY: NLALO ,NLAT     ,NLON, NPOI, NPOIP
 USE YOMGPD1S , ONLY: VFPGLOB, VFCLAKE, VFCLAKEF,  VFITM
+USE YOMDIM1S , ONLY: NPROMA
 USE OMP_LIB
 USE MPL_MODULE
+USE BUFFER_UTILS , ONLY: PACK_BUFFER
 #ifdef DOC
 !**** *CNT41S*  - Controls integration job at level 4
 
@@ -86,6 +88,8 @@ REAL (KIND=JPRB),ALLOCATABLE :: ZD1STSRO2(:), ZD1STRO2(:), ZD1STIEVAPU2(:), ZVFP
 REAL (KIND=JPRD) :: ZFDPD
 REAL(KIND=JPHOOK)  :: ZHOOK_HANDLE
 INTEGER(KIND=JPIM) :: MYPROC, NPROC
+INTEGER(KIND=JPIM) :: IST,IEND,IBL,IPROMA,IL
+REAL(KIND=JPRB), ALLOCATABLE :: SEND_BUF(:)
 
 #include "dattim.intfb.h"
 #include "updtim1s.intfb.h"
@@ -108,6 +112,7 @@ ALLOCATE(ZD1STRO2(NLALO))
 ALLOCATE(ZD1STIEVAPU2(NLALO))
 ALLOCATE(ZVFPGLOB(NLALO))
 ALLOCATE(DCMFCOM(NLALO,1))
+ALLOCATE(SEND_BUF(NPOI))
 ZBUFFO(:,:,:)=0._JPRB
 ZBUFFI(:,:,:)=0._JPRB
 ZFLD(:,:)=0._JPRB
@@ -119,7 +124,8 @@ DCMFCOM(:,:)=0._JPRB
 
 
 IF (LECMF1WAY) THEN
-  CALL MPL_GATHERV(PRECVBUF=ZVFPGLOB(:),KROOT=1,PSENDBUF=VFPGLOB(:),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:gaussianIndex")
+  CALL PACK_BUFFER(VFPGLOB, SEND_BUF)
+  CALL MPL_GATHERV(PRECVBUF=ZVFPGLOB(:),KROOT=1,PSENDBUF=SEND_BUF,KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:gaussianIndex")
   IF( MYPROC == 1 ) THEN
   ! Sanity checks
     IF (NDIMCDF == 2)THEN
@@ -197,27 +203,33 @@ DO NSTEP=NSTART,NSTOP
           CALL ABOR1("NPROC > 1 doest not work with LECMF1WAY=True and 2D grid : Aborting")
       ENDIF
       ! Surface runoff
-      ZFLD = RESHAPE( UNPACK(D1STSRO2(:,1),LMASK(:),0._JPRB),&
+      CALL PACK_BUFFER(D1STSRO2(:,1,:), SEND_BUF)
+      ZFLD = RESHAPE( UNPACK(SEND_BUF,LMASK(:),0._JPRB),&
                       (/NXIN,NYIN/))*TSTEP*0.001_JPRB   ! m of water
       ZBUFFO(:,:,1) = ZBUFFO(:,:,1) + ZFLD
       ! Sub-surface runoff
-      ZFLD = RESHAPE( UNPACK((D1STRO2(:,1)-D1STSRO2(:,1)),LMASK(:),0._JPRB),&
+      CALL PACK_BUFFER(D1STRO2(:,1,:)-D1STSRO2(:,1,:), SEND_BUF)
+      ZFLD = RESHAPE( UNPACK(SEND_BUF,LMASK(:),0._JPRB),&
                       (/NXIN,NYIN/))*TSTEP*0.001_JPRB   ! m of water
       ZBUFFO(:,:,2) = ZBUFFO(:,:,2) + ZFLD
       ! Lake/open water evaporation
       !! Actual water open water evaporation 
       !ZFLD = RESHAPE( UNPACK((-D1STIEVAP2(:,9,1)-D1STIEVAP2(:,1,1)),LMASK(:),0._JPRB),&
       !                (/NXIN,NYIN/))*TSTEP*0.001_JPRB   ! m of water
-      !! Estimate of potential water evaporation 
-      ZFLD = RESHAPE( UNPACK((-D1STIEVAPU2(:,9,1)),LMASK(:),0._JPRB),&
+      !! Estimate of potential water evaporation
+      CALL PACK_BUFFER(D1STIEVAPU2(:,9,1,:), SEND_BUF)
+      ZFLD = RESHAPE( UNPACK((-SEND_BUF),LMASK(:),0._JPRB),&
                       (/NXIN,NYIN/))*TSTEP*0.001_JPRB   ! m of water
       ZBUFFO(:,:,3) = ZBUFFO(:,:,3) + ZFLD
 
     ELSE
       !Gathering Runoff components and Evaporation if NPROC > 1
-      CALL MPL_GATHERV(PRECVBUF=ZD1STSRO2(:),KROOT=1,PSENDBUF=D1STSRO2(:,1),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SRO")
-      CALL MPL_GATHERV(PRECVBUF=ZD1STRO2(:),KROOT=1,PSENDBUF=D1STRO2(:,1),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SSRO")
-      CALL MPL_GATHERV(PRECVBUF=ZD1STIEVAPU2(:),KROOT=1,PSENDBUF=D1STIEVAPU2(:,9,1),KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:LakeEVAP")
+      CALL PACK_BUFFER(D1STSRO2(:,1,:), SEND_BUF)
+      CALL MPL_GATHERV(PRECVBUF=ZD1STSRO2(:),KROOT=1,PSENDBUF=SEND_BUF,KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SRO")
+      CALL PACK_BUFFER(D1STRO2(:,1,:), SEND_BUF)
+      CALL MPL_GATHERV(PRECVBUF=ZD1STRO2(:),KROOT=1,PSENDBUF=SEND_BUF,KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:SSRO")
+      CALL PACK_BUFFER(D1STIEVAPU2(:,9,1,:), SEND_BUF)
+      CALL MPL_GATHERV(PRECVBUF=ZD1STIEVAPU2(:),KROOT=1,PSENDBUF=SEND_BUF,KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:LakeEVAP")
 
       IF ( MYPROC == 1 ) THEN
         DO JL=1,NLALO
@@ -265,23 +277,37 @@ DO NSTEP=NSTART,NSTOP
       ENDIF
       IF (LECMF2LAKEC==0) THEN
         ! no coupling 
-        VFCLAKEF(:) = VFCLAKE(:)
+        VFCLAKEF(:,:) = VFCLAKE(:,:)
       ELSEIF (LECMF2LAKEC==1) THEN 
         ! replace lake cover by flood plain fraction over land 
-        DO JL=1,NLALO
-          IF ( VFITM(JL) > 0.5_JPRB ) THEN
-            ! Update lake fraction only over land points
-            VFCLAKEF(JL) = MAX(0._JPRB,MIN(0.99_JPRB,DCMFCOM(JL,1)))
-          ENDIF
+        !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
+        DO IST = 1, NLALO, NPROMA
+          IEND = MIN(IST+NPROMA-1,NLALO)
+          IBL = (IST-1)/NPROMA + 1
+          DO JL=IST,IEND
+            IL = JL-IST+1
+            IF ( VFITM(IL,IBL) > 0.5_JPRB ) THEN
+              ! Update lake fraction only over land points
+              VFCLAKEF(IL,IBL) = MAX(0._JPRB,MIN(0.99_JPRB,DCMFCOM(JL,1)))
+            ENDIF
+          ENDDO
         ENDDO
+        !$OMP END PARALLEL DO
       ELSEIF (LECMF2LAKEC==2) THEN 
         ! add flooplain fraction to lake cover over land 
-        DO JL=1,NLALO
-          IF ( VFITM(JL) > 0.5_JPRB ) THEN
-            ! Update lake fraction only over land points
-            VFCLAKEF(JL) = MAX(0._JPRB,MIN(0.99_JPRB,VFCLAKE(JL)+DCMFCOM(JL,1)))
-          ENDIF
+        !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
+        DO IST = 1, NLALO, NPROMA
+          IEND = MIN(IST+NPROMA-1,NLALO)
+          IBL = (IST-1)/NPROMA + 1
+          DO JL=IST,IEND
+            IL = JL-IST+1
+            IF ( VFITM(IL,IBL) > 0.5_JPRB ) THEN
+              ! Update lake fraction only over land points
+              VFCLAKEF(IL,IBL) = MAX(0._JPRB,MIN(0.99_JPRB,VFCLAKE(IL,IBL)+DCMFCOM(JL,1)))
+            ENDIF
+          ENDDO
         ENDDO
+        !$OMP END PARALLEL DO
       ELSE
         WRITE(NULOUT,*) "LECMF2LAKEC can be only 0,1 or 2 but it is",LECMF2LAKEC
         CALL ABOR1('LECMF2LAKEC can only be 0,1 or 2')
@@ -325,11 +351,10 @@ ENDIF
 !              -------------------------------------
 
 CLOSE(NULFOR)
+DEALLOCATE(SEND_BUF)
 
 !     ------------------------------------------------------------------
 
 IF (LHOOK) CALL DR_HOOK('CNT41S',1,ZHOOK_HANDLE)
-
-RETURN
 
 END SUBROUTINE CNT41S
