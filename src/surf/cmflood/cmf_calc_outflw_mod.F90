@@ -177,11 +177,11 @@ USE YOS_CMF_PROG,       ONLY: D1PTHFLW
 USE YOS_CMF_DIAG,       ONLY: D2PTHOUT, D1PTHFLWSUM
 IMPLICIT NONE
 !*** Local
-REAL(KIND=JPRD)            :: P2STOOUT(NSEQMAX,1)                      !! total outflow from a grid     [m3]
-REAL(KIND=JPRD)            :: P2RIVINF(NSEQMAX,1)                      !! 
-REAL(KIND=JPRD)            :: P2FLDINF(NSEQMAX,1)                      !! 
+REAL(KIND=JPRB)            :: P2STOOUT(NSEQMAX,1)                      !! total outflow from a grid     [m3]
+REAL(KIND=JPRB)            :: P2RIVINF(NSEQMAX,1)                      !! 
+REAL(KIND=JPRB)            :: P2FLDINF(NSEQMAX,1)                      !! 
 
-REAL(KIND=JPRD)            :: P2PTHOUT(NSEQMAX,1)                  !! for water conservation
+REAL(KIND=JPRB)            :: P2PTHOUT(NSEQMAX,1)                  !! for water conservation
 
 REAL(KIND=JPRB)            :: D2RATE(NSEQMAX,1)                        !! outflow correction
 ! SAVE for OpenMP
@@ -194,10 +194,10 @@ REAL(KIND=JPRB),SAVE       :: OUT_R1, OUT_R2, OUT_F1, OUT_F2, DIUP, DIDW, ISEQP,
 
 !$OMP PARALLEL DO
 DO ISEQ=1, NSEQALL
-  P2RIVINF(ISEQ,1) = 0._JPRD
-  P2FLDINF(ISEQ,1) = 0._JPRD
-  P2PTHOUT(ISEQ,1) = 0._JPRD
-  P2STOOUT(ISEQ,1) = 0._JPRD
+  P2RIVINF(ISEQ,1) = 0._JPRB
+  P2FLDINF(ISEQ,1) = 0._JPRB
+  P2PTHOUT(ISEQ,1) = 0._JPRB
+  P2STOOUT(ISEQ,1) = 0._JPRB
   D2RATE(ISEQ,1) = 1._JPRB
 END DO
 !$OMP END PARALLEL DO
@@ -272,7 +272,7 @@ ENDIF
 !$OMP PARALLEL DO
 DO ISEQ=1, NSEQALL
   IF ( P2STOOUT(ISEQ,1) > 1.E-8 ) THEN
-    D2RATE(ISEQ,1) = min( (P2RIVSTO(ISEQ,1)+P2FLDSTO(ISEQ,1)) * P2STOOUT(ISEQ,1)**(-1.), 1._JPRD )
+    D2RATE(ISEQ,1) = min( (P2RIVSTO(ISEQ,1)+P2FLDSTO(ISEQ,1)) * P2STOOUT(ISEQ,1)**(-1.), 1._JPRB )
   ENDIF
 END DO
 !$OMP END PARALLEL DO
@@ -352,9 +352,9 @@ IF( LPTHOUT )THEN
 #endif
 ENDIF
 
-D2RIVINF(:,:)=P2RIVINF(:,:)  !! needed for SinglePrecisionMode
-D2FLDINF(:,:)=P2FLDINF(:,:)
-D2PTHOUT(:,:)=P2PTHOUT(:,:)
+D2RIVINF(1:NSEQMAX, 1) = P2RIVINF(1:NSEQMAX, 1)  !! needed for SinglePrecisionMode
+D2FLDINF(1:NSEQMAX, 1) = P2FLDINF(1:NSEQMAX, 1)
+D2PTHOUT(1:NSEQMAX, 1) = P2PTHOUT(1:NSEQMAX, 1)
 
 END SUBROUTINE CMF_CALC_INFLOW
 !####################################################################
