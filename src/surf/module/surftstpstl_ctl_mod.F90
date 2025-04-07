@@ -382,17 +382,17 @@ IF (YDSOIL%LESNML) THEN
     & PSNM1M5,ZWSNM1M5,PRSNM1M,PTSNM1M5,         &
     & PSLRFL5,PSSRFLTI5,PAHFSTI5 ,PEVAPTI5,      &
     & ZSSFC5, ZSSFL5, PEVAPSNW5, ZTSFC5  ,ZTSFL5,&
-    & ZTSURF5, PTIAM1M5(KIDIA:KFDIA,1), ZSNOTRS5,         &
+    & ZTSURF5, PTIAM1M5(KIDIA:KFDIA,1), ZSNOTRS5,&
     & PAPRS5, PWSAM1M5(KIDIA:KFDIA,1),           &
     & PSSDP3,                                    &
     & YDSOIL,YDCST,                              &
     & ZTSN5, ZGSN5,                              &
 !--- perturbations
-    & PSNM1M,ZWSNM1M,PTSNM1M,                &
-    & PSLRFL,PSSRFLTI,PAHFSTI ,PEVAPTI,      &
-    & ZSSFC, ZSSFL, PEVAPSNW, ZTSFC  ,ZTSFL, &
-    & ZTSURF, PTIAM1M(KIDIA:KFDIA,1), ZSNOTRS,       &
-    & PAPRS, PWSAM1M(KIDIA:KFDIA,1),         &
+    & PSNM1M,ZWSNM1M,PTSNM1M,                 &
+    & PSLRFL,PSSRFLTI,PAHFSTI ,PEVAPTI,       &
+    & ZSSFC, ZSSFL, PEVAPSNW, ZTSFC  ,ZTSFL,  &
+    & ZTSURF, PTIAM1M(KIDIA:KFDIA,1), ZSNOTRS,&
+    & PAPRS, PWSAM1M(KIDIA:KFDIA,1),          &
     & ZTSN, ZGSN )
 
    ZGSNICE(KIDIA:KFDIA)  = PCIL(KIDIA:KFDIA)*ZGSN(KIDIA:KFDIA)

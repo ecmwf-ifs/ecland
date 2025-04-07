@@ -85,7 +85,7 @@ USE SRFWDIF_MOD
 !     Modified P. Viterbo       17-05-2000  Surface DDH for TILES
 !     Modified J.F. Estrade *ECMWF* 03-10-01 move in surf vob
 !              G. Arduini       Jan 2024     Variable ice thickness
-!              G. Arduini       Sept 2024 Land-ice fraction 
+!              G. Arduini       Sept 2024 Land-ice fraction
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
