@@ -31,6 +31,7 @@ SAVE
 ! VFCUR   - urban cover (PASSIVE)
 ! VFTVL   - low vegetation type
 ! VFTVH   - high vegetation type
+!CORRECT THESE REPEATED ENTIRES 
 ! VFLAIL  - low vegetation lai
 ! VFLAIH  - high vegetation lai
 ! VFLAIL  - low vegetation lai from 10 days before
@@ -211,11 +212,11 @@ REAL(KIND=JPRB),POINTER:: VFGEO(:,:) => NULL()
 REAL(KIND=JPRB),POINTER:: VFZ0H(:,:) => NULL()
 REAL(KIND=JPRB),POINTER:: VFFWET(:,:) => NULL()
 REAL(KIND=JPRB),POINTER:: VFAVGPAR(:,:) => NULL()
+REAL(KIND=JPRB),POINTER:: VFISOP_EP(:,:) => NULL()
 REAL(KIND=JPRB),POINTER:: VFCVL(:,:) => NULL()
 REAL(KIND=JPRB),POINTER:: VFCVH(:,:) => NULL()
 REAL(KIND=JPRB),POINTER:: VFCUR(:,:) => NULL()
 
-REAL(KIND=JPRB),POINTER:: VFISOP_EP(:,:) => NULL()
 
 REAL(KIND=JPRB),POINTER:: VFTVL(:,:) => NULL()
 REAL(KIND=JPRB),POINTER:: VFTVH(:,:) => NULL()
