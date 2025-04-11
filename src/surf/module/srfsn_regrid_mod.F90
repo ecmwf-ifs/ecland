@@ -193,8 +193,14 @@ DO JL=KIDIA,KFDIA
     ENDDO
     
     !* APPLY REMAPING
-    PSSNNEW(JL,:) = MATMUL(ZREMAP,PSSN(JL,:))
-    ZHSNNEW(JL,:) = MATMUL(ZREMAP,ZHSN(JL,:))
+    ! The MATMUL intrinsic was problematic on GPUs with NVHPC-22.11, so it
+    ! was replaced with SUM and multiply. This was not perfectly bit-ID!
+!   PSSNNEW(JL,:) = MATMUL(ZREMAP,PSSN(JL,:))
+!   ZHSNNEW(JL,:) = MATMUL(ZREMAP,ZHSN(JL,:))
+    DO JK=1,KLEVSN
+      PSSNNEW(JL,JK) = SUM(ZREMAP(JK,:)*PSSN(JL,:))
+      ZHSNNEW(JL,JK) = SUM(ZREMAP(JK,:)*ZHSN(JL,:))
+    ENDDO
     
     ! REMAINING VALUES 
     DO JK=1,KLEVSN
