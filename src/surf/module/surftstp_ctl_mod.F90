@@ -886,7 +886,7 @@ DO JL =KIDIA,KFDIA
       ! We use ZHLML mixed layer depth and ZHLICE ice thickness as container for snow
       ! depth and ice thickness over sea-ice respectively
          IF ( LNEMOICETHK ) THEN
-           ZHLICE(JL) = MAX(PTHKICE(JL), 0.28_JPRB)
+           ZHLICE(JL) = MIN(1.5_JPRB, MAX(0.28_JPRB, PTHKICE(JL))) ! use same limit values as in srfi_mod.F90
          ELSE
            ZHLICE(JL)= MIN(PFRTI(JL,2)*RC_OC_MAXICEZ,RC_OC_MAXICEZ)
          ENDIF
