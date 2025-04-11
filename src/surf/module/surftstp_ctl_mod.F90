@@ -90,11 +90,11 @@ USE SRFWNG_MOD      , ONLY : SRFWNG
 USE SRFVEGEVOL_MOD  , ONLY : SRFVEGEVOL
 USE FLAKE_DRIVER_MOD, ONLY : FLAKE_DRIVER
 #ifndef WITH_OIFS
-USE OCEAN_ML_DRIVER_MOD   !KPP
+USE OCEAN_ML_DRIVER_MOD, ONLY : OCEAN_ML_DRIVER   !KPP
 #else
 !!OIFS_rm USE OCEAN_ML_DRIVER_MOD   !KPP
 #endif
-USE OCEAN_ML_DRIVER_V2_MOD   !MIXED_LAYER_PJ
+USE OCEAN_ML_DRIVER_V2_MOD, ONLY : OCEAN_ML_DRIVER_V2   !MIXED_LAYER_PJ
 
 USE ABORT_SURF_MOD
 
@@ -923,6 +923,8 @@ ENDDO
 
 !*        4.8     Ocean Mixed layer
 
+!$loki remove
+
 #ifndef WITH_OIFS
 IF(LEOCML) THEN
   CALL OCEAN_ML_DRIVER &
@@ -963,6 +965,8 @@ IF(LOCMLTKE) THEN
  &   YDCST    ,YDEXC    ,YDMLM    ,&
  &   POTKE    ,PUOE1    ,PVOE1    ,PTOE1    ,PSOE1    )
 ENDIF
+!$loki end remove
+
 !     ------------------------------------------------------------------
 !*         5.     COMPUTE TENDENCIES (TEND. FOR TSK COMP. IN VDIFF)
 !                 ------- ---------- ------------------------------
@@ -1120,7 +1124,9 @@ ENDIF
 !    ------------------------------------------------------------------
 
 IF (YDSOIL%LEWBCHECK) THEN
+  !$loki remove
   CALL BUDGET_MASS_DDH 
+  !$loki end remove
 ENDIF 
 
 
