@@ -196,10 +196,10 @@ REAL(KIND=JPRB) :: Z_RHOH20, ZD, &
  & ZDMAX, ZDMIN, ZALPHA, ZWFAC, ZLAM, ZMFAC, ZRMFAC, &
  & ZWCONS, ZKMD, &
  & ZRSFL, ZROEFF, ZSIGOR, ZBWS, ZB1, ZBM, ZWMAX, ZWMIN, &
- & ZCONW1, ZLYEPS, ZLYSIC, ZVOL, ZROS, ZSUM, ZLIMRS, ZWSATM, ZWRESTM, ZWFAC_S
+ & ZCONW1, ZLYEPS, ZLYSIC, ZVOL, ZROS, ZSUM, ZLIMRS, ZWSATM, ZWRESTM, ZWFAC_S, ZWK ,ZWMK
 REAL(KIND=JPRD) :: ZDD, ZKD, ZSE, ZSEMAX, ZDMAX_D, ZSEMIN, ZDMIN_D
 
-REAL(KIND=JPRB) :: ZFRK(KLEVS),ZWK(KLEVS),ZWMK(KLEVS)
+REAL(KIND=JPRB) :: ZFRK(KLON,KLEVS)
 
 INTEGER(KIND=JPIM) :: KLEVS_WB,ILEVM1_WB
 
@@ -400,7 +400,7 @@ DO JL=KIDIA,KFDIA
         ELSE
           ZSUM=0.
         ENDIF
-        ZFRK(JK)=MAX(0.0_JPRB,(MIN(RSRDEP,SUM(RDAW(1:JK)))-ZSUM)/RDAW(JK))
+        ZFRK(JL,JK)=MAX(0.0_JPRB,(MIN(RSRDEP,SUM(RDAW(1:JK)))-ZSUM)/RDAW(JK))
       ENDDO
       ZRSFL=PTSFL(JL)+PMSN(JL)+PTSFC(JL)                            !Units kg/m2/s
       IF (ZRSFL.GT.0.0_JPRB)THEN
@@ -409,16 +409,18 @@ DO JL=KIDIA,KFDIA
         ZBWS=MAX(MIN(ZROEFF,0.5_JPRB),0.01_JPRB)
         ZB1=1.0_JPRB+ZBWS
         ZBM=1.0_JPRB/ZB1
-        ZWK(:)=MAX(0.0_JPRB,(PWSAM1M(JL,:)-RWPWPM3D(JL,:)))*(1.0_JPRB-ZF(JL,:))+RWPWPM3D(JL,:)
-        ZW=SUM(ZFRK(:)*ZWK(:)*RDAW(:))                              !Units m
-
-        ZWMK(:)=((ZWSATM-RWPWPM3D(JL,:))*(1.-ZF(JL,:))+RWPWPM3D(JL,:))
-
-        IF ( LEURBAN ) THEN
-          ZWMK(:)=(((1.0_JPRB-PCUR(JL))*ZWSATM + PCUR(JL)*RURBSAT &
-           & -RWPWPM3D(JL,:))*(1.-ZF(JL,:))+RWPWPM3D(JL,:))
-        ENDIF
-        ZWMAX=SUM(ZFRK(:)*ZWMK(:)*RDAW(:))                          !Units m
+        ZW=0.0_JPRB
+        ZWMAX=0.0_JPRB
+        DO JK=1,KLEVS
+          ZWK=MAX(0.0_JPRB,(PWSAM1M(JL,JK)-RWPWPM3D(JL,JK)))*(1.0_JPRB-ZF(JL,JK))+RWPWPM3D(JL,JK)
+          ZW=ZW+ZFRK(JL,JK)*ZWK*RDAW(JK)                              !Units m
+          ZWMK=((ZWSATM-RWPWPM3D(JL,JK))*(1.-ZF(JL,JK))+RWPWPM3D(JL,JK))
+          IF ( LEURBAN ) THEN
+           ZWMK=(((1.0_JPRB-PCUR(JL))*ZWSATM + PCUR(JL)*RURBSAT &
+             & -RWPWPM3D(JL,JK))*(1.-ZF(JL,JK))+RWPWPM3D(JL,JK))
+          ENDIF
+          ZWMAX=ZWMAX+ZFRK(JL,JK)*ZWMK*RDAW(JK)                          !Units m
+        ENDDO
 
         ZCONW1=ZWMAX*ZB1
         ZLYEPS=MAX(0.0_JPRB,ZW-ZWMAX)                               !Units m

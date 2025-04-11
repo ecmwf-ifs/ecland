@@ -183,7 +183,7 @@ TYPE(TCST)        , INTENT(IN)   :: YDCST
 REAL(KIND=JPRB),    INTENT(OUT)  :: PSSN(:,:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PTSN(:,:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PRSN(:,:)
-REAL(KIND=JPRB),    INTENT(OUT)  :: PwSN(:,:)
+REAL(KIND=JPRB),    INTENT(OUT)  :: PWSN(:,:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PASN(:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PGSN(:)
 REAL(KIND=JPRB),    INTENT(OUT)  :: PGSNICE(:)
@@ -518,8 +518,10 @@ ENDIF
 !    ------------------------------------------------------------------
 
 IF (YDSOIL%LESNCHECK) THEN
+  !$loki remove
   CALL BUDGET_MASS_DDH
   CALL BUDGET_ENERGY_DDH
+  !$loki end remove
 ENDIF 
 END ASSOCIATE
 !    -----------------------------------------------------------------

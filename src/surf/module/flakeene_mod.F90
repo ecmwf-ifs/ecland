@@ -239,15 +239,16 @@ ENDIF
 ! at the neighbouring lake points as noticed by Burkhardt Rockel.)
 !_dm 
 
-PT_ICE_N_FLK  = PT_ICE_P_FLK    
-PT_WML_N_FLK  = PT_WML_P_FLK   
-PT_MNW_N_FLK  = PT_MNW_P_FLK     
-PT_BOT_N_FLK  = PT_BOT_P_FLK  
-PH_ICE_N_FLK  = PH_ICE_P_FLK   
-PH_ML_N_FLK   = PH_ML_P_FLK    
-PC_T_N_FLK    = PC_T_P_FLK    
-
 MAIN_LOOP: DO JL = KIDIA, KFDIA
+
+PT_ICE_N_FLK(JL)  = PT_ICE_P_FLK(JL)
+PT_WML_N_FLK(JL)  = PT_WML_P_FLK(JL)
+PT_MNW_N_FLK(JL)  = PT_MNW_P_FLK(JL)
+PT_BOT_N_FLK(JL)  = PT_BOT_P_FLK(JL)
+PH_ICE_N_FLK(JL)  = PH_ICE_P_FLK(JL)
+PH_ML_N_FLK(JL)   = PH_ML_P_FLK(JL)
+PC_T_N_FLK(JL)    = PC_T_P_FLK(JL)
+
 
 LAKEPOINT: IF (LDLAKEPOINT(JL)) THEN ! Prognostic variables are updated only
                                      ! for points, that are indicated as lakes
