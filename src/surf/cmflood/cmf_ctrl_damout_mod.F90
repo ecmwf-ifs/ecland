@@ -179,10 +179,10 @@ DO IDAM = 1, NDAM
   ENDIF
 
   !! storage parameter --- from Million Cubic Meter to m3
-  FldVol(IDAM) = FldVol_mcm * 1.E6                  ! Flood control storage capacity: exclusive for flood control
-  ConVol(IDAM) = ConVol_mcm * 1.E6
+  FldVol(IDAM) = FldVol_mcm * 1.E6_JPRB  ! Flood control storage capacity: exclusive for flood control
+  ConVol(IDAM) = ConVol_mcm * 1.E6_JPRB
 
-  EmeVol(IDAM) = ConVol(IDAM) + FldVol(IDAM) * 0.95     ! storage to start emergency operation
+  EmeVol(IDAM) = ConVol(IDAM) + FldVol(IDAM) * 0.95_JPRB  ! storage to start emergency operation
 
   IX=DamIX(IDAM)
   IY=DamIY(IDAM)
