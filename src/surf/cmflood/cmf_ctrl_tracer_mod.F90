@@ -94,8 +94,7 @@ TYPE(TTRACE),ALLOCATABLE        :: VTRACE(:)          ! tracer variable TYPE set
 
 !================
 !*** local variables for output
-INTEGER(KIND=JPIM)              :: NVARS              ! temporal output var number
-PARAMETER                         (NVARS=100)          ! actual   output var number
+INTEGER(KIND=JPIM), PARAMETER   :: NVARS = 100
 INTEGER(KIND=JPIM)              :: NVARSOUT
 INTEGER(KIND=JPIM)              :: IRECOUT            ! Output file irec
 !*** TYPE for output file    
@@ -647,7 +646,7 @@ DO ITRACE=1, NTRACE
   !! calculate modification rate
   !$OMP PARALLEL DO
   DO ISEQ=1, NSEQALL
-    IF ( P2STOOUT(ISEQ) > 1.E-8 ) THEN
+    IF ( P2STOOUT(ISEQ) > 1.E-8_JPRB ) THEN
       D2RATE(ISEQ) = min( P2TRCSTO(ISEQ,ITRACE) * P2STOOUT(ISEQ)**(-1.), 1._JPRD )
     ENDIF
   END DO
@@ -935,7 +934,7 @@ USE YOS_CMF_TIME,       ONLY: JYYYYMMDD, JHHMM
 IMPLICIT NONE
 !================================================
 WRITE(LOGNAM,*) "CMF::DIAG_AVERAGE: reset", JYYYYMMDD, JHHMM
-NADD_out=0
+NADD_out = 0._JPRB
 D2TRCOUT_oAVG(:,:) = 0._JPRB
 D2TRCDNS_oAVG(:,:) = 0._JPRB
 D2TRCPOUT_oAVG(:,:)= 0._JPRB
@@ -958,9 +957,9 @@ END SUBROUTINE CMF_TRACER_DIAG_AVEADD
 SUBROUTINE CMF_TRACER_DIAG_GETAVE
 IMPLICIT NONE
 !====================
-D2TRCOUT_oAVG(:,:)  = D2TRCOUT_oAVG(:,:)  / DBLE(NADD_out)
-D2TRCDNS_oAVG(:,:)  = D2TRCDNS_oAVG(:,:)  / DBLE(NADD_out)
-D2TRCPOUT_oAVG(:,:) = D2TRCPOUT_oAVG(:,:) / DBLE(NADD_out)
+D2TRCOUT_oAVG(:,:)  = D2TRCOUT_oAVG(:,:)  / NADD_out
+D2TRCDNS_oAVG(:,:)  = D2TRCDNS_oAVG(:,:)  / NADD_out
+D2TRCPOUT_oAVG(:,:) = D2TRCPOUT_oAVG(:,:) / NADD_out
 END SUBROUTINE CMF_TRACER_DIAG_GETAVE
 !####################################################################
 

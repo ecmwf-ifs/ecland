@@ -152,23 +152,23 @@ INTEGER(KIND=JPIM),SAVE  ::  ILEV
 !================================================
 WRITE(LOGNAM,*) "CMF::DIAG_AVERAGE: time-average", NADD_adp, JYYYYMMDD, JHHMM
 
-D2RIVOUT_aAVG(:,:) = D2RIVOUT_aAVG(:,:) / DBLE(NADD_adp)
-D2FLDOUT_aAVG(:,:) = D2FLDOUT_aAVG(:,:) / DBLE(NADD_adp)
-D2OUTFLW_aAVG(:,:) = D2OUTFLW_aAVG(:,:) / DBLE(NADD_adp)
-D2RIVVEL_aAVG(:,:) = D2RIVVEL_aAVG(:,:) / DBLE(NADD_adp)
-D2PTHOUT_aAVG(:,:) = D2PTHOUT_aAVG(:,:) / DBLE(NADD_adp)
-D2GDWRTN_aAVG(:,:) = D2GDWRTN_aAVG(:,:) / DBLE(NADD_adp)
-D2RUNOFF_aAVG(:,:) = D2RUNOFF_aAVG(:,:) / DBLE(NADD_adp)
-D2ROFSUB_aAVG(:,:) = D2ROFSUB_aAVG(:,:) / DBLE(NADD_adp)
+D2RIVOUT_aAVG(:,:) = D2RIVOUT_aAVG(:,:) / NADD_adp
+D2FLDOUT_aAVG(:,:) = D2FLDOUT_aAVG(:,:) / NADD_adp
+D2OUTFLW_aAVG(:,:) = D2OUTFLW_aAVG(:,:) / NADD_adp
+D2RIVVEL_aAVG(:,:) = D2RIVVEL_aAVG(:,:) / NADD_adp
+D2PTHOUT_aAVG(:,:) = D2PTHOUT_aAVG(:,:) / NADD_adp
+D2GDWRTN_aAVG(:,:) = D2GDWRTN_aAVG(:,:) / NADD_adp
+D2RUNOFF_aAVG(:,:) = D2RUNOFF_aAVG(:,:) / NADD_adp
+D2ROFSUB_aAVG(:,:) = D2ROFSUB_aAVG(:,:) / NADD_adp
 
 IF ( LDAMOUT ) THEN
-  D2DAMINF_aAVG(:,:)  = D2DAMINF_aAVG(:,:)  / DBLE(NADD_adp)
+  D2DAMINF_aAVG(:,:)  = D2DAMINF_aAVG(:,:)  / NADD_adp
 ENDIF
 IF ( LWEVAP ) THEN
-  D2WEVAPEX_aAVG(:,:) = D2WEVAPEX_aAVG(:,:) / DBLE(NADD_adp)
+  D2WEVAPEX_aAVG(:,:) = D2WEVAPEX_aAVG(:,:) / NADD_adp
 ENDIF
 
-D1PTHFLW_aAVG(:,:) = D1PTHFLW_aAVG(:,:) / DBLE(NADD_adp)
+D1PTHFLW_aAVG(:,:) = D1PTHFLW_aAVG(:,:) / NADD_adp
 DO ILEV=1, NPTHLEV
   D1PTHFLWSUM_aAVG(:)=D1PTHFLWSUM_aAVG(:)+D1PTHFLW_aAVG(:,ILEV)  !! bifurcation height layer summation
 END DO
@@ -185,7 +185,7 @@ USE YOS_CMF_TIME,       ONLY: JYYYYMMDD, JHHMM
 IMPLICIT NONE
 !================================================
 WRITE(LOGNAM,*) "CMF::DIAG_AVERAGE: reset", JYYYYMMDD, JHHMM
-NADD_out=0
+NADD_out = 0._JPRB
 D2RIVOUT_oAVG(:,:) = 0._JPRB
 D2FLDOUT_oAVG(:,:) = 0._JPRB
 D2OUTFLW_oAVG(:,:) = 0._JPRB
@@ -270,23 +270,23 @@ IMPLICIT NONE
 !================================================
 WRITE(LOGNAM,*) "CMF::DIAG_AVERAGE: time-average", NADD_out, JYYYYMMDD, JHHMM
 
-D2RIVOUT_oAVG(:,:) = D2RIVOUT_oAVG(:,:) / DBLE(NADD_out)
-D2FLDOUT_oAVG(:,:) = D2FLDOUT_oAVG(:,:) / DBLE(NADD_out)
-D2OUTFLW_oAVG(:,:) = D2OUTFLW_oAVG(:,:) / DBLE(NADD_out)
-D2RIVVEL_oAVG(:,:) = D2RIVVEL_oAVG(:,:) / DBLE(NADD_out)
-D2PTHOUT_oAVG(:,:) = D2PTHOUT_oAVG(:,:) / DBLE(NADD_out)
-D2GDWRTN_oAVG(:,:) = D2GDWRTN_oAVG(:,:) / DBLE(NADD_out)
-D2RUNOFF_oAVG(:,:) = D2RUNOFF_oAVG(:,:) / DBLE(NADD_out)
-D2ROFSUB_oAVG(:,:) = D2ROFSUB_oAVG(:,:) / DBLE(NADD_out)
+D2RIVOUT_oAVG(:,:) = D2RIVOUT_oAVG(:,:) / NADD_out
+D2FLDOUT_oAVG(:,:) = D2FLDOUT_oAVG(:,:) / NADD_out
+D2OUTFLW_oAVG(:,:) = D2OUTFLW_oAVG(:,:) / NADD_out
+D2RIVVEL_oAVG(:,:) = D2RIVVEL_oAVG(:,:) / NADD_out
+D2PTHOUT_oAVG(:,:) = D2PTHOUT_oAVG(:,:) / NADD_out
+D2GDWRTN_oAVG(:,:) = D2GDWRTN_oAVG(:,:) / NADD_out
+D2RUNOFF_oAVG(:,:) = D2RUNOFF_oAVG(:,:) / NADD_out
+D2ROFSUB_oAVG(:,:) = D2ROFSUB_oAVG(:,:) / NADD_out
 
 IF ( LDAMOUT ) THEN
-  D2DAMINF_oAVG(:,:)  = D2DAMINF_oAVG(:,:)  / DBLE(NADD_out)
+  D2DAMINF_oAVG(:,:)  = D2DAMINF_oAVG(:,:)  / NADD_out
 ENDIF
 IF ( LWEVAP ) THEN
-  D2WEVAPEX_oAVG(:,:) = D2WEVAPEX_oAVG(:,:) / DBLE(NADD_out)
+  D2WEVAPEX_oAVG(:,:) = D2WEVAPEX_oAVG(:,:) / NADD_out
 ENDIF
 
-D1PTHFLW_oAVG(:,:) = D1PTHFLW_oAVG(:,:) / DBLE(NADD_out)
+D1PTHFLW_oAVG(:,:) = D1PTHFLW_oAVG(:,:) / NADD_out
 
 END SUBROUTINE CMF_DIAG_GETAVE_OUTPUT
 !####################################################################

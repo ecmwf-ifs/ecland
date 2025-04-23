@@ -61,13 +61,13 @@ DO IPTH=1, NPTHOUT
     DFLW_PRE = MAX(D2SFCELV_PRE(ISEQP,1),D2SFCELV_PRE(JSEQP,1)) - PTH_ELV(IPTH,ILEV)
     DFLW_PRE = MAX(DFLW_PRE,0._JPRB)
 
-    DFLW_IMP = (DFLW*DFLW_PRE)**0.5                                       !! semi implicit flow depth
-    DFLW_IMP = MAX( DFLW_IMP,(DFLW*0.01)**0.5 )
+    DFLW_IMP = (DFLW*DFLW_PRE)**0.5_JPRB                                       !! semi implicit flow depth
+    DFLW_IMP = MAX( DFLW_IMP,(DFLW*0.01_JPRB)**0.5_JPRB )
 
-    IF( DFLW_IMP>1.E-5 )THEN                         !! local inertial equation, see [Bates et al., 2010, J.Hydrol.]
-      DOUT_PRE = D1PTHFLW_PRE(IPTH,ILEV) * PTH_WTH(IPTH,ILEV)**(-1.)                         !! outflow (t-1) [m2/s] (unit width)
+    IF( DFLW_IMP>1.E-5_JPRB )THEN                         !! local inertial equation, see [Bates et al., 2010, J.Hydrol.]
+      DOUT_PRE = D1PTHFLW_PRE(IPTH,ILEV) * PTH_WTH(IPTH,ILEV)**(-1._JPRB)                         !! outflow (t-1) [m2/s] (unit width)
       D1PTHFLW(IPTH,ILEV) = PTH_WTH(IPTH,ILEV) * ( DOUT_PRE + PGRV*DT*DFLW_IMP*DSLOPE ) &
-                         * ( 1. + PGRV*DT*PTH_MAN(ILEV)**2. * abs(DOUT_PRE)*DFLW_IMP**(-7./3.) )**(-1.)
+                         * ( 1._JPRB + PGRV*DT*PTH_MAN(ILEV)**2._JPRB * abs(DOUT_PRE)*DFLW_IMP**(-7._JPRB/3._JPRB) )**(-1._JPRB)
     ELSE
       D1PTHFLW(IPTH,ILEV) = 0._JPRB
     ENDIF
@@ -86,7 +86,7 @@ DO IPTH=1, NPTHOUT
   ISEQP=PTH_UPST(IPTH)
   JSEQP=PTH_DOWN(IPTH)
   IF( D1PTHFLWSUM(IPTH)/=0._JPRB )THEN
-    RATE= 0.05*min(D2STORGE(ISEQP,1),D2STORGE(JSEQP,1)) / abs(D1PTHFLWSUM(IPTH)*DT)  !! flow limit: 5% storage of upstream or downstream grid
+    RATE= 0.05_JPRB * min(D2STORGE(ISEQP,1),D2STORGE(JSEQP,1)) / abs(D1PTHFLWSUM(IPTH)*DT)  !! flow limit: 5% storage of upstream or downstream grid
     RATE= min(RATE, 1.0_JPRB )
     D1PTHFLW(IPTH,:) =D1PTHFLW(IPTH,:) *RATE
     D1PTHFLWSUM(IPTH)=D1PTHFLWSUM(IPTH)*RATE

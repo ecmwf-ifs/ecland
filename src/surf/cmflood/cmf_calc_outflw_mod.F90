@@ -56,7 +56,7 @@ DO ISEQ=1, NSEQRIV                                                    !! for nor
   
   DSFCMAX    =MAX( D2SFCELV(ISEQ,1),    D2SFCELV(JSEQ,1) )
   DSFCMAX_PRE=MAX( D2SFCELV_PRE(ISEQ,1),D2SFCELV_PRE(JSEQ,1) )
-  DSLOPE = ( D2SFCELV(ISEQ,1)-D2SFCELV(JSEQ,1) ) * D2NXTDST(ISEQ,1)**(-1.)
+  DSLOPE = ( D2SFCELV(ISEQ,1)-D2SFCELV(JSEQ,1) ) * D2NXTDST(ISEQ,1)**(-1._JPRB)
   DSLOPE_F = MAX( -0.005_JPRB, min( 0.005_JPRB,DSLOPE ))    !! set max&min [instead of using weir equation for efficiency]
 
 !=== River Flow ===
@@ -64,13 +64,13 @@ DO ISEQ=1, NSEQRIV                                                    !! for nor
   DAREA  = D2RIVWTH(ISEQ,1) * DFLW                                            !!  flow cross-section area
 
   DFLW_PRE=DSFCMAX_PRE - D2RIVELV(ISEQ,1)
-  DFLW_IMP=MAX( (DFLW*DFLW_PRE)**0.5 ,1.E-6_JPRB )                                            !! semi implicit flow depth
+  DFLW_IMP=MAX( (DFLW*DFLW_PRE)**0.5_JPRB, 1.E-6_JPRB )                                            !! semi implicit flow depth
 
-  IF( DFLW_IMP>1.E-5 .and. DAREA>1.E-5 )THEN 
-    DOUT_PRE= D2RIVOUT_PRE(ISEQ,1) * D2RIVWTH(ISEQ,1)**(-1.)                         !! outflow (t-1) [m2/s] (unit width)
+  IF( DFLW_IMP > 1.E-5_JPRB .and. DAREA > 1.E-5_JPRB )THEN 
+    DOUT_PRE= D2RIVOUT_PRE(ISEQ,1) * D2RIVWTH(ISEQ,1)**(-1._JPRB)                         !! outflow (t-1) [m2/s] (unit width)
     D2RIVOUT(ISEQ,1) = D2RIVWTH(ISEQ,1) * ( DOUT_PRE + PGRV*DT*DFLW_IMP*DSLOPE ) &
-                             * ( 1. + PGRV*DT*D2RIVMAN(ISEQ,1)**2.*abs(DOUT_PRE)*DFLW_IMP**(-7./3.) )**(-1.)
-    D2RIVVEL(ISEQ,1) = D2RIVOUT(ISEQ,1) * DAREA**(-1.)
+                             * ( 1._JPRB + PGRV*DT*D2RIVMAN(ISEQ,1)**2._JPRB * abs(DOUT_PRE)*DFLW_IMP**(-7./3.) )**(-1.)
+    D2RIVVEL(ISEQ,1) = D2RIVOUT(ISEQ,1) * DAREA**(-1._JPRB)
   ELSE
     D2RIVOUT(ISEQ,1) = 0._JPRB
     D2RIVVEL(ISEQ,1) = 0._JPRB
@@ -79,20 +79,20 @@ DO ISEQ=1, NSEQRIV                                                    !! for nor
 !=== Floodplain Flow ===
   IF( LFLDOUT )THEN
     DFLW_F   = MAX( DSFCMAX-D2ELEVTN(ISEQ,1), 0._JPRB )
-    DARE_F   = P2FLDSTO(ISEQ,1) * D2RIVLEN(ISEQ,1)**(-1.)
+    DARE_F   = P2FLDSTO(ISEQ,1) * D2RIVLEN(ISEQ,1)**(-1._JPRB)
     DARE_F   = MAX( DARE_F - D2FLDDPH(ISEQ,1)*D2RIVWTH(ISEQ,1), 0._JPRB )   !! remove above river channel area
   
     DFLW_PRE_F = DSFCMAX_PRE - D2ELEVTN(ISEQ,1)
-    DFLW_IMP_F = MAX( (MAX(DFLW_F*DFLW_PRE_F,0._JPRB))**0.5, 1.E-6_JPRB )
+    DFLW_IMP_F = MAX( (MAX(DFLW_F*DFLW_PRE_F,0._JPRB))**0.5_JPRB 1.E-6_JPRB )
   
-    DARE_PRE_F = D2FLDSTO_PRE(ISEQ,1) * D2RIVLEN(ISEQ,1)**(-1.)
+    DARE_PRE_F = D2FLDSTO_PRE(ISEQ,1) * D2RIVLEN(ISEQ,1)**(-1._JPRB)
     DARE_PRE_F = MAX( DARE_PRE_F - D2FLDDPH_PRE(ISEQ,1)*D2RIVWTH(ISEQ,1), 1.E-6_JPRB )   !! remove above river channel area
-    DARE_IMP_F = max( (DARE_F*DARE_PRE_F)**0.5, 1.E-6_JPRB )
+    DARE_IMP_F = max( (DARE_F*DARE_PRE_F)**0.5_JPRB, 1.E-6_JPRB )
   
-    IF( DFLW_IMP_F>1.E-5 .and. DARE_IMP_F>1.E-5 )THEN 
+    IF( DFLW_IMP_F>1.E-5_JPRB .and. DARE_IMP_F>1.E-5_JPRB )THEN 
       DOUT_PRE_F = D2FLDOUT_PRE(ISEQ,1)
       D2FLDOUT(ISEQ,1) = ( DOUT_PRE_F + PGRV*DT*DARE_IMP_F*DSLOPE_F ) &
-                        * (1. + PGRV*DT*PMANFLD**2. * abs(DOUT_PRE_F)*DFLW_IMP_F**(-4./3.)*DARE_IMP_F**(-1.) )**(-1._JPRB)
+                        * (1._JPRB + PGRV*DT*PMANFLD**2._JPRB * abs(DOUT_PRE_F)*DFLW_IMP_F**(-4._JPRB/3._JPRB)*DARE_IMP_F**(-1._JPRB) )**(-1._JPRB)
     ELSE
       D2FLDOUT(ISEQ,1) = 0._JPRB
     ENDIF
@@ -100,9 +100,9 @@ DO ISEQ=1, NSEQRIV                                                    !! for nor
     IF( D2FLDOUT(ISEQ,1)*D2RIVOUT(ISEQ,1)<0._JPRB ) D2FLDOUT(ISEQ,1)=0._JPRB  !! stabilization
   ENDIF
 
-!! Storage change limitter to prevent sudden increase of "upstream" water level when backwardd flow (v423)
+!! Storage change limiter to prevent sudden increase of "upstream" water level with reversed flow (v423)
   IF( D2RIVOUT(ISEQ,1)<0._JPRB )THEN
-    RATE = 0.05 * D2STORGE(ISEQ,1) / ( (-D2RIVOUT(ISEQ,1)-D2FLDOUT(ISEQ,1))*DT )
+    RATE = 0.05_JPRB * D2STORGE(ISEQ,1) / ( (-D2RIVOUT(ISEQ,1)-D2FLDOUT(ISEQ,1))*DT )
     RATE= min(RATE, 1.0_JPRB )
     D2RIVOUT(ISEQ,1)=D2RIVOUT(ISEQ,1)*RATE
     D2FLDOUT(ISEQ,1)=D2FLDOUT(ISEQ,1)*RATE
@@ -145,16 +145,16 @@ DO ISEQ=NSEQRIV+1, NSEQALL
     DARE_F   = MAX( DARE_F - D2FLDDPH(ISEQ,1)*D2RIVWTH(ISEQ,1), 0._JPRB )   !! remove above river channel area
   
     DFLW_PRE_F = D2SFCELV_PRE(ISEQ,1)-D2ELEVTN(ISEQ,1)
-    DFLW_IMP_F = MAX( (MAX(DFLW_F*DFLW_PRE_F,0._JPRB))**0.5, 1.E-6_JPRB )
+    DFLW_IMP_F = MAX( (MAX(DFLW_F*DFLW_PRE_F,0._JPRB))**0.5_JPRB, 1.E-6_JPRB )
   
     DARE_PRE_F = D2FLDSTO_PRE(ISEQ,1) * D2RIVLEN(ISEQ,1)**(-1.)
     DARE_PRE_F = MAX( DARE_PRE_F - D2FLDDPH_PRE(ISEQ,1)*D2RIVWTH(ISEQ,1), 1.E-6_JPRB )   !! remove above river channel area
-    DARE_IMP_F = max( (DARE_F*DARE_PRE_F)**0.5, 1.E-6_JPRB )
+    DARE_IMP_F = max( (DARE_F*DARE_PRE_F)**0.5_JPRB, 1.E-6_JPRB )
   
-    IF( DFLW_IMP_F>1.E-5 .and. DARE_IMP_F>1.E-5 )THEN 
+    IF( DFLW_IMP_F>1.E-5_JPRB .and. DARE_IMP_F>1.E-5_JPRB )THEN 
       DOUT_PRE_F = D2FLDOUT_PRE(ISEQ,1)
       D2FLDOUT(ISEQ,1) = ( DOUT_PRE_F + PGRV*DT*DARE_IMP_F*DSLOPE_F ) &
-                        * (1. + PGRV*DT*PMANFLD**2. * abs(DOUT_PRE_F)*DFLW_IMP_F**(-4./3.)*DARE_IMP_F**(-1.) )**(-1.)
+                        * (1. + PGRV*DT*PMANFLD**2._JPRB * abs(DOUT_PRE_F)*DFLW_IMP_F**(-4._JPRB/3._JPRB)*DARE_IMP_F**(-1._JPRB) )**(-1._JPRB)
     ELSE
       D2FLDOUT(ISEQ,1) = 0._JPRB
     ENDIF

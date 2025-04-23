@@ -177,11 +177,11 @@ DO ISEQ=1, NSEQALL
 
 ! Levee parameters calculation
   IF( D2LEVHGT(ISEQ,1) == 0._JPRB )THEN ! Grid without levee, treat everything as unprotected
-    D2BASHGT(ISEQ,1) = 1.E18
-    D2LEVDST(ISEQ,1) = 1.E18
-    D2LEVBASSTO(ISEQ,1) = 1.E18
-    D2LEVTOPSTO(ISEQ,1) = 1.E18
-    D2LEVFILSTO(ISEQ,1) = 1.E18
+    D2BASHGT(ISEQ,1) = 1.E18_JPRB
+    D2LEVDST(ISEQ,1) = 1.E18_JPRB
+    D2LEVBASSTO(ISEQ,1) = 1.E18_JPRB
+    D2LEVTOPSTO(ISEQ,1) = 1.E18_JPRB
+    D2LEVFILSTO(ISEQ,1) = 1.E18_JPRB
   ELSE  !! levee exist
     !!*********
     !! [1] levee base storage & levee top storage (water only in river side)
