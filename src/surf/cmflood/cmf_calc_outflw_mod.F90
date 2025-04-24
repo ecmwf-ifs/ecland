@@ -83,7 +83,7 @@ DO ISEQ=1, NSEQRIV                                                    !! for nor
     DARE_F   = MAX( DARE_F - D2FLDDPH(ISEQ,1)*D2RIVWTH(ISEQ,1), 0._JPRB )   !! remove above river channel area
   
     DFLW_PRE_F = DSFCMAX_PRE - D2ELEVTN(ISEQ,1)
-    DFLW_IMP_F = MAX( (MAX(DFLW_F*DFLW_PRE_F,0._JPRB))**0.5_JPRB 1.E-6_JPRB )
+    DFLW_IMP_F = MAX( (MAX(DFLW_F*DFLW_PRE_F,0._JPRB))**0.5_JPRB, 1.E-6_JPRB )
   
     DARE_PRE_F = D2FLDSTO_PRE(ISEQ,1) * D2RIVLEN(ISEQ,1)**(-1._JPRB)
     DARE_PRE_F = MAX( DARE_PRE_F - D2FLDDPH_PRE(ISEQ,1)*D2RIVWTH(ISEQ,1), 1.E-6_JPRB )   !! remove above river channel area
