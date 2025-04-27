@@ -80,6 +80,7 @@ LOGICAL :: LEOPTSURF ! Read optimized parameters from namelist
 LOGICAL :: LEC4MAP  ! MAP FOR C3/C4 PHOTOSYNTHESIS TYPE
 LOGICAL :: LEAIRCO2COUP    ! Variable air CO2 in photosynthesis
 REAL(KIND=JPRB) :: RLAIINT
+
 LOGICAL :: LECLIM10D ! 10-day clim interpolation
 LOGICAL :: LESNML  ! Multi-layer snow activated 
 LOGICAL :: LESNICE  ! Snow over sea-ice (SL or ML) activated 
