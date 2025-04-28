@@ -92,17 +92,6 @@ class EclandResult(PydanticConfigMixin):
             )
 
             results = stats.get_stats()
-            for result in results:
-                dtypes = getattr(result.index, 'dtypes', [])
-                levels = []
-                for i, dtype in enumerate(dtypes):
-                    if str(dtype).startswith('datetime'):
-                        levels.append(result.index.levels[i].astype(str))
-                    else:
-                        levels.append(result.index.levels[i])
-
-                if hasattr(result.index, 'set_levels'):
-                    result.index = result.index.set_levels(levels)
 
             if len(results) == 1:
                 frames[path.name] = results[0]
