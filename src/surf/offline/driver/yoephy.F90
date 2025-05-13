@@ -91,7 +91,7 @@ LOGICAL :: LECOLDSTART ! Apply cold start to surf prognostics (only snow)
 INTEGER(KIND=JPIM) :: NSNMLWS ! Type of warm start to use (1,2,3)
 REAL(KIND=JPRB) :: RALFMINPSN ! Albedo of permanent snow
 LOGICAL :: LECMF1WAY  ! 1 way coupling with cama-flood
-INTEGER(KIND=JPIM) :: LECMF2LAKEC ! 2 way coupling with cama-flood updated lake cover 
+INTEGER(KIND=JPIM) :: NCMF2LAKEC ! 2 way coupling with cama-flood updated lake cover 
                                   ! 0 == OFF
                                   ! 1 == lake cover with flood fraction
                                   ! 2 == add flood fraction to lake cover 
