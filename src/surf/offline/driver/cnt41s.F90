@@ -13,7 +13,7 @@ USE YOMLUN1S , ONLY : NULOUT   ,NULFOR
 USE YOMCT01S , ONLY : NSTART   ,NSTOP
 USE YOMDYN1S , ONLY : NSTEP    ,TSTEP    ,TDT ,TCOUPFREQ
 USE YOMLOG1S,  ONLY : IDBGS1
-USE YOEPHY,    ONLY : LECMF1WAY, LECMF2LAKEC
+USE YOEPHY,    ONLY : LECMF1WAY, NCMF2LAKEC
 
 USE YOMGDI1S, ONLY : D1STRO2  ,D1STSRO2,D1STIEVAP2,DCMFCOM,D1STIEVAPU2
 USE YOMGC1S,  ONLY : LMASK
@@ -256,7 +256,7 @@ DO NSTEP=NSTART,NSTOP
       
         !* Get data from Cama-Flood 
         !  -------------------
-        IF (LECMF2LAKEC /= 0) THEN
+        IF (NCMF2LAKEC /= 0) THEN
           CALL CMF_FORCING_COM(ZBUFFI(:,:,:))
         ENDIF
       ENDIF
@@ -267,7 +267,7 @@ DO NSTEP=NSTART,NSTOP
       !* Transfor into HTESSEL structure
       !* -------
 
-      IF (LECMF2LAKEC==0) THEN
+      IF (NCMF2LAKEC==0) THEN
         ! no coupling 
         VFCLAKEF(:) = VFCLAKE(:)
       ELSE 
@@ -285,7 +285,7 @@ DO NSTEP=NSTART,NSTOP
 
         CALL MPL_SCATTERV(PRECVBUF=ZBUFFIAUX(:),KROOT=1,PSENDBUF=DCMFCOM(:,1),KSENDCOUNTS=NPOIP(:),CDSTRING="CNT41S:ZBUFFI")
 
-        IF (LECMF2LAKEC==1) THEN 
+        IF (NCMF2LAKEC==1) THEN 
           ! replace lake cover by flood plain fraction over land 
           DO JL=1,NPOI
             IF ( VFITM(JL) > 0.5_JPRB ) THEN
@@ -293,7 +293,7 @@ DO NSTEP=NSTART,NSTOP
               VFCLAKEF(JL) = MAX(0._JPRB,MIN(0.99_JPRB,ZBUFFIAUX(JL)))
             ENDIF
           ENDDO
-        ELSEIF (LECMF2LAKEC==2) THEN 
+        ELSEIF (NCMF2LAKEC==2) THEN 
           ! add flooplain fraction to lake cover over land 
           DO JL=1,NPOI
             IF ( VFITM(JL) > 0.5_JPRB ) THEN
@@ -302,8 +302,8 @@ DO NSTEP=NSTART,NSTOP
             ENDIF
           ENDDO
         ELSE
-          WRITE(NULOUT,*) "LECMF2LAKEC can be only 0,1 or 2 but it is",LECMF2LAKEC
-          CALL ABOR1('LECMF2LAKEC can only be 0,1 or 2')
+          WRITE(NULOUT,*) "NCMF2LAKEC can be only 0,1 or 2 but it is",NCMF2LAKEC
+          CALL ABOR1('NCMF2LAKEC can only be 0,1 or 2')
         ENDIF
       ENDIF
       !* Reset fluxes 
