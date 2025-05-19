@@ -21,7 +21,7 @@ USE PARKIND1,                ONLY: JPIM, JPRB, JPRM, JPRD
 USE CMF_UTILS_MOD,           ONLY: INQUIRE_FID
 USE YOS_CMF_INPUT,           ONLY: LOGNAM, IMIS, LDAMOUT, LPTHOUT, LRESTART
 USE YOS_CMF_INPUT,           ONLY: NX, NY, DT
-USE YOS_CMF_MAP,             ONLY: I2VECTOR, I1NEXT, NSEQALL, NSEQRIV, NSEQMAX
+USE YOS_CMF_MAP,             ONLY: I2VECTOR, I1NEXT, NSEQALL, NSEQRIV
 USE YOS_CMF_MAP,             ONLY: NPTHOUT,  NPTHLEV, PTH_UPST, PTH_DOWN, PTH_ELV, I2MASK!! bifurcation pass
 USE YOS_CMF_PROG,            ONLY: D2RIVOUT, D2FLDOUT, P2RIVSTO, P2FLDSTO, P2DAMSTO, P2DAMINF, D2RUNOFF
 USE YOS_CMF_DIAG,            ONLY: D2RIVINF, D2FLDINF
@@ -162,7 +162,7 @@ ALLOCATE(AdjVol(NDAM),Qa(NDAM))
 ALLOCATE(R_VolUpa(NDAM))
 
 !! dam map, dam variable
-ALLOCATE(I1DAM(NSEQMAX))
+ALLOCATE(I1DAM(NSEQALL))
 !! =================
 DamSeq(:) =IMIS
 DamStat(:)=IMIS
@@ -189,7 +189,8 @@ DO IDAM = 1, NDAM
   IF (IX<=0 .or. IX > NX .or. IY<=0 .or. IY > NY ) cycle
 
   ISEQ=I2VECTOR(IX,IY)
-  IF( I1NEXT(ISEQ)==-9999 .or. ISEQ<=0 ) cycle
+  IF( ISEQ<=0 ) cycle
+  IF( I1NEXT(ISEQ)==-9999 ) cycle
   NDAMX=NDAMX+1
 
   DamSeq(IDAM) =ISEQ
@@ -341,8 +342,8 @@ DO IDAM=1, NDAM
 
   !! *** 2a update dam volume and inflow -----------------------------------
   ISEQD=DamSeq(IDAM)
-  DamVol    = P2DAMSTO(ISEQD,1)    
-  DamInflow = P2DAMINF(ISEQD,1)
+  DamVol    = REAL(P2DAMSTO(ISEQD,1),KIND=JPRB)    
+  DamInflow = REAL(P2DAMINF(ISEQD,1),KIND=JPRB)
 
   !! *** 2b Reservoir Operation          ------------------------------
   !===========================
@@ -434,15 +435,15 @@ REAL(KIND=JPRB),SAVE       :: DSLOPE,DAREA,DVEL,DSLOPE_F,DARE_F,DVEL_F
 !============================
 
 !*** 1a. reset outflw & dam inflow
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO SIMD
 DO ISEQ=1, NSEQALL
   IF( I1DAM(ISEQ)>0 )THEN  !! if dam grid or upstream of dam, reset variables
     D2RIVOUT(ISEQ,1) = 0._JPRB
     D2FLDOUT(ISEQ,1) = 0._JPRB
-    P2DAMINF(ISEQ,1) = 0._JPRD
+    P2DAMINF(ISEQ,1) = D2RUNOFF(ISEQ,1)  !! consider local runoff as inflow to dam
   ENDIF
 END DO
-!$OMP END PARALLEL DO
+!$OMP END PARALLEL DO SIMD
 
 !*** 1b. calculate dam inflow, using previous tstep discharge
 #ifndef NoAtom_CMF
@@ -479,11 +480,11 @@ DO ISEQ=1, NSEQRIV
     !=== floodplain flow
     DSLOPE_F = min( 0.005_JPRB,DSLOPE )    !! set min [instead of using weirequation for efficiency]
     DVEL_F   = PMANFLD**(-1.) * DSLOPE_F**0.5 * D2FLDDPH(ISEQ,1)**(2./3.)
-    DARE_F   = P2FLDSTO(ISEQ,1) * D2RIVLEN(ISEQ,1)**(-1.)
+    DARE_F   = REAL(P2FLDSTO(ISEQ,1),KIND=JPRB) * D2RIVLEN(ISEQ,1)**(-1.)
     DARE_F   = MAX( DARE_F - D2FLDDPH(ISEQ,1)*D2RIVWTH(ISEQ,1), 0._JPRB )   !!remove above river channel     area
 
     D2FLDOUT(ISEQ,1) = DARE_F * DVEL_F
-    D2FLDOUT(ISEQ,1) = MIN(  D2FLDOUT(ISEQ,1)*1._JPRD, P2FLDSTO(ISEQ,1)/DT )
+    D2FLDOUT(ISEQ,1) = MIN(  D2FLDOUT(ISEQ,1), REAL(P2FLDSTO(ISEQ,1),KIND=JPRB)/DT )
   ENDIF
 END DO
 !$OMP END PARALLEL DO
@@ -591,7 +592,7 @@ IF( LDAMTXT )THEN
     IF( DamStat(IDAM)==IMIS ) CYCLE
     JDAM=JDAM+1
     ISEQD=DamSeq(IDAM)
-    DDamInf=P2DAMINF(ISEQD,1)
+    DDamInf=REAL( P2DAMINF(ISEQD,1),KIND=JPRB)
     DDamOut=D2RIVOUT(ISEQD,1) + D2FLDOUT(ISEQD,1)
     WRITE(WriteTxt(JDAM), '(3f12.2)') P2DAMSTO(ISEQD,1)*1.E-9, DDamInf, DDamOut
   END DO
