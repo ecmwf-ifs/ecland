@@ -41,7 +41,7 @@ Requirements
 
 Some driver scripts to run tests and validate results rely on availability of:
 
-- Python 3
+- Python 3.8 or newer
 
 When any of the software dependencies "ecbuild", "fiat", "eccodes" are not found or not installed, they will
 be downloaded on demand and built as part of the usual build procedure. This is not recommended but is convenient.

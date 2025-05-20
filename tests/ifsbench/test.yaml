@@ -51,6 +51,8 @@ science:
       cpus_per_task: 1
 
   v1_EU_centered:
+    # Test forcing fluxes centered on timestamp.
+
     # Use YAML anchor/alias here to essentially copy the content of v1_EU_default
     # here and just override the namelists.
     <<: *v1_EU
@@ -63,17 +65,20 @@ science:
         value: 0
 
   v1_EU_multiprocess:
+    # Same test as v1_eu_centered but with multiple MPI processes.
     <<: *v1_EU
     job:
       tasks: 4
 
   v1_EU_multithread:
+    # Same test as v1_eu_centered but with multiple threads.
     <<: *v1_EU
     job:
       tasks: 1
       threads: 4
 
   v1_EU_multiprocess_thread:
+    # Same test as v1_eu_centered but with multiple MPI processes and threads.
     <<: *v1_EU
     job:
       tasks: 4

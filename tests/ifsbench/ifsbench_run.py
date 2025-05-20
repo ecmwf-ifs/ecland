@@ -85,6 +85,10 @@ class EclandResult(PydanticConfigMixin):
         paths = sorted(list(run_dir.glob('o_*.nc')))
 
         for path in paths:
+
+            # Read data from the netCDF file `path` and calculate statistical
+            # averages (min, max, mean) over the latitude and longitude array
+            # dimensions.
             stats = DataFileStats(
                 input_path=path,
                 stat_dims=['lat', 'lon'],
@@ -227,7 +231,7 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech) -> Benchmar
 
 
 @cli.command('from_yaml', context_settings={"auto_envvar_prefix": "IFSBENCH"})
-@click .argument('yaml-path', type=click.Path(exists=True))
+@click.argument('yaml-path', type=click.Path(exists=True))
 @click.argument('science', type=str)
 @click.option('--binary-path', type=click.Path(exists=True),
               help='Path to the ecLand binary')
