@@ -54,11 +54,11 @@ Building ecLand
 
 Intel build:
 
-    module load prgenv/intel intel/2021.4 cmake/3.25 ninja/1.11.1 hpcx-openmpi/2.9 netcdf4/4.9.1 ecbuild/3.8.0 ecmwf-toolbox/new
+    module load prgenv/intel intel/2021.4 cmake/3.25 ninja/1.11.1 hpcx-openmpi/2.9 netcdf4/4.9.1 ecbuild/3.8.0 ecmwf-toolbox/new python3/3.11.8-01
 
 GNU build:
 
-    module load prgenv/gnu gcc/new cmake/3.25 ninja/1.11.1 hpcx-openmpi/2.9 netcdf4/new ecbuild/3.8.0 ecmwf-toolbox/new
+    module load prgenv/gnu gcc/new cmake/3.25 ninja/1.11.1 hpcx-openmpi/2.9 netcdf4/new ecbuild/3.8.0 ecmwf-toolbox/new python3/3.11.8-01
 
 Download from Github:
 
