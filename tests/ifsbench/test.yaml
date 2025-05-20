@@ -62,14 +62,6 @@ science:
         entry: NACCTYPE
         value: 0
 
-  v1_EU_forward:
-    <<: *v1_EU
-    namelists:
-      - mode: set
-        namelist: NAMDYN1S
-        entry: NACCTYPE
-        value: 1
-
   v1_EU_multiprocess:
     <<: *v1_EU
     job:
