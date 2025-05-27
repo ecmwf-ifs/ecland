@@ -23,6 +23,9 @@ USE PARKIND1,                ONLY: JPIM, JPRB, JPRM
 USE YOS_CMF_INPUT,           ONLY: LOGNAM,  IFRQ_OUT
 USE YOS_CMF_INPUT,           ONLY: CSUFBIN, CSUFVEC, CSUFPTH, CSUFCDF
 USE YOS_CMF_INPUT,           ONLY: LPTHOUT, LDAMOUT, LLEVEE,  LWEVAP, LGDWDLY, LOUTINS,LROSPLIT
+#ifdef IFS_CMF
+USE MULTIO_API,              ONLY: MULTIO_HANDLE
+#endif
 IMPLICIT NONE
 !============================
 SAVE
@@ -33,6 +36,9 @@ CHARACTER(LEN=256)              ::  COUTTAG           ! Output Tag Name for each
 !
 LOGICAL                         ::  LOUTVEC           ! TRUE FOR VECTORIAL OUTPUT, FALSE FOR NX,NY OUTPUT
 LOGICAL                         ::  LOUTCDF           ! true for netcdf outptu false for binary
+#ifdef IFS_CMF
+TYPE(MULTIO_HANDLE)             :: MIO_HANDLE
+#endif
 INTEGER(KIND=JPIM)              ::  NDLEVEL           ! NETCDF DEFLATION LEVEL 
 !
 LOGICAL                         ::  LOUTTXT           ! TRUE FOR Text output for some gauges
@@ -314,11 +320,12 @@ DO JF=1,NVARSOUT
   END SELECT
   VAROUT(JF)%BINID=INQUIRE_FID()
 
-  IF( LOUTCDF )THEN
+  IF( .FALSE. )THEN
     IF( REGIONTHIS==1 )THEN
-      CALL CMF_MIO_INITIALISE
       CALL CREATE_OUTCDF
     ENDIF
+  ELSE IF (.TRUE.) THEN
+    CALL CMF_MULTIO_INITIALISE
   ELSE
     CALL CREATE_OUTBIN
   ENDIF
@@ -419,145 +426,45 @@ WRITE(LOGNAM,*) 'OPEN IN UNIT: ',VAROUT(JF)%NCID
 END SUBROUTINE CREATE_OUTCDF
 !==========================================================
 
-SUBROUTINE ctl_stop(s1, s2)
+#ifdef IFS_CMF
+SUBROUTINE multio_custom_error_handler(context, err, info)
+  USE MULTIO_API, ONLY: &
+    MULTIO_SUCCESS, &
+    multio_failure_info, &
+    multio_error_string
+  integer, intent(inout) :: context  ! Use mpi communicator as context
+  integer, intent(in) :: err
+  class(multio_failure_info), intent(in) :: info
+  integer :: mpierr
+
+  IF (err /= MULTIO_SUCCESS) THEN
+      write(LOGNAM, *) 'MULTIO ERROR: ', multio_error_string(err, info)
+      stop 9
+  ENDIF
+END SUBROUTINE
+#endif IFS_CMF
+
+SUBROUTINE CMF_MULTIO_INITIALISE
+#ifdef IFS_CMF
+  USE MULTIO_API,         ONLY: &
+    MULTIO_CONFIGURATION, &
+    MULTIO_METADATA, &
+    MULTIO_INITIALISE
+  USE YOS_CMF_MAP, ONLY: MPI_COMM_CAMA
+
   IMPLICIT NONE
-  CHARACTER(LEN=*), INTENT(IN) :: s1, s2
-  WRITE(*,*) TRIM(s1)//TRIM(s2)
-  CALL EXIT(1)
-END SUBROUTINE ctl_stop
+  TYPE(MULTIO_CONFIGURATION)    :: CONF_CTX
+  INTEGER :: ERR
 
-SUBROUTINE CMF_MIO_INITIALISE
-use MPI, ONLY: mpi_comm_world
-USE MULTIO_API,         ONLY: &
-  MULTIO_HANDLE, &
-  multio_configuration, &
-  multio_metadata, &
-  MULTIO_SUCCESS, &
-  multio_initialise, &
-  multio_error_string
+  ! Initialise MultIO, create a configuration context and a handle
+  ERR = MULTIO_INITIALISE()
+  ERR = CONF_CTX%NEW()
+  ERR = MIO_HANDLE%NEW(CONF_CTX)
+  ERR = MIO_HANDLE%SET_FAILURE_HANDLER(multio_custom_error_handler, 0)
+  ERR = CONF_CTX%DELETE()
 
-IMPLICIT NONE
-INTEGER(8)                    :: mio_parent_comm = mpi_comm_world
-type(multio_configuration)    :: conf_ctx
-type(multio_handle)           :: mio_handle
-TYPE(multio_metadata)         :: mio_md
-CHARACTER(LEN=16)             :: client_id
-CHARACTER(len=16)             :: err_str
-INTEGER :: err, return_comm, local_comm, global_comm, gl_size, i, s
-integer, PARAMETER :: NX = 1440
-integer, PARAMETER :: NY = 720
-REAL(KIND=JPRB)               :: pfield2d(NX, NY)
-character(len=11) :: cmf_names(11)
-
-cmf_names = [ &
-  'rivsto     ', 'totout     ', 'fldsto     ', 'rivdph     ', 'flddph     ', 'fldfrc     ', &
-  'fldare     ', 'outins     ', 'rofsfc     ', 'rofsub     ', 'wevap      ' &
-]
-
-client_id = 'for_cmf_mpi_id'
-
-err = multio_initialise()
-if (err /= MULTIO_SUCCESS) then
-    CALL ctl_stop( 'Initializing multio failed: ', multio_error_string(err))
-end if
-
-! Prepare context and check errors explicitly until everything is set up - then failure handler is used
-err = conf_ctx%new()
-if (err /= MULTIO_SUCCESS) then
-    CALL ctl_stop( 'Creating multio configuration context failed: ', multio_error_string(err))
-end if
-! err = conf_ctx%mpi_allow_world_default_comm(.FALSE._1)
-! if (err /= MULTIO_SUCCESS) then
-!     CALL ctl_stop( 'conf_ctx%mpi_allow_world_default_comm(.FALSE._1) failed: ', multio_error_string(err))
-! end if
-! ! err = conf_ctx%mpi_client_id(client_id)
-! ! if (err /= MULTIO_SUCCESS) then
-! !     CALL ctl_stop( 'conf_ctx%mpi_client_id(', TRIM(client_id),') failed: ', multio_error_string(err))
-! ! end if
-! err = conf_ctx%mpi_return_client_comm(return_comm)
-! if (err /= MULTIO_SUCCESS) then
-!     WRITE (err_str, "(I)"), return_comm
-!     CALL ctl_stop( 'conf_ctx%mpi_return_client_comm('//err_str//') failed: ', multio_error_string(err))
-! end if
-! err = conf_ctx%mpi_parent_comm(int(mio_parent_comm))
-! if (err /= MULTIO_SUCCESS) then
-!     WRITE (err_str, "(I)"), mio_parent_comm
-!     CALL ctl_stop( 'conf_ctx%mpi_parent_comm('//err_str//') failed: ', multio_error_string(err))
-! end if
-
-err = mio_handle%new(conf_ctx)
-if (err /= MULTIO_SUCCESS) then
-    CALL ctl_stop( 'mio_handle%new(conf_ctx) failed: ', multio_error_string(err))
-end if
-
-
-err = mio_handle%open_connections()
-write(*,*) 'mio_handle%open_connections() err: ', err
-
-pfield2d = 1.0
-pfield2d(:, 1) = -1.0
-
-do s = 0, 48, 24
-  do i = 1, 11
-
-  err = mio_md%new(mio_handle)
-
-  ! set time
-  ! err = mio_md%set_int("step-frequency", 1)
-  err = mio_md%set_int("startDate", 20250101)
-  err = mio_md%set_int("startTime", 0)
-
-  ! set grid
-  err = mio_md%set_string("gridType", "regular_ll")
-  err = mio_md%set_int("globalSize", NX * NY)
-  err = mio_md%set_int("level", 1)
-  err = mio_md%set_int("Ni", NX)
-  err = mio_md%set_int("Nj", NY)
-  err = mio_md%set_float("north", 89.875)
-  err = mio_md%set_float("south", -89.875)
-  err = mio_md%set_float("west", -179.875)
-  err = mio_md%set_float("east", 180.125)  ! multio removes one increment
-  err = mio_md%set_float("west_east_increment", 0.25)
-  err = mio_md%set_float("south_north_increment", 0.25)
-
-  select case (cmf_names(i))
-    ! accumulated/averaged fields
-    case ("totout", "rofsfc", "runoff", "rofsub", "subrunoff", "wevap")
-      err = mio_md%set_string("category", "rivers-average")
-      err = mio_md%set_int("startStep", s)
-      err = mio_md%set_int("endStep", s + 12)
-    ! instantanoous fields
-    case default
-      err = mio_md%set_string("category", "rivers-instant")
-      err = mio_md%set_int("step", s)
-  end select
-  
-  ! write field
-  err = mio_md%set_string("cmf-name", cmf_names(i))
-  err = mio_md%set_float("missingValue", -1.)
-  err = mio_md%set_bool("bitmapPresent", .True.)
-  err = mio_md%set_bool("toAllServers", .FALSE.)  ! neeeded?
-
-  err = mio_handle%write_field(mio_md, pfield2d)
-  if (err /= MULTIO_SUCCESS) then
-    CALL ctl_stop( 'mio_handle%write_field() failed: ', multio_error_string(err))
-  end if
-
-  err = mio_handle%flush(mio_md)
-  err = mio_md%delete()
-end do
-end do
-
-err = mio_handle%delete();
-err = conf_ctx%delete()
-if (err /= MULTIO_SUCCESS) then
-    CALL ctl_stop( 'conf_ctx%delete() failed: ', multio_error_string(err))
-end if
-
-! only needed when using io server
-! err = mio_handle%close_connections();
-
-end SUBROUTINE CMF_MIO_INITIALISE
+#endif IFS_CMF
+end SUBROUTINE CMF_MULTIO_INITIALISE
 !####################################################################
 
 END SUBROUTINE CMF_OUTPUT_INIT
@@ -571,7 +478,7 @@ USE CMF_UTILS_MOD,           ONLY: vecD2mapR
 ! -- Called either from "MAIN/Coupler" or CMF_DRV_ADVANCE
 USE YOS_CMF_INPUT,      ONLY: NX, NY, LOUTINI
 USE YOS_CMF_MAP,        ONLY: NSEQALL, NPTHOUT, NPTHLEV, REGIONTHIS
-USE YOS_CMF_TIME,       ONLY: JYYYYMMDD, JHHMM, JHOUR, JMIN, KSTEP
+USE YOS_CMF_TIME,       ONLY: JYYYYMMDD, JHHMM, JHOUR, JMIN, KSTEP, IYYYYMMDD, IHOUR
 USE YOS_CMF_PROG,       ONLY: P2RIVSTO,     P2FLDSTO,     P2GDWSTO, &
                             & P2DAMSTO,     P2LEVSTO,     D2COPY       !!! added
 USE YOS_CMF_DIAG,       ONLY: D2RIVDPH,     D2FLDDPH,     D2FLDFRC,     D2FLDARE,     D2SFCELV,     D2STORGE, &
@@ -723,8 +630,10 @@ IF ( MOD(JHOUR,IFRQ_OUT)==0 .and. JMIN==0 ) THEN             ! JHOUR: end of tim
     ENDIF
 
     !*** 3. write D2VEC to output file
-    IF ( LOUTCDF ) THEN
+    IF ( .FALSE. ) THEN
       IF ( REGIONTHIS==1 ) CALL WRTE_OUTCDF  !! netCDFG
+    ELSE IF (.TRUE.) THEN
+      IF ( REGIONTHIS==1 ) CALL CMF_WRITE_MULTIO
     ELSE
       IF( VAROUT(JF)%CVNAME=='pthflw' ) THEN
         IF ( REGIONTHIS==1 ) CALL WRTE_OUTPTH(VAROUT(JF)%BINID,IRECOUT,R1POUT)        !! 1D bifu channel
@@ -822,6 +731,62 @@ VAROUT(JF)%IRECNC=VAROUT(JF)%IRECNC+1
 #endif
 END SUBROUTINE WRTE_OUTCDF 
 !==========================================================
+SUBROUTINE CMF_WRITE_MULTIO
+#ifdef IFS_CMF
+  USE MULTIO_API, ONLY: MULTIO_METADATA
+  
+  IMPLICIT NONE
+  TYPE(MULTIO_METADATA) :: MIO_MD
+  INTEGER :: ERR
+
+  ERR = MIO_MD%NEW(MIO_HANDLE)
+
+  ! set grid
+  err = MIO_MD%set_string("gridType", "regular_ll")
+  err = MIO_MD%set_int("globalSize", NX * NY)
+  err = MIO_MD%set_int("level", 1)
+  err = MIO_MD%set_int("Ni", NX)
+  err = MIO_MD%set_int("Nj", NY)
+  err = MIO_MD%set_real("north", 89.875)
+  err = MIO_MD%set_real("south", -89.875)
+  err = MIO_MD%set_real("west", -179.875)
+  err = MIO_MD%set_real("east", 180.125)  ! multio removes one increment
+  err = MIO_MD%set_real("west_east_increment", 0.25)
+  err = MIO_MD%set_real("south_north_increment", 0.25)
+
+  select case (VAROUT(JF)%CVNAME)
+    ! accumulated/averaged fields
+    case ("totout", "rofsfc", "runoff", "rofsub", "subrunoff", "wevap")
+      err = MIO_MD%set_string("category", "rivers-average")
+      ! err = MIO_MD%set_int("step-frequency", 1)
+      err = MIO_MD%set_int("startDate", JYYYYMMDD)
+      err = MIO_MD%set_int("startTime", JHOUR)
+      err = MIO_MD%set_int("startStep", 0)
+      err = MIO_MD%set_int("endStep", 0 + IFRQ_OUT)
+    ! instantanoous fields
+    case default
+      err = MIO_MD%set_string("category", "rivers-instant")
+      err = MIO_MD%set_int("startDate", JYYYYMMDD)
+      err = MIO_MD%set_int("startTime", JHOUR)
+      err = MIO_MD%set_int("step", IFRQ_OUT)
+      !err = MIO_MD%set_int("step", s)
+  end select
+  
+  ! write field
+  err = MIO_MD%set_string("cmf-name", VAROUT(JF)%CVNAME)
+  err = MIO_MD%set_real("missingValue", -1.)
+  err = MIO_MD%set_bool("bitmapPresent", .TRUE.)
+  err = MIO_MD%set_bool("toAllServers", .FALSE.)  ! neeeded?
+
+!$OMP CRITICAL
+  ERR = MIO_HANDLE%WRITE_FIELD(MIO_MD, R2OUT)
+  ERR = MIO_HANDLE%FLUSH(MIO_MD)
+  ERR = MIO_MD%DELETE()
+!$OMP END CRITICAL
+
+#endif IFS_CMF
+  end SUBROUTINE CMF_WRITE_MULTIO
+!####################################################################
 
 END SUBROUTINE CMF_OUTPUT_WRITE
 !####################################################################
@@ -841,7 +806,7 @@ USE CMF_UTILS_MOD,           ONLY: NCERROR
 USE YOS_CMF_MAP,             ONLY: REGIONTHIS
 IMPLICIT NONE
 ! Local variables
-INTEGER(KIND=JPIM)              :: JF
+INTEGER(KIND=JPIM)              :: JF, ERR
 !================================================
 WRITE(LOGNAM,*) ""
 WRITE(LOGNAM,*) "!---------------------!"
@@ -865,6 +830,10 @@ IF( REGIONTHIS==1 )THEN
     ENDIF
   ENDIF
 ENDIF
+
+#ifdef IFS_CMF
+IF (.TRUE.) ERR = MIO_HANDLE%DELETE()
+#endif
 
 WRITE(LOGNAM,*) "CMF::OUTPUT_END: end"
 
