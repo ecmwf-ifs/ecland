@@ -200,7 +200,7 @@ DO IDAM = 1, NDAM
   I2MASK(ISEQ,1)=2   !! reservoir grid. skipped for adaptive time step
 
   IF( LDAMH22 )THEN    !! Hanazaki 2022 scheme 
-    NorVol(IDAM)   = ConVol(IDAM) * 0.5    ! normal storage
+    NorVol(IDAM)   = ConVol(IDAM) * 0.5_JPRB    ! normal storage
     R_VolUpa(NDAM) = FldVol(IDAM) * 1.E-6 / upreal(IDAM)
 
   ELSE  !! Yamazaki&Funato scheme (paper in prep)
