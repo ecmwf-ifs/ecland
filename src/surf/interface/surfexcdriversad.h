@@ -1,11 +1,12 @@
 INTERFACE
 SUBROUTINE SURFEXCDRIVERSAD  ( YDSURF, &
- &   KIDIA , KFDIA, KLON, KLEVS, KTILES, KSTEP &
+ &   KIDIA , KFDIA, KLON, KLEVS,KLEVSN, KTILES, KSTEP &
  & , PTSTEP, PRVDIFTS &
  & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF &
 ! input data, non-tiled - trajectory
- & , KTVL   , KTVH    , PCVL   , PCVH &
+ & , KTVL   , KTVH    , PCVL   , PCVH, PCUR &
  & , PLAIL  , PLAIH   &
+ & , PSNM5 , PRSN5 &
  & , PUMLEV5, PVMLEV5 , PTMLEV5, PQMLEV5, PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST   , PTSKM1M5, PCHAR  , PSSRFL5, PTICE5 , PTSNOW5  &
  & , PWLMX5 &
@@ -20,6 +21,7 @@ SUBROUTINE SURFEXCDRIVERSAD  ( YDSURF, &
 ! output data, tiled - trajectory
  & , PSSRFLTI5, PQSTI5 , PDQSTI5 , PCPTSTI5 &
  & , PCFHTI5  , PCFQTI5, PCSATTI5, PCAIRTI5 &
+ & , PZ0MTIW5, PZ0HTIW5, PZ0QTIW5, PBUOMTI5, PQSAPPTI5, PCPTSPPTI5 &
 ! output data, non-tiled - trajectory
  & , PCFMLEV5, PEVAPSNW5 &
  & , PZ0MW5  , PZ0HW5    , PZ0QW5, PCPTSPP5, PQSAPP5, PBUOMPP5 &
@@ -36,6 +38,7 @@ SUBROUTINE SURFEXCDRIVERSAD  ( YDSURF, &
  & , PZ0M, PZ0H &
 ! output data, tiled
  & , PSSRFLTI, PQSTI   , PDQSTI, PCPTSTI , PCFHTI, PCFQTI, PCSATTI, PCAIRTI &
+ & , PZ0MTIW, PZ0HTIW, PZ0QTIW, PBUOMTI, PQSAPPTI, PCPTSPPTI &
 ! output data, non-tiled
  & , PCFMLEV , PEVAPSNW &
  & , PZ0MW   , PZ0HW    , PZ0QW, PCPTSPP , PQSAPP, PBUOMPP &
@@ -81,6 +84,7 @@ USE, INTRINSIC :: ISO_C_BINDING
 !      KFDIA    :    End point in arrays
 !      KLON     :    Length of arrays
 !      KLEVS    :    Number of soil layers
+!      KLEVSN   :    Number of snow layers
 !      KTILES   :    Number of tiles
 !      KSTEP    :    Time step index
 !      KTVL     :    Dominant low vegetation type
@@ -92,6 +96,7 @@ USE, INTRINSIC :: ISO_C_BINDING
 !      PRVDIFTS :    Semi-implicit factor for vertical diffusion discretization
 !      PCVL     :    Low vegetation fraction
 !      PCVH     :    High vegetation fraction
+!      PCUR     :    Urban fraction
 !      PLAIL     :    Low vegetation LAI
 !      PLAIH     :    High vegetation LAI
 
@@ -132,6 +137,8 @@ USE, INTRINSIC :: ISO_C_BINDING
 !  PTICE5      PTICE         Ice temperature, top slab                 K
 !  PTSNOW5     PTSNOW        Snow temperature                          K
 !  PWLMX5      ---           Maximum interception layer capacity       kg/m**2
+!  PSNM5       ---  :       SNOW MASS (per unit area)                      kg/m**2
+!  PRSN5       ---  :        SNOW DENSITY                                   kg/m**3
 
 !*      Reals with tile index (In/Out):
 !  Trajectory  Perturbation  Description                               Unit
@@ -198,6 +205,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS
+INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVSN
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTILES
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSTEP
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEP
@@ -212,8 +220,11 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSOTY(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PCUR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSNM5(:,:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PRSN5(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUMLEV5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PVMLEV5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTMLEV5(:)
@@ -255,6 +266,13 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0QW5(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPP5(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPP5(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBUOMPP5(:)
+! Tile dependent pp
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0MTIW5(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0HTIW5(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0QTIW5(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPPTI5(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPPTI5(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBUOMTI5(:,:)
 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PUMLEV(:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PVMLEV(:) 
@@ -293,6 +311,13 @@ REAL(KIND=JPRB)   ,INTENT(INOUT) :: PZ0QW(:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PCPTSPP(:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PQSAPP(:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PBUOMPP(:)
+! Tile dependent pp
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0MTIW(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0HTIW(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0QTIW(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPPTI(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPPTI(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBUOMTI(:,:)
 
 
 !------------------------------------------------------------------------
