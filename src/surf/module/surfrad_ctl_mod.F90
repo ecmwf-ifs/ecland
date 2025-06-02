@@ -143,6 +143,7 @@ USE ABORT_SURF_MOD
 !     Robin Hogan   ECMWF   15-01-2019 MODIS albedo 2x3-components 
 !     Robin Hogan   ECMWF   26-02-2019 Removed general spectral rescaling (RWEIGHT)
 !     Robin Hogan   ECMWF   26-02-2019 Use Moody et al. for snow albedo in 2 spectral bands
+!     S. Boussetta          22-06-2022 Added explicit snow albedo for snow under high veg
 !     J. McNorton           24-08-2022 urban tile
 !-----------------------------------------------------------------------
 
@@ -376,7 +377,6 @@ DO JL=KIDIA,KFDIA
   ZEMISSTI(:,7) = ZEMISSTI(:,4)
 ! BARE SOIL
   IF (PALBF(JL) > 0.30_JPRB) THEN
-
 !   desert emissivity
     ZEMISSTI(:,8) = REMISS_DESERT(1:NLWEMISS)
   ELSE
@@ -564,11 +564,11 @@ DO JSW=1,KSW
 ! BARE SOIL
     ZADTI8=ZALBD
     ZAPTI8=ZALBP
-! SNOW UNDER HIGH-VEG    
+ ! SNOW UNDER HIGH-VEG    
     ZADTI7=ZALBD
     ZAPTI7=ZALBP   
 ! URBAN
-    IF (KTILES .GT. 9) THEN
+    IF (LEURBAN) THEN
       ZADTI10=RROOALB*(1.0_JPRB/(1.0_JPRB+RWRR)) + PCANALB(JL)*(RWRR/(1.0_JPRB+RWRR))
       ZAPTI10=RROOALB*(1.0_JPRB/(1.0_JPRB+RWRR)) + PCANALB(JL)*(RWRR/(1.0_JPRB+RWRR))
       ZADTI3=ZADTI3*(1.0_JPRB-PCUR(JL))+ZADTI10*PCUR(JL)    
@@ -622,7 +622,6 @@ DO JSW=1,KSW
       ZADTI5 = MIN(0.98_JPRB, MAX(0.02_JPRB, ZADTI5)) ! Security
     ENDIF
     ZAPTI5 = ZADTI5 ! Direct albedo = Diffuse albedo
-
     !UPDATE FOR URBAN SNOW AS A FUNCTION OF SNOW COVER (Jarvi et al. 2014 - upto 0.85)
     ! Assume linear relationship from 0.18-0.85
     IF (LEURBAN) THEN
@@ -631,8 +630,6 @@ DO JSW=1,KSW
       ZADTI5 = ZAPTI5
      ENDIF
     ENDIF
-
-
 
 !! SNOW UNDER HIGH-VEG
 !    IF ( LESN09 ) THEN
@@ -650,18 +647,18 @@ DO JSW=1,KSW
 !    END IF
 !    ZAPTI7 = ZADTI7 ! Direct albedo = Diffuse albedo
 
-! CORRECT FOR URBAN - TILE 7 (URBAN SNOW = HIGVEG SNOW)
-!   IF (KTILES .GT. 9) THEN
-!    IF (PCUR(JL) .GT. 0.0_JPRB) THEN
-!     ZAPTI7 = ZAPTI7*(PCVH(JL)*(1.0_JPRB-PCUR(JL))) &
-!     & +(0.5_JPRB*ZAPTI7+0.5_JPRB*ZAPTI10)*PCUR(JL)
-!     ZAPTI7 = ZAPTI7/(PCVH(JL)*(1.0_JPRB-PCUR(JL)) + PCUR(JL))
-!     ZADTI7 = ZADTI7*(PCVH(JL)*(1.0_JPRB-PCUR(JL))) &
-!     & +(0.5_JPRB*ZADTI7+0.5_JPRB*ZADTI10)*PCUR(JL)
-!     ZADTI7 = ZADTI7/(PCVH(JL)*(1.0_JPRB-PCUR(JL)) + PCUR(JL))
+!! CORRECT FOR URBAN - TILE 7 (URBAN SNOW = HIGVEG SNOW)
+!    IF (KTILES .GT. 9) THEN
+!     IF (PCUR(JL) .GT. 0.0_JPRB) THEN
+!      ZAPTI7 = ZAPTI7*(PCVH(JL)*(1.0_JPRB-PCUR(JL))) &
+!      & +(0.5_JPRB*ZAPTI7+0.5_JPRB*ZAPTI10)*PCUR(JL)
+!      ZAPTI7 = ZAPTI7/(PCVH(JL)*(1.0_JPRB-PCUR(JL)) + PCUR(JL))
+!      ZADTI7 = ZADTI7*(PCVH(JL)*(1.0_JPRB-PCUR(JL))) &
+!      & +(0.5_JPRB*ZADTI7+0.5_JPRB*ZADTI10)*PCUR(JL)
+!      ZADTI7 = ZADTI7/(PCVH(JL)*(1.0_JPRB-PCUR(JL)) + PCUR(JL))
+!     ENDIF
+!
 !    ENDIF
-
-!   ENDIF
 
 !  LAKES 
     !* use new formulation for lake ice albedo calculation 
@@ -690,6 +687,7 @@ DO JSW=1,KSW
     PALBTI(JL,6)=PALBTI(JL,6)+RSUN(JSW)*(ZADTI6+ZAPTI6)*0.5_JPRB
     PALBTI(JL,7)=PALBTI(JL,7)+RSUN(JSW)*(ZADTI7+ZAPTI7)*0.5_JPRB
     PALBTI(JL,8)=PALBTI(JL,8)+RSUN(JSW)*(ZADTI8+ZAPTI8)*0.5_JPRB
+
     IF (LEFLAKE) THEN 
       PALBTI(JL,9)=PALBTI(JL,9)+RSUN(JSW)*(ZADTI9+ZAPTI9)*0.5_JPRB   
     ENDIF
