@@ -1,11 +1,12 @@
 INTERFACE
 SUBROUTINE SURFEXCDRIVERS    ( YDSURF, &
- &   KIDIA, KFDIA, KLON, KLEVS, KTILES, KSTEP &
+ &   KIDIA, KFDIA, KLON, KLEVS,KLEVSN, KTILES, KSTEP &
  & , PTSTEP, PRVDIFTS &
  & , LDSURF2 &
 ! input data, non-tiled
- & , KTVL, KTVH, PCVL, PCVH &
+ & , KTVL, KTVH, PCVL, PCVH, PCUR &
  & , PLAIL, PLAIH &
+ & , PSNM , PRSN &
  & , PUMLEV, PVMLEV, PTMLEV, PQMLEV, PAPHMS, PGEOMLEV, PCPTGZLEV &
  & , PSST, PTSKM1M, PCHAR, PSSRFL, PTICE, PTSNOW &
  & , PWLMX &
@@ -19,6 +20,7 @@ SUBROUTINE SURFEXCDRIVERS    ( YDSURF, &
  & , PZ0M, PZ0H &
 ! output data, tiled
  & , PSSRFLTI, PQSTI, PDQSTI, PCPTSTI, PCFHTI, PCFQTI, PCSATTI, PCAIRTI &
+ & , PZ0MTIW, PZ0HTIW, PZ0QTIW, PBUOMTI, PQSAPPTI, PCPTSPPTI &
 ! output data, non-tiled
  & , PCFMLEV, PKMFL, PKHFL, PKQFL, PEVAPSNW &
  & , PZ0MW, PZ0HW, PZ0QW, PCPTSPP, PQSAPP, PBUOMPP &
@@ -63,6 +65,7 @@ USE, INTRINSIC :: ISO_C_BINDING
 !      KFDIA    :    End point in arrays
 !      KLON     :    Length of arrays
 !      KLEVS    :    Number of soil layers
+!      KLEVSN   :    Number of snow layers
 !      KTILES   :    Number of tiles
 !      KSTEP    :    Time step index
 !      KTVL     :    Dominant low vegetation type
@@ -74,6 +77,7 @@ USE, INTRINSIC :: ISO_C_BINDING
 !      PRVDIFTS :    Semi-implicit factor for vertical diffusion discretization
 !      PCVL     :    Low vegetation fraction
 !      PCVH     :    High vegetation fraction
+!      PCUR     :    Urban fraction
 !      PLAIL    :    Low vegetation LAI
 !      PLAIH    :    High vegetation LAI
 
@@ -105,6 +109,8 @@ USE, INTRINSIC :: ISO_C_BINDING
 !      PTICE    :    Ice temperature, top slab                        K
 !      PTSNOW   :    Snow temperature                                 K
 !      PWLMX    :    Maximum interception layer capacity              kg/m**2
+!     PSNM      :       SNOW MASS (per unit area)                      kg/m**2
+!     PRSN      :      SNOW DENSITY                                   kg/m**3
 
 !    Reals with tile index (In/Out):
 !      PUSTRTI  :    SURFACE U-STRESS                                 N/m2 
@@ -168,6 +174,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS
+INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVSN
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTILES
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSTEP
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEP
@@ -179,8 +186,11 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSOTY(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PCUR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSNM(:,:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PRSN(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUMLEV(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PVMLEV(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTMLEV(:)
@@ -225,6 +235,13 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0QW(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPP(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPP(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBUOMPP(:)
+! Tile dependent pp
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0MTIW(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0HTIW(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0QTIW(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPPTI(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPPTI(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBUOMTI(:,:)
 
 
 !------------------------------------------------------------------------
