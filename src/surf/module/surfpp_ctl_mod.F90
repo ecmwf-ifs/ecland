@@ -419,7 +419,6 @@ DO JTILE=1,KTILES
   ENDDO
 ENDDO
 
-
 !      4.3 2M DIAGNOSTICS (t2m,d2m,q2m) AVERAGING OVER TILES
 !          For ocean tiles (1 and 2), we still use dominant .
 IF (LT2MTILE)THEN
@@ -436,7 +435,7 @@ IF (LT2MTILE)THEN
                        &PFRTI(JL,JTILE)*ZQ2M(JL,JTILE)
     ENDDO
   ENDDO
-  ! Overwrite where dominant water or sea-ice.
+  ! Overwrite where dominant water or sea-ice. 
   ! Using PLSM would be cleaner, but this should be eq.
   DO JL=KIDIA,KFDIA
     IF ((PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,5)+PFRTI(JL,6)+PFRTI(JL,7)+PFRTI(JL,8)+PFRTI(JL,9))<1.0_JPRB)THEN
@@ -447,7 +446,7 @@ IF (LT2MTILE)THEN
   ENDDO
 ENDIF
 
-!         4.4 SKIN LAYER TENDENCY
+!         4.4 SKIN LAYER TENDENCY 
 
 DO JL=KIDIA,KFDIA
   PTSKE1(JL) = PTSKE1(JL) + ( ZTSK(JL) - PTSKM1M(JL) ) * ZRTMST
