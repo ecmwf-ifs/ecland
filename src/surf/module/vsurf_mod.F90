@@ -62,7 +62,7 @@ USE COTWORESTRESS_MOD
 !     A. Agusti-Panareda Nov 2020  couple atm CO2 tracer with photosynthesis 
 !     A. Agusti-Panareda May 2021  Pass soil temperature to photosynthesis 
 !     A. Agusti-Panareda June 2021 Pass photosynthetic pathway for low vegetation (c3/c4)
-!     S. Boussetta     21/06/2022   Added Ronda (Ronda et al. 2002, J. App. Met.) Soil moisture stress function
+!     S. Boussetta     21/06/2022  Added Ronda (Ronda et al. 2002, J. App. Met.) SM stress function
 !     J. McNorton      24/08/2022  urban tile
 !     S. Boussetta     21/06/2022  Added LAI scaling by Cveg for Rc canopy resistance computaioin
 
@@ -212,7 +212,7 @@ TYPE(TURB)        ,INTENT(IN)    :: YDURB
 !     ----- -------
 
 INTEGER(KIND=JPIM) :: JK, JL, JS
-REAL(KIND=JPRB) ::  ZLIQ(KLON,KLEVS), ZLIQR(KLON,KLEVS), ZF2(KLON), ZF21(KLON), ZWROOT(KLON)
+REAL(KIND=JPRB) ::  ZLIQ(KLON,KLEVS), ZLIQR(KLON,KLEVS),ZF2(KLON),ZF21(KLON),ZWROOT(KLON)
 REAL(KIND=JPRB) ::  ZDSP(KLON),ZDMAXT(KLON)
 REAL(KIND=JPRB) ::  ZWET(KLON)
 REAL(KIND=JPRB) ::  ZTSK(KLON)
@@ -376,6 +376,7 @@ ENDDO
        ELSE
           ZQWEVAPBARE=0._JPRB
        ENDIF
+       !ZF2B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQR(JL,1)-ZWPBARE)*ZQWEVAPBARE))
        ZF21B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQR(JL,1)-ZWPBARE)*ZQWEVAPBARE))
        ZF2B=2_JPRB*ZF21B-(ZF21B*ZF21B)
     ELSE
@@ -383,7 +384,7 @@ ENDDO
        ZQWEVAP=RQWEVAP
        ZWPBARE=(RWPWP*(1.0_JPRB-ZBARE)+0.05_JPRB*ZBARE)
        ZQWEVAPBARE=1._JPRB/(RWCAP-ZWPBARE)
-       ZF2B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQ(JL,1)-ZWPWP)*ZQWEVAP))
+       ZF21B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQ(JL,1)-ZWPWP)*ZQWEVAP))
        ZF2B=2_JPRB*ZF21B-(ZF21B*ZF21B)
     ENDIF
 
@@ -573,6 +574,7 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
        ELSE
           ZQWEVAPBARE=0._JPRB
        ENDIF
+       !ZF2B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQR(JL,1)-ZWPBARE)*ZQWEVAPBARE))
        ZF21B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQR(JL,1)-ZWPBARE)*ZQWEVAPBARE))
        ZF2B=2_JPRB*ZF21B-(ZF21B*ZF21B)
     ELSE
@@ -657,7 +659,6 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
       ELSE
          ZF21(JL)=MAX(RCEPSW,MIN(1.0_JPRB,(ZWROOT(JL)-ZWPWP)*ZQWEVAP))
          ZF2(JL)=2_JPRB*ZF21(JL)-(ZF21(JL)*ZF21(JL))
-
       ENDIF
 
 !      ZF2(JL)=MAX(RCEPSW,MIN(1.0_JPRB,(ZWROOT(JL)-ZWPWP)*ZQWEVAP))
@@ -728,6 +729,7 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
          ZQWEVAP=RQWEVAP
          ZWPBARE=(RWPWP*(1.0_JPRB-ZBARE)+0.05_JPRB*ZBARE)
          ZQWEVAPBARE=1._JPRB/(RWCAP-ZWPBARE)
+         !ZF2B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQ(JL,1)-ZWPWP)*ZQWEVAP))
          ZF21B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQ(JL,1)-ZWPWP)*ZQWEVAP))
          ZF2B=2_JPRB*ZF21B-(ZF21B*ZF21B)
       ENDIF
