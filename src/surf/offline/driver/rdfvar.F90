@@ -8,20 +8,13 @@ USE YOMGC1S  , ONLY : LMASK
 USE YOMLOG1S , ONLY : NDIMCDF
 USE YOMCST   , ONLY : RDAY 
 USE YOMRIP   , ONLY : RTIMTR,RTIMST
-USE YOMDPHY  , ONLY : NPOI,    NLON      ,NLAT     ,NLALO, NPOIP,NPOIPALL, NPOIALL, NPOIOFF
+USE YOMDPHY  , ONLY : NPOI,    NLON      ,NLAT     ,NLALO, NPOIP, NPOIOFF
 USE PARKIND1  ,ONLY : JPIM     ,JPRB, JPRD
 USE NETCDF
 USE NETCDF_UTILS, ONLY: NCERROR
 USE YOMHOOK  ,ONLY : DR_HOOK, JPHOOK, LHOOK
 USE MPL_MODULE
 #ifdef DOC
-! (C) Copyright 2000- ECMWF.
-!
-! This software is licensed under the terms of the Apache Licence Version 2.0
-! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
-! In applying this licence, ECMWF does not waive the privileges and immunities
-! granted to it by virtue of its status as an intergovernmental organisation
-! nor does it submit to any jurisdiction.
 
 !**** *RDFVAR  * - ROUTINE TO READ A SINGLE FIELD FROM A NETCDF FILE
 !
@@ -259,7 +252,7 @@ ELSE
 ENDIF
 
 ALLOCATE (ZREAL3(NPTOT,NSTPFC))
-ALLOCATE (ZBUF(NPOIALL))
+ALLOCATE (ZBUF(NPOI))
 
 IF( MYPROC == 1 ) THEN
   IF ( VNDIMS == 2 ) THEN
@@ -273,7 +266,7 @@ IF( MYPROC == 1 ) THEN
 ENDIF
 
 DO JT=1,NSTPFC
-  CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL3(:,JT),KSENDCOUNTS=NPOIPALL(:),CDSTRING="RDFVAR:POUTPUT")
+  CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL3(:,JT),KSENDCOUNTS=NPOIP(:),CDSTRING="RDFVAR:POUTPUT")
   POUTPUT(1:NPOI,JT) = PACK(ZBUF(:),LMASK(ISTP:IENP))
 ENDDO
 IF( MYPROC == 1 ) THEN
