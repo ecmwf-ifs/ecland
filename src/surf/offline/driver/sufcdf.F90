@@ -80,7 +80,7 @@ USE MINMAX_MOD, ONLY: MINMAX
 #endif
 IMPLICIT NONE
 #include "rdfvar.intfb.h"
-#include "minmax.intfb.h"
+!#include "minmax.intfb.h"
 
 CHARACTER CHEADER*400
 CHARACTER*100 CNAME

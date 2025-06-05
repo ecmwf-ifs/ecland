@@ -108,7 +108,7 @@ REAL(KIND=JPHOOK)              :: ZHOOK_HANDLE
 DATA ISTART2/1,1/
 DATA ISTART3/1,1,1/
 
-#include "minmax.intfb.h"
+!#include "minmax.intfb.h"
 
 IF (LHOOK) CALL DR_HOOK('RDSUPR',0,ZHOOK_HANDLE)
 

@@ -28,7 +28,7 @@ USE MINMAX_MOD, ONLY: MINMAX
 #endif
 IMPLICIT NONE
 
-#include "minmax.intfb.h"
+!#include "minmax.intfb.h"
 
 CHARACTER(LEN=*),INTENT(IN) :: CFILE,CVAR
 REAL(KIND=JPRB),DIMENSION(NPOI,JPSTPFC),INTENT(OUT) :: POUTPUT

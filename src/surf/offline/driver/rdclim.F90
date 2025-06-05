@@ -120,7 +120,7 @@ DATA ISTART2/1,1/
 DATA ISTART3/1,1,1/
 DATA ISTART4/1,1,1,1/
 
-#include "minmax.intfb.h"
+!#include "minmax.intfb.h"
 
 IF (LHOOK) CALL DR_HOOK('RDCLIM',0,ZHOOK_HANDLE)
 
