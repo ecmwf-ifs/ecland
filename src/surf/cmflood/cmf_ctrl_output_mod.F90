@@ -333,17 +333,17 @@ DO JF=1,NVARSOUT
   END SELECT
   VAROUT(JF)%BINID=INQUIRE_FID()
 
-  IF( .FALSE. )THEN
+  IF( LOUTCDF )THEN
     IF( REGIONTHIS==1 )THEN
       CALL CREATE_OUTCDF
     ENDIF
-  ELSE IF (.TRUE.) THEN
-    CALL CMF_MULTIO_INITIALISE
   ELSE
     CALL CREATE_OUTBIN
   ENDIF
 END DO
-
+!#ifdef IFS_CMF
+CALL CMF_MULTIO_INITIALISE
+!#endif IFS_CMF
 IRECOUT=0  ! Initialize Output record to 1 (shared in netcdf & binary)
 
 CONTAINS
@@ -449,14 +449,17 @@ SUBROUTINE multio_custom_error_handler(context, err, info)
     MULTIO_SUCCESS, &
     multio_failure_info, &
     multio_error_string
-  integer, intent(inout) :: context  ! Use mpi communicator as context
+  USE ISO_FORTRAN_ENV, ONLY: INT64
+  USE MPL_MODULE, ONLY: MPL_ABORT
+
+  IMPLICIT NONE
+  integer(INT64), intent(inout) :: context  ! Use mpi communicator as context
   integer, intent(in) :: err
   class(multio_failure_info), intent(in) :: info
   integer :: mpierr
 
   IF (err /= MULTIO_SUCCESS) THEN
-      write(LOGNAM, *) 'MULTIO ERROR: ', multio_error_string(err, info)
-      stop 9
+      CALL MPL_ABORT('MULTIO ERROR: ' // multio_error_string(err, info))
   ENDIF
 END SUBROUTINE
 #endif IFS_CMF
@@ -466,18 +469,24 @@ SUBROUTINE CMF_MULTIO_INITIALISE
   USE MULTIO_API,         ONLY: &
     MULTIO_CONFIGURATION, &
     MULTIO_METADATA, &
-    MULTIO_INITIALISE
+    MULTIO_INITIALISE, &
+    FAILURE_HANDLER_T
   USE YOS_CMF_MAP, ONLY: MPI_COMM_CAMA
+  USE ISO_FORTRAN_ENV, ONLY: INT64
 
   IMPLICIT NONE
   TYPE(MULTIO_CONFIGURATION)    :: CONF_CTX
   INTEGER :: ERR
+  INTEGER(INT64) :: MIO_CONT
+  PROCEDURE(FAILURE_HANDLER_T), POINTER :: PF
+
 
   ! Initialise MultIO, create a configuration context and a handle
   ERR = MULTIO_INITIALISE()
   ERR = CONF_CTX%NEW()
   ERR = MIO_HANDLE%NEW(CONF_CTX)
-  ERR = MIO_HANDLE%SET_FAILURE_HANDLER(multio_custom_error_handler, 0)
+  PF => MULTIO_CUSTOM_ERROR_HANDLER
+  ERR = MIO_HANDLE%SET_FAILURE_HANDLER(pf, MIO_CONT)
   ERR = CONF_CTX%DELETE()
 
 #endif IFS_CMF
@@ -493,16 +502,16 @@ SUBROUTINE CMF_OUTPUT_WRITE
 USE CMF_UTILS_MOD,           ONLY: vecD2mapR
 ! save results to output files
 ! -- Called either from "MAIN/Coupler" or CMF_DRV_ADVANCE
-USE YOS_CMF_INPUT,      ONLY: NX, NY, LOUTINI
+USE YOS_CMF_INPUT,      ONLY: NX, NY, LOUTINI, DT
 USE YOS_CMF_MAP,        ONLY: NSEQALL, NPTHOUT, NPTHLEV, REGIONTHIS
-USE YOS_CMF_TIME,       ONLY: JYYYYMMDD, JHHMM, JHOUR, JMIN, KSTEP, IYYYYMMDD, IHOUR
+USE YOS_CMF_TIME,       ONLY: JYYYYMMDD, JHHMM, JHOUR, JMIN, KSTEP, ISYYYYMMDD, ISYYYY, ISHHMM
 USE YOS_CMF_PROG,       ONLY: P2RIVSTO,     P2FLDSTO,     P2GDWSTO, &
                             & P2DAMSTO,     P2LEVSTO,     D2COPY       !!! added
 USE YOS_CMF_DIAG,       ONLY: D2RIVDPH,     D2FLDDPH,     D2FLDFRC,     D2FLDARE,     D2SFCELV,     D2STORGE, &
                             & D2OUTFLW_oAVG, D2RIVOUT_oAVG, D2FLDOUT_oAVG, D2PTHOUT_oAVG, D1PTHFLW_oAVG,  &
                             & D2RIVVEL_oAVG, D2GDWRTN_oAVG, D2RUNOFF_oAVG, D2ROFSUB_oAVG, D2WEVAPEX_oAVG, &
                             & D2OUTFLW_oMAX, D2STORGE_oMAX, D2RIVDPH_oMAX, &
-                            & D2DAMINF_oAVG, D2OUTINS, D2LEVDPH   !!! added
+                            & D2DAMINF_oAVG, D2OUTINS, D2LEVDPH, NADD => NADD_out   !!! added
 #ifdef UseMPI_CMF
 USE CMF_CTRL_MPI_MOD,   ONLY: CMF_MPI_AllReduce_R2MAP, CMF_MPI_AllReduce_R1PTH
 #endif
@@ -622,9 +631,7 @@ IF ( MOD(JHOUR,IFRQ_OUT)==0 .and. JMIN==0 ) THEN             ! JHOUR: end of tim
 
       CASE DEFAULT
 !        WRITE(LOGNAM,*) VAROUT(JF)%CVNAME, ' Not defined in CMF_OUTPUT_MOD'
-!#ifdef IFS_CMF
-!        CALL ABORT
-!#endif
+
     END SELECT   !! variable name select
 
     IF( KSTEP==0 .and. LOUTINI )THEN  !! write storage only when LOUTINI specified
@@ -647,10 +654,8 @@ IF ( MOD(JHOUR,IFRQ_OUT)==0 .and. JMIN==0 ) THEN             ! JHOUR: end of tim
     ENDIF
 
     !*** 3. write D2VEC to output file
-    IF ( .FALSE. ) THEN
+    IF ( LOUTCDF ) THEN
       IF ( REGIONTHIS==1 ) CALL WRTE_OUTCDF  !! netCDFG
-    ELSE IF (.TRUE.) THEN
-      IF ( REGIONTHIS==1 ) CALL CMF_WRITE_MULTIO
     ELSE
       IF( VAROUT(JF)%CVNAME=='pthflw' ) THEN
         IF ( REGIONTHIS==1 ) CALL WRTE_OUTPTH(VAROUT(JF)%BINID,IRECOUT,R1POUT)        !! 1D bifu channel
@@ -662,6 +667,9 @@ IF ( MOD(JHOUR,IFRQ_OUT)==0 .and. JMIN==0 ) THEN             ! JHOUR: end of tim
         ENDIF
       ENDIF
     ENDIF
+!#ifdef IFS_CMF
+    IF ( REGIONTHIS==1 ) CALL CMF_WRITE_MULTIO
+!#endif IFS_CMF
   END DO
 
   WRITE(LOGNAM,*) 'CMF::OUTPUT_WRITE: end'
@@ -751,10 +759,11 @@ END SUBROUTINE WRTE_OUTCDF
 SUBROUTINE CMF_WRITE_MULTIO
 #ifdef IFS_CMF
   USE MULTIO_API, ONLY: MULTIO_METADATA
-  
+  USE YOS_CMF_INPUT, ONLY: NX, NY, NORTH, SOUTH, WEST, EAST, RMIS
+
   IMPLICIT NONE
   TYPE(MULTIO_METADATA) :: MIO_MD
-  INTEGER :: ERR
+  INTEGER(JPIM) :: ERR, GRB_ST_STEP, GRB_EN_STEP
 
   ERR = MIO_MD%NEW(MIO_HANDLE)
 
@@ -764,36 +773,39 @@ SUBROUTINE CMF_WRITE_MULTIO
   err = MIO_MD%set_int("level", 1)
   err = MIO_MD%set_int("Ni", NX)
   err = MIO_MD%set_int("Nj", NY)
-  err = MIO_MD%set_real("north", 89.875)
-  err = MIO_MD%set_real("south", -89.875)
-  err = MIO_MD%set_real("west", -179.875)
-  err = MIO_MD%set_real("east", 180.125)  ! multio removes one increment
-  err = MIO_MD%set_real("west_east_increment", 0.25)
-  err = MIO_MD%set_real("south_north_increment", 0.25)
+  !err = MIO_MD%set_real("latitudeOfFirstGridPoint", NORTH)
+  !err = MIO_MD%set_real("latitudeOfLastGridPoint", SOUTH)
+  !err = MIO_MD%set_real("longitudeOfFirstGridPoint", WEST)
+  !err = MIO_MD%set_real("longitudeOfLastGridPoint", EAST)
+  !err = MIO_MD%set_real("iDirectionIncrement", (EAST - WEST) / (NX - 1))
+  !err = MIO_MD%set_real("jDirectionIncrement", (NORTH - SOUTH) / (NY - 1))
+  err = MIO_MD%set_real("north", NORTH)
+  err = MIO_MD%set_real("south", SOUTH)
+  err = MIO_MD%set_real("west", WEST)
+  err = MIO_MD%set_real("east", EAST + (EAST - WEST) / (NX - 1))  ! multio removes one increment
+  err = MIO_MD%set_real("west_east_increment",(EAST - WEST) / (NX - 1))
+  err = MIO_MD%set_real("south_north_increment", (NORTH - SOUTH) / (NY - 1))
 
-  select case (VAROUT(JF)%CVNAME)
+  ! set time
+  err = MIO_MD%set_int("startDate", ISYYYYMMDD)
+  err = MIO_MD%set_int("startTime", ISHHMM)
+  ! assuming this subroutine only runs at the full hour
+  GRB_EN_STEP = INT((KSTEP * DT) / (60*60), KIND=JPIM)  ! convert to hours
+  GRB_ST_STEP = INT((KSTEP * DT - NADD) / (60*60), KIND=JPIM)
+  if (VAROUT(JF)%AGGREGATE == 2) then
     ! accumulated/averaged fields
-    case ("totout", "rofsfc", "runoff", "rofsub", "subrunoff", "wevap")
-      err = MIO_MD%set_string("category", "rivers-average")
-      ! err = MIO_MD%set_int("step-frequency", 1)
-      err = MIO_MD%set_int("startDate", JYYYYMMDD)
-      err = MIO_MD%set_int("startTime", JHOUR)
-      err = MIO_MD%set_int("startStep", 0)
-      err = MIO_MD%set_int("endStep", 0 + IFRQ_OUT)
+    err = MIO_MD%set_int("startStep", GRB_ST_STEP)
+    err = MIO_MD%set_int("endStep", GRB_EN_STEP)
+  else
     ! instantanoous fields
-    case default
-      err = MIO_MD%set_string("category", "rivers-instant")
-      err = MIO_MD%set_int("startDate", JYYYYMMDD)
-      err = MIO_MD%set_int("startTime", JHOUR)
-      err = MIO_MD%set_int("step", IFRQ_OUT)
-      !err = MIO_MD%set_int("step", s)
-  end select
+    err = MIO_MD%set_int("step", GRB_EN_STEP)
+  endif
   
   ! write field
+  err = MIO_MD%set_string("category", "rivers")
   err = MIO_MD%set_string("cmf-name", VAROUT(JF)%CVNAME)
-  err = MIO_MD%set_real("missingValue", -1.)
+  err = MIO_MD%set_real("missingValue", RMIS)
   err = MIO_MD%set_bool("bitmapPresent", .TRUE.)
-  err = MIO_MD%set_bool("toAllServers", .FALSE.)  ! neeeded?
 
 !$OMP CRITICAL
   ERR = MIO_HANDLE%WRITE_FIELD(MIO_MD, R2OUT)
@@ -849,7 +861,10 @@ IF( REGIONTHIS==1 )THEN
 ENDIF
 
 #ifdef IFS_CMF
-IF (.TRUE.) ERR = MIO_HANDLE%DELETE()
+IF (.TRUE.) THEN
+  ERR = MIO_HANDLE%CLOSE_CONNECTIONS()
+  ERR = MIO_HANDLE%DELETE()
+ENDIF
 #endif
 
 WRITE(LOGNAM,*) "CMF::OUTPUT_END: end"
