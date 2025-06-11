@@ -36,6 +36,7 @@ CHARACTER(LEN=256)              ::  COUTTAG           ! Output Tag Name for each
 !
 LOGICAL                         ::  LOUTVEC           ! TRUE FOR VECTORIAL OUTPUT, FALSE FOR NX,NY OUTPUT
 LOGICAL                         ::  LOUTCDF           ! true for netcdf outptu false for binary
+LOGICAL                         ::  LOUTGRB = .FALSE. ! true for GRIB2 output, requires IFS_CMF preprocessor flag and MultIO
 #ifdef IFS_CMF
 TYPE(MULTIO_HANDLE)             :: MIO_HANDLE
 #endif
@@ -44,7 +45,7 @@ INTEGER(KIND=JPIM)              ::  NDLEVEL           ! NETCDF DEFLATION LEVEL
 LOGICAL                         ::  LOUTTXT           ! TRUE FOR Text output for some gauges
 CHARACTER(LEN=256)              ::  CGAUTXT           ! List of Gauges (ID, IX, IY)
 !
-NAMELIST/NOUTPUT/ COUTDIR,CVARSOUT,COUTTAG,LOUTCDF,NDLEVEL,LOUTVEC,IFRQ_OUT,LOUTTXT,CGAUTXT
+NAMELIST/NOUTPUT/ COUTDIR,CVARSOUT,COUTTAG,LOUTCDF,NDLEVEL,LOUTVEC,IFRQ_OUT,LOUTTXT,CGAUTXT,LOUTGRB
 !
 !*** local variables
 INTEGER(KIND=JPIM), PARAMETER   :: NVARS=100          ! temporal output var number
@@ -65,6 +66,7 @@ INTEGER(KIND=JPIM)              :: NCID               ! output netCDF output fil
 INTEGER(KIND=JPIM)              :: VARID              ! output netCDF output variable ID
 INTEGER(KIND=JPIM)              :: TIMID              ! output netCDF time   variable ID 
 INTEGER(KIND=JPIM)              :: IRECNC             ! Current time record for writting
+LOGICAL                         :: GRIB = .FALSE.     ! Can be encoded to GRIB with the multIO interface
 END TYPE TVAROUT 
 TYPE(TVAROUT),ALLOCATABLE       :: VAROUT(:)          ! output variable TYPE set
 
@@ -108,21 +110,7 @@ REWIND(NSETFILE)
 READ(NSETFILE,NML=NOUTPUT)
 
 WRITE(LOGNAM,*)   "=== NAMELIST, NOUTPUT ==="
-WRITE(LOGNAM,*)   "COUTDIR:  ", TRIM(COUTDIR)
-WRITE(LOGNAM,*)   "CVARSOUT: ", TRIM(CVARSOUT)
-WRITE(LOGNAM,*)   "COUTTAG:  ", TRIM(COUTTAG)
-
-WRITE(LOGNAM,*)   "LOUTCDF:  ", LOUTCDF
-IF( LOUTCDF )THEN
-  WRITE(LOGNAM,*) "NDLEVEL:  ", NDLEVEL
-ENDIF
-if( LOUTVEC )THEN
-  WRITE(LOGNAM,*) "LOUTVEC:  ", LOUTVEC
-ENDIF
-WRITE(LOGNAM,*)   "IFRQ_OUT  ", IFRQ_OUT
-
-WRITE(LOGNAM,*)   "IFRQ_OUT  ", LOUTTXT
-WRITE(LOGNAM,*)   "CGAUTXRT  ", CGAUTXT
+WRITE(LOGNAM, NML=NOUTPUT)
 
 CLOSE(NSETFILE)
 
@@ -193,14 +181,17 @@ DO JF=1,NVARSOUT
       VAROUT(JF)%CVLNAME='river discharge'
       VAROUT(JF)%CVUNITS='m3/s'
       VAROUT(JF)%AGGREGATE=2
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('rivsto')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='river storage'
       VAROUT(JF)%CVUNITS='m3'
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('rivdph')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='river depth'
       VAROUT(JF)%CVUNITS='m'
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('rivvel')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='river velocity'
@@ -211,22 +202,27 @@ DO JF=1,NVARSOUT
       VAROUT(JF)%CVLNAME='floodplain discharge'
       VAROUT(JF)%CVUNITS='m3/s'
       VAROUT(JF)%AGGREGATE=2
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('fldsto')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='floodplain storage'
       VAROUT(JF)%CVUNITS='m3'
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('flddph')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='floodplain depth'
       VAROUT(JF)%CVUNITS='m'  
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('fldfrc')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='flooded fraction'
       VAROUT(JF)%CVUNITS='0-1'  
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('fldare')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='flooded area'
       VAROUT(JF)%CVUNITS='m2'
+      VAROUT(JF)%GRIB=.TRUE.
 
     CASE ('sfcelv')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
@@ -237,6 +233,7 @@ DO JF=1,NVARSOUT
       VAROUT(JF)%CVLNAME='discharge (river+floodplain)'
       VAROUT(JF)%CVUNITS='m3/s'
       VAROUT(JF)%AGGREGATE=2
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('outflw')                   !! comparability for previous output name
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='discharge (river+floodplain)'
@@ -326,7 +323,8 @@ DO JF=1,NVARSOUT
     CASE ('outins')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='instantaneous discharge'
-      VAROUT(JF)%CVUNITS='m3/s' 
+      VAROUT(JF)%CVUNITS='m3/s'
+      VAROUT(JF)%GRIB=.TRUE.
 
     CASE DEFAULT
     WRITE(LOGNAM,*) trim(CVNAMES(JF)), ' Not defined in CMF_CREATE_OUTCDF_MOD'
@@ -342,7 +340,7 @@ DO JF=1,NVARSOUT
   ENDIF
 END DO
 !#ifdef IFS_CMF
-CALL CMF_MULTIO_INITIALISE
+IF (LOUTGRB) CALL CMF_MULTIO_INITIALISE
 !#endif IFS_CMF
 IRECOUT=0  ! Initialize Output record to 1 (shared in netcdf & binary)
 
@@ -444,21 +442,23 @@ END SUBROUTINE CREATE_OUTCDF
 !==========================================================
 
 #ifdef IFS_CMF
-SUBROUTINE multio_custom_error_handler(context, err, info)
+SUBROUTINE MULTIO_CUSTOM_ERROR_HANDLER(CONTEXT, ERR, INFO)
   USE MULTIO_API, ONLY: &
     MULTIO_SUCCESS, &
-    multio_failure_info, &
-    multio_error_string
+    MULTIO_FAILURE_INFO, &
+    MULTIO_ERROR_STRING
   USE ISO_FORTRAN_ENV, ONLY: INT64
   USE MPL_MODULE, ONLY: MPL_ABORT
 
   IMPLICIT NONE
-  integer(INT64), intent(inout) :: context  ! Use mpi communicator as context
-  integer, intent(in) :: err
-  class(multio_failure_info), intent(in) :: info
-  integer :: mpierr
+  INTEGER(INT64), INTENT(INOUT) :: CONTEXT  ! USE MPI COMMUNICATOR AS CONTEXT
+  INTEGER, INTENT(IN) :: ERR
+  CLASS(MULTIO_FAILURE_INFO), INTENT(IN) :: INFO
+  INTEGER :: MPIERR, ER
 
-  IF (err /= MULTIO_SUCCESS) THEN
+  IF (ERR /= MULTIO_SUCCESS) THEN
+      ER = MIO_HANDLE%CLOSE_CONNECTIONS()
+      ER = MIO_HANDLE%DELETE()
       CALL MPL_ABORT('MULTIO ERROR: ' // multio_error_string(err, info))
   ENDIF
 END SUBROUTINE
@@ -486,7 +486,7 @@ SUBROUTINE CMF_MULTIO_INITIALISE
   ERR = CONF_CTX%NEW()
   ERR = MIO_HANDLE%NEW(CONF_CTX)
   PF => MULTIO_CUSTOM_ERROR_HANDLER
-  ERR = MIO_HANDLE%SET_FAILURE_HANDLER(pf, MIO_CONT)
+  ERR = MIO_HANDLE%SET_FAILURE_HANDLER(PF, MIO_CONT)
   ERR = CONF_CTX%DELETE()
 
 #endif IFS_CMF
@@ -668,7 +668,9 @@ IF ( MOD(JHOUR,IFRQ_OUT)==0 .and. JMIN==0 ) THEN             ! JHOUR: end of tim
       ENDIF
     ENDIF
 !#ifdef IFS_CMF
-    IF ( REGIONTHIS==1 ) CALL CMF_WRITE_MULTIO
+    IF ( LOUTGRB .AND. REGIONTHIS==1  .AND. VAROUT(JF)%GRIB ) THEN
+      CALL CMF_WRITE_MULTIO(VAROUT(JF), R2OUT)
+    ENDIF
 !#endif IFS_CMF
   END DO
 
@@ -755,74 +757,67 @@ VAROUT(JF)%IRECNC=VAROUT(JF)%IRECNC+1
 !CALL NCERROR( NF90_SYNC(VAROUT(JF)%NCID) )  
 #endif
 END SUBROUTINE WRTE_OUTCDF 
-!==========================================================
-SUBROUTINE CMF_WRITE_MULTIO
+
+END SUBROUTINE CMF_OUTPUT_WRITE
+!####################################################################
+
+SUBROUTINE CMF_WRITE_MULTIO(VAROUT, FIELD)
 #ifdef IFS_CMF
+  USE YOS_CMF_TIME, ONLY: KSTEP, ISYYYYMMDD, ISHHMM
+  USE YOS_CMF_DIAG, ONLY: NADD
   USE MULTIO_API, ONLY: MULTIO_METADATA
-  USE YOS_CMF_INPUT, ONLY: NX, NY, NORTH, SOUTH, WEST, EAST, RMIS
+  USE YOS_CMF_INPUT, ONLY: NX, NY, DT, NORTH, SOUTH, WEST, EAST, RMIS
 
   IMPLICIT NONE
+  TYPE(TVAROUT), INTENT(IN) :: VAROUT
+  REAL(KIND=JPRM), INTENT(IN) :: FIELD(NX,NY)
   TYPE(MULTIO_METADATA) :: MIO_MD
   INTEGER(JPIM) :: ERR, GRB_ST_STEP, GRB_EN_STEP
 
   ERR = MIO_MD%NEW(MIO_HANDLE)
 
   ! set grid
-  err = MIO_MD%set_string("gridType", "regular_ll")
-  err = MIO_MD%set_int("globalSize", NX * NY)
-  err = MIO_MD%set_int("level", 1)
-  err = MIO_MD%set_int("Ni", NX)
-  err = MIO_MD%set_int("Nj", NY)
-  !err = MIO_MD%set_real("latitudeOfFirstGridPoint", NORTH)
-  !err = MIO_MD%set_real("latitudeOfLastGridPoint", SOUTH)
-  !err = MIO_MD%set_real("longitudeOfFirstGridPoint", WEST)
-  !err = MIO_MD%set_real("longitudeOfLastGridPoint", EAST)
-  !err = MIO_MD%set_real("iDirectionIncrement", (EAST - WEST) / (NX - 1))
-  !err = MIO_MD%set_real("jDirectionIncrement", (NORTH - SOUTH) / (NY - 1))
-  err = MIO_MD%set_real("north", NORTH)
-  err = MIO_MD%set_real("south", SOUTH)
-  err = MIO_MD%set_real("west", WEST)
-  err = MIO_MD%set_real("east", EAST + (EAST - WEST) / (NX - 1))  ! multio removes one increment
-  err = MIO_MD%set_real("west_east_increment",(EAST - WEST) / (NX - 1))
-  err = MIO_MD%set_real("south_north_increment", (NORTH - SOUTH) / (NY - 1))
+  ERR = MIO_MD%SET_STRING("gridType", "regular_ll")
+  ERR = MIO_MD%SET_INT("misc-globalSize", NX * NY)
+  ERR = MIO_MD%SET_INT("level", 1)
+  ERR = MIO_MD%SET_INT("Ni", NX)
+  ERR = MIO_MD%SET_INT("Nj", NY)
+  ERR = MIO_MD%SET_REAL("latitudeOfFirstGridPointInDegrees", NORTH)
+  ERR = MIO_MD%SET_REAL("latitudeOfLastGridPointInDegrees", SOUTH)
+  ERR = MIO_MD%SET_REAL("longitudeOfFirstGridPointInDegrees", WEST)
+  ERR = MIO_MD%SET_REAL("longitudeOfLastGridPointInDegrees", EAST)
+  ERR = MIO_MD%SET_REAL("iDirectionIncrementInDegrees", (EAST - WEST) / (NX - 1))
+  ERR = MIO_MD%SET_REAL("jDirectionIncrementInDegrees", (NORTH - SOUTH) / (NY - 1))
 
   ! set time
-  err = MIO_MD%set_int("startDate", ISYYYYMMDD)
-  err = MIO_MD%set_int("startTime", ISHHMM)
+  ERR = MIO_MD%SET_INT("startDate", ISYYYYMMDD)
+  ERR = MIO_MD%SET_INT("startTime", ISHHMM)
   ! assuming this subroutine only runs at the full hour
   GRB_EN_STEP = INT((KSTEP * DT) / (60*60), KIND=JPIM)  ! convert to hours
   GRB_ST_STEP = INT((KSTEP * DT - NADD) / (60*60), KIND=JPIM)
-  if (VAROUT(JF)%AGGREGATE == 2) then
+  if (VAROUT%AGGREGATE /= 1) then
     ! accumulated/averaged fields
-    err = MIO_MD%set_int("startStep", GRB_ST_STEP)
-    err = MIO_MD%set_int("endStep", GRB_EN_STEP)
+    ERR = MIO_MD%SET_INT("startStep", GRB_ST_STEP)
+    ERR = MIO_MD%SET_INT("endStep", GRB_EN_STEP)
   else
     ! instantanoous fields
-    err = MIO_MD%set_int("step", GRB_EN_STEP)
+    ERR = MIO_MD%SET_INT("step", GRB_EN_STEP)
   endif
   
   ! write field
-  err = MIO_MD%set_string("category", "rivers")
-  err = MIO_MD%set_string("cmf-name", VAROUT(JF)%CVNAME)
-  err = MIO_MD%set_real("missingValue", RMIS)
-  err = MIO_MD%set_bool("bitmapPresent", .TRUE.)
+  ERR = MIO_MD%SET_STRING("category", "rivers")
+  ERR = MIO_MD%SET_STRING("cmf-name", VAROUT%CVNAME)
+  ERR = MIO_MD%SET_REAL("missingValue", RMIS)
+  ERR = MIO_MD%SET_BOOL("bitmapPresent", .TRUE.)
 
 !$OMP CRITICAL
-  ERR = MIO_HANDLE%WRITE_FIELD(MIO_MD, R2OUT)
+  ERR = MIO_HANDLE%WRITE_FIELD(MIO_MD, FIELD)
   ERR = MIO_HANDLE%FLUSH(MIO_MD)
   ERR = MIO_MD%DELETE()
 !$OMP END CRITICAL
 
 #endif IFS_CMF
-  end SUBROUTINE CMF_WRITE_MULTIO
-!####################################################################
-
-END SUBROUTINE CMF_OUTPUT_WRITE
-!####################################################################
-
-
-
-
+end SUBROUTINE CMF_WRITE_MULTIO
 
 !####################################################################
 SUBROUTINE CMF_OUTPUT_END
@@ -861,7 +856,7 @@ IF( REGIONTHIS==1 )THEN
 ENDIF
 
 #ifdef IFS_CMF
-IF (.TRUE.) THEN
+IF (LOUTGRB) THEN
   ERR = MIO_HANDLE%CLOSE_CONNECTIONS()
   ERR = MIO_HANDLE%DELETE()
 ENDIF
