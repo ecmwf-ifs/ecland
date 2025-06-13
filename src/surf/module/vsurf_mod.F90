@@ -828,7 +828,8 @@ ENDIF !tiles 4, 6, 7 , 8, 10
 
 !*         2.3c   Biogenic VOC emissions - including wet skin tile
 
-IF ( LEMIS_BVOC ) THEN   
+IF ( LEMIS_BVOC ) THEN
+  !$loki remove
   PBVOCFLUX(KIDIA:KFDIA,:)=0._JPRB
   IF (KTILE==3 .OR. KTILE==4 .OR. KTILE==6 .OR. KTILE==7 ) THEN
   !VH IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 ) THEN
@@ -852,6 +853,7 @@ IF ( LEMIS_BVOC ) THEN
          & YDBVOC,YDAGF,PBVOCDIAG,PBVOCFLUX)
 
   ENDIF
+  !$loki end remove
 ENDIF
 
 
