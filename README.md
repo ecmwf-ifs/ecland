@@ -13,8 +13,7 @@ The model can be used fully coupled to the atmospheric model or in stand-alone m
 forced at the interface with external atmospheric variables without accounting for feedbacks.
 The model includes a number of physical sub-modules aiming at representing the main features of the land-surface.
 A full scientific and technical description of ecLand, CY48R1, can be found in
-[Boussetta et al. (2021)](https://www.mdpi.com/2073-4433/12/6/723)
-and in Chapter 8 of the [IFS documentation](https://www.ecmwf.int/en/elibrary/81370-ifs-documentation-cy48r1-part-iv-physical-processes).
+[Boussetta et al. (2021)](https://www.mdpi.com/2073-4433/12/6/723). An up-to-date detailed description of ecLand as used in IFS cycles can be found in Chapter 8 of the [IFS documentation](https://www.ecmwf.int/en/publications/ifs-documentation).
 
 
 Installing ecLand
