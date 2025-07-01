@@ -10,7 +10,7 @@ cmake_minimum_required( VERSION 3.24 FATAL_ERROR )
 
 include(FetchContent)
 
-find_package( ecbuild 3.8 QUIET HINTS ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild )
+find_package( ecbuild 3.11 QUIET HINTS ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild )
 if( NOT ecbuild_FOUND )
   include(cmake/ecland_fetchcontent_ecbuild.cmake)
 endif()
