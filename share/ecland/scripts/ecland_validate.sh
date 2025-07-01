@@ -56,8 +56,7 @@ for var in ${vars_to_test}; do
 done
 
 # Check now bit-identical values compared to control
-tolerance="1e-8"
-${SCRIPTS_DIR}/ecland_validate_stats.py -c ${ctlres} -e ${VDIR} -t ${tolerance} -v ${vars_to_test}
+${SCRIPTS_DIR}/ecland_validate_stats.py -c ${ctlres} -e ${VDIR} -t ${REL_TOL} -v ${vars_to_test}
 
 # Cleaning
 rm -rf ${VDIR}

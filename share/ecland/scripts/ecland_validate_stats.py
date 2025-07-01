@@ -48,7 +48,7 @@ def read_args():
     parser = argparse.ArgumentParser(description="Verify sections and MEAN-VALUE from a text file.")
     parser.add_argument("-c", dest="path_ctl", help="Input path to ctl")
     parser.add_argument("-e", dest="path_exp", help="Input path to exp")
-    parser.add_argument("-t", dest="rel_tol", help="relative tolerance for var")
+    parser.add_argument("-t", dest="rel_tol", nargs="+", help="relative tolerance for var")
     parser.add_argument("-v", dest="variables", nargs="+", help="List of variables to verify")
     return parser.parse_args()
 
@@ -56,7 +56,7 @@ def read_args():
 args=read_args()
 
 validation_failed = 0
-for var in args.variables:
+for var, tol in zip(args.variables, args.rel_tol):
     input_ctl = args.path_ctl+"/"+var+".log"
     input_exp = args.path_exp+"/"+var+".log"
 
@@ -66,10 +66,11 @@ for var in args.variables:
 
     ## Check the difference of each value of each column
     diff,rel_diff = calculate_differences(data_ctl, data_exp)
-    print('Validating '+var+ ' with relative tolerance '+args.rel_tol)
-    print("    reference  : ",data_ctl)
-    print("    experiment : ",data_exp)
-    if check_relative_tolerance(rel_diff,float(args.rel_tol)):
+    print('Validating '+var+ ' with relative tolerance '+tol)
+    print("    reference  : ",[[f'{d:10.8e}' for d in _list] for _list in data_ctl])
+    print("    experiment : ",[[f'{d:10.8e}' for d in _list] for _list in data_exp])
+    print("    rel_diff   : ",[[f'{d:10.8e}' for d in _list] for _list in rel_diff])
+    if check_relative_tolerance(rel_diff,float(tol)):
         print('    SUCCESS')
     else:
         print('    FAILED')
