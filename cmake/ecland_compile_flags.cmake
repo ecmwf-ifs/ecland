@@ -31,16 +31,26 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
   set(fpe_flags           "-ffpe-trap=invalid,zero,overflow")
   set(initsnan_flags      "-finit-real=snan")
 
+  # Needed to guarantee matching test results with Debug build
+  set(fpmodel_flags       "-ffp-contract=off")
+
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
   set(autopromote_flags   "-real-size 64")
   set(checkbounds_flags   "-check bounds")
   set(initsnan_flags      "-init=snan")
   set(fpe_flags           "-fpe0")
 
+  # Needed to guarantee matching test results with Debug build
+  set(fpmodel_flags       "-fp-model=precise")
+
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC")
   set(autopromote_flags   "-r8")
   set(checkbounds_flags   "-Mbounds")
   set(fpe_flags           "-Ktrap=fp")
+  set(initsnan_flags      "-Minit-real=snan")
+
+  # Needed to guarantee matching test results with Debug build
+  set(fpmodel_flags       "-Kieee")
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Flang")
   set(autopromote_flags   "-fdefault-real-8")
@@ -63,14 +73,8 @@ if( CMAKE_BUILD_TYPE MATCHES "Debug" )
   endforeach()
 endif()
 
-if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-  # Needed to guarantee matching test results with Debug build
-  ecbuild_add_fortran_flags( "-fp-model=precise" NAME fp_model_precise )
-endif()
-
-if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
-  # Needed to guarantee matching test results with Debug build
-  ecbuild_add_fortran_flags( "-ffp-contract=off" NAME fp_contract_off )
+if(DEFINED fpmodel_flags)
+  ecbuild_add_fortran_flags( "${fpmodel_flags}" NAME fpmodel )
 endif()
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
