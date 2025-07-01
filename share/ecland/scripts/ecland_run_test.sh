@@ -93,6 +93,10 @@ trace ${SCRIPTS_DIR}/ecland_run_model.sh   \
     -n ${NAMELIST}
 
 #******************************** Validate results *******************************#
+if [[ -z ${REL_TOL:-} ]]; then
+    REL_TOL="1.e-8 1.e-8 1.e-8"
+fi
+export REL_TOL
 if [[ ${VALIDATE} = true  ]]; then
   NLOOP=1
   trace ${SCRIPTS_DIR}/ecland_validate.sh  \
@@ -102,6 +106,7 @@ if [[ ${VALIDATE} = true  ]]; then
     -w ${WORK_DIR}          \
     -c ${CONTROL_DIR}
 fi
+unset REL_TOL
 
 echo "+ rm -rf ${WORK_DIR}"
 rm -rf ${WORK_DIR}
