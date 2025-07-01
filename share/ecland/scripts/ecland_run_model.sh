@@ -31,7 +31,11 @@ function trace () {
 
 # Helper functions
 function log () {
-  if [[ ${VERBOSE} = true ]]; then
+  verbose=${VERBOSE}
+  if [[ "$*" =~ (gdb|sanitizer|valgrind) ]]; then
+      verbose=true
+  fi
+  if [[ ${verbose} == true ]]; then
     # Send stdout/stderr both to file and terminal
     ("$@" | tee -a stdout.log) 3>&1 1>&2 2>&3 | tee -a stderr.log
   else
@@ -54,12 +58,10 @@ NAMELIST="namelist"
 NAMELIST_CMF=""
 RUN_CMF=false
 ECLAND_MASTER="ecland-master"
-NPROC=${NPROC:-1}
-NTHREADS=${NTHREADS:-1}
 LRESTART=false
 NLOOP=1
 VERBOSE=false
-while getopts ":s:b:w:o:f:i:F:p:t:n:R:c:l:v:" opt; do
+while getopts ":s:b:w:o:f:i:F:n:R:c:l:v:" opt; do
   case $opt in
     s) STA="$OPTARG" ;;
     b) ECLAND_MASTER="$OPTARG" ;;
@@ -68,8 +70,6 @@ while getopts ":s:b:w:o:f:i:F:p:t:n:R:c:l:v:" opt; do
     f) FORCINGDIR="$OPTARG" ;;
     i) INICLMDIR="$OPTARG" ;;
     F) FORCINGTYPE="$OPTARG" ;;
-    p) NPROC="$OPTARG" ;;
-    t) NTHREADS="$OPTARG" ;;
     n) NAMELIST=("$OPTARG") ;;
     c) NAMELIST_CMF=("$OPTARG") ;;
     R) LRESTART="$OPTARG" ;;
@@ -113,7 +113,6 @@ echo "FORCINGTYPE: $FORCINGTYPE"
 echo "NAMELIST: $NAMELIST"
 echo "RUN CMF: $RUN_CMF"
 [[ ${RUN_CMF} = true ]] && echo "NAMELIST_CMF: $NAMELIST_CMF"
-echo "NPROC: $NPROC"
 echo "NLOOP: $NLOOP"
 
 
@@ -169,6 +168,11 @@ if [[ $LRESTART = true ]]; then
   [[ $RUN_CMF = true ]] && ln -sf ${RESTARTCMF} restartin_cmf.nc
 fi
 # Loop
+if [[ "${LAUNCH}" =~ "ecland-launch" ]]; then
+  LAUNCH_CMD=$(DRY_RUN=true ${LAUNCH} ${ECLAND_MASTER})
+else
+  LAUNCH_CMD="${LAUNCH} ${ECLAND_MASTER}"
+fi
 for RLOOP in $(seq 1 ${NLOOP}); do
 
   # do the run
@@ -182,10 +186,10 @@ for RLOOP in $(seq 1 ${NLOOP}); do
   echo "---------------------------------------------"
   echo "*******************************************************************************"
   echo "ECLAND START"
-  echo -e "\n+ ecland-launch -n ${NPROC} -c ${NTHREADS} ${ECLAND_MASTER} \n"
+  echo -e "\n+ ${LAUNCH_CMD} \n"
   echo "*******************************************************************************"
   START=$(date +%s)
-  log ecland-launch -n ${NPROC} -c ${NTHREADS} ${ECLAND_MASTER} || {
+  log ${LAUNCH} ${ECLAND_MASTER} || {
     sleep 1
     echo
     echo "*******************************************************************************"
@@ -196,7 +200,7 @@ for RLOOP in $(seq 1 ${NLOOP}); do
 
   END=$(date +%s)
   DIFF=$(( $END - $START ))
-  echo -e "\n\n\t Running ecland-launch -n ${NPROC} ${ECLAND_MASTER} took $DIFF seconds\n"
+  echo -e "\n\n\t Running ${LAUNCH_CMD} took $DIFF seconds\n"
   echo "---------------------------------------------"
 
   # Spinup run output are labelled with RLOOP. Final run is kept without label.
