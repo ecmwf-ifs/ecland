@@ -156,8 +156,6 @@ FORCING_DIR=${INPUT_DIR}/forcing/${GROUP}/
 INICLM_DIR=${INPUT_DIR}/clim/${GROUP}/
 NAMELIST_FILE=${NAMELIST_FILE:-${NAMELIST_DEFAULT}}
 NAMELIST_CMF=${NAMELIST_CMF:-${NAMELIST_CMF_DEFAULT}}
-NPROC=${NPROC:-1}
-NTHREADS=${NTHREADS:-1}
 
 mkdir -p ${WORK_DIR}
 
@@ -199,8 +197,6 @@ echo "NLOOP         : ${NLOOP}"
 echo "INICLM_DIR    : ${INICLM_DIR}"
 echo "FORCING_DIR   : ${FORCING_DIR}"
 echo "NAMELIST      : ${NAMELIST}"
-echo "NPROC         : ${NPROC}"
-echo "NTHREADS      : ${NTHREADS}"
 echo "WORK_DIR      : ${WORK_DIR}"
 echo "OUTPUT_DIR    : ${OUTPUT_DIR}"
 echo "INPUT_DIR     : ${INPUT_DIR}"
@@ -234,8 +230,6 @@ trace ${SCRIPTS_DIR}/ecland_run_model.sh   \
     ${NAMELIST_CMF_OPT}  \
     -l ${NLOOP}          \
     -R ${LRESTART}       \
-    -p "${NPROC}"        \
-    -t ${NTHREADS}
 done
 
 # Clean up the working directory

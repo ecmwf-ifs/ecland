@@ -28,10 +28,10 @@ function trace () {
 
 
 #====== SETUP
+ECLAND_CONTEXT="test"
 source ${SCRIPTS_DIR}/ecland_runtime.sh
-echo $PATH
-TEST_DIR=$(abs_path ${1})
-echo $TEST_DIR
+source ${SCRIPTS_DIR}/ecland_parse_commandline.sh
+TEST_DIR=$(abs_path ${TEST_DIR})
 SETUP_FILE=${TEST_DIR}/setup
 NAMELIST=${TEST_DIR}/namelist
 CONTROL_DIR=${TEST_DIR}/control
@@ -43,14 +43,11 @@ echo "SETUP_FILE: ${SETUP_FILE}"
 
 source ${SETUP_FILE}
 
-NPROC=${NPROC:-1}
-
 echo "FORCING_TYPE  : ${FORCING_TYPE}"
 echo "FORCING_DIR   : ${FORCING_DIR}"
 echo "SITE          : ${SITE}"
 echo "INICLM_DIR    : ${INICLM_DIR}"
 echo "NAMELIST      : ${NAMELIST}"
-echo "NPROC         : ${NPROC}"
 echo "WORK_DIR      : ${WORK_DIR}"
 echo "OUTPUT_DIR    : ${OUTPUT_DIR}"
 echo "INPUT_DIR     : ${INPUT_DIR}"
@@ -88,8 +85,6 @@ trace ${SCRIPTS_DIR}/ecland_run_model.sh   \
     -f ${INPUT_DIR}         \
     -i ${INPUT_DIR}         \
     -F ${FORCING_TYPE}      \
-    -p ${NPROC}             \
-    -t ${NTHREADS:-12}      \
     -n ${NAMELIST}
 
 #******************************** Validate results *******************************#

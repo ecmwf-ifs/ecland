@@ -27,9 +27,6 @@ if [[ ${LAUNCH} == "" && $(uname) == "Darwin" && -x "$(command -v mpirun)" ]]; t
   export LAUNCH="ecland-launch"
 fi
 
-export LAUNCH_PARALLEL=${LAUNCH_PARALLEL:-${LAUNCH}}
-export LAUNCH_SERIAL=${LAUNCH_SERIAL:-${LAUNCH}}
-
 export MBX_SIZE=${MBX_SIZE:-150000000}
 export MPL_MBX_SIZE=${MPL_MBX_SIZE:-${MBX_SIZE}}
 

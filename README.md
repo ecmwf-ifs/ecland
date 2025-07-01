@@ -198,9 +198,14 @@ the following environment variables:
     - `export RESTARTECLAND=/path/to/restart_files_for_ecLand`
     - (if Cama-flood is active)  `export RESTARTCMF=/path/to/restart_files_for_cmf`
 
-The number of MPI tasks and openMP threads can be set with the following environment variables:
-- `export NPROC=<number of tasks>`
-- `export NTHREADS=<number of threads>`
+#### Running with MPI
+
+The arguments `-np <NSTASKS>` and `-nt <NTHREADS>` can be passed to the `ecland-run-test` and `ecland-run-experiment` scripts to run with MPI
+and OpenMP. This uses the internal `ecland-launch` "smart" launcher that chooses a good launcher depending on availability and the used platform.
+It will also set export OMP_NUM_THREADS=<NTHREADS> for you. The unit-tests are automatically configured to use this when invoked via ctest.
+
+A custom launch command for greater control can be constructed using the `--launch` argument, e.g. --launch="srun -n <NTASKS> -c <NTHREADS>".
+Note that this does not automatically export the OMP_NUM_THREADS variable.
 
 
 
