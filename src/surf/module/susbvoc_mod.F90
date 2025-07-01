@@ -62,6 +62,7 @@ ASSOCIATE( LEMIS_BVOC=>YDBVOC%LEMIS_BVOC, &
 LEMIS_BVOC=LD_LBVOC
 
 IF (.NOT. LEMIS_BVOC) THEN
+  NEMIS_BVOC=0 ! This will still be used to dimension arrays on the stack - do not leave uninitialised!
   IF (LHOOK) CALL DR_HOOK('SUSBVOC_MOD:SUSBVOC',1,ZHOOK_HANDLE)
   RETURN
 ENDIF
