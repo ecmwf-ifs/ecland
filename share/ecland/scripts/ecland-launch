@@ -103,5 +103,6 @@ fi
 
 echo + ${LAUNCH} "$@"
 echo
-${LAUNCH} "$@"
-
+if [[ "${DRY_RUN}" != "true" ]]; then
+  ${LAUNCH} "$@"
+fi
