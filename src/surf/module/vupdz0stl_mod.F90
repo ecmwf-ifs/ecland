@@ -11,9 +11,6 @@ SUBROUTINE VUPDZ0STL (KIDIA, KFDIA, KLON, KTILES, KSTEP, &
  & PUMLEV5 , PVMLEV5 , &
  & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5, &
  & PDSN5, &
-!LLLT
- & PUCURR5 , PVCURR5 , &
-!LLLT
  & PUSTRTI5, PVSTRTI5, PAHFSTI5, PEVAPTI5 , &
  & PTSKTI5 , PCHAR   , PFRTI   , &
  & PSSDP2  , YDCST   , YDEXC   , YDVEG   , YDFLAKE  , YDURB   ,&
@@ -22,7 +19,11 @@ SUBROUTINE VUPDZ0STL (KIDIA, KFDIA, KLON, KTILES, KSTEP, &
  & PTMLEV  , PQMLEV  , PAPHMS  , PGEOMLEV , &
  & PUSTRTI , PVSTRTI , PAHFSTI , PEVAPTI  , &
  & PTSKTI  , &
- & PZ0MTI  , PZ0HTI  , PZ0QTI  , PBUOMTI  , PZDLTI  , PRAQTI )  
+ & PZ0MTI  , PZ0HTI  , PZ0QTI  , PBUOMTI  , PZDLTI  , PRAQTI, &
+!LLLT
+ & PUCURR5 , PVCURR5 &
+!LLLT
+ & )  
 
 USE YOMHOOK   , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_EXCS  , ONLY : RCHBCD, DRITBL, RCHBBCD, RCHBB, RCHB23A, RITBL, &
@@ -107,8 +108,8 @@ USE YOMSURF_SSDP_MOD
 !  PAPHMS5     PAPHMS        PRESSURE AT T-1                           Pa
 !  PDSN5       ---          Total snow depth (m) 
 !LLLT
-!  PUCURR5     ---           Ocean current U-component                 m/s
-!  PVCURR5     ---           Ocean current V-component                 m/s
+!  PUCURR5     ---           Ocean current U-component (optional)      m/s
+!  PVCURR5     ---           Ocean current V-component (optional)      m/s
 !LLLT
 !  PGEOMLEV5   PGEOMLEV      GEOPOTENTIAL T-1                          m2/s2
 !  PUSTRTI5    PUSTRTI       X-STRESS                                  N/m2
@@ -158,10 +159,6 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PQMLEV5(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PAPHMS5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PGEOMLEV5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PDSN5(:) 
-!LLLT
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR5(:) 
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR5(:) 
-!LLLT
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PUSTRTI5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PVSTRTI5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PAHFSTI5(:,:) 
@@ -198,6 +195,10 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0QTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBUOMTI(:,:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZDLTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRAQTI(:,:)
+!LLLT
+REAL(KIND=JPRB)   ,INTENT(IN)  ,OPTIONAL :: PUCURR5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)  ,OPTIONAL :: PVCURR5(:) 
+!LLLT
 
 INTEGER(KIND=JPIM) :: JL, JTILE
 
@@ -222,7 +223,9 @@ REAL(KIND=JPRB) :: Z0H, Z0Q
 REAL(KIND=JPRB) :: ZURBF, ZPCVL, ZPCVH, ZPCVB
 ! snow
 REAL(KIND=JPRB) :: ZSNWGHT5(KLON), ZMLOW5, ZHLOW5, ZTMP5
-LOGICAL :: LLINIT
+
+!LLLT LOGICAL :: LLINIT
+LOGICAL :: LLCURR, LLINIT
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
@@ -260,6 +263,14 @@ ZRGI = 1.0_JPRB/RG
 
 ZIPBL = RPARZI
 
+!LLLT
+IF (PRESENT(PUCURR5) .AND. PRESENT(PVCURR5)) THEN
+  LLCURR = .TRUE.
+ELSE
+  LLCURR = .FALSE.
+ENDIF
+!LLLT
+
 LLINIT= ( KSTEP == 0)
 
 !     ------------------------------------------------------------------
@@ -276,9 +287,15 @@ DO JL = KIDIA, KFDIA
 !LLLT Z0S  = 2.0_JPRB*(PUMLEV (JL)*PUMLEV5(JL) &
 !LLLT  & + PVMLEV (JL)*PVMLEV5(JL))  
 !LLLT Z0S5 = PUMLEV5(JL)**2+PVMLEV5(JL)**2
-  Z0S  = 2.0_JPRB*(PUMLEV (JL) * (PUMLEV5(JL) - PUCURR5(JL)) &
-    &  +           PVMLEV (JL) * (PVMLEV5(JL) - PVCURR5(JL)))
-  Z0S5 = (PUMLEV5(JL) - PUCURR5(JL))**2 + (PVMLEV5(JL) - PVCURR5(JL))**2
+  IF (LLCURR) THEN
+    Z0S  = 2.0_JPRB * (PUMLEV (JL) * (PUMLEV5(JL) - PUCURR5(JL)) &
+      &  +             PVMLEV (JL) * (PVMLEV5(JL) - PVCURR5(JL)))
+    Z0S5 = (PUMLEV5(JL) - PUCURR5(JL))**2 + (PVMLEV5(JL) - PVCURR5(JL))**2
+  ELSE
+    Z0S  = 2.0_JPRB * (PUMLEV (JL) * PUMLEV5(JL) &
+       & +             PVMLEV (JL) * PVMLEV5(JL))  
+    Z0S5 = PUMLEV5(JL)**2 + PVMLEV5(JL)**2
+  ENDIF
 !LLLT
   IF (REPDU2 >= Z0S5) THEN
     ZDU2 (JL) = 0.0_JPRB
