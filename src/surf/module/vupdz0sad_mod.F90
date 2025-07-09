@@ -11,6 +11,9 @@ SUBROUTINE VUPDZ0SAD (KIDIA, KFDIA, KLON, KTILES, KSTEP, &
  & PUMLEV5 , PVMLEV5 ,&
  & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5, &
  & PDSN5, &
+!LLLT
+ & PUCURR5 , PVCURR5 , &
+!LLLT
  & PUSTRTI5, PVSTRTI5, PAHFSTI5, PEVAPTI5 , &
  & PTSKTI5 , PCHAR   , PFRTI   , &
  & PSSDP2  , YDCST   , YDEXC   , YDVEG   , YDFLAKE  , YDURB   ,&
@@ -65,6 +68,7 @@ USE YOMSURF_SSDP_MOD
 !    J. Bidlot             15/02/2021  Sea state effect in Z0H and Z0Q over the oceans.
 !    J. McNorton           24/08/2022  urban tile
 !    I. Ayan-Miguez (BSC)  Sep 2023    Added PSSDP2 object for surface spatially distributed parameters
+!    P. Lopez              July 2025   Added ocean currents (trajectory only)
 
 !     PURPOSE
 !     -------
@@ -109,6 +113,10 @@ USE YOMSURF_SSDP_MOD
 !  PCHAR       ---           "EQUIVALENT" CHARNOCK PARAMETER           -
 !  PFRTI       ---           TILE FRACTION                             -
 !  PDSN5       ---          Total snow depth (m) 
+!LLLT
+!  PUCURR5     ---           Ocean current U-component                 m/s
+!  PVCURR5     ---           Ocean current V-component                 m/s
+!LLLT
 
 !     OUTPUT PARAMETERS (REAL):
 
@@ -147,6 +155,10 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PQMLEV5(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PAPHMS5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PGEOMLEV5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PDSN5(:) 
+!LLLT
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR5(:) 
+!LLLT
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PUSTRTI5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PVSTRTI5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PAHFSTI5(:,:) 
@@ -273,7 +285,8 @@ LLINIT= ( KSTEP == 0)
 DO JL = KIDIA, KFDIA
   ZDIV15(JL) = 1.0_JPRB/(RD*PTMLEV5(JL)*(1.0_JPRB+RETV*PQMLEV5(JL)))
   ZRHO5(JL) = PAPHMS5(JL)*ZDIV15(JL)
-  Z0S5(JL) = PUMLEV5(JL)**2+PVMLEV5(JL)**2
+!LLLT  Z0S5(JL) = PUMLEV5(JL)**2+PVMLEV5(JL)**2
+  Z0S5(JL) = (PUMLEV5(JL) - PUCURR5(JL))**2 + (PVMLEV5(JL) - PVCURR5(JL))**2
   IF (REPDU2 >= Z0S5(JL)) THEN
     ZDU25(JL) = REPDU2
   ELSE
@@ -863,9 +876,10 @@ DO JL = KIDIA, KFDIA
     Z0S = Z0S+ZDU2(JL)
     ZDU2(JL) = 0.0_JPRB
   ENDIF
-  PUMLEV(JL) = PUMLEV(JL)+2.0_JPRB*PUMLEV5(JL)*Z0S
-  PVMLEV(JL) = PVMLEV(JL)+2.0_JPRB*PVMLEV5(JL)*Z0S
-
+  !LLLT PUMLEV(JL) = PUMLEV(JL)+2.0_JPRB*PUMLEV5(JL)*Z0S
+  !LLLT PVMLEV(JL) = PVMLEV(JL)+2.0_JPRB*PVMLEV5(JL)*Z0S
+  PUMLEV(JL) = PUMLEV(JL) + 2.0_JPRB * (PUMLEV5(JL) - PUCURR5(JL)) * Z0S
+  PVMLEV(JL) = PVMLEV(JL) + 2.0_JPRB * (PVMLEV5(JL) - PVCURR5(JL)) * Z0S
   PAPHMS(JL) = PAPHMS(JL)+ZDIV15(JL)*ZRHO(JL)
   PTMLEV(JL) = PTMLEV(JL)-RD*PAPHMS5(JL)*ZDIV15(JL)*ZDIV15(JL) &
    & * (1.0_JPRB+RETV*PQMLEV5(JL))*ZRHO(JL)

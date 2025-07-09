@@ -11,6 +11,9 @@ SUBROUTINE VUPDZ0STL (KIDIA, KFDIA, KLON, KTILES, KSTEP, &
  & PUMLEV5 , PVMLEV5 , &
  & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5, &
  & PDSN5, &
+!LLLT
+ & PUCURR5 , PVCURR5 , &
+!LLLT
  & PUSTRTI5, PVSTRTI5, PAHFSTI5, PEVAPTI5 , &
  & PTSKTI5 , PCHAR   , PFRTI   , &
  & PSSDP2  , YDCST   , YDEXC   , YDVEG   , YDFLAKE  , YDURB   ,&
@@ -65,6 +68,7 @@ USE YOMSURF_SSDP_MOD
 !    J. Bidlot             15/02/2021  Sea state effect in Z0H and Z0Q over the oceans
 !    J. McNorton           24/08/2022  urban tile
 !    I. Ayan-Miguez (BSC)  Sep 2023    Added PSSDP2 object for surface spatially distributed parameters
+!    P. Lopez              July 2025   Added ocean currents (trajectory only)
 
 
 !     PURPOSE
@@ -102,6 +106,10 @@ USE YOMSURF_SSDP_MOD
 !  PQMLEV5     PQMLEV        SPECIFIC HUMUDITY AT T-1                  kg/kg
 !  PAPHMS5     PAPHMS        PRESSURE AT T-1                           Pa
 !  PDSN5       ---          Total snow depth (m) 
+!LLLT
+!  PUCURR5     ---           Ocean current U-component                 m/s
+!  PVCURR5     ---           Ocean current V-component                 m/s
+!LLLT
 !  PGEOMLEV5   PGEOMLEV      GEOPOTENTIAL T-1                          m2/s2
 !  PUSTRTI5    PUSTRTI       X-STRESS                                  N/m2
 !  PVSTRTI5    PVSTRTI       Y-STRESS                                  N/m2
@@ -150,6 +158,10 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PQMLEV5(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PAPHMS5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PGEOMLEV5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PDSN5(:) 
+!LLLT
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR5(:) 
+!LLLT
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PUSTRTI5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PVSTRTI5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PAHFSTI5(:,:) 
@@ -261,9 +273,13 @@ DO JL = KIDIA, KFDIA
    & - RD*PAPHMS5(JL)*ZDIV15*ZDIV15 &
    & * ((1.0_JPRB+RETV*PQMLEV5(JL))*PTMLEV(JL)+RETV*PTMLEV5(JL)*PQMLEV(JL))
   ZRHO5(JL) = PAPHMS5(JL)*ZDIV15
-  Z0S  = 2.0_JPRB*(PUMLEV (JL)*PUMLEV5(JL) &
-   & + PVMLEV (JL)*PVMLEV5(JL))  
-  Z0S5 = PUMLEV5(JL)**2+PVMLEV5(JL)**2
+!LLLT Z0S  = 2.0_JPRB*(PUMLEV (JL)*PUMLEV5(JL) &
+!LLLT  & + PVMLEV (JL)*PVMLEV5(JL))  
+!LLLT Z0S5 = PUMLEV5(JL)**2+PVMLEV5(JL)**2
+  Z0S  = 2.0_JPRB*(PUMLEV (JL) * (PUMLEV5(JL) - PUCURR5(JL)) &
+    &  +           PVMLEV (JL) * (PVMLEV5(JL) - PVCURR5(JL)))
+  Z0S5 = (PUMLEV5(JL) - PUCURR5(JL))**2 + (PVMLEV5(JL) - PVCURR5(JL))**2
+!LLLT
   IF (REPDU2 >= Z0S5) THEN
     ZDU2 (JL) = 0.0_JPRB
     ZDU25(JL) = REPDU2

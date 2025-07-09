@@ -9,6 +9,9 @@ SUBROUTINE SURFEXCDRIVERS    ( YDSURF, &
  & , PUMLEV, PVMLEV, PTMLEV, PQMLEV, PAPHMS, PGEOMLEV, PCPTGZLEV &
  & , PSST, PTSKM1M, PCHAR, PSSRFL, PTICE, PTSNOW &
  & , PWLMX &
+!LLLT
+ & , PUCURR, PVCURR &
+!LLLT
  & , PSSDP2, PSSDP3 &
 ! input data, soil
  & , PTSAM1M, PWSAM1M, KSOTY &
@@ -68,6 +71,8 @@ USE SURFEXCDRIVERS_CTL_MOD
 !                                not use in corresponding TL/AD
 !    G. Balsamo       03/07/2005 Add soil type
 !    S. Boussetta/G.Balsamo May 2009 Add lai
+!    P. Lopez         July 2025 Added ocean currents
+
 !  INTERFACE: 
 
 !    Integers (In):
@@ -119,8 +124,12 @@ USE SURFEXCDRIVERS_CTL_MOD
 !      PTICE    :    Ice temperature, top slab                        K
 !      PTSNOW   :    Snow temperature                                 K
 !      PWLMX    :    Maximum interception layer capacity              kg/m**2
-!     PSNM      :       SNOW MASS (per unit area)                      kg/m**2
-!     PRSN      :      SNOW DENSITY                                   kg/m**3
+!LLLT
+!      PUCURR   :    Ocean current U-component                        m/s
+!      PVCURR   :    Ocean current V-component                        m/s
+!LLLT
+!      PSNM     :    SNOW MASS (per unit area)                        kg/m**2
+!      PRSN     :    SNOW DENSITY                                     kg/m**3
 
 !    Reals with tile index (In/Out):
 !      PUSTRTI  :    SURFACE U-STRESS                                 N/m2 
@@ -215,6 +224,10 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSRFL(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTICE(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSNOW(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX(:) 
+!LLLT
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR(:) 
+!LLLT
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M(:,:) 
@@ -362,6 +375,14 @@ ENDIF
 
 IF(UBOUND(PWLMX,1) < KLON) THEN
   CALL ABORT_SURF('SURFEXCDRIVERS: PWLMX TOO SHORT!')
+ENDIF
+
+IF(UBOUND(PUCURR,1) < KLON) THEN
+  CALL ABORT_SURF('SURFEXCDRIVERS: PUCURR TOO SHORT!')
+ENDIF
+
+IF(UBOUND(PVCURR,1) < KLON) THEN
+  CALL ABORT_SURF('SURFEXCDRIVERS: PVCURR TOO SHORT!')
 ENDIF
 
 IF(UBOUND(PTSAM1M,1) < KLON) THEN
@@ -616,6 +637,9 @@ CALL SURFEXCDRIVERS_CTL( &
  & , PUMLEV, PVMLEV, PTMLEV, PQMLEV, PAPHMS, PGEOMLEV, PCPTGZLEV &
  & , PSST, PTSKM1M, PCHAR, PSSRFL, PTICE, PTSNOW &
  & , PWLMX &
+!LLLT
+ & , PUCURR, PVCURR &
+!LLLT
  & , PTSAM1M, PWSAM1M, KSOTY &
  & , PFRTI, PALBTI &
  & , PSSDP2, PSSDP3 &
