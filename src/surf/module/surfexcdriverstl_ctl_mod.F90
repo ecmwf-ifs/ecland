@@ -11,6 +11,9 @@ SUBROUTINE SURFEXCDRIVERSTL_CTL( &
  & , PUMLEV5, PVMLEV5 , PTMLEV5, PQMLEV5, PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST   , PTSKM1M5, PCHAR  , PSSRFL5, PTICE5 , PTSNOW5  &
  & , PWLMX5 &
+!LLLT
+ & , PUCURR5, PVCURR5 &
+!LLLT
 ! input data, soil - trajectory
  & , PTSAM1M5, PWSAM1M5, KSOTY &
 ! input data, tiled - trajectory
@@ -106,6 +109,7 @@ USE VEVAPSTL_MOD
 !    P. Lopez         June 2015  Added regularization of wet skin tile
 !                                perturbation in low wind situations.
 !    J. McNorton      24/08/2022 urban tile
+!    P. Lopez         July 2025 Added ocean currents (trajectory only)
 
 !  INTERFACE: 
 
@@ -165,6 +169,10 @@ USE VEVAPSTL_MOD
 !  PTICE5      PTICE         Ice temperature, top slab                 K
 !  PTSNOW5     PTSNOW        Snow temperature                          K
 !  PWLMX5      ---           Maximum interception layer capacity       kg/m**2
+!LLLT
+!  PUCURR5     ---           Ocean current U-component                 m/s
+!  PVCURR5     ---           Ocean current V-component                 m/s
+!LLLT
 !  PSNM5       ---           SNOW MASS (per unit area)                      kg/m**2
 !  PRSN5       ---          SNOW DENSITY                                   kg/m**3
 
@@ -268,6 +276,10 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSRFL5(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTICE5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSNOW5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX5(:) 
+!LLLT
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR5(:) 
+!LLLT
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSAM1M5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 
@@ -440,6 +452,9 @@ IF (LDNOPERT) THEN
    & KTVL, KTVH, PCVL, PCVH,PCUR,&
    & PUMLEV5 , PVMLEV5 ,&
    & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5, ZDSN5,&
+!LLLT
+   & PUCURR5 , PVCURR5 ,&
+!LLLT
    & PUSTRTI5, PVSTRTI5, PAHFSTI5, PEVAPTI5 ,&
    & PTSKTI5 , PCHAR   , PFRTI   ,&
    & PSSDP2, YDCST   , YDEXC   ,YDVEG    ,YDFLAKE   , YDURB  , &
@@ -460,6 +475,9 @@ ELSE
    & KTVL, KTVH, PCVL, PCVH,PCUR,&
    & PUMLEV5 , PVMLEV5 ,&
    & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5, ZDSN5,&
+!LLLT
+   & PUCURR5 , PVCURR5 ,&
+!LLLT
    & PUSTRTI5, PVSTRTI5, PAHFSTI5, PEVAPTI5 ,&
    & PTSKTI5 , PCHAR   , PFRTI   ,&
    & PSSDP2, YDCST   , YDEXC   ,YDVEG    ,YDFLAKE   , YDURB   ,&

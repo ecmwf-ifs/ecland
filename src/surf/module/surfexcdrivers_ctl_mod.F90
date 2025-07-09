@@ -11,6 +11,9 @@ SUBROUTINE SURFEXCDRIVERS_CTL( &
  & , PUMLEV, PVMLEV, PTMLEV, PQMLEV, PAPHMS, PGEOMLEV, PCPTGZLEV &
  & , PSST, PTSKM1M, PCHAR, PSSRFL, PTICE, PTSNOW &
  & , PWLMX &
+!LLLT
+ & , PUCURR, PVCURR &
+!LLLT
 ! input data, soil
  & , PTSAM1M, PWSAM1M, KSOTY &
 ! input data, tiled
@@ -80,6 +83,7 @@ USE VEVAPS_MOD
 !    M. Janiskova     July 2011->2013  modified computation of snow evaporation
 !    M. Janiskova     Jan 2015   use previous time step fluxes for heat&momentum
 !    J. McNorton      24/08/2022 urban tile
+!    P. Lopez         July 2025 Added ocean currents
 
 !  INTERFACE: 
 
@@ -132,6 +136,10 @@ USE VEVAPS_MOD
 !      PTICE    :    Ice temperature, top slab                        K
 !      PTSNOW   :    Snow temperature                                 K
 !      PWLMX    :    Maximum interception layer capacity              kg/m**2
+!LLLT
+!      PUCURR   :    Ocean current U-component                        m/s
+!      PVCURR   :    Ocean current V-component                        m/s
+!LLLT
 
 !    Reals with tile index (In/Out):
 !      PUSTRTI  :    SURFACE U-STRESS                                 N/m2 
@@ -224,6 +232,10 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSRFL(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTICE(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSNOW(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX(:) 
+!LLLT
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR(:) 
+!LLLT
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 
@@ -335,6 +347,9 @@ ZDSN(KIDIA:KFDIA) = SUM( PSNM(KIDIA:KFDIA,:) / PRSN(KIDIA:KFDIA,:),DIM=2)
 CALL VUPDZ0S(KIDIA,KFDIA,KLON,KTILES,KSTEP,&
      & KTVL,KTVH,PCVL,PCVH,PCUR,PUMLEV, PVMLEV,&
      & PTMLEV,PQMLEV,PAPHMS,PGEOMLEV,ZDSN,&
+!LLLT
+     & PUCURR,PVCURR,&
+!LLLT
      & PUSTRTI,PVSTRTI,PAHFSTI,PEVAPTI,&
      & PTSKTI,PCHAR,PFRTI, &
      & PSSDP2,YDCST,YDEXC,YDVEG,YDFLAKE,YDURB, &

@@ -12,6 +12,9 @@ SUBROUTINE VUPDZ0S(KIDIA,KFDIA,KLON,KTILES,KSTEP,&
  & PCVL    , PCVH   , PCUR   ,PUMLEV , PVMLEV  , &
  & PTMLEV  , PQMLEV , PAPHMS , PGEOMLEV, &
  & PDSN, &
+!LLLT
+ & PUCURR , PVCURR , &
+!LLLT
  & PUSTRTI , PVSTRTI, PAHFSTI, PEVAPTI , &
  & PTSKTI  , PCHAR  , PFRTI  , &
  & PSSDP2  , YDCST   , YDEXC  , YDVEG  ,YDFLAKE  , YDURB, &
@@ -52,6 +55,7 @@ USE YOMSURF_SSDP_MOD
 !                J. Bidlot        15/02/2021 Sea state effect in Z0H and Z0Q over the oceans
 !                J. McNorton      24/08/2022 urban tile
 !    Modified    I. Ayan-Miguez   Sep 2023   Added PSSDP2 object for surface spatially distributed parameters
+!                P. Lopez         July 2025  Added ocean currents
 
 
 !     PURPOSE
@@ -91,6 +95,10 @@ USE YOMSURF_SSDP_MOD
 !     *PAPHMS*      PRESSURE AT T-1, surface
 !     *PGEOMLEV*    GEOPOTENTIAL T-1, lowest model level
 !     *PDSN*         Total snow depth (m) 
+!LLLT
+!     *PUCURR*      Ocean current U-component (m/s)
+!     *PVCURR*      Ocean current V-component (m/s)
+!LLLT
 !     *PUSTRTI*     X-STRESS
 !     *PVSTRTI*     Y-STRESS
 !     *PAHFSTI*     SENSIBLE HEAT FLUX
@@ -134,6 +142,10 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PQMLEV(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PAPHMS(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PGEOMLEV(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PDSN(:)
+!LLLT
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR(:) 
+!LLLT
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PUSTRTI(:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PVSTRTI(:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PAHFSTI(:,:) 
@@ -227,7 +239,8 @@ LLINIT= ( KSTEP == 0)
 DO JL=KIDIA,KFDIA
   ZDIV1 = 1.0_JPRB/(RD*PTMLEV(JL)*(1.0_JPRB+RETV*PQMLEV(JL)))
   ZRHO(JL) = PAPHMS(JL)*ZDIV1
-  Z0S = PUMLEV(JL)**2+PVMLEV(JL)**2
+!LLLT  Z0S = PUMLEV(JL)**2+PVMLEV(JL)**2
+  Z0S = (PUMLEV(JL) - PUCURR(JL))**2 + (PVMLEV(JL) - PVCURR(JL))**2
   IF (REPDU2 >= Z0S) THEN
     ZDU2(JL) = REPDU2
   ELSE

@@ -10,6 +10,9 @@ SUBROUTINE SURFEXCDRIVERSAD  ( YDSURF, &
  & , PUMLEV5, PVMLEV5 , PTMLEV5, PQMLEV5, PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST   , PTSKM1M5, PCHAR  , PSSRFL5, PTICE5 , PTSNOW5  &
  & , PWLMX5 &
+!LLLT
+ & , PUCURR5, PVCURR5 &
+!LLLT
  & , PSSDP2 , PSSDP3 &
 ! input data, soil - trajectory
  & , PTSAM1M5, PWSAM1M5, KSOTY &
@@ -77,6 +80,7 @@ USE, INTRINSIC :: ISO_C_BINDING
 !    S. Boussetta/G.Balsamo May 2009 Add lai
 !    M. Janiskova           Apr 2012 Perturbation of top layer surface fields
 !    P. Lopez               Jun 2015 Added regularization of wet skin tile perturbation
+!    P. Lopez               July 2025 Added ocean currents (trajectory only)
 
 !  INTERFACE: 
 
@@ -138,6 +142,10 @@ USE, INTRINSIC :: ISO_C_BINDING
 !  PTICE5      PTICE         Ice temperature, top slab                 K
 !  PTSNOW5     PTSNOW        Snow temperature                          K
 !  PWLMX5      ---           Maximum interception layer capacity       kg/m**2
+!LLLT
+!  PUCURR5     ---           Ocean current U-component                 m/s
+!  PVCURR5     ---           Ocean current V-component                 m/s
+!LLLT
 !  PSNM5       ---  :       SNOW MASS (per unit area)                      kg/m**2
 !  PRSN5       ---  :        SNOW DENSITY                                   kg/m**3
 
@@ -240,6 +248,10 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSRFL5(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTICE5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSNOW5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX5(:) 
+!LLLT
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR5(:) 
+!LLLT
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M5(:,:) 
