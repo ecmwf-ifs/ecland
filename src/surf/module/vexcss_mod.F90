@@ -4,6 +4,9 @@ SUBROUTINE VEXCSS(KIDIA,KFDIA,KLON,PTMST,PRVDIFTS,&
  & PUMLEV,PVMLEV  ,PTMLEV   ,PQMLEV, &
  & PAPHMS,PGEOMLEV,PCPTGZLEV,PCPTS , &
  & PQSAM ,PZ0MM   ,PZ0HM    ,PZ0QM ,PBUOM, &
+!LLLT
+ & PUCURR,PVCURR  , &
+!LLLT
  & YDCST ,YDEXC   , &
  & PCFM  ,PCFH    ,PCFQ )  
 
@@ -38,6 +41,7 @@ USE YOS_EXC   , ONLY : TEXC
 !                                   functions not use in corresponding TL/AD
 !                M. Janiskova    15/02/2006 code re-organization for efficient
 !                                   computation of its TL/AD versions
+!                P. Lopez        July 2025  Added ocean currents
 
 !     PURPOSE
 !     -------
@@ -73,6 +77,10 @@ USE YOS_EXC   , ONLY : TEXC
 !     *PZ0HM*        ROUGHNESS LENGTH FOR TEMPERATURE
 !     *PZ0QM*        ROUGHNESS LENGTH FOR MOISTURE
 !     *PBUOM*        BUOYANCE FLUX AT THE SURFACE
+!LLLT
+!     *PUCURR*       OCEAN CURRENT U-COMPONENT
+!     *PVCURR*       OCEAN CURRENT V-COMPONENT
+!LLLT
 
 !     OUTPUT PARAMETERS (REAL):
 
@@ -116,6 +124,10 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PZ0MM(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PZ0HM(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PZ0QM(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PBUOM(:) 
+!LLLT
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR(:) 
+!LLLT
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TEXC)        ,INTENT(IN)    :: YDEXC
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PCFM(:) 
@@ -186,7 +198,8 @@ DO JL=KIDIA,KFDIA
   ELSE
     ZWST2=(PBUOM(JL)*ZIPBL)**ZCON2
   ENDIF
-  ZDU2(JL)=MAX(REPDU2,PUMLEV(JL)**2+PVMLEV(JL)**2+ZWST2)
+!LLLT  ZDU2(JL)=MAX(REPDU2,PUMLEV(JL)**2+PVMLEV(JL)**2+ZWST2)
+  ZDU2(JL) = MAX(REPDU2,(PUMLEV(JL)-PUCURR(JL))**2 + (PVMLEV(JL)-PVCURR(JL))**2 + ZWST2)
   ZDIV1 = 1.0_JPRB/(PCPTGZLEV(JL)+PCPTS(JL)-PGEOMLEV(JL))
   IF (PQSAM(JL) < 0.1_JPRB) THEN
     ZQSAM(JL) = PQSAM (JL)

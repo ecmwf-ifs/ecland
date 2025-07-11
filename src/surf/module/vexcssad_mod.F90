@@ -5,6 +5,9 @@ SUBROUTINE VEXCSSAD (KIDIA,KFDIA,KLON,PTMST,PRVDIFTS, &
  & PUMLEV5,PVMLEV5  ,PTMLEV5   ,PQMLEV5, &
  & PAPHMS5,PGEOMLEV5,PCPTGZLEV5,PCPTS5 , &
  & PQSAM5 ,PZ0MM5   ,PZ0HM5    ,PZ0QM5 , PBUOM5 , &
+!LLLT
+ & PUCURR5,PVCURR5  , &
+!LLLT
  & YDCST  ,YDEXC    , &
  & PCFM5  ,PCFH5    ,PCFQ5     , &
  & PUMLEV ,PVMLEV   ,PTMLEV    ,PQMLEV , &
@@ -41,6 +44,7 @@ USE YOS_EXC   , ONLY : TEXC
 !                M. Janiskova  08/08/2007  Changed regularization
 !                M. Janiskova  Aug 2011    Adjusted regularization for
 !                                          momentum exch. coefficient
+!                P. Lopez      July 2025   Added ocean currents (trajectory only)
 
 !     PURPOSE
 !     -------
@@ -85,6 +89,10 @@ USE YOS_EXC   , ONLY : TEXC
 !  PZ0HM5      PZ0HM         ROUGHNESS LENGTH FOR TEMPERATURE          m
 !  PZ0QM5      PZ0QM         ROUGHNESS LENGTH FOR MOISTURE             m
 !  PBUOM5      PBUOM         BUOYANCY FLUX AT THE SURFACE              ?
+!LLLT
+!  PUCURR5     -----         OCEAN CURRENT U-COMPONENT                 m/s
+!  PVCURR5     -----         OCEAN CURRENT V-COMPONENT                 m/s
+!LLLT
 
 !     OUTPUT PARAMETERS (REAL):
 
@@ -126,6 +134,10 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PZ0MM5(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PZ0HM5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PZ0QM5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PBUOM5(:) 
+!LLLT
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR5(:) 
+!LLLT
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TEXC)        ,INTENT(IN)    :: YDEXC
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PCFM5(:) 
@@ -229,7 +241,8 @@ DO JL = KIDIA, KFDIA
   ELSE
     ZWST25 = (ZIPBL*PBUOM5(JL))** ZCON2
   ENDIF
-  Z1S5 = PUMLEV5(JL)**2+PVMLEV5(JL)**2+ZWST25
+  !LLLT Z1S5 = PUMLEV5(JL)**2+PVMLEV5(JL)**2+ZWST25
+  Z1S5 = (PUMLEV5(JL)-PUCURR5(JL))**2 + (PVMLEV5(JL)-PVCURR5(JL))**2 + ZWST25
   IF (REPDU2 >= Z1S5) THEN
     ZDU25(JL) = REPDU2
   ELSE
@@ -502,8 +515,11 @@ DO JL = KIDIA, KFDIA
     Z1S = Z1S+ZDU2(JL)
     ZDU2 (JL) = 0.0_JPRB
   ENDIF
-  PUMLEV(JL) = PUMLEV(JL)+2.0_JPRB*PUMLEV5(JL)*Z1S
-  PVMLEV(JL) = PVMLEV(JL)+2.0_JPRB*PVMLEV5(JL)*Z1S
+  !LLLT PUMLEV(JL) = PUMLEV(JL)+2.0_JPRB*PUMLEV5(JL)*Z1S
+  !LLLT PVMLEV(JL) = PVMLEV(JL)+2.0_JPRB*PVMLEV5(JL)*Z1S
+  PUMLEV(JL) = PUMLEV(JL) + 2.0_JPRB*(PUMLEV5(JL)-PUCURR5(JL))*Z1S
+  PVMLEV(JL) = PVMLEV(JL) + 2.0_JPRB*(PVMLEV5(JL)-PVCURR5(JL))*Z1S
+!LLLT
   ZWST2 = ZWST2+Z1S
   IF (PBUOM5(JL) <= 0.0_JPRB) THEN
     ZWST2  = 0.0_JPRB
