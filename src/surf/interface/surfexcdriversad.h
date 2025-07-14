@@ -79,7 +79,7 @@ USE, INTRINSIC :: ISO_C_BINDING
 !  REVISION HISTORY:
 !    S. Boussetta/G.Balsamo May 2009 Add lai
 !    M. Janiskova           Apr 2012 Perturbation of top layer surface fields
-!    P. Lopez               Jun 2015 Added regularization of wet skin tile perturbation
+!    P. Lopez               June 2015 Added regularization of wet skin tile perturbation
 !    P. Lopez               July 2025 Added ocean currents (trajectory only)
 
 !  INTERFACE: 
@@ -138,7 +138,7 @@ USE, INTRINSIC :: ISO_C_BINDING
 !  PCHAR       ---           "EQUIVALENT" CHARNOCK PARAMETER           -
 !  PSSRFL5     PSSRFL        NET SHORTWAVE RADIATION FLUX AT SURFACE   W/m2
 !  PTSAM1M5    PTSAM1M       SURFACE TEMPERATURE                       K
-!  PWSAM1M5    PWSAM1M       SOIL MOISTURE ALL LAYERS                 m**3/m**3
+!  PWSAM1M5    PWSAM1M       SOIL MOISTURE ALL LAYERS                  m**3/m**3
 !  PTICE5      PTICE         Ice temperature, top slab                 K
 !  PTSNOW5     PTSNOW        Snow temperature                          K
 !  PWLMX5      ---           Maximum interception layer capacity       kg/m**2
