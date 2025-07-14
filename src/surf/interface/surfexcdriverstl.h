@@ -82,7 +82,7 @@ USE, INTRINSIC :: ISO_C_BINDING
 !    M. Janiskova       Oct.2007   Kinematic fluxes included
 !    S. Boussetta/G.Balsamo May 2009 Add lai
 !    M. Janiskova       July 2012  Perturbation of top layer surface fields
-!    P. Lopez           Jun 2015 Added regularization of wet skin tile perturbation
+!    P. Lopez           June 2015 Added regularization of wet skin tile perturbation
 !    P. Lopez           July 2025 Added ocean currents (trajectory only)
 
 !  INTERFACE: 
