@@ -11,9 +11,7 @@ SUBROUTINE SURFEXCDRIVERSTL_CTL( &
  & , PUMLEV5, PVMLEV5 , PTMLEV5, PQMLEV5, PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST   , PTSKM1M5, PCHAR  , PSSRFL5, PTICE5 , PTSNOW5  &
  & , PWLMX5 &
-!LLLT
  & , PUCURR5, PVCURR5 &
-!LLLT
 ! input data, soil - trajectory
  & , PTSAM1M5, PWSAM1M5, KSOTY &
 ! input data, tiled - trajectory
@@ -169,10 +167,8 @@ USE VEVAPSTL_MOD
 !  PTICE5      PTICE         Ice temperature, top slab                 K
 !  PTSNOW5     PTSNOW        Snow temperature                          K
 !  PWLMX5      ---           Maximum interception layer capacity       kg/m**2
-!LLLT
 !  PUCURR5     ---           Ocean current U-component                 m/s
 !  PVCURR5     ---           Ocean current V-component                 m/s
-!LLLT
 !  PSNM5       ---           SNOW MASS (per unit area)                      kg/m**2
 !  PRSN5       ---          SNOW DENSITY                                   kg/m**3
 
@@ -276,10 +272,8 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSRFL5(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTICE5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSNOW5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX5(:) 
-!LLLT
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR5(:) 
-!LLLT
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSAM1M5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 
@@ -456,10 +450,7 @@ IF (LDNOPERT) THEN
    & PTSKTI5 , PCHAR   , PFRTI   ,&
    & PSSDP2, YDCST   , YDEXC   ,YDVEG    ,YDFLAKE   , YDURB  , &
    & ZZ0MTI5 , ZZ0HTI5 , ZZ0QTI5 , ZBUOMTI5 , ZZDLTI5, ZRAQTI5 , &
-!LLLT
-   & PUCURR5 , PVCURR5 &
-!LLLT
-   & )
+   & PUCURR5 , PVCURR5)
 
 ! perturbations are put to zero
 
@@ -485,10 +476,7 @@ ELSE
    & PUSTRTI , PVSTRTI , PAHFSTI , PEVAPTI  ,&
    & PTSKTI  , &
    & ZZ0MTI  , ZZ0HTI  , ZZ0QTI  , ZBUOMTI  , ZZDLTI  , ZRAQTI , &
-!LLLT
-   & PUCURR5 , PVCURR5 &
-!LLLT
-   & )
+   & PUCURR5 , PVCURR5)
 ENDIF
 
 
@@ -709,9 +697,7 @@ IF (LDNOPERT) THEN
      & PCPTSTI5(:,JTILE),ZQSATI5(:,JTILE) ,&
      & ZZ0MTI5(:,JTILE) ,ZZ0HTI5(:,JTILE) ,&
      & ZZ0QTI5(:,JTILE) ,ZBUOMTI5(:,JTILE),&
-!LLLT
      & PUCURR5,PVCURR5,&
-!LLLT
      & YDCST,YDEXC,&
      & ZCFMTI5(:,JTILE) ,PCFHTI5(:,JTILE) ,&
      & PCFQTI5(:,JTILE) )
@@ -729,9 +715,7 @@ ELSE
      & PCPTSTI5(:,JTILE),ZQSATI5(:,JTILE) ,&
      & ZZ0MTI5(:,JTILE) ,ZZ0HTI5(:,JTILE) ,&
      & ZZ0QTI5(:,JTILE) ,ZBUOMTI5(:,JTILE),&
-!LLLT
      & PUCURR5,PVCURR5,&
-!LLLT
      & YDCST            ,YDEXC            ,&
      & ZCFMTI5(:,JTILE) ,PCFHTI5(:,JTILE) ,&
      & PCFQTI5(:,JTILE) ,&
