@@ -1,7 +1,7 @@
 SUBROUTINE SURFEXCDRIVERSTL  ( YDSURF, &
  &   KIDIA , KFDIA, KLON, KLEVS, KLEVSN, KTILES, KSTEP &
  & , PTSTEP, PRVDIFTS &
- & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF &
+ & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF, LDREGBUOF &
 ! input data, non-tiled - trajectory
  & , KTVL  , KTVH, PCVL, PCVH, PCUR  &
  & , PLAIL, PLAIH &
@@ -92,6 +92,8 @@ USE SURFEXCDRIVERSTL_CTL_MOD
 !    P. Lopez           June 2015  Added regularization of wet skin tile
 !                                  perturbation in low wind situations.
 !    P. Lopez           July 2025 Added ocean currents (trajectory only)
+!    P. Lopez           July 2025 Added optional (LDREGBUOF) extra regularization 
+!                                 when surface buoyancy flux is very small.
 
 !  INTERFACE: 
 
@@ -121,6 +123,7 @@ USE SURFEXCDRIVERSTL_CTL_MOD
 !      LDKPERTS :    TRUE when pertubations of exchange coefficients are used
 !      LDSURF2  :    TRUE when simplified surface scheme called
 !      LDREGSF  :    TRUE when regularization used
+!      LDREGBUOF:    TRUE for extra regularization when surface buoyancy flux is very small
 
 !*      Reals with tile index (In): 
 !  Trajectory  Perturbation  Description                               Unit
@@ -234,6 +237,7 @@ LOGICAL           ,INTENT(IN)    :: LDNOPERT
 LOGICAL           ,INTENT(IN)    :: LDKPERTS
 LOGICAL           ,INTENT(IN)    :: LDSURF2
 LOGICAL           ,INTENT(IN)    :: LDREGSF
+LOGICAL           ,INTENT(IN)    :: LDREGBUOF
 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVL(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(:) 
@@ -969,7 +973,7 @@ ENDIF
 CALL SURFEXCDRIVERSTL_CTL( &
  &   KIDIA    , KFDIA, KLON, KLEVS, KTILES, KSTEP &
  & , PTSTEP   , PRVDIFTS &
- & , LDNOPERT , LDKPERTS, LDSURF2, LDREGSF &
+ & , LDNOPERT , LDKPERTS, LDSURF2, LDREGSF, LDREGBUOF &
  & , KTVL     , KTVH    , PCVL   , PCVH    , PCUR &
  & , PLAIL    , PLAIH &
  & , PSNM5    , PRSN5 &
