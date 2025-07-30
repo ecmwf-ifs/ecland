@@ -1,7 +1,7 @@
 MODULE VEXCSSTL_MOD
 CONTAINS
 SUBROUTINE VEXCSSTL (KIDIA,KFDIA,KLON,PTMST,PRVDIFTS, &
- & LDEKPERTS, &
+ & LDEKPERTS, LDREGBUOF, &
  & PUMLEV5,PVMLEV5  ,PTMLEV5   ,PQMLEV5, &
  & PAPHMS5,PGEOMLEV5,PCPTGZLEV5,PCPTS5 , &
  & PQSAM5 ,PZ0MM5   ,PZ0HM5    ,PZ0QM5 , PBUOM5 , &
@@ -43,6 +43,8 @@ USE YOS_EXC   , ONLY : TEXC
 !                M. Janiskova  Aug 2011    Adjusted regularization for momentum
 !                                          exch. coefficient
 !                P. Lopez      July 2025   Added ocean currents (trajectory only)
+!                P. Lopez      July 2025   Added optional (LDREGBUOF) extra regularization 
+!                                          when surface buoyancy flux is very small.
 
 !     PURPOSE
 !     -------
@@ -64,6 +66,7 @@ USE YOS_EXC   , ONLY : TEXC
 !     INPUT PARAMETERS (LOGICAL)
 
 !     LDEKPERTS      TRUE IF PERTURBATION OF EXCHANGE COEEFICIENTS
+!     LDREGBUOF      TRUE FOR EXTRA REGULARIZATION WHEN SURFACE BUOYANCY FLUX IS VERY SMALL
 
 !     INPUT PARAMETERS (REAL):
 
@@ -115,6 +118,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLON
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
 LOGICAL, INTENT(IN)              :: LDEKPERTS
+LOGICAL, INTENT(IN)              :: LDREGBUOF
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTMST 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRVDIFTS
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUMLEV5(:) 
@@ -402,6 +406,12 @@ DO JL = KIDIA, KFDIA
     ELSEIF (ZUABS5 < 1.0_JPRB) THEN
       PCFM(JL) = PCFM(JL)*ZDD2
     ENDIF
+    IF (LDREGBUOF .AND. ABS(PBUOM5(JL)) < 2.E-6_JPRB) THEN
+      PCFQ(JL) = PCFQ(JL) * 0.01_JPRB
+      PCFH(JL) = PCFH(JL) * 0.01_JPRB
+      PCFM(JL) = PCFM(JL) * 0.01_JPRB
+    ENDIF
+
   ENDIF
 
 ENDDO

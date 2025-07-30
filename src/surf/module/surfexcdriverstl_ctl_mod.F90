@@ -3,7 +3,7 @@ CONTAINS
 SUBROUTINE SURFEXCDRIVERSTL_CTL( &
  &   KIDIA, KFDIA, KLON, KLEVS, KTILES, KSTEP &
  & , PTSTEP, PRVDIFTS &
- & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF &
+ & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF, LDREGBUOF &
 ! input data, non-tiled
  & , KTVL, KTVH, PCVL, PCVH, PCUR &
  & , PLAIL, PLAIH &
@@ -108,6 +108,8 @@ USE VEVAPSTL_MOD
 !                                perturbation in low wind situations.
 !    J. McNorton      24/08/2022 urban tile
 !    P. Lopez         July 2025 Added ocean currents (trajectory only)
+!    P. Lopez         July 2025 Added optional (LDREGBUOF) extra regularization 
+!                               when surface buoyancy flux is very small.
 
 !  INTERFACE: 
 
@@ -136,6 +138,7 @@ USE VEVAPSTL_MOD
 !      LDKPERTS :    TRUE when pertubations of surf. exchange coefficients used
 !      LDSURF2  :    TRUE when simplified surface scheme called
 !      LDREGSF  :    TRUE when regularization used
+!      LDREGBUOF:    TRUE for extra regularization when surface buoyancy flux is very small
 
 !*      Reals with tile index (In): 
 !  Trajectory  Perturbation  Description                               Unit
@@ -247,6 +250,7 @@ LOGICAL           ,INTENT(IN)    :: LDNOPERT
 LOGICAL           ,INTENT(IN)    :: LDKPERTS
 LOGICAL           ,INTENT(IN)    :: LDSURF2
 LOGICAL           ,INTENT(IN)    :: LDREGSF
+LOGICAL           ,INTENT(IN)    :: LDREGBUOF
 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVL(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(:) 
@@ -710,7 +714,7 @@ IF (LDNOPERT) THEN
 ELSE
   DO JTILE=1,KTILES
     CALL VEXCSSTL(KIDIA,KFDIA,KLON,PTSTEP,PRVDIFTS,&
-     & LDKPERTS, &
+     & LDKPERTS, LDREGBUOF,&
      & PUMLEV5,PVMLEV5,PTMLEV5,PQMLEV5,PAPHMS5,PGEOMLEV5,PCPTGZLEV5,&
      & PCPTSTI5(:,JTILE),ZQSATI5(:,JTILE) ,&
      & ZZ0MTI5(:,JTILE) ,ZZ0HTI5(:,JTILE) ,&
