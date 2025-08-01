@@ -61,6 +61,10 @@ ASSOCIATE( LEMIS_BVOC=>YDBVOC%LEMIS_BVOC, &
 ! Switches
 LEMIS_BVOC=LD_LBVOC
 
+! AH - Needs to be set before return otherwise all compo cases fail when
+!      LEMIS_BVOC is false, due to uninitialised array dimension in surfexcdriver
+NEMIS_BVOC=KBVOC_EMIS ! Number of trace gases for which BVOC emissions are computed.
+
 IF (.NOT. LEMIS_BVOC) THEN
   NEMIS_BVOC=0 ! This will still be used to dimension arrays on the stack - do not leave uninitialised!
   IF (LHOOK) CALL DR_HOOK('SUSBVOC_MOD:SUSBVOC',1,ZHOOK_HANDLE)
@@ -83,7 +87,8 @@ NBVOC_DELTA_DAY_LAI = KBVOC_DELTA_DAY_LAI
 
 
 !==============================================================================
-NEMIS_BVOC=KBVOC_EMIS ! Number of trace gases for which BVOC emissions are computed.
+! AH - Moved to before the return, to prevent issues with gcc
+!NEMIS_BVOC=KBVOC_EMIS ! Number of trace gases for which BVOC emissions are computed.
 NPFT=16               ! number of plant functional types defined in MEGAN
 
 IF(.NOT.ALLOCATED(YDBVOC%NAME))     ALLOCATE (YDBVOC%NAME(NEMIS_BVOC))
