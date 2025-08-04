@@ -119,6 +119,7 @@ list( APPEND module_src
     surfws_tsnadj_mod.F90
     surwn_mod.F90
     suscst_mod.F90
+    susdp_dflt_ctl_mod.F90
     susflake_mod.F90
     susocean_ml_mod.F90
     susrad_mod.F90
@@ -149,6 +150,7 @@ list( APPEND module_src
     vupdz0s_mod.F90
     vupdz0sad_mod.F90
     vupdz0stl_mod.F90
+    yomsurf_ssdp_mod.F90
     yos_agf.F90
     yos_ags.F90
     yos_cst.F90
@@ -192,6 +194,7 @@ list(APPEND external_src
     surftstpsad.F90
     surftstpstl.F90
     surfws.F90
+    susdp_dflt.F90
     susurf.F90
 )
 list(TRANSFORM external_src PREPEND external/)
