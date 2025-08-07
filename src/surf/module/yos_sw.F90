@@ -33,6 +33,58 @@ REAL(KIND=JPRB), ALLOCATABLE :: RALBICE_AN(:,:) ! for Arctic
 !                     7 - snow under high vegetation   (Warren, 1982)
 !                     8 - bare soil (Briegleb, Ramanathan, 1986)
 !     -----------------------------------------------------------------
+CONTAINS
+
+PROCEDURE :: UPDATE_DEVICE => TSW_UPDATE_DEVICE
+PROCEDURE :: WIPE_DEVICE => TSW_WIPE_DEVICE
+
 END TYPE TSW
+
+CONTAINS
+
+SUBROUTINE TSW_UPDATE_DEVICE(SELF, LCREATED)
+  CLASS(TSW) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LCREATED
+  LOGICAL :: LLCREATED
+
+  LLCREATED = .FALSE.
+  IF(PRESENT(LCREATED)) LLCREATED = LCREATED
+  IF(.NOT. LLCREATED)THEN
+    !$acc enter data create(SELF)
+    !$acc update device(SELF)
+  ENDIF
+
+  !$acc enter data create(SELF%RSUN)
+  !$acc enter data create(SELF%RALBICE_AR)
+  !$acc enter data create(SELF%RALBICE_AN)
+
+  !$acc update device(SELF%RSUN)
+  !$acc update device(SELF%RALBICE_AR)
+  !$acc update device(SELF%RALBICE_AN)
+
+  !$acc enter data attach(SELF%RSUN)
+  !$acc enter data attach(SELF%RALBICE_AR)
+  !$acc enter data attach(SELF%RALBICE_AN)
+END SUBROUTINE TSW_UPDATE_DEVICE
+
+SUBROUTINE TSW_WIPE_DEVICE(SELF, LDELETED)
+  CLASS(TSW) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LDELETED
+  LOGICAL :: LLDELETED
+
+  LLDELETED = .FALSE.
+  IF(PRESENT(LDELETED)) LLDELETED = LDELETED
+
+  !$acc exit data detach(SELF%RSUN) finalize
+  !$acc exit data detach(SELF%RALBICE_AR) finalize
+  !$acc exit data detach(SELF%RALBICE_AN) finalize
+
+  !$acc exit data delete(SELF%RSUN) finalize
+  !$acc exit data delete(SELF%RALBICE_AR) finalize
+  !$acc exit data delete(SELF%RALBICE_AN) finalize
+  IF(.NOT. LLDELETED)THEN
+    !$acc exit data delete (SELF) finalize
+  ENDIF
+END SUBROUTINE TSW_WIPE_DEVICE
 
 END MODULE YOS_SW

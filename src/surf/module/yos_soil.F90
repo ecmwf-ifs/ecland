@@ -224,6 +224,168 @@ REAL(KIND=JPRB) :: FSNTCONDA  ! coeff in FSNTCOND function
 REAL(KIND=JPRB) :: FSNTCONDB  ! coeff in FSNTCOND function
 REAL(KIND=JPRB) :: FSNTCONDC  ! coeff in FSNTCOND function
 
+CONTAINS
+
+PROCEDURE :: UPDATE_DEVICE => TSOIL_UPDATE_DEVICE
+PROCEDURE :: WIPE_DEVICE => TSOIL_WIPE_DEVICE
+
 END TYPE TSOIL
+
+CONTAINS
+
+SUBROUTINE TSOIL_UPDATE_DEVICE(SELF, LCREATED)
+  CLASS(TSOIL) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LCREATED
+  LOGICAL :: LLCREATED
+
+  LLCREATED = .FALSE.
+  IF(PRESENT(LCREATED)) LLCREATED = LCREATED
+  IF(.NOT. LLCREATED)THEN
+    !$acc enter data create(SELF)
+    !$acc update device(SELF)
+  ENDIF
+
+  !$acc enter data create(SELF%RCWPSISM)
+  !$acc enter data create(SELF%RMVGALPHA)
+  !$acc enter data create(SELF%RWCONSM)
+  !$acc enter data create(SELF%RMFACM)
+  !$acc enter data create(SELF%RNFACM)
+  !$acc enter data create(SELF%RLAMBDAM)
+  !$acc enter data create(SELF%RWSATM)
+  !$acc enter data create(SELF%RWCAPM)
+  !$acc enter data create(SELF%RWPWPM)
+  !$acc enter data create(SELF%RWRESTM)
+  !$acc enter data create(SELF%RDMAXM)
+  !$acc enter data create(SELF%RDMINM)
+  !$acc enter data create(SELF%RQWEVAPM)
+  !$acc enter data create(SELF%RQWSBCRM)
+  !$acc enter data create(SELF%RLAMBDADRYM)
+  !$acc enter data create(SELF%RLAMSAT1M)
+  !$acc enter data create(SELF%RRCSOILM)
+  !$acc enter data create(SELF%RDAT)
+  !$acc enter data create(SELF%RDAW)
+  !$acc enter data create(SELF%RDAI)
+  !$acc enter data create(SELF%RSNDTDESTC_ML)
+  !$acc enter data create(SELF%RLEVSNMIN)
+  !$acc enter data create(SELF%RLEVSNMAX)
+  !$acc enter data create(SELF%RLEVSNMIN_GL)
+  !$acc enter data create(SELF%RLEVSNMAX_GL)
+  
+  !$acc update device(SELF%RCWPSISM)
+  !$acc update device(SELF%RMVGALPHA)
+  !$acc update device(SELF%RWCONSM)
+  !$acc update device(SELF%RMFACM)
+  !$acc update device(SELF%RNFACM)
+  !$acc update device(SELF%RLAMBDAM)
+  !$acc update device(SELF%RWSATM)
+  !$acc update device(SELF%RWCAPM)
+  !$acc update device(SELF%RWPWPM)
+  !$acc update device(SELF%RWRESTM)
+  !$acc update device(SELF%RDMAXM)
+  !$acc update device(SELF%RDMINM)
+  !$acc update device(SELF%RQWEVAPM)
+  !$acc update device(SELF%RQWSBCRM)
+  !$acc update device(SELF%RLAMBDADRYM)
+  !$acc update device(SELF%RLAMSAT1M)
+  !$acc update device(SELF%RRCSOILM)
+  !$acc update device(SELF%RDAT)
+  !$acc update device(SELF%RDAW)
+  !$acc update device(SELF%RDAI)
+  !$acc update device(SELF%RSNDTDESTC_ML)
+  !$acc update device(SELF%RLEVSNMIN)
+  !$acc update device(SELF%RLEVSNMAX)
+  !$acc update device(SELF%RLEVSNMIN_GL)
+  !$acc update device(SELF%RLEVSNMAX_GL)
+  
+  !$acc enter data attach(SELF%RCWPSISM)
+  !$acc enter data attach(SELF%RMVGALPHA)
+  !$acc enter data attach(SELF%RWCONSM)
+  !$acc enter data attach(SELF%RMFACM)
+  !$acc enter data attach(SELF%RNFACM)
+  !$acc enter data attach(SELF%RLAMBDAM)
+  !$acc enter data attach(SELF%RWSATM)
+  !$acc enter data attach(SELF%RWCAPM)
+  !$acc enter data attach(SELF%RWPWPM)
+  !$acc enter data attach(SELF%RWRESTM)
+  !$acc enter data attach(SELF%RDMAXM)
+  !$acc enter data attach(SELF%RDMINM)
+  !$acc enter data attach(SELF%RQWEVAPM)
+  !$acc enter data attach(SELF%RQWSBCRM)
+  !$acc enter data attach(SELF%RLAMBDADRYM)
+  !$acc enter data attach(SELF%RLAMSAT1M)
+  !$acc enter data attach(SELF%RRCSOILM)
+  !$acc enter data attach(SELF%RDAT)
+  !$acc enter data attach(SELF%RDAW)
+  !$acc enter data attach(SELF%RDAI)
+  !$acc enter data attach(SELF%RSNDTDESTC_ML)
+  !$acc enter data attach(SELF%RLEVSNMIN)
+  !$acc enter data attach(SELF%RLEVSNMAX)
+  !$acc enter data attach(SELF%RLEVSNMIN_GL)
+  !$acc enter data attach(SELF%RLEVSNMAX_GL)
+END SUBROUTINE TSOIL_UPDATE_DEVICE
+
+SUBROUTINE TSOIL_WIPE_DEVICE(SELF, LDELETED)
+  CLASS(TSOIL) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LDELETED
+  LOGICAL :: LLDELETED
+
+  LLDELETED = .FALSE.
+  IF(PRESENT(LDELETED)) LLDELETED = LDELETED
+
+  !$acc exit data detach(SELF%RCWPSISM) finalize
+  !$acc exit data detach(SELF%RMVGALPHA) finalize
+  !$acc exit data detach(SELF%RWCONSM) finalize
+  !$acc exit data detach(SELF%RMFACM) finalize
+  !$acc exit data detach(SELF%RNFACM) finalize
+  !$acc exit data detach(SELF%RLAMBDAM) finalize
+  !$acc exit data detach(SELF%RWSATM) finalize
+  !$acc exit data detach(SELF%RWCAPM) finalize
+  !$acc exit data detach(SELF%RWPWPM) finalize
+  !$acc exit data detach(SELF%RWRESTM) finalize
+  !$acc exit data detach(SELF%RDMAXM) finalize
+  !$acc exit data detach(SELF%RDMINM) finalize
+  !$acc exit data detach(SELF%RQWEVAPM) finalize
+  !$acc exit data detach(SELF%RQWSBCRM) finalize
+  !$acc exit data detach(SELF%RLAMBDADRYM) finalize
+  !$acc exit data detach(SELF%RLAMSAT1M) finalize
+  !$acc exit data detach(SELF%RRCSOILM) finalize
+  !$acc exit data detach(SELF%RDAT) finalize
+  !$acc exit data detach(SELF%RDAW) finalize
+  !$acc exit data detach(SELF%RDAI) finalize
+  !$acc exit data detach(SELF%RSNDTDESTC_ML) finalize
+  !$acc exit data detach(SELF%RLEVSNMIN) finalize
+  !$acc exit data detach(SELF%RLEVSNMAX) finalize
+  !$acc exit data detach(SELF%RLEVSNMIN_GL) finalize
+  !$acc exit data detach(SELF%RLEVSNMAX_GL) finalize
+
+  !$acc exit data delete(SELF%RCWPSISM) finalize
+  !$acc exit data delete(SELF%RMVGALPHA) finalize
+  !$acc exit data delete(SELF%RWCONSM) finalize
+  !$acc exit data delete(SELF%RMFACM) finalize
+  !$acc exit data delete(SELF%RNFACM) finalize
+  !$acc exit data delete(SELF%RLAMBDAM) finalize
+  !$acc exit data delete(SELF%RWSATM) finalize
+  !$acc exit data delete(SELF%RWCAPM) finalize
+  !$acc exit data delete(SELF%RWPWPM) finalize
+  !$acc exit data delete(SELF%RWRESTM) finalize
+  !$acc exit data delete(SELF%RDMAXM) finalize
+  !$acc exit data delete(SELF%RDMINM) finalize
+  !$acc exit data delete(SELF%RQWEVAPM) finalize
+  !$acc exit data delete(SELF%RQWSBCRM) finalize
+  !$acc exit data delete(SELF%RLAMBDADRYM) finalize
+  !$acc exit data delete(SELF%RLAMSAT1M) finalize
+  !$acc exit data delete(SELF%RRCSOILM) finalize
+  !$acc exit data delete(SELF%RDAT) finalize
+  !$acc exit data delete(SELF%RDAW) finalize
+  !$acc exit data delete(SELF%RDAI) finalize
+  !$acc exit data delete(SELF%RSNDTDESTC_ML) finalize
+  !$acc exit data delete(SELF%RLEVSNMIN) finalize
+  !$acc exit data delete(SELF%RLEVSNMAX) finalize
+  !$acc exit data delete(SELF%RLEVSNMIN_GL) finalize
+  !$acc exit data delete(SELF%RLEVSNMAX_GL) finalize
+  IF(.NOT. LLDELETED)THEN
+    !$acc exit data delete (SELF) finalize
+  ENDIF
+END SUBROUTINE TSOIL_WIPE_DEVICE
 
 END MODULE YOS_SOIL
