@@ -168,6 +168,7 @@ DO JL=KIDIA,KFDIA
     ENDDO
     ! Sanity check if the remap matrix is correct, i.e. conservative 
     ! Here we relax the condiction to be 10*ZEPSILON  
+!$loki remove
     IF (ANY (ABS(SUM(ZREMAP(JL,:,:),DIM=2)-PDSNNEW(JL,:))> MAX(1._JPRB,PDSNNEW(JL,:))*ZEPSILON*10._JPRB ) ) THEN
       write(*,*)JL,'ZREMAP',ABS(SUM(ZREMAP(JL,:,:),DIM=2)-PDSNNEW(JL,:))> MAX(1._JPRB,PDSNNEW(JL,:))*ZEPSILON 
       DO JK=1,KLEVSN
@@ -184,6 +185,7 @@ DO JL=KIDIA,KFDIA
       ENDDO
       CALL ABORT_SURF("SRFSN_REGRID_MOD:SRFSN_REGRID: REMAP MATRIX NOT CORRECT")
     ENDIF
+!$loki end remove
     
     ! NORMALIZE BY LAYER DEPTHS
     DO JK=1,KLEVSN
