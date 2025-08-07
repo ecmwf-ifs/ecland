@@ -376,7 +376,7 @@ DO JL=KIDIA,KFDIA
     PGSN(JL) = ZGSN - ZGSNRES + ZSNOTRS(JL,KLACT+1)
     
 
-    
+    !$loki remove 
     IF (ANY(PTSN(JL,:)>RTT+ZEPSILON)) THEN
       write(*,*) 'Tsn above zero C'
       !*CALL ABORT_SURF('ALL SNOW MELTED')
@@ -389,11 +389,13 @@ DO JL=KIDIA,KFDIA
       write(NULERR,*) 'SWE',PSSN(JL,:)
       write(NULERR,*) 'Snow frac,heat,pg0',PFRSN(JL),PHFLUX(JL),PGSN(JL)
 
-      WHERE (PTSN(JL,:)<100._JPRB)
-          PTSN(JL,:)=100.0_JPRB
-      ENDWHERE
       !* CALL ABORT_SURF('Very snow cold temperature')
     ENDIF 
+    !$loki end remove·
+
+    DO JK=1,KLEVSN
+      PTSN(JL,JK) = MAX(100.0_JPRB, PTSN(JL,JK))
+    ENDDO
     
     
     !! DDH DIAGNOSTICS 
