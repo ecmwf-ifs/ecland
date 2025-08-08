@@ -167,10 +167,10 @@ DO JT=1,KSNTILES
         ZSNOTRSTMP(JL,KLACT+1)=ZSNQRAD
   ! Weighted average with tile fraction:
         DO JK=1, KLACT+1
-          PSNOTRS(JL,JK) = PSNOTRS(JL,JK) + ZFRSN(JL)*ZSNOTRSTMP(JL,JK)  
+          PSNOTRS(JL,JK) = PSNOTRS(JL,JK) + ZFRSN(JL)*ZSNOTRSTMP(JL,JK)
         ENDDO
 
-    ENDIF 
+    ENDIF
   ENDDO
 END DO
 
