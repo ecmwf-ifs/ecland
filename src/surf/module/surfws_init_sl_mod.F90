@@ -525,6 +525,14 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
 !*******************************************************************************
   DO JL=KIDIA, KFDIA
     IF (PMU0(JL) > ZEPSILON ) THEN ! Daytime
+        ! Initialise values to avoid floating point errors
+        ZTCENTRA=ZTCENTRADAY2
+        ZTCENTRB=ZTCENTRBDAY2
+        ZTCENTRC=ZTCENTRCDAY2
+        ZTCONSTAVG=ZTCONSTAVGDAY2
+        ZTCONSTSTD=ZTCONSTSTDDAY2
+        KLEVMID(JL)=MAX(KLEVSNA(JL)-1,1)
+
     IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN ! seasonal snow
       IF ( ZDSNTOT(JL) < 0.15_JPRB ) THEN 
         ZTCENTRA=ZTCENTRADAY2
@@ -619,6 +627,14 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
         ZTCONSTSTD=ZTCONSTSTDDAY5G
     ENDIF
     ELSEIF (PMU0(JL)<=ZEPSILON) THEN !nighttime
+        ! Initialise values to avoid floating point errors
+        ZTCENTRA=ZTCENTRANIGHT2
+        ZTCENTRB=ZTCENTRBNIGHT2
+        ZTCENTRC=ZTCENTRCNIGHT2
+        ZTCONSTAVG=ZTCONSTAVGNIGHT2
+        ZTCONSTSTD=ZTCONSTSTDNIGHT2
+        KLEVMID(JL)=MAX(KLEVSNA(JL)-1,1)
+
     IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN ! seasonal snow
       IF ( ZDSNTOT(JL) < 0.15_JPRB ) THEN 
         ZTCENTRA=ZTCENTRANIGHT2
