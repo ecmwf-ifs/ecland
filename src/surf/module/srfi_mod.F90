@@ -47,6 +47,7 @@ USE SRFWDIF_MOD
 !    *PTMST*      TIME STEP                                      S
 
 !     INPUT PARAMETERS (LOGICAL):
+!    *LDLAND*     LAND INDICATOR (True for land point)
 !    *LDICE*      ICE MASK (TRUE for sea ice)
 !    *LDNH*       TRUE FOR NORTHERN HEMISPHERE
 

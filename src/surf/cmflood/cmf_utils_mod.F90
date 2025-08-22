@@ -40,6 +40,7 @@ CONTAINS
 ! file I/O
 !-- INQUIRE_FID : inruire unused file FID
 !-- NCERROR     : netCDF I/O wrapper
+!-- CMF_CheckNaN: check the value is NaN or not
 !####################################################################
 SUBROUTINE vecD2mapR(D2VEC,R2MAP)
 USE YOS_CMF_MAP,             ONLY: I1SEQX,I1SEQY
@@ -483,6 +484,7 @@ INTEGER                         :: i_element
 INTEGER                         :: i_element_br
 !================================================
 ! Transfer 32 bits of realIn to generic 32 bit INTEGER space:
+i_element_br=0
 i_element = TRANSFER( realIn, 0 )
 ! Reverse order of 4 bytes in 32 bit INTEGER space:
 CALL MVBITS( i_element, 24, 8, i_element_br, 0  )
@@ -508,6 +510,7 @@ INTEGER                              :: i_element
 INTEGER                              :: i_element_br
 !================================================
 ! Transfer 32 bits of realIn to generic 32 bit INTEGER space:
+i_element_br=0
 i_element = TRANSFER( IntIn, 0 )
 ! Reverse order of 4 bytes in 32 bit INTEGER space:
 CALL MVBITS( i_element, 24, 8, i_element_br, 0  )
@@ -561,6 +564,18 @@ IF ( STATUS /= 0 ) THEN
 ENDIF
 END SUBROUTINE NCERROR
 #endif
+!####################################################################
+
+!####################################################################
+FUNCTION CMF_CheckNanB(VAR,zero) RESULT(FLAG)
+  implicit none
+  REAL(KIND=JPRB)      :: VAR, zero
+  LOGICAL              :: FLAG
+  FLAG = .false.
+  if(VAR*zero/=zero)then
+    FLAG = .true.
+  endif
+END FUNCTION CMF_CheckNanB
 !####################################################################
 
 END MODULE CMF_UTILS_MOD

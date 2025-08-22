@@ -142,7 +142,7 @@ SUBROUTINE COTWORESTRESS(KIDIA,KFDIA,KLON,KVTYPE,KTILE,KCO2TYP,PFRTI,&
 
   INTEGER(KIND=JPIM) :: JL,JINT   ! index for loops
 
-  REAL(KIND=JPRB)    :: ZTSK(KLON), PAVGPAR(KLON), ZGAMMT(KLON), ZRHO(KLON), ZQSURF(KLON), &
+  REAL(KIND=JPRB)    :: ZTSK(KLON), ZIA(KLON), ZGAMMT(KLON), ZRHO(KLON), ZQSURF(KLON), &
        & ZDSP(KLON), ZCO2(KLON), ZMU0(KLON), ZAMMAX(KLON), ZGMEST(KLON), &
        & ZTAN(KLON), ZTAG(KLON), ZTRD(KLON), ZTGS(KLON), ZXIA(KLON), &
        & ZAN0(KLON), ZAG0(KLON), ZRD0(KLON), ZGS0(KLON), ZXTGS(KLON), &
@@ -256,7 +256,7 @@ ELSE
     LDLAND(JL)=((PFRTI(JL,1)+PFRTI(JL,2))<=0.5_JPRB)
   ENDDO
 ENDIF
-PAVGPAR(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
+ZIA(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
 
 ! initialization of local variables
   DO JL=KIDIA,KFDIA
@@ -293,8 +293,7 @@ PAVGPAR(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
      ZTSK(JL)=PTSKM1M(JL)-RTT  
      Z1(JL)=0.1_JPRB*(ZTSK(JL)-25._JPRB)
      ! Absorbed PAR
-     ! RPARCF = 0.48_JPRB
-     PAVGPAR(JL)=PSRFD(JL)*0.48_JPRB         
+     ZIA(JL)=PSRFD(JL)*RPARCF
   !-------------------------------------
   ! moisture stress response (offensive/defensive strategy) for woody (trees) and 
   ! herbaceaus (grass,crops) vegetation: 

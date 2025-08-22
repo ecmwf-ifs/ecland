@@ -10,9 +10,6 @@ MODULE CMF_CTRL_MPI_MOD
 !
 ! (C) D.Yamazaki (U-Tokyo)  Oct 2021
 !
-! Modifications:
-! -- I. Ayan-Miguez (BSC) Feb 2023: Adapted to work coupled with IFS and OSM
-!
 ! Licensed under the Apache License, Version 2.0 (the "License");
 !   You may not use this file except in compliance with the License.
 !   You may obtain a copy of the License at: http://www.apache.org/licenses/LICENSE-2.0
@@ -46,11 +43,14 @@ CONTAINS
 ! -- CMF_DRV_END      : Finalize          CaMa-Flood
 !
 !####################################################################
+#ifdef IFS_CMF
 SUBROUTINE CMF_MPI_INIT(ICOMM_CMF)
 IMPLICIT NONE
 
-#ifdef IFS_CMF
 INTEGER(KIND=JPIM),OPTIONAL,INTENT(IN)  :: ICOMM_CMF
+#else
+SUBROUTINE CMF_MPI_INIT
+IMPLICIT NONE
 #endif
 !================================================
 !*** 0. MPI specific setting
@@ -205,7 +205,7 @@ IMPLICIT NONE
 REAL(KIND=JPRB),INTENT(INOUT)   :: D1PTH(NPTHOUT,NPTHLEV)
 !* local variable
 REAL(KIND=JPRB)                 :: D1PTMP(NPTHOUT,NPTHLEV)
-REAL(KIND=JPIM)                 :: IPTH
+INTEGER(KIND=JPIM)              :: IPTH
 !================================================
 ! gather to master node
 DO IPTH=1,NPTHOUT
@@ -237,7 +237,7 @@ IMPLICIT NONE
 REAL(KIND=JPRD),INTENT(INOUT)   :: P1PTH(NPTHOUT,NPTHLEV)
 !* local variable
 REAL(KIND=JPRD)                 :: P1PTMP(NPTHOUT,NPTHLEV)
-REAL(KIND=JPIM)                 :: IPTH
+INTEGER(KIND=JPIM)              :: IPTH
 !================================================
 ! gather to master node
 DO IPTH=1,NPTHOUT

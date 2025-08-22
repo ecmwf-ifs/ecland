@@ -163,6 +163,7 @@ USE ABORT_SURF_MOD
 !            3 : WET SKIN               7 : SNOW UNDER HIGH-VEG
 !            4 : DRY SNOW-FREE LOW-VEG  8 : BARE SOIL
 !            9 : LAKE                  10 : URBAN
+!    *PCIL*         LAND-ICE FRACTION                          (0-1)
 !    *PAHFSTI*      SURFACE SENSIBLE HEAT FLUX, FOR EACH TILE  W/M2
 !    *PSST*         SEA SURFACE TEMPERATURE                    K
 !    *PUSTRTI*      X-STRESS                                   N/m2

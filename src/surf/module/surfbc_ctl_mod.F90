@@ -68,7 +68,7 @@ USE YOMSURF_SSDP_MOD
 
 !     *PLSM*         LAND-SEA MASK                                  (0-1)
 !     *PCI*          SEA-ICE FRACTION                               (0-1)
-!     *PCIL*          LAND-ICE FRACTION (CORRECTED)                 (0-1)
+!     *PCIL*         LAND-ICE FRACTION (OUT: CORRECTED)             (0-1)
 !     *PCLAKE*       LAKE FRACTION                                  (0-1)
 !     *PHLICE*       LAKE ICE THICKNESS                               m
 !     *PGEMU*        COSINE OF LATITUDE
@@ -79,6 +79,7 @@ USE YOMSURF_SSDP_MOD
 !     OUTPUT PARAMETERS (LOGICAL):
 !     *LDLAND*       LAND INDICATOR
 !     *LDSICE*       SEA-ICE INDICATOR
+!     *LDLICE*       LAND-ICE INDICATOR
 !     *LDLAKE*       LAKE INDICATOR
 !     *LDNH*         NORTHERN HEMISPHERE INDICATOR
 !     *LDOCM_KPP*    OCEAN INDICATOR
