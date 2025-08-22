@@ -49,7 +49,7 @@ USE SRFWDIFSTL_MOD
 !            4 : DRY SNOW-FREE LOW-VEG  8 : BARE SOIL
 !            9 : LAKE                  10 : URBAN
 !    Traject   Perturbation    Descript                         Units
-!    *PTIAM1M5*  *PTIAM1M*    SEA ICE TEMPERATURE                            K
+!    *PTIAM1M5*  *PTIAM1M*    ICE TEMPERATURE                            K
 !    *PSLRFL5*   *PSLRFL*     NET LONGWAVE  RADIATION AT THE SURFACE        W/M**2
                              
 !    *PAHFSTI5*  *PAHFSTI*    TILE SURFACE SENSIBLE HEAT FLUX                 W/M2
@@ -58,7 +58,7 @@ USE SRFWDIFSTL_MOD
 !    *PGSN5*     *PGSN*       SNOW basal heat flux between snow and ice       W/M2
 !    UPDATED PARAMETERS AT T+1 (UNFILTERED,REAL):
 !    Traject   Perturbation    Descript                         Units
-!    *PTIA5*    *PTIA*     SOIL TEMPERATURE                               K
+!    *PTIA5*    *PTIA*     ICE TEMPERATURE                               K
 !    *PGICE5*   *PGICE*    BASAL HEAT FLUX FROM LAND ICE  to soil          K
 
 !     METHOD.

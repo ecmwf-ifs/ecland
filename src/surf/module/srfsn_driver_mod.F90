@@ -1,4 +1,4 @@
-MODULE SRFSN_DRIVER_MOD
+ MODULE SRFSN_DRIVER_MOD
 CONTAINS
 SUBROUTINE SRFSN_DRIVER(KIDIA   ,KFDIA   ,KLON   ,KLEVSN, PTMST, LDLAND,&
   & PSDOR, LDSICE, PCIL, LDNH, &
@@ -68,6 +68,7 @@ USE YOMSURF_SSDP_MOD
 
 !     INPUT PARAMETERS (LOGICAL):
 !    *LDLAND*     LAND/SEA MASK (TRUE/FALSE) 
+!    *LDSICE*     SEA-ICE INDICATOR (True for do sea-ice)
 !    *LDNH*       TRUE FOR NORTHERN HEMISPHERE
 !    *PSDOR*      OROGRAPHIC PARAMETER                           m
 
@@ -79,6 +80,7 @@ USE YOMSURF_SSDP_MOD
 !    *PWSNM1M*    SNOW LIQUID WATER CONTENT                    kg m-2
 
 !    *PRFTI*      TILE FRACTIONS
+!    *PCIL*       LAND-ICE FRACTION                          (0-1)
 !    *PTSAM1M*    SOIL TEMPERATURE                               K
 !    *PTIAM1M*    ICE  TEMPERATURE                               K
 !    *PUSRF*      WIND U LOWEST MODEL LEVEL                     m s-1

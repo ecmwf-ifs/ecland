@@ -122,6 +122,7 @@ USE ISO_C_BINDING
 !            2 : ICE                    6 : DRY SNOW-FREE HIGH-VEG
 !            3 : WET SKIN               7 : SNOW UNDER HIGH-VEG
 !            4 : DRY SNOW-FREE LOW-VEG  8 : BARE SOIL
+!    *PCIL*         LAND-ICE FRACTION                          (0-1)
 !    *PAHFSTI*    SURFACE SENSIBLE HEAT FLUX, FOR EACH TILE    W/M2
 !    *PEVAPTI*    SURFACE MOISTURE FLUX, FOR EACH TILE         KG/M2/S
 !    *PSSRFLTI*   NET SHORTWAVE RADIATION FLUX AT SURFACE, FOR

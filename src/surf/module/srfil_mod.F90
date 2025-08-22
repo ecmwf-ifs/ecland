@@ -13,11 +13,11 @@ USE YOS_SOIL , ONLY : TSOIL
 
 USE SRFWDIF_MOD
 
-!**** *SRFIL* - Computes temperature changes in land ice
+!**** *SRFIL* - Computes temperature changes in land ice, adapted from SRFI
 
 !     PURPOSE.
 !     --------
-!**   Computes temperature evolution of sea ice  
+!**   Computes temperature evolution of land ice  
 !**   INTERFACE.
 !     ----------
 !          *SRFIL* IS CALLED FROM *SURF*.
@@ -30,19 +30,18 @@ USE SRFWDIF_MOD
 !    *KLON*       NUMBER OF GRID POINTS PER PACKET
 !    *KLEVS*      NUMBER OF SOIL LAYERS
 !    *KTILES*     NUMBER OF SURFACE TILES
-!    *KLEVI*      Number of sea ice layers (diagnostics)
-!    *KDHVTIS*    Number of variables for sea ice energy budget
-!    *KDHFTIS*    Number of fluxes for sea ice energy budget
+!    *KLEVI*      Number of ice layers 
 
 !     INPUT PARAMETERS (REAL):
 !    *PTMST*      TIME STEP                                      S
 
 !     INPUT PARAMETERS (LOGICAL):
+!    *LDLAND*     LAND INDICATOR (True for land point)
 !    *LDICE*      ICE MASK (TRUE for land ice)
 !    *LDNH*       TRUE FOR NORTHERN HEMISPHERE
 
 !     INPUT PARAMETERS AT T-1 OR CONSTANT IN TIME (REAL):
-!    *PTIAM1M*    SEA ICE TEMPERATURE                            K
+!    *PTIAM1M*    ICE TEMPERATURE                            K
 !    *PSLRFL*     NET LONGWAVE  RADIATION AT THE SURFACE        W/M**2
 !    *PFRTI*      TILE FRACTIONS                              (0-1)
 !            1 : WATER                  5 : SNOW ON LOW-VEG+BARE-SOIL
@@ -55,9 +54,9 @@ USE SRFWDIF_MOD
 !    *PSSRFLTI*   TILE NET SHORTWAVE RADIATION FLUX AT SURFACE    W/M2
 !    *PGSN* .     SNOW basal heat flux between snow and ice       W/M2
 !     UPDATED PARAMETERS AT T+1 (UNFILTERED,REAL):
-!    *PTIA*       SOIL TEMPERATURE                               K
-!    *PMELT*      MELTWATER FLUX FROM LAND ICE                    K
-!    *PGICE*      BASAL HEAT FLUX FROM LAND ICE  to soil          K
+!    *PTIA*       ICE TEMPERATURE                               K
+!    *PMELT*      MELTWATER FLUX FROM LAND ICE                    kg/m2/s
+!    *PGICE*      BASAL HEAT FLUX FROM LAND ICE  to soil          W/m2
 
 !     OUTPUT PARAMETERS (DIAGNOSTIC):
 !    *PDHTIS*     Diagnostic array for ice T (see module yomcdh)
@@ -73,9 +72,7 @@ USE SRFWDIF_MOD
 !     REFERENCE.
 !     ----------
 !          See documentation.
-!     P.VITERBO/A.BELJAARS      E.C.M.W.F.     15/03/1999
-!     Modified P. Viterbo       17-05-2000  Surface DDH for TILES
-!     Modified J.F. Estrade *ECMWF* 03-10-01 move in surf vob
+!     G. Arduini                2024        Adapted from SRFI for land-ice
 
 !     ------------------------------------------------------------------
 

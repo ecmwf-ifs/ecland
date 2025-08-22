@@ -39,7 +39,7 @@ USE SRFWDIFS_MOD
 !    *LDNH*       TRUE FOR NORTHERN HEMISPHERE
 
 !     INPUT PARAMETERS AT T-1 OR CONSTANT IN TIME (REAL):
-!    *PTIAM1M*    SEA ICE TEMPERATURE                            K
+!    *PTIAM1M*    ICE TEMPERATURE                            K
 !    *PSLRFL*     NET LONGWAVE  RADIATION AT THE SURFACE        W/M**2
 !    *PFRTI*      TILE FRACTIONS                              (0-1)
 !            1 : WATER                  5 : SNOW ON LOW-VEG+BARE-SOIL
@@ -52,7 +52,7 @@ USE SRFWDIFS_MOD
 !    *PSSRFLTI*   TILE NET SHORTWAVE RADIATION FLUX AT SURFACE    W/M2
 !    *PGSN* .     SNOW basal heat flux between snow and ice       W/M2
 !     UPDATED PARAMETERS AT T+1 (UNFILTERED,REAL):
-!    *PTIA*       SOIL TEMPERATURE                               K
+!    *PTIA*       ICE TEMPERATURE                               K
 !    *PGICE*      BASAL HEAT FLUX FROM LAND ICE  to soil          K
 
 !     METHOD.

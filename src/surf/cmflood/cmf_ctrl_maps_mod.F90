@@ -9,9 +9,6 @@ MODULE CMF_CTRL_MAPS_MOD
 !
 ! (C) D.Yamazaki & E. Dutra  (U-Tokyo/FCUL)  Aug 2019
 !
-! Modifications:
-! -- I. Ayan-Miguez (BSC) Feb 2023: Added reading of mpireg file in netcdf format
-!
 ! Licensed under the Apache License, Version 2.0 (the "License");
 !   You may not use this file except in compliance with the License.
 !   You may obtain a copy of the License at: http://www.apache.org/licenses/LICENSE-2.0
@@ -21,7 +18,7 @@ MODULE CMF_CTRL_MAPS_MOD
 ! See the License for the specific language governing permissions and limitations under the License.
 !==========================================================
 ! shared variables in module
-USE PARKIND1,                ONLY: JPIM, JPRB, JPRM
+USE PARKIND1,                ONLY: JPIM, JPRB, JPRD, JPRM
 USE YOS_CMF_INPUT,           ONLY: LOGNAM
 IMPLICIT NONE
 SAVE
@@ -47,7 +44,7 @@ LOGICAL                         :: LMAPCDF         !! true for netCDF map input
 CHARACTER(LEN=256)              :: CRIVCLINC       !! river map netcdf
 CHARACTER(LEN=256)              :: CRIVPARNC       !! river parameter netcdf (WIDTH,HEIGHT, Manning, ground wateer delay)
 CHARACTER(LEN=256)              :: CMEANSLNC       !! mean sea level netCDF
-CHARACTER(LEN=256)              :: CMPIREGNC       !! MPI region map netcdf
+CHARACTER(LEN=256)              :: CMPIREGNC       !! MPI region map in netcdf
 
 NAMELIST/NMAP/     CNEXTXY,  CGRAREA,  CELEVTN,  CNXTDST, CRIVLEN, CFLDHGT, &
                    CRIVWTH,  CRIVHGT,  CRIVMAN,  CPTHOUT, CGDWDLY, CMEANSL, &
@@ -312,13 +309,16 @@ USE NETCDF
 #endif
 IMPLICIT NONE
 !* local variables
-#ifdef UseCDF_CMF
-INTEGER(KIND=JPIM)              :: NCID,VARID
-#endif
 INTEGER(KIND=JPIM),ALLOCATABLE  :: REGIONGRID(:)
 !
-INTEGER(KIND=JPIM),SAVE              :: IX,IY
+INTEGER(KIND=JPIM),SAVE         :: IX,IY
 INTEGER(KIND=JPIM),SAVE         :: IREGION
+#ifdef UseMPI_CMF
+#ifdef UseCDF_CMF
+INTEGER(KIND=JPIM)              :: NCID
+INTEGER(KIND=JPIM)              :: VARID
+#endif
+#endif
 !$OMP THREADPRIVATE               (IX)
 !================================================
 WRITE(LOGNAM,*) 'RIVMAP_INIT: region code'
@@ -341,10 +341,8 @@ END DO
   IF ( LMAPCDF ) THEN
 #ifdef UseCDF_CMF
     CALL NCERROR (NF90_OPEN(CMPIREGNC,NF90_NOWRITE,NCID),'opening '//TRIM(CMPIREGNC) )
-
-    CALL NCERROR ( NF90_INQ_VARID(NCID, 'mpireg',VARID),'getting id' )
-    CALL NCERROR ( NF90_GET_VAR(NCID,VARID,I2REGION),'reading data' )
-
+    CALL NCERROR (NF90_INQ_VARID(NCID, 'mpireg',VARID),'getting id' )
+    CALL NCERROR (NF90_GET_VAR(NCID,VARID,I2REGION),'reading data' )
     CALL NCERROR (NF90_CLOSE(NCID))
 #endif
   ELSE
@@ -354,7 +352,7 @@ END DO
     READ(TMPNAM,REC=1) I2REGION
     CLOSE(TMPNAM)
   ENDIF
-  
+
   REGIONALL=1
 !$OMP PARALLEL DO REDUCTION(max:REGIONALL)
   DO IY=1, NY
@@ -587,7 +585,7 @@ USE YOS_CMF_INPUT,  ONLY: TMPNAM,   NX,NY,NLFP, LMAPEND,  &
                         & LFPLAIN,  LMEANSL,  LGDWDLY,  LSLPMIX, LSLOPEMOUTH
 USE YOS_CMF_MAP,    ONLY: D2NXTDST, D2GRAREA, D2ELEVTN, D2RIVLEN, &
                         & D2RIVWTH, D2RIVHGT, D2FLDHGT, D2RIVELV, &
-                        & D2FLDGRD, D2RIVMAN, D2RIVSTOMAX, D2FLDSTOMAX,  &
+                        & D2FLDGRD, D2RIVMAN, P2RIVSTOMAX, P2FLDSTOMAX,  &
                         & DFRCINC,  NSEQALL,  NSEQMAX, D2MEANSL, D2DWNELV, &
                         & D2GDWDLY, I2MASK
 IMPLICIT NONE
@@ -637,21 +635,21 @@ ENDIF
 ! *** 3a. Calc Channel Parameters
 WRITE(LOGNAM,*) 'TOPO_INIT: calc river channel parameters'
 
-ALLOCATE(D2RIVSTOMAX(NSEQMAX,1))
+ALLOCATE(P2RIVSTOMAX(NSEQMAX,1))
 ALLOCATE(D2RIVELV(NSEQMAX,1))
 
 IF ( LFPLAIN ) THEN
-  D2RIVSTOMAX(:,:) = D2RIVLEN(:,:) * D2RIVWTH(:,:) * D2RIVHGT(:,:)
+  P2RIVSTOMAX(:,:) = D2RIVLEN(:,:) * D2RIVWTH(:,:) * D2RIVHGT(:,:)
 ELSE
   WRITE(LOGNAM,*) 'TOPO_INIT: no floodplain (rivstomax=1.D18)'
-  D2RIVSTOMAX(:,:) = 1.E18
+  P2RIVSTOMAX(:,:) = 1.E18
 ENDIF
 D2RIVELV(:,:) = D2ELEVTN(:,:) - D2RIVHGT(:,:)
 
 !*** 3b. Calc Channel Parameters
 WRITE(LOGNAM,*) 'TOPO_INIT: calc floodplain parameters'
 
-ALLOCATE(D2FLDSTOMAX(NSEQMAX,1,NLFP))
+ALLOCATE(P2FLDSTOMAX(NSEQMAX,1,NLFP))
 ALLOCATE(D2FLDGRD(NSEQMAX,1,NLFP))
 CALL SET_FLDSTG
 
@@ -909,20 +907,20 @@ REAL(KIND=JPRB),SAVE     ::  DHGTPRE
 REAL(KIND=JPRB),SAVE     ::  DWTHINC
 !$OMP THREADPRIVATE               (I,DSTONOW,DSTOPRE,DHGTPRE,DWTHINC)
 !================================================
-D2FLDSTOMAX(:,:,:) = 0._JPRB
+P2FLDSTOMAX(:,:,:) = 0._JPRD
 D2FLDGRD(:,:,:)    = 0._JPRB
 DFRCINC=dble(NLFP)**(-1.)
 !
 !$OMP PARALLEL DO
 DO ISEQ=1, NSEQALL
-  DSTOPRE = D2RIVSTOMAX(ISEQ,1)
+  DSTOPRE = P2RIVSTOMAX(ISEQ,1)
   DHGTPRE = 0._JPRB
   DWTHINC = D2GRAREA(ISEQ,1) * D2RIVLEN(ISEQ,1)**(-1.) * DFRCINC
   DO I=1, NLFP
     DSTONOW = D2RIVLEN(ISEQ,1) * ( D2RIVWTH(ISEQ,1) + DWTHINC*(DBLE(I)-0.5) ) * (D2FLDHGT(ISEQ,1,I)-DHGTPRE)
-    D2FLDSTOMAX(ISEQ,1,I) = DSTOPRE + DSTONOW
+    P2FLDSTOMAX(ISEQ,1,I) = DSTOPRE + DSTONOW
     D2FLDGRD(ISEQ,1,I) = (D2FLDHGT(ISEQ,1,I)-DHGTPRE) * DWTHINC**(-1.)
-    DSTOPRE = D2FLDSTOMAX(ISEQ,1,I)
+    DSTOPRE = P2FLDSTOMAX(ISEQ,1,I)
     DHGTPRE = D2FLDHGT(ISEQ,1,I)
   END DO
 END DO

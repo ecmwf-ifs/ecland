@@ -160,7 +160,7 @@ USE CMF_UTILS_MOD,           ONLY: INQUIRE_FID
 !$ USE OMP_LIB    
 IMPLICIT NONE
 
-INTEGER(KIND=JPIM),OPTIONAL,INTENT(IN)  :: LECMF2LAKEC
+INTEGER(KIND=JPIM),OPTIONAL,INTENT(IN)  :: LECMF2LAKEC !! for lake coupling, currently only used in ECMWF
 
 !================================================
 WRITE(LOGNAM,*) ""
