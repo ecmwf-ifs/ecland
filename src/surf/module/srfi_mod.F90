@@ -63,6 +63,7 @@ USE SRFWDIF_MOD
 !    *PAHFSTI*    TILE SURFACE SENSIBLE HEAT FLUX                 W/M2
 !    *PEVAPTI*    TILE SURFACE MOISTURE FLUX                     KG/M2/S
 !    *PSSRFLTI*   TILE NET SHORTWAVE RADIATION FLUX AT SURFACE    W/M2
+
 !     UPDATED PARAMETERS AT T+1 (UNFILTERED,REAL):
 !    *PTIA*       SOIL TEMPERATURE                               K
 
@@ -156,8 +157,6 @@ DO JK=1,KLEVS-1
     ZDAI(JL,JK)=RDAI(JK)
   ENDDO
 ENDDO
-
-
 ! Ice thickness coupling:
 ! We always compute temperature evo on 4 levels. 
 ! Layer thickness is updated based on total ice layer depth and a minimum

@@ -100,6 +100,7 @@ LOGICAL,            INTENT(IN)   :: LDICE(:)
 LOGICAL,            INTENT(IN)   :: LDNH(:)
 LOGICAL,            INTENT(IN)   :: LNEMOICETHK
 
+
 REAL(KIND=JPRB),    INTENT(IN)   :: PTMST
 REAL(KIND=JPRB),    INTENT(IN)   :: PFRTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PTIAM1M5(:,:)

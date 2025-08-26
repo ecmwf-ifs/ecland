@@ -110,6 +110,7 @@ REAL(KIND=JPRB),    INTENT(IN)    :: PSSRFLTI5(:,:)
 REAL(KIND=JPRB),    INTENT(IN)   :: PGSN5(:) ! snow over seaice
 LOGICAL,            INTENT(IN)   :: LNEMOICETHK
 REAL(KIND=JPRB),    INTENT(IN)   :: PTHKICE5(:)
+
 TYPE(TCST),         INTENT(IN)    :: YDCST
 TYPE(TSOIL),        INTENT(IN)    :: YDSOIL
 

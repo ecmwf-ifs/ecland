@@ -230,7 +230,6 @@ REAL(KIND=JPRB) :: ZFF              ! Frozen soil fraction
 LOGICAL         :: LLNOSNOW(KLON)    ! FALSE to compute snow 
 REAL(KIND=JPRB)    :: ZEPSILON
 
-
 INTEGER(KIND=JPIM) :: JL,JK
 LOGICAL            :: LEROGLACIER
 
@@ -452,7 +451,6 @@ IF (LEROGLACIER) THEN
    ENDDO
 ENDIF
 !**
-
 
 !     ------------------------------------------------------------------
 !*         4. Update snow density 

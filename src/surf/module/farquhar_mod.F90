@@ -275,7 +275,6 @@ SUBROUTINE FARQUHAR (KIDIA, KFDIA, KLON, LDLAND, KVTYPE, KCO2TYP, YDAGS, YDAGF, 
  ! REAL(KIND=JPRB) :: ZRD(KLON,NLAI1)             ! Day respiration (respiratory CO2 release other than by photorespiration) (mumol CO2 m−2 s−1)
  ! REAL(KIND=JPRB) :: ZJJ(KLON,NLAI1)             ! Rate of e− transport (umol e− m−2 s−1)
  ! REAL(KIND=JPRB) :: ZCC(KLON,NLAI1)             ! Chloroplast CO2 partial pressure (ubar)
- ! REAL(KIND=JPRB), PARAMETER   ::  ZRADTHRESHGPP=0.0001_JPRB ! GPP radiation threshold to check zero values in single precision
  
   REAL(KIND=JPRB) :: ZTEMP_GROWTH(KLON)       ! Growth temperature (°C) - In offline mode equal to t2m_month
   REAL(KIND=JPRB) :: ZPB(KLON)                   ! Surface pressure [hPa]

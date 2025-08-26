@@ -361,7 +361,6 @@ IF (YDSOIL%LESNML) THEN
                      & PSSRFLTI, PSNM1M, &
                      & ZSNOTRS           &
                      & )
-
 ! 2.4 Compute energy balance of the snowpack
   ZEPSILON=10._JPRB*EPSILON(ZEPSILON)
   DO JL=KIDIA,KFDIA
@@ -419,6 +418,7 @@ ELSE
    & ZTSFC   ,ZTSFL    ,&
    & ZTSN(KIDIA:KFDIA,1)    ,ZGSN )
 ENDIF
+
 !     ------------------------------------------------------------------
 !*         3.     SOIL HEAT BUDGET.
 !                 ---- ---- -------

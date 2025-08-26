@@ -150,7 +150,6 @@ USE YOMSURF_SSDP_MOD
 !                                               use of parameter values defined in namelist
 !     S. Boussetta          22-06-2022 Added explicit snow albedo for snow under high veg
 !     J. McNorton           24-08-2022 urban tile
-!     G. Arduini            2024       Glacier component
 !     I. Ayan-Miguez (BSC)  Sep 2023   Added PSSDP3 object for spatially distributed parameters
 !     G. Arduini            Sep 2024   Land and sea ice tile
 !-----------------------------------------------------------------------
@@ -647,7 +646,6 @@ DO JSW=1,KSW
       ZADTI5=ZADTI2
       ZAPTI5=ZAPTI2
     ENDIF
-
     !UPDATE FOR URBAN SNOW AS A FUNCTION OF SNOW COVER (Jarvi et al. 2014 - upto 0.85)
     ! Assume linear relationship from 0.18-0.85
     IF (LEURBAN) THEN

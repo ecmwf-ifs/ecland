@@ -67,7 +67,6 @@ USE YOMSURF_SSDP_MOD
 !     SEE DOCUMENTATION
 
 !     E. Dutra , ECMWF, 04/04/2016 
-!     I. Ayan-Miguez (BSC), July 2023 Refactorization of calibrated surface spatially distributed parameters
 
 !     MODIFED
 !     M. Kelbling and S. Thober (UFZ) 11/6/2020 use of parameter values defined in namelist
@@ -144,7 +143,6 @@ ASSOCIATE(RTT=>YDCST%RTT,RVLAMSKL2D=>PSSDP2(:,SSDP2D_ID%NRVLAMSKL2D), &
 ! ZRTTMEPS=RTT-0.2_JPRB      ! slightly below zero to start snow melt
 ! ZSNOW=7._JPRB
 ZSNOW_GLACIER=8._JPRB
-!ZSNOWHVEG=20._JPRB
 ZSNOW_SICE=10._JPRB
 
 !     ------------------------------------------------------------------

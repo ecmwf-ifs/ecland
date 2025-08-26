@@ -14,7 +14,7 @@ SUBROUTINE SRFCOTWO(KIDIA,KFDIA,KLON,KLEVS,KTILES,&
  & PAG,PRD,PAN,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX,&
  & PDHCO2S)
 
- ! (C) Copyright 2005- ECMWF.
+! (C) Copyright 2005- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
 ! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.

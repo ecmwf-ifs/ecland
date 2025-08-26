@@ -59,6 +59,7 @@ USE ABORT_SURF_MOD
 USE SURFEXCDRIVER_CTL_MOD
 
 !endif INTERFACE
+
 ! (C) Copyright 2005- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
