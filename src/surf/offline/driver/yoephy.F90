@@ -100,7 +100,6 @@ INTEGER(KIND=JPIM) :: NBVOC_EMIS ! Number of BVOC emission fields
 INTEGER(KIND=JPIM),PARAMETER :: NBVOC_EMIS_DEFAULT=30 ! Maximum number of BVOC types
 CHARACTER(LEN=8), DIMENSION(NBVOC_EMIS_DEFAULT) :: BVOC_NAMES ! Names of BVOC emissions
 INTEGER(KIND=JPIM), PARAMETER :: DELTA_DAY_LAI_EMIS_BVOC=10 ! default days historic LAI info
-
 LOGICAL :: LESSDP_CALIB ! Activate calibration of Surface Spatially Distributed Parameters
 INTEGER (KIND=JPIM) :: NCWS ! Number of layers to merge at the end for the soil water profile (for > 4layers)
 !

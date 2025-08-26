@@ -31,7 +31,6 @@ USE ABORT_SURF_MOD
 USE YOMSURF_SSDP_MOD
 
 #ifdef DOC
-
 ! (C) Copyright 2021- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
@@ -39,7 +38,6 @@ USE YOMSURF_SSDP_MOD
 ! In applying this licence, ECMWF does not waive the privileges and immunities
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
-
 !**** *SRFSN_WEBALSTL* - CONTAINS SNOW PARAMETRIZATION
 !                        (Tangent linear)
 !

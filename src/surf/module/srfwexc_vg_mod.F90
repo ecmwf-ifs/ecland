@@ -25,7 +25,6 @@ USE YOMSURF_SSDP_MOD
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
 
-
 !**** *SRFWEXC_VG* -  COMPUTES THE FLUXES BETWEEN THE SOIL LAYERS AND
 !                  THE RIGHT-HAND SIDE OF THE SOIL WATER EQUATIONS.
 !

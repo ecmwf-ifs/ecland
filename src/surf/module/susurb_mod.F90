@@ -2,7 +2,7 @@ MODULE SUSURB_MOD
 CONTAINS
 !SUBROUTINE SUSURB(LD_LURBAN,LD_LURBUI,YDURB)
 SUBROUTINE SUSURB(LD_LEURBAN,YDURB)
-    ! (C) Copyright 2021- ECMWF.
+! (C) Copyright 2021- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
 ! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.

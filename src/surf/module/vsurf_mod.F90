@@ -72,8 +72,8 @@ USE YOMSURF_SSDP_MOD
 !     S. Boussetta     21/06/2022  Added Ronda (Ronda et al. 2002, J. App. Met.) SM stress function
 !     J. McNorton      24/08/2022  urban tile
 !     S. Boussetta     21/06/2022  Added LAI scaling by Cveg for Rc canopy resistance computaioin
-!     V. Huijnen       31/10/2023  Add support for BVOC emissions
 !     I. Ayan-Miguez   July 2023   Added PSSDP2 object for spatially distributed parameters
+!     V. Huijnen       31/10/2023  Add support for BVOC emissions
 
 !     PURPOSE
 !     -------
@@ -246,6 +246,7 @@ REAL(KIND=JPRB) ::  ZWET(KLON)
 REAL(KIND=JPRB) ::  ZTSK(KLON)
 REAL(KIND=JPRB) ::  ZEPSILON
 INTEGER(KIND=JPIM) :: IVEG_BVOC(KLON)
+
 REAL(KIND=JPRB) ::  ZTSOIL(KLON)
 
 REAL(KIND=JPRB) ::  ZCOR, ZEPSF3, ZF, ZF1H, ZF1L, ZF2H, ZF2L, ZF2B, ZF21H, ZF21L, ZF21B, &

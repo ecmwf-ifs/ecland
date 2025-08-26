@@ -312,7 +312,7 @@ DO JT=1,KTILES
 !*              ENDIF
 !*           ELSE
 !*              IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
-!*                 ZLAMSK(JL,JT)=RVLAMSK_SNOW
+  !*               ZLAMSK(JL,JT)=RVLAMSKS_SNOW
 !*              ELSE
 !*                 ZLAMSK(JL,JT)=RVLAMSK_SNOW
 !*              ENDIF

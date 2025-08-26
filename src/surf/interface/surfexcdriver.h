@@ -59,7 +59,6 @@ USE ISO_C_BINDING
 ! In applying this licence, ECMWF does not waive the privileges and immunities
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
-
 !------------------------------------------------------------------------
 
 !  PURPOSE:
@@ -393,6 +392,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0QTIW(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZDLTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPPTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPPTI(:,:)
+
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAN(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAG(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRD(:)

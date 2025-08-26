@@ -64,7 +64,6 @@ SUBROUTINE SUPHEC(KULOUT)
 !        J. McNorton          24-08-2022  Urban tile
 !        V. Huijnen           31-10-2023  Support for online BVOC emissions
 !        I. Ayan-Miguez       Oct 2023    Include reading of surface global parameters
-
 !     ----------------------------------------------------------------
 
 USE PARKIND1  ,ONLY : JPIM     ,JPRB,   JPRD
@@ -86,7 +85,6 @@ USE YOEPHY   , ONLY : RTHRFRTI, LEVGEN   ,LESSRO   ,LESN09   ,&
             &NCWS,LWCOU,LWCOU2W,LWCOUHMF, LBVOC_EMIS,&
             &LEOCML,LESNML,LESNICE, LEWARMSTART, LECOLDSTART, NSNMLWS, RALFMINPSN, &
             &NBVOC_EMIS, BVOC_NAMES, NBVOC_EMIS_DEFAULT, DELTA_DAY_LAI_EMIS_BVOC, TMP_SURF
-
             
 USE YOEOPTSURF, ONLY : RVR0VT, RVCMAX25, RHUMREL, RA1, RB1, RG0, RGM25, RE_VCMAX, RE_JMAX
 USE YOELW    , ONLY : NSIL     ,TSTAND   ,XP

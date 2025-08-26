@@ -106,7 +106,6 @@ USE YOMSURF_SSDP_MOD
 !                                               use of parameter values defined in namelist
 !     J. McNorton   24/08/2022  urban tile
 !     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
-!     G. Arduini    2024        glacier component
 !     G. Arduini           Sept 2024 Snow over land-ice
 !     ------------------------------------------------------------------
 

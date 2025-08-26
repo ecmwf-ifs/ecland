@@ -107,7 +107,6 @@ USE ABORT_SURF_MOD
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
 
-
 !**** *SURFTSTP* - UPDATES LAND VALUES OF TEMPERATURE, MOISTURE AND SNOW.
 
 !     PURPOSE.
@@ -533,7 +532,6 @@ REAL(KIND=JPRD) :: ZTLICE(KLON),ZTLMNW(KLON),ZTLWML(KLON),&
                    &ZTLBOT(KLON),ZTLSF(KLON),ZHLICE(KLON),ZHLML(KLON)
 REAL(KIND=JPRB) :: ZTSFCIN(KLON),ZTSFLIN(KLON),ZROFS(KLON)
 INTEGER(KIND=JPIM) :: KLEVS_WB, ILEVM1_WB
-
 !     ------------------------------------------------------------------
 
 !*         1.1   SET UP SOME CONSTANTS, INITIALISE ARRAYS.
@@ -690,7 +688,6 @@ DO JL=KIDIA,KFDIA
       ZSN(JL,1:KLEVSN)=PSNM1M(JL,1:KLEVSN) ! Fix snow mass for snow over ice in between coupling steps with ocean model.
     ENDIF
   ENDIF
-
 ! Take care of permanent snow areas! 
 !reset to max allowed snow mass 1500.0  kg/m2 
   IF ( SUM(ZSN(JL,:)) >ZSNPERT ) THEN
@@ -757,6 +754,7 @@ IF (LDSI) THEN
    & LNEMOICETHK, PTHKICE, &
    & YDCST  ,YDSOIL  ,&
    & ZTIA   ,PDHTIS)  
+
 ELSE
   DO JK=1,KLEVS
     DO JL=KIDIA,KFDIA

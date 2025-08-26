@@ -679,8 +679,6 @@ DO JL=KIDIA,KFDIA
     ZWCAP               = 0._JPRB
     ZQ(1:KLEVSN)        = 0._JPRB
     ZTBOTTOM(JL)        = 0._JPRB
-   ! 0. Final values
-
 
     ! The code does not abort for very cold temperatures
     ! In TL, reset Tsn5(t+1) to constant value and perturb to 0.
@@ -1125,8 +1123,10 @@ DO JL=KIDIA,KFDIA
         ZLWT = ZLWT + ZLAMBDASAT*RLAMSAT1M3D(JL,1)*ZLIC5
         ZLIC = ZLIC + ZLAMBDASAT*RLAMSAT1M3D(JL,1)*ZLWT5
         ZLAMBDASAT  = 0._JPRB
+
         ZWU   = ZWU - ZLIC*ZLIC5*LOG(RLAMBDAICE)
         ZLIC  = 0._JPRB
+
         ZWU   = ZWU + ZLWT*ZLWT5*LOG(RLAMBDAWAT)
         ZLWT  = 0._JPRB
 
