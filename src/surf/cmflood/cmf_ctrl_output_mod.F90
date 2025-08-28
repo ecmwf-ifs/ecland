@@ -816,9 +816,11 @@ SUBROUTINE CMF_WRITE_MULTIO(VAROUT, FIELD)
     ! accumulated/averaged fields
     ERR = MIO_MD%SET_INT("startStep", GRB_ST_STEP)
     ERR = MIO_MD%SET_INT("endStep", GRB_EN_STEP)
+    ERR = MIO_MD%SET_STRING("category", "rivers-accum")
   else
     ! instantanoous fields
     ERR = MIO_MD%SET_INT("step", GRB_EN_STEP)
+    ERR = MIO_MD%SET_STRING("category", "rivers-instant")
   endif
   
   ! write field
