@@ -160,8 +160,6 @@ list( APPEND module_src
     vupdz0sad_mod.F90
     vupdz0stl_mod.F90
     yomsurf_ssdp_mod.F90
-    yomlun_ifsaux.F90
-    yomlun.F90
     yos_agf.F90
     yos_ags.F90
     yos_bvoc.F90
