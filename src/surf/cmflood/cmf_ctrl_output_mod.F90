@@ -824,7 +824,7 @@ SUBROUTINE CMF_WRITE_MULTIO(VAROUT, FIELD)
   endif
   
   ! write field
-  ERR = MIO_MD%SET_STRING("category", "rivers")
+!  ERR = MIO_MD%SET_STRING("category", "rivers")
   ERR = MIO_MD%SET_STRING("cmf-name", VAROUT%CVNAME)
   ERR = MIO_MD%SET_REAL("missingValue", RMIS)
   ERR = MIO_MD%SET_BOOL("bitmapPresent", .TRUE.)
