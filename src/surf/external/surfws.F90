@@ -1,4 +1,4 @@
-SUBROUTINE SURFWS    (YSURF,KIDIA,KFDIA,KLON, KLEVS, KLEVSN, KTILES, PSDOR, &
+SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON, KLEVS, KLEVSN, KTILES, PSDOR, &
                     & LDSICE,&
                     & PLSM, PCIL,    PFRTI, PMU0,                          &
                     & PTSAM1M, PTSKIN,PALBSN,                         &
@@ -69,7 +69,7 @@ IMPLICIT NONE
 
 ! Declaration of arguments
 
-TYPE(TSURF)       ,INTENT(IN)    :: YSURF
+TYPE(TSURF)       ,INTENT(IN)    :: YDSURF
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON 
@@ -105,7 +105,7 @@ CALL SURFWS_CTL   (KIDIA, KFDIA, KLON, KLEVSN, PSDOR, &
  & LDSICE,PLSM, PCIL, PFRTI, PMU0,                         &
  & PTSAM1M, PTSKIN, PALBSN,                    &
  & PTSNM1M, PSNM1M, PRSNM1M, PWSNM1M,          &  
- & YSURF%YCST, YSURF%YSOIL                     )  
+ & YDSURF%YCST, YDSURF%YSOIL                   )  
 
 
 IF (LHOOK) CALL DR_HOOK('SURFWS',1,ZHOOK_HANDLE)
