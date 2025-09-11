@@ -244,8 +244,10 @@ ZHSN(KIDIA:KFDIA) = ZIHCAP*(PSSN(KIDIA:KFDIA,1))*&
                       (PTSN(KIDIA:KFDIA,1)-RTT)-RLMLT*(PSSN(KIDIA:KFDIA,1)-PWSN(KIDIA:KFDIA,1))
 
 ! ZDSNTOT is the total depth, computed with ZDSN...
-ZDSNTOT(KIDIA:KFDIA)     = SUM( ZDSN(KIDIA:KFDIA,:), DIM=2 )
-ZDSNTOTREAL(KIDIA:KFDIA) = SUM( ZDSNREAL(KIDIA:KFDIA,:), DIM=2 )
+DO JL=KIDIA,KFDIA
+  ZDSNTOT(JL)     = SUM( ZDSN(JL, :), DIM=1 )
+  ZDSNTOTREAL(JL) = SUM( ZDSNREAL(JL, :), DIM=1 )
+ENDDO
 
 ! ZTSN is the mean temperature (Single-layer)
 ZTSN(KIDIA:KFDIA) = PTSN(KIDIA:KFDIA, 1)
@@ -255,7 +257,9 @@ ZRSN(KIDIA:KFDIA) = PRSN(KIDIA:KFDIA, 1)
 
 ! ZSSN is the total water eq (Single-layer, we define it for consistency in the
 ! routine
-ZSSN(KIDIA:KFDIA) = SUM(PSSN(KIDIA:KFDIA, :), DIM=2)
+DO JL=KIDIA,KFDIA
+  ZSSN(JL) = SUM(PSSN(JL, :), DIM=1)
+ENDDO
 
 ! ZWSN is the Liquid water part (Single-layer, we define it for consistency in the
 ! routine
@@ -286,12 +290,12 @@ DO JL=KIDIA,KFDIA
   ZSSNWS(JL,2:KLEVSN)   = 0._JPRB
   ZWSNWS(JL,1:KLEVSN)   = 0._JPRB
 ENDDO
-ZTCONSTAVG=0._JPRB
-ZTCONSTSTD=0._JPRB
-ZRCONSTAVG=0._JPRB
-ZRCONSTSTD=0._JPRB
-ZTMINCL=1_JPIM
-ZRMINCL=1_JPIM
+ZTCONSTAVG(KIDIA:KFDIA,:)=0._JPRB
+ZTCONSTSTD(KIDIA:KFDIA,:)=0._JPRB
+ZRCONSTAVG(KIDIA:KFDIA,:)=0._JPRB
+ZRCONSTSTD(KIDIA:KFDIA,:)=0._JPRB
+ZTMINCL(KIDIA:KFDIA)=1_JPIM
+ZRMINCL(KIDIA:KFDIA)=1_JPIM
 
 ! Here is where you want to know which profiles to reconstruct:
 ! ML exp or SL
