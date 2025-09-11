@@ -153,7 +153,7 @@ INTEGER(KIND=JPIM) :: ZRMINCL(KLON)
 LOGICAL            :: LDLAND(KLON) 
 
 ! Cluster number
-INTEGER(KIND=JPIM)              :: INCL
+INTEGER(KIND=JPIM), PARAMETER    :: INCL = 27_JPIM
 
 ! Local Warm start arrays
 !REAL(KIND=JPRB)    :: ZTSNWS(KLON,0:KLEVSN+1)
@@ -163,9 +163,8 @@ REAL(KIND=JPRB)    :: ZSSNWS(KLON,KLEVSN)
 REAL(KIND=JPRB)    :: ZWSNWS(KLON,KLEVSN)
 
 
-! Allocatable
-REAL(KIND=JPRB), ALLOCATABLE    :: ZTCONSTAVG(:,:), ZTCONSTSTD(:,:)
-REAL(KIND=JPRB), ALLOCATABLE    :: ZRCONSTAVG(:,:), ZRCONSTSTD(:,:) 
+REAL(KIND=JPRB)    :: ZTCONSTAVG(KLON,INCL), ZTCONSTSTD(KLON,INCL)
+REAL(KIND=JPRB)    :: ZRCONSTAVG(KLON,INCL), ZRCONSTSTD(KLON,INCL) 
 
 
 REAL(KIND=JPRB)    :: ZIHCAP
@@ -190,8 +189,6 @@ ASSOCIATE(RTT=>YDCST%RTT,RLMLT=>YDCST%RLMLT, RPI=>YDCST%RPI,    &
 !****************** 
 ! 0. Define constants 
 
-! Number of cluster used in k-means clustering
-INCL = 27_JPIM 
 ! snow depth threshold to compute profiles
 ZTHRESWS = 0.125_JPRB
 
@@ -210,12 +207,6 @@ ZLEVMIN_GL         = YDSOIL%RLEVSNMIN_GL
 !*************************
 ! 1.0 Setup of the routine
 !*************************
-
-! Allocate constant for warm start profiles
-ALLOCATE( ZTCONSTAVG(KLON,INCL) )
-ALLOCATE( ZTCONSTSTD(KLON,INCL) )
-ALLOCATE( ZRCONSTAVG(KLON,INCL) )
-ALLOCATE( ZRCONSTSTD(KLON,INCL) )
 
 !**********************
 ! 1.1 Define snow points
@@ -348,12 +339,13 @@ ELSE IF (NSNMLWS == 3_JPIM) THEN
                & ZTCONSTAVG, ZTCONSTSTD,                            & ! Output
                & ZRCONSTAVG, ZRCONSTSTD, ZRSNTOP,                   & ! Output
                & YDCST, YDSOIL )
+!$loki end remove
 ENDIF
 
 
 
 
-CALL SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN,               &
+CALL SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN, INCL,         &
                  & KLEVSNA, KLEVMID,                         & 
                  & ZTHRESWS, ZSNPERT, LLNOSNOW,              &  ! THESE CAN BE MOVED TO SUSSOIL
                  & ZTSN, ZSSN, ZRSN, PTSA(:,1),              &
@@ -364,8 +356,8 @@ CALL SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN,               &
                  & ZTSNWS, ZRSNWS, YDCST, YDSOIL)
 
 
-CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,LDLAND,  &
-                 &  KLEVSNA,ZTHRESWS,                   &
+CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,INCL,    &
+                 &  LDLAND, KLEVSNA,ZTHRESWS,           &
                  &  ZDSN,ZDSNREAL,ZSNDEPTH,ZSNDEPTHREAL,&
                  &  ZRSN, ZSSN, ZRSNMAX, ZDSNTOT,       &
                  &  ZRCONSTAVG, ZRMINCL,                &
@@ -403,12 +395,6 @@ DO JL=KIDIA,KFDIA
     ENDIF
   ENDIF
 ENDDO
-
-DEALLOCATE( ZTCONSTAVG )
-DEALLOCATE( ZTCONSTSTD )
-DEALLOCATE( ZRCONSTAVG )
-DEALLOCATE( ZRCONSTSTD )
-
 
 END ASSOCIATE
 
