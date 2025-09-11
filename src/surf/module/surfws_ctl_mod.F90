@@ -299,6 +299,7 @@ ZRMINCL(KIDIA:KFDIA)=1_JPIM
 !NSNMLWS=2_JPIM ! start from single-layer values
 !NSNMLWS=3_JPIM ! start from multi-layer offline average temperature values
 IF (NSNMLWS == 1_JPIM) THEN
+!$loki remove
   CALL SURFWS_INIT_ML(KIDIA, KFDIA, KLON, KLEVSN,INCL, PMU0,PSDOR,       & ! Input
                & PTSA(:,1), PTSKIN, &
                & ZDSNTOT, ZSNDEPTH,               &
@@ -312,6 +313,7 @@ IF (NSNMLWS == 1_JPIM) THEN
                & ZRCONSTAVG, ZRCONSTSTD, ZRSNTOP,                   & ! Output
                & YDCST, YDSOIL )
 
+!$loki end remove
 ELSE IF (NSNMLWS == 2_JPIM) THEN
   CALL SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN,INCL, PMU0,PSDOR,  & ! Input
                & PTSA(:,1), PTSKIN,LDLAND, &
@@ -327,6 +329,7 @@ ELSE IF (NSNMLWS == 2_JPIM) THEN
                & YDCST, YDSOIL )
 
 ELSE IF (NSNMLWS == 3_JPIM) THEN
+!$loki remove
   CALL SURFWS_INIT_MLOFF(KIDIA, KFDIA, KLON, KLEVSN,INCL, PMU0,PSDOR,       & ! Input
                & PTSA(:,1), PTSKIN, &
                & ZDSNTOT, ZSNDEPTH,               &
@@ -367,6 +370,7 @@ CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,INCL,    &
                  &  YDCST, YDSOIL)
 
 IF (NSNMLWS == 3_JPIM) THEN
+!$loki remove
 CALL SURFWS_TSNADJ(KIDIA, KFDIA,KLON,KLEVSN,                  &
                  & KLEVSNA, KLEVMID, ZTHRESWS,                &
                  & ZSNDEPTH, ZTCONSTAVG, ZTCONSTSTD, ZTMINCL, &
@@ -376,6 +380,7 @@ CALL SURFWS_TSNADJ(KIDIA, KFDIA,KLON,KLEVSN,                  &
                  & ZSNPERT,                                   &
                  & ZTSNWS, ZSSNWS,ZWSNWS,                     &
                  & YDCST, YDSOIL )
+!$loki end remove
 ENDIF
 
 
