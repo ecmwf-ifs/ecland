@@ -20,13 +20,13 @@ MODULE CMF_DRV_CONTROL_MOD
 ! See the License for the specific language governing permissions and limitations under the License.
 !==========================================================
 !** shared variables in module
-USE PARKIND1,                ONLY: JPIM, JPRB, JPRM
+USE PARKIND1,                ONLY: JPIM, JPRB, JPRD, JPRM
 USE YOS_CMF_INPUT,           ONLY: LOGNAM
 USE YOS_CMF_MAP,             ONLY: REGIONALL, REGIONTHIS
 IMPLICIT NONE
 !** local variables
 SAVE
-REAL(KIND=JPRB)                 :: ZTT0, ZTT1, ZTT2   ! Time elapsed related 
+REAL(KIND=JPRD)                 :: ZTT0, ZTT1, ZTT2   ! Time elapsed related
 !==========================================================
 CONTAINS
 !####################################################################
@@ -176,7 +176,7 @@ WRITE(LOGNAM,*) "CMF::DRV_INIT: initialization start"
 
 !*** 0b. get start time
 CALL CPU_TIME(ZTT0)
-!$ ZTT0=REAL(OMP_GET_WTIME(),KIND=JPRB)
+!$ ZTT0=OMP_GET_WTIME()
 
 !================================================
 WRITE(LOGNAM,*) "CMF::DRV_INIT: (1) Set Time"
@@ -274,7 +274,7 @@ ENDIF
 
 !*** get initialization end time time
 CALL CPU_TIME(ZTT1)
-!$ ZTT1=REAL(OMP_GET_WTIME(),KIND=JPRB)
+!$ ZTT1=OMP_GET_WTIME()
 
 WRITE(LOGNAM,*) "CMF::DRV_INIT: initialization finished:"
 WRITE(LOGNAM,*) "Elapsed cpu time (Init)", ZTT1-ZTT0,"Seconds"
@@ -320,7 +320,7 @@ ENDIF
 
 !*** get simulation end time
 CALL CPU_TIME(ZTT2)
-!$ ZTT2=REAL(OMP_GET_WTIME(),KIND=JPRB)
+!$ ZTT2=OMP_GET_WTIME()
 WRITE(LOGNAM,*) "CMF::DRV_END: simulation finished in:",ZTT2-ZTT0,' Seconds'
 
 WRITE(LOGNAM,*) "CMF::DRV_END: close logfile"

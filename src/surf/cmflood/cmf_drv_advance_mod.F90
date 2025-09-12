@@ -18,7 +18,7 @@ MODULE CMF_DRV_ADVANCE_MOD
 !  distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
 ! See the License for the specific language governing permissions and limitations under the License.
 !==========================================================
-USE PARKIND1,                ONLY: JPIM, JPRM, JPRB
+USE PARKIND1,                ONLY: JPIM, JPRM, JPRB, JPRD
 USE YOS_CMF_INPUT,           ONLY: LOGNAM
 IMPLICIT NONE
 CONTAINS
@@ -54,7 +54,7 @@ SAVE
 INTEGER(KIND=JPIM)              :: KSTEPS             !! Number of timesteps to advance 
 !* Local variables 
 INTEGER(KIND=JPIM)              :: ISTEP              !! Time Step
-REAL(KIND=JPRB)                 :: ZTT0, ZTT1, ZTT2   !! Time elapsed related 
+REAL(KIND=JPRD)                 :: ZTT0, ZTT1, ZTT2   !! Time elapsed related
 !$ INTEGER(KIND=JPIM)           :: NTHREADS           !! OpenMP thread number
 !==========================================================
 
@@ -69,7 +69,7 @@ DO ISTEP=1,KSTEPS
   !============================
   !*** 0. get start CPU time
   CALL CPU_TIME(ZTT0)
-  !$ ZTT0=REAL(OMP_GET_WTIME(),KIND=JPRB)
+  !$ ZTT0=OMP_GET_WTIME()
 
   !============================
   !*** 1. Set next time
@@ -101,7 +101,7 @@ DO ISTEP=1,KSTEPS
   CALL CMF_DIAG_AVEMAX_OUTPUT   !! average & maximum calculation for output
 
   CALL CPU_TIME(ZTT1)
-  !$ ZTT1=REAL(OMP_GET_WTIME(),KIND=JPRB)
+  !$ ZTT1=OMP_GET_WTIME()
 
   !============================
   !*** 3. Write output file (when needed)
@@ -144,7 +144,7 @@ DO ISTEP=1,KSTEPS
   !============================
   !*** 6. Check CPU time 
   CALL CPU_TIME(ZTT2)
-  !$ ZTT2=REAL(OMP_GET_WTIME(),KIND=JPRB)
+  !$ ZTT2=OMP_GET_WTIME()
   WRITE(LOGNAM,*) "CMF::DRV_ADVANCE END: KSTEP, time (end of Tstep):", KSTEP, JYYYYMMDD, JHHMM
   WRITE(LOGNAM,'(a,f8.1,a,f8.1,a)') "Elapsed cpu time", ZTT2-ZTT0,"Sec. // File output ", ZTT2-ZTT1, "Sec"
 
