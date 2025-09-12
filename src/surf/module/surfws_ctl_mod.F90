@@ -1,7 +1,7 @@
 MODULE SURFWS_CTL_MOD
 CONTAINS
 SUBROUTINE SURFWS_CTL( KIDIA, KFDIA, KLON, KLEVSN,  &
-                     & PSDOR,LDSICE,                &
+                     & INCL,PSDOR,LDSICE,           &
                      & LSMASK, PCIL, PFRTI,PMU0,    &
                      & PTSA, PTSKIN, PALBSN,        &
                      & PTSN, PSSN, PRSN, PWSN,      &
@@ -94,7 +94,7 @@ IMPLICIT NONE
 
 
 ! Input variables:
-INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA, KFDIA, KLON, KLEVSN
+INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA, KFDIA, KLON, KLEVSN, INCL
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSDOR(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCIL(KLON)
@@ -151,9 +151,6 @@ INTEGER(KIND=JPIM) :: ZTMINCL(KLON)
 INTEGER(KIND=JPIM) :: ZRMINCL(KLON)  
 
 LOGICAL            :: LDLAND(KLON) 
-
-! Cluster number
-INTEGER(KIND=JPIM), PARAMETER    :: INCL = 27_JPIM
 
 ! Local Warm start arrays
 !REAL(KIND=JPRB)    :: ZTSNWS(KLON,0:KLEVSN+1)
