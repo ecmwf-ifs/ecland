@@ -669,7 +669,7 @@ IF ( MOD(JHOUR,IFRQ_OUT)==0 .and. JMIN==0 ) THEN             ! JHOUR: end of tim
     ELSE
       IF( VAROUT(JF)%CVNAME=='pthflw' ) THEN
         IF ( REGIONTHIS==1 ) CALL WRTE_OUTPTH(VAROUT(JF)%BINID,IRECOUT,R1POUT)        !! 1D bifu channel
-      ELSE
+      ELSEIF ( .NOT. LOUTGRB ) THEN
         IF( LOUTVEC )THEN
           CALL WRTE_OUTVEC(VAROUT(JF)%BINID,IRECOUT,D2VEC)         !! 1D vector (optional)
         ELSE
