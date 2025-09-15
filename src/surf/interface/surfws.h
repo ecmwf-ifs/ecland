@@ -1,9 +1,9 @@
 INTERFACE
-SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON,KLEVS,KLEVSN, KTILES,&
-                    & INCL, PSDOR, LDSICE,                         &
-                    & PLSM, PCIL, PFRTI, PMU0,                     &
-                    & PTSAM1M,PTSKIN, PALBSN,                      &
-                    & PTSNM1M ,PSNM1M ,                            &
+SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON,KLEVS,KLEVSN, KTILES, &
+                    & PSDOR, LDSICE,                                &
+                    & PLSM, PCIL, PFRTI, PMU0,                      &
+                    & PTSAM1M, PTSKIN, PALBSN,                      &
+                    & PTSNM1M, PSNM1M,                              &
                     & PRSNM1M, PWSNM1M                              )
 
 ! (C) Copyright 2017- ECMWF.
@@ -68,7 +68,6 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLON
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVSN
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTILES
-INTEGER(KIND=JPIM),INTENT(IN)    :: INCL
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLSM(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCIL(KLON)
 LOGICAL           ,INTENT(IN)    :: LDSICE(KLON)

@@ -1,7 +1,7 @@
 MODULE SURFWS_CTL_MOD
 CONTAINS
 SUBROUTINE SURFWS_CTL( KIDIA, KFDIA, KLON, KLEVSN,  &
-                     & INCL,PSDOR,LDSICE,           &
+                     & PSDOR,LDSICE,                &
                      & LSMASK, PCIL, PFRTI,PMU0,    &
                      & PTSA, PTSKIN, PALBSN,        &
                      & PTSN, PSSN, PRSN, PWSN,      &
@@ -9,7 +9,7 @@ SUBROUTINE SURFWS_CTL( KIDIA, KFDIA, KLON, KLEVSN,  &
 
 USE PARKIND1 , ONLY : JPIM, JPRB
 USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
-USE YOS_CST  , ONLY : TCST
+USE YOS_CST  , ONLY : TCST, INCL
 USE YOS_SOIL , ONLY : TSOIL
 
 USE SRFSN_VGRID_MOD, ONLY : SRFSN_VGRID
@@ -94,7 +94,7 @@ IMPLICIT NONE
 
 
 ! Input variables:
-INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA, KFDIA, KLON, KLEVSN, INCL
+INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA, KFDIA, KLON, KLEVSN
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSDOR(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(KLON)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCIL(KLON)
@@ -297,7 +297,7 @@ ZRMINCL(KIDIA:KFDIA)=1_JPIM
 !NSNMLWS=3_JPIM ! start from multi-layer offline average temperature values
 IF (NSNMLWS == 1_JPIM) THEN
 !$loki remove
-  CALL SURFWS_INIT_ML(KIDIA, KFDIA, KLON, KLEVSN,INCL, PMU0,PSDOR,       & ! Input
+  CALL SURFWS_INIT_ML(KIDIA, KFDIA, KLON, KLEVSN,PMU0,PSDOR,       & ! Input
                & PTSA(:,1), PTSKIN, &
                & ZDSNTOT, ZSNDEPTH,               &
                & ZSNPERT,                & ! Input
@@ -312,7 +312,7 @@ IF (NSNMLWS == 1_JPIM) THEN
 
 !$loki end remove
 ELSE IF (NSNMLWS == 2_JPIM) THEN
-  CALL SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN,INCL, PMU0,PSDOR,  & ! Input
+  CALL SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN,PMU0,PSDOR,  & ! Input
                & PTSA(:,1), PTSKIN,LDLAND, &
                & ZDSNTOT, ZSNDEPTH,               &
                & ZSNPERT,                & ! Input
@@ -327,7 +327,7 @@ ELSE IF (NSNMLWS == 2_JPIM) THEN
 
 ELSE IF (NSNMLWS == 3_JPIM) THEN
 !$loki remove
-  CALL SURFWS_INIT_MLOFF(KIDIA, KFDIA, KLON, KLEVSN,INCL, PMU0,PSDOR,       & ! Input
+  CALL SURFWS_INIT_MLOFF(KIDIA, KFDIA, KLON, KLEVSN,PMU0,PSDOR,       & ! Input
                & PTSA(:,1), PTSKIN, &
                & ZDSNTOT, ZSNDEPTH,               &
                & ZSNPERT,                & ! Input
@@ -345,7 +345,7 @@ ENDIF
 
 
 
-CALL SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN, INCL,         &
+CALL SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN,               &
                  & KLEVSNA, KLEVMID,                         & 
                  & ZTHRESWS, ZSNPERT, LLNOSNOW,              &  ! THESE CAN BE MOVED TO SUSSOIL
                  & ZTSN, ZSSN, ZRSN, PTSA(:,1),              &
@@ -356,7 +356,7 @@ CALL SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN, INCL,         &
                  & ZTSNWS, ZRSNWS, YDCST, YDSOIL)
 
 
-CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,INCL,    &
+CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,         &
                  &  LDLAND, KLEVSNA,ZTHRESWS,           &
                  &  ZDSN,ZDSNREAL,ZSNDEPTH,ZSNDEPTHREAL,&
                  &  ZRSN, ZSSN, ZRSNMAX, ZDSNTOT,       &
