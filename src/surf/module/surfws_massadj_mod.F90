@@ -2,7 +2,7 @@ MODULE SURFWS_MASSADJ_MOD
 CONTAINS
 
 SUBROUTINE SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,     &
-                       &LDLAND, KLEVSNA, ZTHRESWS,        &
+                       &  LDLAND, KLEVSNA, ZTHRESWS,      &
                        &  PDSN,PDSNREAL,PSNDEPTH,PSNDEPTHR,&
                        &  PRSN, PSSN, PRSNMAX, PDSNTOT,   &
                        &  PRCONSTAVG, PRMINCL,            &

@@ -2,7 +2,7 @@ MODULE SURFWS_CTL_MOD
 CONTAINS
 SUBROUTINE SURFWS_CTL( KIDIA, KFDIA, KLON, KLEVSN,  &
                      & PSDOR,LDSICE,                &
-                     & LSMASK, PCIL, PFRTI,PMU0,    &
+                     & LSMASK, PCIL, PFRTI, PMU0,   &
                      & PTSA, PTSKIN, PALBSN,        &
                      & PTSN, PSSN, PRSN, PWSN,      &
                      & YDCST, YDSOIL                )
@@ -12,14 +12,14 @@ USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_CST  , ONLY : TCST, JPNCL
 USE YOS_SOIL , ONLY : TSOIL
 
-USE SRFSN_VGRID_MOD, ONLY : SRFSN_VGRID
-USE SRFSN_REGRID_MOD, ONLY : SRFSN_REGRID
-USE SURFWS_INIT_ML_MOD, ONLY : SURFWS_INIT_ML
-USE SURFWS_INIT_SL_MOD, ONLY : SURFWS_INIT_SL
+USE SRFSN_VGRID_MOD,       ONLY : SRFSN_VGRID
+USE SRFSN_REGRID_MOD,      ONLY : SRFSN_REGRID
+USE SURFWS_INIT_ML_MOD,    ONLY : SURFWS_INIT_ML
+USE SURFWS_INIT_SL_MOD,    ONLY : SURFWS_INIT_SL
 USE SURFWS_INIT_MLOFF_MOD, ONLY : SURFWS_INIT_MLOFF
-USE SURFWS_FGPROF_MOD, ONLY : SURFWS_FGPROF
-USE SURFWS_MASSADJ_MOD, ONLY : SURFWS_MASSADJ
-USE SURFWS_TSNADJ_MOD, ONLY : SURFWS_TSNADJ
+USE SURFWS_FGPROF_MOD,     ONLY : SURFWS_FGPROF
+USE SURFWS_MASSADJ_MOD,    ONLY : SURFWS_MASSADJ
+USE SURFWS_TSNADJ_MOD,     ONLY : SURFWS_TSNADJ
 USE EC_LUN   , ONLY : NULOUT
 
 USE ABORT_SURF_MOD
@@ -161,7 +161,7 @@ REAL(KIND=JPRB)    :: ZWSNWS(KLON,KLEVSN)
 
 
 REAL(KIND=JPRB)    :: ZTCONSTAVG(KLON,JPNCL), ZTCONSTSTD(KLON,JPNCL)
-REAL(KIND=JPRB)    :: ZRCONSTAVG(KLON,JPNCL), ZRCONSTSTD(KLON,JPNCL) 
+REAL(KIND=JPRB)    :: ZRCONSTAVG(KLON,JPNCL), ZRCONSTSTD(KLON,JPNCL)
 
 
 REAL(KIND=JPRB)    :: ZIHCAP
@@ -297,10 +297,10 @@ ZRMINCL(KIDIA:KFDIA)=1_JPIM
 !NSNMLWS=3_JPIM ! start from multi-layer offline average temperature values
 IF (NSNMLWS == 1_JPIM) THEN
 !$loki remove
-  CALL SURFWS_INIT_ML(KIDIA, KFDIA, KLON, KLEVSN,PMU0,PSDOR,       & ! Input
-               & PTSA(:,1), PTSKIN, &
-               & ZDSNTOT, ZSNDEPTH,               &
-               & ZSNPERT,                & ! Input
+  CALL SURFWS_INIT_ML(KIDIA, KFDIA, KLON, KLEVSN, PMU0, PSDOR,      & ! Input
+               & PTSA(:,1), PTSKIN,                                 &
+               & ZDSNTOT, ZSNDEPTH,                                 &
+               & ZSNPERT,                                           & ! Input
                & ZDSNREAL,ZTSN, ZRSN, ZSSN, ZWSN,PALBSN,            & ! Input
                & ZTSNWS,ZSSNWS,ZRSNWS,ZWSNWS,                       & ! Output
                & ZTSNTOP, ZTSNBOTTOM, ZTSNMIDDLE,                   & ! Output
@@ -312,10 +312,10 @@ IF (NSNMLWS == 1_JPIM) THEN
 
 !$loki end remove
 ELSE IF (NSNMLWS == 2_JPIM) THEN
-  CALL SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN,PMU0,PSDOR,  & ! Input
-               & PTSA(:,1), PTSKIN,LDLAND, &
-               & ZDSNTOT, ZSNDEPTH,               &
-               & ZSNPERT,                & ! Input
+  CALL SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN, PMU0, PSDOR,      & ! Input
+               & PTSA(:,1), PTSKIN, LDLAND,                         &
+               & ZDSNTOT, ZSNDEPTH,                                 &
+               & ZSNPERT,                                           & ! Input
                & ZDSNREAL,ZTSN, ZRSN, ZSSN, ZWSN,PALBSN,            & ! Input
                & ZTSNWS,ZSSNWS,ZRSNWS,ZWSNWS,                       & ! Output
                & ZTSNTOP, ZTSNBOTTOM, ZTSNMIDDLE,                   & ! Output
@@ -327,10 +327,10 @@ ELSE IF (NSNMLWS == 2_JPIM) THEN
 
 ELSE IF (NSNMLWS == 3_JPIM) THEN
 !$loki remove
-  CALL SURFWS_INIT_MLOFF(KIDIA, KFDIA, KLON, KLEVSN,PMU0,PSDOR,       & ! Input
-               & PTSA(:,1), PTSKIN, &
-               & ZDSNTOT, ZSNDEPTH,               &
-               & ZSNPERT,                & ! Input
+  CALL SURFWS_INIT_MLOFF(KIDIA, KFDIA, KLON, KLEVSN,PMU0,PSDOR,     & ! Input
+               & PTSA(:,1), PTSKIN,                                 &
+               & ZDSNTOT, ZSNDEPTH,                                 &
+               & ZSNPERT,                                           & ! Input
                & ZDSNREAL,ZTSN, ZRSN, ZSSN, ZWSN,PALBSN,            & ! Input
                & ZTSNWS,ZSSNWS,ZRSNWS,ZWSNWS,                       & ! Output
                & ZTSNTOP, ZTSNBOTTOM, ZTSNMIDDLE,                   & ! Output
@@ -346,7 +346,7 @@ ENDIF
 
 
 CALL SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN,               &
-                 & KLEVSNA, KLEVMID,                         & 
+                 & KLEVSNA, KLEVMID,                         &
                  & ZTHRESWS, ZSNPERT, LLNOSNOW,              &  ! THESE CAN BE MOVED TO SUSSOIL
                  & ZTSN, ZSSN, ZRSN, PTSA(:,1),              &
                  & ZDSNTOT,ZACTDEPTH, ZSNDEPTH,ZSNDEPTHREAL, ZSADEPTH,    &
@@ -357,7 +357,7 @@ CALL SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN,               &
 
 
 CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,         &
-                 &  LDLAND, KLEVSNA,ZTHRESWS,           &
+                 &  LDLAND, KLEVSNA, ZTHRESWS,          &
                  &  ZDSN,ZDSNREAL,ZSNDEPTH,ZSNDEPTHREAL,&
                  &  ZRSN, ZSSN, ZRSNMAX, ZDSNTOT,       &
                  &  ZRCONSTAVG, ZRMINCL,                &
@@ -368,7 +368,7 @@ CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,         &
 
 IF (NSNMLWS == 3_JPIM) THEN
 !$loki remove
-CALL SURFWS_TSNADJ(KIDIA, KFDIA,KLON,KLEVSN,                  &
+CALL SURFWS_TSNADJ(KIDIA, KFDIA,KLON, KLEVSN,                 &
                  & KLEVSNA, KLEVMID, ZTHRESWS,                &
                  & ZSNDEPTH, ZTCONSTAVG, ZTCONSTSTD, ZTMINCL, &
                  & ZRSN, ZSSN, ZTSN, ZHSN,                    &
