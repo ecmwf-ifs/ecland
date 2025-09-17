@@ -1,9 +1,9 @@
 MODULE SURFWS_INIT_MLOFF_MOD
 CONTAINS
 
-SUBROUTINE SURFWS_INIT_MLOFF(KIDIA, KFDIA, KLON, KLEVSN, PMU0,PSDOR,        &  ! Input
-                     &  PTSOIL, PTSKIN, &
-                     &  ZDSNTOT, ZSNDEPTH,                  &       
+SUBROUTINE SURFWS_INIT_MLOFF(KIDIA, KFDIA, KLON, KLEVSN, PMU0, PSDOR,      &  ! Input
+                     &  PTSOIL, PTSKIN,                                    &
+                     &  ZDSNTOT, ZSNDEPTH,                                 &
                      &  ZSNPERT,                                           &  ! Input
                      &  ZDSNR,PTSN, PRSN, PSSN, PWSN,PASN,                 &  ! Input
                      &  PTSNWS,PSSNWS,PRSNWS,PWSNWS,                       & ! Output

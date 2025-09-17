@@ -1,5 +1,5 @@
 INTERFACE
-SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON,KLEVS,KLEVSN, KTILES, &
+SUBROUTINE SURFWS    (YSURF,KIDIA,KFDIA,KLON,KLEVS,KLEVSN, KTILES, &
                     & PSDOR, LDSICE,                                &
                     & PLSM, PCIL, PFRTI, PMU0,                      &
                     & PTSAM1M, PTSKIN, PALBSN,                      &
@@ -61,7 +61,7 @@ IMPLICIT NONE
 
 ! Declaration of arguments
 
-TYPE(TSURF)       ,INTENT(IN)    :: YDSURF
+TYPE(TSURF)       ,INTENT(IN)    :: YSURF
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON

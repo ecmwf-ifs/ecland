@@ -1,9 +1,9 @@
 MODULE SURFWS_INIT_SL_MOD
 CONTAINS
 
-SUBROUTINE SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN, PMU0,PSDOR,              &  ! Input
-                     &  PTSOIL, PTSKIN,LDLAND, &
-                     &  ZDSNTOT, ZSNDEPTH,                  &       
+SUBROUTINE SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN, PMU0, PSDOR,         &  ! Input
+                     &  PTSOIL, PTSKIN,LDLAND,                             &
+                     &  ZDSNTOT, ZSNDEPTH,                                 &
                      &  ZSNPERT,                                           &  ! Input
                      &  ZDSNR,PTSN, PRSN, PSSN, PWSN,PASN,                 &  ! Input
                      &  PTSNWS,PSSNWS,PRSNWS,PWSNWS,                       & ! Output
