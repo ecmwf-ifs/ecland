@@ -235,6 +235,7 @@ IF (RLAIINT > 0._JPRB ) THEN
 
     DO JVT=1,NVTILES
 
+      !$loki inline
       CALL NITRO_DECLINE(KIDIA,KFDIA,JVT,KVEG(:,JVT),KLON,KSTEP,PTSPHY, &
          & PCVT(:,JVT), &
          & PTSKM1M,PTSAM1M(:,2),PLAT,PLAIVT(:,JVT),&
