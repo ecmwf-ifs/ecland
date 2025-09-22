@@ -8,6 +8,14 @@ USE YOMSURF_SSDP_MOD
 USE YOMGPD1S , ONLY : GPD_SDP2, GPD_SDP3
 #ifdef DOC
 
+! (C) Copyright 2025- ECMWF.
+!
+! This software is licensed under the terms of the Apache Licence Version 2.0
+! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+! In applying this licence, ECMWF does not waive the privileges and immunities
+! granted to it by virtue of its status as an intergovernmental organisation
+! nor does it submit to any jurisdiction.
+
 !**** *RDSSDP  * - Reading netCDF file containing surface climate fields from surf_param.nc file
 
 !     Purpose.
