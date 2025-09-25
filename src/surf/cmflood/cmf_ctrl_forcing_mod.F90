@@ -319,7 +319,7 @@ INTEGER(KIND=JPIM)              :: ISTATUS,VDIMIDS(1)
 ! SAVE for OpenMP
 INTEGER(KIND=JPIM),SAVE         :: IX,IY,ILEV
 REAL(KIND=JPRB),SAVE            :: ZTMP
-!$OMP THREADPRIVATE               (IY,ZTMP)
+!$OMP THREADPRIVATE               (IY,ILEV,ZTMP)
 !================================================
 !*** 1. allocate input matrix variables
 WRITE(LOGNAM,*) 'NX, NY, INPN =', NX, NY, INPN
@@ -389,7 +389,7 @@ IF(PRESENT(LECMF2LAKEC) .AND. (LECMF2LAKEC .NE. 0)) THEN
   
     !! We normalize INPAI here as it is used to interpolate flood fraction (Input Area Inversed)
     WRITE(LOGNAM,*) 'INPAI normalization'
-!$OMP PARALLEL DO PRIVATE(ILEV)
+!$OMP PARALLEL DO
     DO IX=1,NXIN
       DO IY=1,NYIN
         ZTMP=0._JPRB
@@ -471,7 +471,6 @@ IMPLICIT NONE
 REAL(KIND=JPRB),INTENT(INOUT)   :: PBUFF(:,:,:)
 
 INTEGER(KIND=JPIM),SAVE         ::  IXIN, IYIN  !! FOR OUTPUT
-!$OMP THREADPRIVATE                (IXIN)
 !================================================
 IF( LINPCDF ) THEN
 #ifdef UseCDF_CMF
@@ -481,7 +480,7 @@ ELSE
   CALL CMF_FORCING_GET_BIN(PBUFF(:,:,:))
 ENDIF 
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO SIMD PRIVATE(IXIN)
 DO IYIN=1,NYIN
   DO IXIN=1,NXIN
     IF( CMF_CheckNanB(PBUFF(IXIN,IYIN,1),0._JPRB) )THEN !! Check if PRUFINN(IX,IY) is NaN (Not-A-Number) ot not
@@ -490,10 +489,10 @@ DO IYIN=1,NYIN
     PBUFF(IXIN,IYIN,1)=max(PBUFF(IXIN,IYIN,1),0._JPRB)    !! negative Runoff not assumed
   ENDDO
 ENDDO
-!$OMP END PARALLEL DO
+!$OMP END PARALLEL DO SIMD
 
 IF ( LROSPLIT ) THEN
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO SIMD PRIVATE(IXIN)
   DO IYIN=1,NYIN
     DO IXIN=1,NXIN
       IF( CMF_CheckNanB(PBUFF(IXIN,IYIN,2),0._JPRB) )THEN !! Check if PRUFINN(IX,IY) is NaN (Not-A-Number) ot not
@@ -502,7 +501,7 @@ IF ( LROSPLIT ) THEN
       PBUFF(IXIN,IYIN,2)=max(PBUFF(IXIN,IYIN,2),0._JPRB)    !! negative Runoff not assumed
     ENDDO
   ENDDO
-!$OMP END PARALLEL DO
+!$OMP END PARALLEL DO SIMD 
 ENDIF
 
 CONTAINS

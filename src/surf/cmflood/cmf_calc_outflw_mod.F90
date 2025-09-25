@@ -31,10 +31,6 @@ CONTAINS
 !####################################################################
 SUBROUTINE CMF_CALC_OUTFLW
 IMPLICIT NONE
-!*** Local
-REAL(KIND=JPRB)            :: D2SFCELV_PRE(NSEQMAX,1)                  !! water surface elevation (t-1) [m]
-REAL(KIND=JPRB)            :: D2FLDDPH_PRE(NSEQMAX,1)                      !! floodplain depth (t-1)        [m]
-
 ! save for OpenMP
 INTEGER(KIND=JPIM),SAVE    :: ISEQ, JSEQ
 REAL(KIND=JPRB),SAVE       :: DFSTO,DSFC,DSFC_pr,DSLP,DFLW,DFLW_pr,DFLW_im,DARE,DARE_pr,DARE_im,DOUT_pr,DOUT,DVEL
