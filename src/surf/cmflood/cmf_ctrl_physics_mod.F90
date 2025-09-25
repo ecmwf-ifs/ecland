@@ -59,8 +59,6 @@ CALL CMF_DIAG_RESET_ADPSTP  !! average & max calculation: reset
 DO IT=1, NT
 
 !=== 1. Calculate river discharge 
-  D2STORGE(:,:)=P2RIVSTO(:,:)+P2FLDSTO(:,:)
-
   IF ( LKINE ) THEN
     CALL CMF_CALC_OUTFLW_KINE       !!  OPTION: kinematic
   ELSEIF( LSLPMIX ) THEN
