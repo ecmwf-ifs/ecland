@@ -229,7 +229,7 @@ trace ${SCRIPTS_DIR}/ecland_run_model.sh   \
     -n "${NAMELIST}"     \
     ${NAMELIST_CMF_OPT}  \
     -l ${NLOOP}          \
-    -R ${LRESTART}       \
+    -R ${LRESTART}       
 done
 
 # Clean up the working directory
