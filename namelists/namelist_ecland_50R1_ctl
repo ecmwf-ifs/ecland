@@ -6,75 +6,74 @@
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
 
-  &NAMCT01S
-    NSTART=0        ! first timestep of model 0 
-    NSTOP=105214               ! last timestep of model 
-    NFRPOS=105214             ! frequency of post-processing events (time-steps)
+&NAMCT01S
+    NSTART={nstart}          ! first timestep of model 0
+    NSTOP={nstop}            ! last timestep of model
+    NFRPOS={nfreq_post}      ! frequency of post-processing events (time-steps)
     NFRRES=0                 ! frequency of writing intermediate restart files (time-steps)
     LNF=.TRUE.               ! .T. = start, .F. = restart
     NCYCLE=1                ! number of the experiment
     CNMEXP="DEFAULT"            ! name of the experiment
     /
-    &NAMDYN1S
-    TSTEP=1800             !  TSTEP   : length of the timestep in seconds
+&NAMDYN1S
+    TSTEP={tstep}           !  TSTEP   : length of the timestep in seconds
     NACCTYPE=2              ! =0  Forcing fluxes assument centered on timestamp (linear interp.)
                             ! =1  forward accumulation (starting at timestamp)
                             ! =2  backward accumulation (ending at timestamp)
-    LSWINT=.FALSE.          ! SWdown solar angle interpolation if true 
+    LSWINT=.FALSE.          ! SWdown solar angle interpolation if true
     LPREINT=.FALSE.         ! precipitation interpolation if true
-    LFLXINT=.FALSE.         ! SWdown/LWdown linear interpolation if true 
+    LFLXINT=.FALSE.         ! SWdown/LWdown linear interpolation if true
     TCOUPFREQ=86400.        ! Coupling frequency with CaMa-flood
     /
-    &NAMDIM
-    NLAT=1              ! number of latitudes
-    NLON=1               ! number of longitudes
-    NDFORC=52608         ! namelist forcing dimension
+&NAMDIM
+    NLAT={nlat}              ! number of latitudes
+    NLON={nlon}              ! number of longitudes
+    NDFORC={nforcing}        ! namelist forcing dimension
     NCSS=4                   ! number of vertical layers in the soil
-    NCSNEC=5
+    NCSNEC=5                 ! number of vertical layer in the snow 
     /
-    &NAMRIP
-    NINDAT=19910101       ! run initial date in the form YYYYMMDD 
-    NSSSSS=0       ! initial time in seconds (e.g. for 12h, 43200)
+&NAMRIP
+    NINDAT={iniDate}       ! run initial date in the form YYYYMMDD
+    NSSSSS={iniSec}       ! initial time in seconds (e.g. for 12h, 43200)
     /
-    &NAM1S
+&NAM1S
     CFFORC='netcdf'          ! CHARACTER: IDENTIFIES THE FORCING DATA SET
     CFOUT='netcdf'           ! CHARACTER: IDENTIFIES THE OUTPUT DATA SET
-    CFSURF='netcdf'          ! CHARACTER: IDENTIFIES THE SURFACE CLIMATOLOGY DATA SET 
+    CFSURF='netcdf'          ! CHARACTER: IDENTIFIES THE SURFACE CLIMATOLOGY DATA SET
     CFINIT='netcdf'          ! CHARACTER: IDENTIFIES THE INITIALIZATION DATA SET
-    CMODID='HTESSEL'         ! CHARACTER: MODEL IDENTIFICATION
+    CMODID='ecLand_50r1'     ! CHARACTER: MODEL IDENTIFICATION
     LACCUMW=.TRUE.           ! LOGICAL : WRITE OUT ACCUMULATED FLUXES (DEFAULT=TRUE)
     LRESET=.TRUE.            ! LOGICAL : RESET ACCUMULATION EVERY WRITE OUT TIME STEP
     NACCUR=1               ! INTEGER : OUTPUT CDF ACCURACY: 1=SINGLE PREC, 2=DOUBLE PREC
-    NDIMCDF=2         ! INTEGER : NR OF GRID DIMENSIONS
+    NDIMCDF={ndimcdf}         ! INTEGER : NR OF GRID DIMENSIONS
     NDLEVEL=0                ! INTEGER : Level of netcdf4 compression 0-9: 0== no compression -faster output
     NCDFTYPE=4                ! type of netcdf output
-    LWRGG=.TRUE.              ! logical, wrtie o_gg  - instantaneus prognostics
-    LWRCLM=.FALSE.            ! logical, write o_fix - fix soil properties
-    LWRGGD=.FALSE.            ! logical, write o_ggd - mean prognostic evolution
-    LWREFL=.FALSE.            ! logical, write o_efl - surface energy balance 
-    LWRWAT=.FALSE.            ! logical, write o_wat - water balance
-    LWRD2M=.FALSE.            ! logical, write o_d2m - 2 meters diagnostics 
-    LWRSUS=.FALSE.            ! logical, write o_sus - surface state variables (vegT,albedo, etc..)
-    LWREVA=.FALSE.            ! logical, write o_eva - evaporation components 
-    LWRCLD=.FALSE.            ! logical, write o_cld - cold processes variables 
-    LWRCO2=.FALSE.           ! logical, write o_co2 - cO2 fluxes 
-    LWRBIO=.FALSE.           ! logical, write o_bio - biomass 
-    LWRVEG=.FALSE.           ! logical, write o_veg - vegetation 2D high/low veg 
-    LWRVTY=.FALSE.           ! logical, write o_vty - vegetation 2D high/low veg biomass
-    LWRTIL=.FALSE.           ! logical, write o_til - tiles 2D (tile) state
-    LWRLKE=.FALSE.           ! logical, write o_lke - lake variables - not active for now... 
+    LWRGG=.TRUE.              ! logical, write o_gg  - output instantaneus prognostics
+    LWRCLM=.FALSE.            ! logical, write o_fix - output fix soil properties
+    LWRGGD=.FALSE.            ! logical, write o_ggd - output mean prognostic evolution
+    LWREFL=.TRUE.            ! logical, write o_efl - output surface energy balance
+    LWRWAT=.TRUE.            ! logical, write o_wat - output water balance
+    LWRD2M=.FALSE.            ! logical, write o_d2m - output 2 meters diagnostics
+    LWRSUS=.FALSE.            ! logical, write o_sus - output surface state variables (vegT,albedo, etc..)
+    LWREVA=.FALSE.            ! logical, write o_eva - output evaporation components
+    LWRCLD=.FALSE.            ! logical, write o_cld - output cold processes variables
+    LWRCO2=.FALSE.           ! logical, write o_co2 - output cO2 fluxes
+    LWRBIO=.FALSE.           ! logical, write o_bio - output biomass
+    LWRVEG=.FALSE.           ! logical, write o_veg - output vegetation 2D high/low veg
+    LWRVTY=.FALSE.           ! logical, write o_vty - output vegetation 2D high/low veg biomass
+    LWRTIL=.FALSE.           ! logical, write o_til - output tiles 2D (tile) state
+    LWRLKE=.FALSE.           ! logical, write o_lke - output lake variables - not active for now...
     LSEMISS=.FALSE.          ! LOGICAL : EMISSIVITY SET TO CONSTANT VALUE REMISS
     LDBGS1=.FALSE.           ! LOGICAL : PRINT DEBUG INFO, EG FORCING DATA (DEFAULT=FALSE)
     IDBGS1=1                 ! Debug level : output printing
-    LNCSNC=.FALSE.
+    LNCSNC=.FALSE.           ! if true sync netcdf output every writting step (slows down run)
     /
-    &NAMFORC
-    
-    ZPHISTA=30.000            ! REFERENCE LEVEL (FOR T, Q)   - insitu forcing height
-    ZUV=30.000                ! REFERENCE LEVEL FOR WIND  - insitu forcing height
-    ZDTFORC=3600              ! FORCING TIME STEP     
+&NAMFORC
+    ZPHISTA={zphista}            ! REFERENCE LEVEL (FOR T, Q)   - insitu forcing height
+    ZUV={zuv}                ! REFERENCE LEVEL FOR WIND  - insitu forcing height
+    ZDTFORC={forcing_step}              ! FORCING TIME STEP
     INSTFC=0                 ! NUMBER OF TIME STEPS TO BE READ (0 = ALL)
-    NDIMFORC=2        ! NUMBER OF GRID DIMENSIONS in FORCING
+    NDIMFORC={ndimcdf}        ! NUMBER OF GRID DIMENSIONS in FORCING
     LOADIAB=.FALSE.          ! FLAG FOR APPLYING ADIABATIC HEIGHT CORRECTION
     CFORCV="forcing"
     CFORCU="forcing"
@@ -86,7 +85,7 @@
     CFORCSW="forcing"
     CFORCLW="forcing"
     /
-    &NAMPHY
+&NAMPHY
     LEVGEN=.TRUE.                  ! LOGICAL : TURN THE VAN GENUCHTEN HYDROLOGY ON
     LESSRO=.TRUE.                  ! LOGICAL : TURN THE SUB-GRID SURFACE RUNOFF ON
     LEFLAKE=.TRUE.                 ! LOGICAL : TURN THE FLAKE ON
@@ -104,10 +103,10 @@
     LEINTWIND=.T.
     LESNML=.TRUE.
     LECMF1WAY=.F.    ! Logical : Turn on Coupling with CaMa-Flood
-    NCMF2LAKEC=0    ! Integer: 2way coupling : 0 -> off, 1 -> replace , 2 -> add
-    LESSDP_CALIB=false ! Logical : Turn on the calibration of the surface spatially distributed parameters
-    /
-&NAMOPTSURF
+    LECMF2LAKEC=0 ! Integer: 2way coupling : 0 -> off, 1 -> replace , 2 -> add
+    LESSDP_CALIB=false ! Logical : Turn on the calibration of the surface spatially distributed parameters 
+  /
+  &NAMOPTSURF
      OVR0VT=1.395E-07,1.332E-07,4.617E-07,4.334E-07,4.060E-07,
             3.208E-07,1.395E-07,1.450E-07,5.230E-07,0.557E-07,
             0.013E-07,1.450E-07,3.692E-07,1.450E-07,1.450E-07,
@@ -122,16 +121,16 @@
     OGM25=0.513, 0.657, 0.1, 0.4, 0.719, 0.387, 0.513, 0.4, 0.8, 0.4, 0.4, 0.4, 0.59, 0.4, 0.4, 0.4, 0.724, 0.404, 0.4, 0.4, 0.4,0.4
     OE_VCMAX=72801.3, 50059.1, 59880.2, 71513, 92966.9, 67706.09, 72801.3, 71513, 50059.1, 71513, 67300, 71513, 72906.6, 71513, 71513, 47110, 50059.1, 71513.0, 71513, 71513, 80090.2,47110
     OE_JMAX=64849.2, 41459.5, 35048.2, 49884, 34918.8, 34918.8, 64849.2, 49884, 34918.8, 49884, 77900, 49884, 34918.8, 49884, 49884, 54530, 52755.6, 49884.0, 49884, 49884, 101270, 54530
-   /
+    /
 &NAMPHYOFF
     LEWBCHECK=.FALSE.
     LEWBCHECKAbort=.FALSE.
     LESNCHECK=.FALSE.
     LESNCHECKAbort=.FALSE.
     LEWBSOILFIX=.TRUE.
-    LESKTI5=.FALSE.
-    LESKTI8=.FALSE.
-    LEWARMSTART=.FALSE.
+    LESKTI5=.FALSE.               ! LOGICAL: turn on variable skin conductivity over exposed snow tile.
+    LESKTI8=.FALSE.               ! LOGICAL: turn on variable skin conductivity over bare soil.
+    LEWARMSTART=.FALSE.           
     LECOLDSTART=.FALSE.
     LESOILCOND=.TRUE.
     LESNWBCON=.FALSE.

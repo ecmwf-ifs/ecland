@@ -23,6 +23,7 @@
     LSWINT=.FALSE.          ! SWdown solar angle interpolation if true 
     LPREINT=.FALSE.         ! precipitation interpolation if true
     LFLXINT=.FALSE.         ! SWdown/LWdown linear interpolation if true 
+    TCOUPFREQ=86400.        ! Coupling frequency with CaMa-flood
     /
     &NAMDIM
     NLAT=101               ! number of latitudes
@@ -103,9 +104,24 @@
     LEINTWIND=.T.
     LESNML=.TRUE.
     LECMF1WAY=.F.    ! Logical : Turn on Coupling with CaMa-Flood
-    LECMF2LAKEC=0    ! Integer: 2way coupling : 0 -> off, 1 -> replace , 2 -> add
+    NCMF2LAKEC=0    ! Integer: 2way coupling : 0 -> off, 1 -> replace , 2 -> add
+    LESSDP_CALIB=false ! Logical : Turn on the calibration of the surface spatially distributed parameters
     /
 &NAMOPTSURF
+     OVR0VT=1.395E-07,1.332E-07,4.617E-07,4.334E-07,4.060E-07,
+            3.208E-07,1.395E-07,1.450E-07,5.230E-07,0.557E-07,
+            0.013E-07,1.450E-07,3.692E-07,1.450E-07,1.450E-07,
+            1.328E-07,0.416E-07,2.107E-07,2.107E-07,2.700E-07,
+            1.038E-07,0.302E-07
+
+    OVCMAX25=49, 48.7, 62.2, 35, 41.9, 33.9, 49., -9999, 70, 60, 50, -9999, 48.6, -9999, -9999, 58.4, 44.5, 50, 50, -9999, 70.5,40.3
+    OHUMREL=1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+    OA1=0.946, 0.888, 0.68, 0.85, 0.9775, 0.9775, 0.946, 0.85, 0.9775, 0.85, 0.72, 0.85, 0.919, 0.85, 0.85, 0.864, 0.9775, 0.85, 0.85, 0.85, 0.864,0.668
+    OB1=0.13, 0.117, 0.168, 0.14, 0.112, 0.138, 0.13, 0.14, 0.112, 0.14, 0.2, 0.14, 0.126, 0.14, 0.14, 0.206, 0.112, 0.14 0.14, 0.14, 0.168,0.21
+    OG0=0.00699, 0.00664, 0.00533, 0.00625, 0.007696, 0.007838, 0.00699, 0.00625, 0.008125, 0.00625, 0.01875, 0.00625, 0.00739, 0.00625, 0.00625, 0.0142, 0.00773, 0.00625, 0.00625, 0.00625, 0.0219,0.017
+    OGM25=0.513, 0.657, 0.1, 0.4, 0.719, 0.387, 0.513, 0.4, 0.8, 0.4, 0.4, 0.4, 0.59, 0.4, 0.4, 0.4, 0.724, 0.404, 0.4, 0.4, 0.4,0.4
+    OE_VCMAX=72801.3, 50059.1, 59880.2, 71513, 92966.9, 67706.09, 72801.3, 71513, 50059.1, 71513, 67300, 71513, 72906.6, 71513, 71513, 47110, 50059.1, 71513.0, 71513, 71513, 80090.2,47110
+    OE_JMAX=64849.2, 41459.5, 35048.2, 49884, 34918.8, 34918.8, 64849.2, 49884, 34918.8, 49884, 77900, 49884, 34918.8, 49884, 49884, 54530, 52755.6, 49884.0, 49884, 49884, 101270, 54530
    /
 &NAMPHYOFF
     LEWBCHECK=.FALSE.
@@ -121,3 +137,17 @@
     LESNWBCON=.FALSE.
     LEROLAKE=.TRUE.
     /
+&NAMPARSNOW
+  /
+&NAMPARSOIL
+  /
+&NAMPARVEG
+  /
+&NAMPARAGS
+  /
+&NAMPARFLAKE
+  /
+&NAMPAREXC
+  /
+&NAMPARURB
+  /
