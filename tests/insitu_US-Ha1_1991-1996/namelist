@@ -100,6 +100,8 @@
     LEC4MAP=.TRUE.                 ! LOGICAL : Use C3/C4 photosynthesis pathway map from climate fields (if false it assigns C3/C4 according to PFT)
     RLAIINT=0                      ! Coefecient for interactive LAI relaxation with clim
                                    ! (1 fully interactive; 0 fully clim)
+    LBVOC_EMIS=false.              ! LOGICAL : TURN usage of online bvoc emission computation.
+    NCWS=0                         ! Number of layers to merge at the end for the soil water profile (for > 4layers)
     LECLIM10D=.F.                  ! LOGICAL : TURN usage of 10-day Climatology for Alb and LAI
     LEINTWIND=.T.
     LESNML=.TRUE.
