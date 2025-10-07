@@ -319,6 +319,8 @@ ELSE ! LECLIM10D FALSE
   imt11_bvoc=imt1
   imt12_bvoc=imt2
   !END NEW BVOC EMISSION MODULE
+
+WRITE(NULOUT,*) 'imt11_bvoc,imt12_bvoc  = ', imt11_bvoc,imt12_bvoc
   
 ENDIF  ! LECLIM10D
 
