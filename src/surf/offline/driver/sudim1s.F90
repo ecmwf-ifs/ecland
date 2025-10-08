@@ -139,7 +139,7 @@ NVSF=NVSF+1 ! +FWET
 NVSF=NVSF+1 ! add VFPBLOB - global gaussian reduced index 
 NVSF=NVSF+1 ! add MVFCLAKEF  lake + flood 
 NVSF=NVSF+1 ! Include urban
-NVSF=NVSF+2 ! Include pavgpar + ISOP_EP
+NVSF=NVSF+4 ! Include pavgpar + ISOP_EP + BVOCLAIL + BVOCLAIH
 NVSF=NVSF+1 ! Include land ice
 
 IVSFNVT=9 ! yomgpd1s: z0f,albf,itm,geo,z0h,sst,ci,soty,aror, climatology 
@@ -165,7 +165,7 @@ NGPP=NGPP+NVEG*NVHILO !CTESSEL
 
 NGPA=NGPP+NVS1*NCSS
 NVPD=NVSF+NVDIAG
-NGCC=5 !ALBEDO LAIL LAIL FWET AVGPAR
+NGCC=7 !ALBEDO LAIL LAIL FWET AVGPAR BVOCLAIL BVOCLAIH
 
 !*       3.  GRID SIZE
 !            ---------
