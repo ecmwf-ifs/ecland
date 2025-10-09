@@ -180,7 +180,7 @@ jobs:
         [ -z ${MPI_HOME+x} ] || echo "${MPI_HOME}/bin" >> $GITHUB_PATH
 
     - name: Install HDF5
-      if: contains( matrix.compiler, 'intel' )
+      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc')
       run: |
         if [[ -f ${{ env.DEPS_DIR }}/hdf5/lib/libhdf5.settings ]]; then
           echo "::debug::HDF5 restored from cache"
@@ -190,7 +190,7 @@ jobs:
         echo "HDF5_ROOT=${{ env.DEPS_DIR }}/hdf5" >> $GITHUB_ENV
 
     - name: Install NetCDF C
-      if: contains( matrix.compiler, 'intel' )
+      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc')
       run: |
         if [[ -f ${{ env.DEPS_DIR }}/netcdf/bin/nc-config ]]; then
           echo "::debug::NetCDF C restored from cache"
@@ -200,7 +200,7 @@ jobs:
         echo "NETCDF_ROOT=${{ env.DEPS_DIR }}/netcdf" >> $GITHUB_ENV
 
     - name: Install NetCDF Fortran
-      if: contains( matrix.compiler, 'intel' )
+      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc')
       run: |
         if [[ -f ${NETCDF_ROOT}/bin/nf-config ]]; then
           echo "::debug::NetCDF Fortran restored from cache"
