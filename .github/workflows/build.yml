@@ -220,7 +220,7 @@ jobs:
         recreate_cache: ${{ matrix.caching == false }}
         dependencies: |
           ecmwf/ecbuild
-          ecmwf/eccodes
+          ecmwf/eccodes@refs/tags/2.44.0
         dependency_branch: develop
         dependency_cmake_options: |
           ecmwf/eccodes: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF"
