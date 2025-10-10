@@ -195,7 +195,7 @@ jobs:
         if [[ -f ${{ env.DEPS_DIR }}/netcdf/bin/nc-config ]]; then
           echo "::debug::NetCDF C restored from cache"
         else
-          ${ECLAND_TOOLS}/install-netcdf-c.sh --prefix ${{ env.DEPS_DIR }}/netcdf --hdf5-root ${HDF5_ROOT}
+          ${ECLAND_TOOLS}/install-netcdf-c.sh --prefix ${{ env.DEPS_DIR }}/netcdf --hdf5-root ${HDF5_ROOT} --version 4.9.2
         fi
         echo "NETCDF_ROOT=${{ env.DEPS_DIR }}/netcdf" >> $GITHUB_ENV
 
@@ -205,7 +205,7 @@ jobs:
         if [[ -f ${NETCDF_ROOT}/bin/nf-config ]]; then
           echo "::debug::NetCDF Fortran restored from cache"
         else
-          ${ECLAND_TOOLS}/install-netcdf-fortran.sh --prefix ${{ env.DEPS_DIR }}/netcdf --netcdf-root ${NETCDF_ROOT}
+          ${ECLAND_TOOLS}/install-netcdf-fortran.sh --prefix ${{ env.DEPS_DIR }}/netcdf --netcdf-root ${NETCDF_ROOT} --version 4.6.2
         fi
 
     - name: Build & Test
