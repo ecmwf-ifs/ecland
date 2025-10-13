@@ -223,7 +223,7 @@ jobs:
           ecmwf/eccodes
         dependency_branch: develop
         dependency_cmake_options: |
-          ecmwf/eccodes: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF"
+          ecmwf/eccodes: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF -DENABLE_AEC=OFF"
         cmake_options: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.cmake_options }} -DENABLE_MPI=ON -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' }}"
         ctest_options: "${{ matrix.ctest_options }}"
 
