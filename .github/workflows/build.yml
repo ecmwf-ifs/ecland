@@ -57,7 +57,7 @@ jobs:
             caching: true
 
           - name: linux nvhpc-24.5
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             compiler: nvhpc-24.5
             compiler_cc: nvc
             compiler_cxx: nvc++
