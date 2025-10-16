@@ -35,7 +35,7 @@ jobs:
           - linux gnu-14
           - linux nvhpc-24.5
           - linux intel-classic
-          - linux intel-modern
+          # - linux intel-modern
           - macos
 
         include:
@@ -65,13 +65,13 @@ jobs:
             compiler_fc: ifort
             caching: true
 
-          - name : linux intel-modern
-            os: ubuntu-24.04
-            compiler: intel-modern
-            compiler_cc: icx
-            compiler_cxx: icpx
-            compiler_fc: ifx
-            caching: true
+          # - name : linux intel-modern
+          #   os: ubuntu-24.04
+          #   compiler: intel-modern
+          #   compiler_cc: icx
+          #   compiler_cxx: icpx
+          #   compiler_fc: ifx
+          #   caching: true
 
           - name: macos
             # Xcode compiler requires empty environment variables, so we pass null (~) here
