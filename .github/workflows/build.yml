@@ -32,21 +32,12 @@ jobs:
         build_type: [Bit] # Not passing tests with Release
         prec: ['DP'] # Standalone driver not 'SP' compatible yet
         name:
-          - linux gnu-10
           - linux gnu-14
           - linux nvhpc-24.5
           - linux intel-classic
           - macos
 
         include:
-
-          - name: linux gnu-10
-            os: ubuntu-22.04
-            compiler: gnu-10
-            compiler_cc: gcc-10
-            compiler_cxx: g++-10
-            compiler_fc: gfortran-10
-            caching: true
 
           - name: linux gnu-14
             os: ubuntu-24.04
