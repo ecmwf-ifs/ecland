@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version=1.14.4-3
+version=1.14.6
 
 TEMPORARY_FILES="${TMPDIR:-/tmp}"
 export HDF5_INSTALL_DIR=$(pwd)/hdf5-install
@@ -23,13 +23,13 @@ while [ $# != 0 ]; do
     shift
 done
 
-HDF5_MIRROR=https://support.hdfgroup.org/ftp/HDF5/releases
+HDF5_MIRROR=https://support.hdfgroup.org/releases/hdf5
 HDF5_VERSION=${version}
 
 # Pick out version parts separated by '.'
 VERSION_PARTS=($(echo ${HDF5_VERSION} | tr "." "\n"))
-# Major version, e.g., 1.14
-MAJOR_VERSION=${VERSION_PARTS[0]}.${VERSION_PARTS[1]}
+# Major version, e.g., 14
+MAJOR_VERSION=${VERSION_PARTS[1]}
 
 # Minor version parts, including patch level (if any), e.g., 3 or 4-3
 MINOR_VERSION_PARTS=($(echo ${VERSION_PARTS[2]} | tr "-" "\n"))
@@ -37,7 +37,7 @@ MINOR_VERSION_PARTS=($(echo ${VERSION_PARTS[2]} | tr "-" "\n"))
 # Minor version without patch level
 MINOR_VERSION=${MINOR_VERSION_PARTS[0]}
 
-URL=${HDF5_MIRROR}/hdf5-${MAJOR_VERSION}/hdf5-${MAJOR_VERSION}.${MINOR_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz
+URL=${HDF5_MIRROR}/v1_${MAJOR_VERSION}/v1_${MAJOR_VERSION}_${MINOR_VERSION}/downloads/hdf5-${HDF5_VERSION}.tar.gz
 FOLDER=hdf5-${HDF5_VERSION}
 
 if [ ! -d "${TEMPORARY_FILES}/${FOLDER}" ]; then
