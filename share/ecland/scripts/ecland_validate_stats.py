@@ -67,9 +67,9 @@ for var, tol in zip(args.variables, args.rel_tol):
     ## Check the difference of each value of each column
     diff,rel_diff = calculate_differences(data_ctl, data_exp)
     print('Validating '+var+ ' with relative tolerance '+tol)
-    print("    reference  : ",[[f'{d:10.8e}' for d in _list] for _list in data_ctl])
-    print("    experiment : ",[[f'{d:10.8e}' for d in _list] for _list in data_exp])
-    print("    rel_diff   : ",[[f'{d:10.8e}' for d in _list] for _list in rel_diff])
+    print("    reference  : ",[[f'{d:32.16e}' for d in _list] for _list in data_ctl])
+    print("    experiment : ",[[f'{d:32.16e}' for d in _list] for _list in data_exp])
+    print("    rel_diff   : ",[[f'{d:32.16e}' for d in _list] for _list in rel_diff])
     if check_relative_tolerance(rel_diff,float(tol)):
         print('    SUCCESS')
     else:
