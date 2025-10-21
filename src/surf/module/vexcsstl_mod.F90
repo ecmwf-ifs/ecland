@@ -1,10 +1,11 @@
 MODULE VEXCSSTL_MOD
 CONTAINS
 SUBROUTINE VEXCSSTL (KIDIA,KFDIA,KLON,PTMST,PRVDIFTS, &
- & LDEKPERTS, &
+ & LDEKPERTS, LDREGBUOF, &
  & PUMLEV5,PVMLEV5  ,PTMLEV5   ,PQMLEV5, &
  & PAPHMS5,PGEOMLEV5,PCPTGZLEV5,PCPTS5 , &
  & PQSAM5 ,PZ0MM5   ,PZ0HM5    ,PZ0QM5 , PBUOM5 , &
+ & PUCURR5,PVCURR5  , &
  & YDCST  ,YDEXC    , &
  & PCFM5  ,PCFH5    ,PCFQ5     , &
  & PUMLEV ,PVMLEV   ,PTMLEV    ,PQMLEV , &
@@ -41,6 +42,9 @@ USE YOS_EXC   , ONLY : TEXC
 !                M. Janiskova  08/08/2007  Changed regularization
 !                M. Janiskova  Aug 2011    Adjusted regularization for momentum
 !                                          exch. coefficient
+!                P. Lopez      July 2025   Added ocean currents (trajectory only)
+!                P. Lopez      July 2025   Added optional (LDREGBUOF) extra regularization 
+!                                          when surface buoyancy flux is very small.
 
 !     PURPOSE
 !     -------
@@ -62,6 +66,7 @@ USE YOS_EXC   , ONLY : TEXC
 !     INPUT PARAMETERS (LOGICAL)
 
 !     LDEKPERTS      TRUE IF PERTURBATION OF EXCHANGE COEEFICIENTS
+!     LDREGBUOF      TRUE FOR EXTRA REGULARIZATION WHEN SURFACE BUOYANCY FLUX IS VERY SMALL
 
 !     INPUT PARAMETERS (REAL):
 
@@ -85,6 +90,8 @@ USE YOS_EXC   , ONLY : TEXC
 !  PZ0HM5      PZ0HM         ROUGHNESS LENGTH FOR TEMPERATURE          m
 !  PZ0QM5      PZ0QM         ROUGHNESS LENGTH FOR MOISTURE             m
 !  PBUOM5      PBUOM         BUOYANCY FLUX AT THE SURFACE              ?
+!  PUCURR5     -----         OCEAN CURRENT U-COMPONENT                 m/s
+!  PVCURR5     -----         OCEAN CURRENT V-COMPONENT                 m/s
 
 !     OUTPUT PARAMETERS (REAL):
 
@@ -111,6 +118,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLON
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
 LOGICAL, INTENT(IN)              :: LDEKPERTS
+LOGICAL, INTENT(IN)              :: LDREGBUOF
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTMST 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRVDIFTS
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUMLEV5(:) 
@@ -125,7 +133,9 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PQSAM5(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PZ0MM5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PZ0HM5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PZ0QM5(:) 
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PBUOM5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PBUOM5(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR5(:) 
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TEXC)        ,INTENT(IN)    :: YDEXC
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PCFM5(:) 
@@ -227,9 +237,9 @@ DO JL = KIDIA, KFDIA
     ZWST2  = ZCON2*ZIPBL*PBUOM(JL)*(ZIPBL*PBUOM5(JL))**(ZCON2-1.0_JPRB)
     ZWST25 =                       (ZIPBL*PBUOM5(JL))** ZCON2
   ENDIF
-  Z1S  = 2.0_JPRB*PUMLEV(JL)*PUMLEV5(JL)+&
-   & 2.0_JPRB*PVMLEV(JL)*PVMLEV5(JL)+ZWST2  
-  Z1S5 = PUMLEV5(JL)**2+PVMLEV5(JL)**2+ZWST25
+  Z1S  = 2.0_JPRB*PUMLEV(JL)*(PUMLEV5(JL)-PUCURR5(JL)) &
+     & + 2.0_JPRB*PVMLEV(JL)*(PVMLEV5(JL)-PVCURR5(JL)) + ZWST2  
+  Z1S5 = (PUMLEV5(JL)-PUCURR5(JL))**2 + (PVMLEV5(JL)-PVCURR5(JL))**2 + ZWST25
   IF (REPDU2 >= Z1S5) THEN
     ZDU2 (JL) = 0.0_JPRB
     ZDU25(JL) = REPDU2
@@ -396,6 +406,12 @@ DO JL = KIDIA, KFDIA
     ELSEIF (ZUABS5 < 1.0_JPRB) THEN
       PCFM(JL) = PCFM(JL)*ZDD2
     ENDIF
+    IF (LDREGBUOF .AND. ABS(PBUOM5(JL)) < 2.E-6_JPRB) THEN
+      PCFQ(JL) = PCFQ(JL) * 0.01_JPRB
+      PCFH(JL) = PCFH(JL) * 0.01_JPRB
+      PCFM(JL) = PCFM(JL) * 0.01_JPRB
+    ENDIF
+
   ENDIF
 
 ENDDO

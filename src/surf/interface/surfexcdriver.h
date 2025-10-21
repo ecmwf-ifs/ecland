@@ -3,11 +3,14 @@ SUBROUTINE SURFEXCDRIVER    (YDSURF, CDCONF &
  & , KIDIA, KFDIA, KLON, KLEVS, KTILES, KVTYPES, KDIAG, KSTEP &
  & , KLEVSN, KLEVI, LDLAND, KDHVTLS, KDHFTLS, KDHVTSS, KDHFTSS &
  & , KDHVTTS, KDHFTTS, KDHVTIS, KDHFTIS, K_VMASS &
- & , KDHVCO2S,KDHFCO2S,KDHVVEGS,KDHFVEGS &
+ & , KDHVCO2S,KDHFCO2S,KDHVBVOCS,KDHVVEGS,KDHFVEGS &
  & , PTSTEP,PTSTEPF &
+ & , PPPFD_TOA &
 ! input data, non-tiled
  & , KTVL, KCO2TYP, KTVH, PCVL, PCVH, PCUR &
- & , PLAIL, PLAIH, PFWET, PLAT &
+ & , PLAIL, PLAIH &
+ & , PLAILP, PLAIHP, PAVGPAR, PISOP_EP &
+ & , PFWET, PLAT &
  & , PSNM , PRSN &
  & , PMU0 , PCARDI &
  & , PUMLEV, PVMLEV, PTMLEV, PQMLEV, PCMLEV,PAPHMS, PGEOMLEV, PCPTGZLEV &
@@ -15,6 +18,7 @@ SUBROUTINE SURFEXCDRIVER    (YDSURF, CDCONF &
  & , PHLICE,PTLICE,PTLWML & 
  & , PTHKICE,PSNTICE &
  & , PWLMX, PUCURR, PVCURR, PI10FGCV &
+ & , PSSDP2, PSSDP3 &
 ! input data, soil
  & , PTSAM1M, PWSAM1M, KSOTY &
 ! input data, tiled
@@ -33,12 +37,15 @@ SUBROUTINE SURFEXCDRIVER    (YDSURF, CDCONF &
  & , PZ0MW, PZ0HW, PZ0QW, PBLENDPP, PCPTSPP, PQSAPP, PBUOMPP, PZDLPP &
 ! output data, non-tiled CO2
  & , PAN,PAG,PRD,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX&
+! output data: Biogenic VOC (BVOC) emissions
+ & , PBVOCFLUX &
+! output diagnostics
  & , PWETB, PWETL, PWETLU, PWETH, PWETHS &
-! o.utput data, diagnostics
+! output data, diagnostics
  & , PDHTLS, PDHTSS, PDHTTS, PDHTIS &
- & , PDHVEGS, PEXDIAG, PDHCO2S &
+ & , PDHVEGS, PEXDIAG, PDHCO2S, PDHBVOCS &
  & , PRPLRG &
- & , LSICOUP, LBLEND &
+ & , LSICOUP, LDSICE, LBLEND &
  & )
 
 USE PARKIND1, ONLY : JPIM, JPRB
@@ -52,7 +59,6 @@ USE ISO_C_BINDING
 ! In applying this licence, ECMWF does not waive the privileges and immunities
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
-
 !------------------------------------------------------------------------
 
 !  PURPOSE:
@@ -120,6 +126,10 @@ USE ISO_C_BINDING
 !      PCUR     :    Urban cover                                     (0-1)
 !      PLAIL    :    Low vegetation LAI
 !      PLAIH    :    High vegetation LAI
+!      PLAILP   :    Low vegetation LAI previous time step
+!      PLAIHP   :    High vegetation LAI previous time step
+!      PAVGPAR  :    Average PAR
+!      PISOP_EP  :    Isoprene emission potential
 
 !     PSNM      :       SNOW MASS (per unit area)                      kg/m**2
 !     PRSN      :      SNOW DENSITY                                   kg/m**3
@@ -232,6 +242,7 @@ USE ISO_C_BINDING
 !     *PDHVEGS*      Diagnostic array for vegetation (see module yomcdh) 
 !     *PEXDIAG*      Diagnostic array for optional pp of canopy resistances
 !     *PDHCO2S*      Diagnostic array for CO2 (see module yomcdh)
+!     *PDHBVOCS*     Diagnostic array for BVOCS (see module yomcdh)
 
 !     EXTERNALS.
 !     ----------
@@ -279,12 +290,14 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KDHFTIS
 INTEGER(KIND=JPIM),INTENT(IN)    :: K_VMASS
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEP
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEPF
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PPPFD_TOA
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVL(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KCO2TYP(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSOTY(:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHVCO2S
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHFCO2S
+INTEGER(KIND=JPIM),INTENT(IN)    :: KDHVBVOCS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHVVEGS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KDHFVEGS
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVL(:) 
@@ -292,6 +305,10 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVH(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCUR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILP(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHP(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPAR(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PISOP_EP(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFWET(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAT(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSNM(:,:)
@@ -324,6 +341,8 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PI10FGCV(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 
@@ -373,6 +392,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZ0QTIW(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZDLTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPPTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPPTI(:,:)
+
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAN(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAG(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRD(:)
@@ -380,6 +400,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRSOIL_STR(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRECO(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCO2FLUX(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCH4FLUX(:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETB(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETL(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETLU(:)
@@ -388,6 +409,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWETHS(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHVEGS(:,:,:) 
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PEXDIAG(:,:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHCO2S(:,:,:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHBVOCS(:,:,:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTLS(:,:,:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTSS(:,:,:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTTS(:,:,:) 
@@ -395,6 +417,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHTIS(:,:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRPLRG
 
 LOGICAL           ,INTENT(IN)    :: LSICOUP
+LOGICAL           ,INTENT(IN)    :: LDSICE(:)
 LOGICAL           ,INTENT(IN)    :: LBLEND
 
 !------------------------------------------------------------------------

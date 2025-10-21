@@ -103,14 +103,14 @@ ELSE
   IDIM2 = 1
 ENDIF
 
-  NVARS2D=31
-  CVARS2D(1:NVARS2D)=(/'Mask     ','z0m      ','lz0h     ','landsea  ','geopot   ',&
-                      'cvl      ','cvh      ','tvl      ','tvh      ','sotype   ',&
-                      'sdor     ','sst      ','seaice   ','CanopInt ','SWE      ',&
-                      'SnowT    ','SAlbedo  ','snowdens ','AvgSurfT ','TLICE    ',&
-                      'TLMNW    ','TLWML    ','TLBOT    ','TLSF     ','HLICE    ',&
-                      'HLML     ','LDEPTH   ','CLAKE    ','x        ','CLAKEF   ',&
-                      'cu       '/)
+  NVARS2D=33
+  CVARS2D(1:NVARS2D)=(/'Mask       ','z0m        ','lz0h       ','landsea    ','geopot     ',&
+                       'cvl        ','cvh        ','tvl        ','tvh        ','sotype     ',&
+                       'sdor       ','sst        ','seaice     ','glacierMask','CanopInt   ','SWE        ',&
+                       'SnowT      ','SAlbedo    ','snowdens   ','AvgSurfT   ','TLICE      ',&
+                       'TLMNW      ','TLWML      ','TLBOT      ','TLSF       ','HLICE      ',&
+                       'HLML       ','LDEPTH     ','CLAKE      ','x          ','CLAKEF     ',&
+                       'cu         ','ISOP_EP    '/)
 
   IF (LEC4MAP) THEN
 
@@ -159,8 +159,8 @@ ENDIF
     IDIMID3(2) = NMONID
     IDIM3=2
   ENDIF
-  NVARS3D=4
-  CVARS3D(1:NVARS3D)=(/'Malbedo','Mlail  ','Mlaih  ','fwet   '/)
+  NVARS3D=5
+  CVARS3D(1:NVARS3D)=(/'Malbedo','Mlail  ','Mlaih  ','fwet   ','par_avg' /)
   DO IVAR=1,NVARS3D
     CALL INIT_NCDF_VAR(YD_VARINFO,TRIM(CVARS3D(IVAR)),IACCUR_IN=NF90_DOUBLE,&
                        CCOORD_IN="month lat lon")

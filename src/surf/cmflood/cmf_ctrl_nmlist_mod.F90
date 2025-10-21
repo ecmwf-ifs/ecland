@@ -20,6 +20,8 @@ MODULE CMF_CTRL_NMLIST_MOD
 ! shared variables in module
 USE PARKIND1,                ONLY: JPIM, JPRB, JPRM
 USE YOS_CMF_INPUT,           ONLY: LOGNAM
+USE YOS_CMF_MAP,             ONLY: REGIONTHIS, REGIONALL
+
 IMPLICIT NONE
 CONTAINS
 !####################################################################
@@ -33,7 +35,8 @@ USE YOS_CMF_INPUT,      ONLY: TMPNAM,   NSETFILE,   CSETFILE
 USE YOS_CMF_INPUT,      ONLY: LADPSTP,  LFPLAIN,  LKINE,    LFLDOUT,  LPTHOUT,  LDAMOUT,  &
                             & LROSPLIT, LGDWDLY,  LSLPMIX,  LMEANSL,  LSEALEV,  LOUTPUT,  &
                             & LRESTART, LSTOONLY, LGRIDMAP, LLEAPYR,  LMAPEND,  LBITSAFE, &
-                            & LSLOPEMOUTH,LWEVAP,LWEVAPFIX, LWEXTRACTRIV
+                            & LSTG_ES,  LLEVEE,   LOUTINS,  LOUTINI,  LSEDOUT,  LTRACE,   &
+                            & LSLOPEMOUTH,LWEVAP, LWEVAPFIX,LWEXTRACTRIV,       LSPAMAT
 ! dimention & time
 USE YOS_CMF_INPUT,      ONLY: CDIMINFO, DT,       NX,NY,    NLFP,     NXIN,NYIN,    INPN, &
                             & IFRQ_INP, DTIN,     WEST,EAST,NORTH,SOUTH
@@ -42,11 +45,14 @@ USE YOS_CMF_INPUT,      ONLY: PMANRIV,  PMANFLD,  PDSTMTH,  PMINSLP,  PGRV, PCAD
                             & IMIS, RMIS, DMIS,   CSUFBIN,  CSUFVEC,  CSUFPTH,  CSUFCDF
 USE CMF_UTILS_MOD,      ONLY: INQUIRE_FID
 IMPLICIT NONE
+!* local
+CHARACTER(LEN=8)              :: CREG                 !! 
 !
-NAMELIST/NRUNVER/  LADPSTP,  LFPLAIN,  LKINE,    LFLDOUT,  LPTHOUT,  LDAMOUT, &
-                   LROSPLIT, LGDWDLY,  LSLPMIX,  LMEANSL,  LSEALEV,  LOUTPUT, &
-                   LRESTART, LSTOONLY, LGRIDMAP, LLEAPYR,  LMAPEND,  LBITSAFE,&
-                   LSLOPEMOUTH,LWEVAP,LWEVAPFIX, LWEXTRACTRIV
+NAMELIST/NRUNVER/  LADPSTP,  LFPLAIN,  LKINE,    LFLDOUT,  LPTHOUT,  LDAMOUT,      &
+                   LROSPLIT, LGDWDLY,  LSLPMIX,  LMEANSL,  LSEALEV,  LOUTPUT,      &
+                   LRESTART, LSTOONLY, LGRIDMAP, LLEAPYR,  LMAPEND,  LBITSAFE,     &
+                   LSTG_ES,  LLEVEE,   LSEDOUT,  LTRACE,   LOUTINS,  LSLOPEMOUTH,  &
+                   LWEVAP,   LWEVAPFIX,LWEXTRACTRIV,       LOUTINI,  LSPAMAT
 
 NAMELIST/NDIMTIME/ CDIMINFO, DT, IFRQ_INP
 
@@ -70,28 +76,38 @@ LFPLAIN  = .TRUE.            !! true: consider floodplain (false: only river cha
 LKINE    = .FALSE.           !! true: use kinematic wave
 LFLDOUT  = .TRUE.            !! true: floodplain flow (high-water channel flow) active
 LPTHOUT  = .FALSE.           !! true: activate bifurcation scheme
-LDAMOUT  = .FALSE.           !! true: activate dam operation (under development)
+LDAMOUT  = .FALSE.           !! true: activate dam operation
+LLEVEE   = .FALSE.           !! true: activate levee scheme  (under development)
+LSEDOUT  = .FALSE.           !! true: activate sediment transport (under development)
+LTRACE   = .FALSE.           !! true: activate tracer             (under development)
+LOUTINS  = .FALSE.           !! true: diagnose instantaneous discharge
+LSPAMAT  = .TRUE.            !! true: use quasi sparse matrix (fast but additional memory req)
 
+!!=== this part is used by ECMWF
 LROSPLIT = .FALSE.           !! true: input if surface (Qs) and sub-surface (Qsb) runoff
 LWEVAP   = .FALSE.           !! true: input evaporation to extract from river 
 LWEVAPFIX= .FALSE.           !! true: water balance closure extracting water from evap when available
 LGDWDLY  = .FALSE.           !! true: Activate ground water reservoir and delay
 LSLPMIX  = .FALSE.           !! true: activate mixed kinematic and local inertia based on slope
 LWEXTRACTRIV=.FALSE.         !! true: also extract water from rivers 
+LSLOPEMOUTH =.FALSE.         !! true: prescribe water level slope == elevation slope on river month
+!!===
 
+!! dinamic sea level
 LMEANSL  = .FALSE.           !! true : boundary condition for mean sea level
 LSEALEV  = .FALSE.           !! true : boundary condition for variable sea level
 
+!! restaer & output
 LRESTART = .FALSE.           !! true: initial condition from restart file
 LSTOONLY = .FALSE.           !! true: storage only restart (mainly for data assimilation)
 LOUTPUT  = .TRUE.            !! true: use standard output (to file)
+LOUTINI  = .FALSE.           !! true: output initial storage (netCDF only)
 
 LGRIDMAP = .TRUE.            !! true: for standard XY gridded 2D map
 LLEAPYR  = .TRUE.            !! true: neglect leap year (Feb29 skipped)
 LMAPEND  = .FALSE.           !! true: for map data endian conversion
-LBITSAFE = .FALSE.           !! true: for Bit Identical simulation (avoid OSM ATOMIC)
-
-LSLOPEMOUTH = .FALSE.        !! true: prescribe water level slope == elevation slope on river month
+LBITSAFE = .FALSE.           !! true: for Bit Identical (not used from v410, set in Mkinclude)
+LSTG_ES  = .FALSE.           !! true: for Vector Processor optimization (CMF_OPT_FLDSTG_ES) 
 
 !* change
 REWIND(NSETFILE)
@@ -105,6 +121,10 @@ WRITE(LOGNAM,*) "LKINE   ",  LKINE
 WRITE(LOGNAM,*) "LFLDOUT ",  LFLDOUT
 WRITE(LOGNAM,*) "LPTHOUT ",  LPTHOUT
 WRITE(LOGNAM,*) "LDAMOUT ",  LDAMOUT
+WRITE(LOGNAM,*) "LLEVEE  ",  LLEVEE
+WRITE(LOGNAM,*) "LSEDOUT ",  LSEDOUT
+WRITE(LOGNAM,*) "LTRACE  ",  LTRACE
+WRITE(LOGNAM,*) "LOUTINS ",  LOUTINS
 WRITE(LOGNAM,*) ""
 WRITE(LOGNAM,*) "LROSPLIT ", LROSPLIT
 WRITE(LOGNAM,*) "LWEVAP   ", LWEVAP
@@ -112,18 +132,22 @@ WRITE(LOGNAM,*) "LWEVAPFIX", LWEVAPFIX
 WRITE(LOGNAM,*) "LWEXTRACTRIV", LWEXTRACTRIV
 WRITE(LOGNAM,*) "LGDWDLY  ", LGDWDLY
 WRITE(LOGNAM,*) "LSLPMIX  ", LSLPMIX
+WRITE(LOGNAM,*) "LSLOPEMOUTH ", LSLOPEMOUTH
+WRITE(LOGNAM,*) ""
 WRITE(LOGNAM,*) "LMEANSL: ", LSEALEV
 WRITE(LOGNAM,*) "LSEALEV: ", LSEALEV
 WRITE(LOGNAM,*) ""
 WRITE(LOGNAM,*) "LRESTART ", LRESTART
 WRITE(LOGNAM,*) "LSTOONLY ", LSTOONLY
 WRITE(LOGNAM,*) "LOUTPUT  ", LOUTPUT
+WRITE(LOGNAM,*) "LOUTINI  ", LOUTINI
 WRITE(LOGNAM,*) ""
 WRITE(LOGNAM,*) "LGRIDMAP ", LGRIDMAP
 WRITE(LOGNAM,*) "LLEAPYR  ", LLEAPYR
 WRITE(LOGNAM,*) "LMAPEND  ", LMAPEND
 WRITE(LOGNAM,*) "LBITSAFE ", LBITSAFE
-WRITE(LOGNAM,*) "LSLOPEMOUTH ", LSLOPEMOUTH
+WRITE(LOGNAM,*) "LSTG_ES " , LSTG_ES
+WRITE(LOGNAM,*) "LSPAMAT " , LSPAMAT
 
 !============================
 !*** 2. set model dimention & time
@@ -154,10 +178,10 @@ NLFP  = 10                   !! 10 floodplain layer
 NXIN  = 360                  !! 1 degree input
 NYIN  = 180
 INPN  = 1                    !! maximum number of input grids corresponding to one CaMa-Flood grid
-WEST  = -180.D0              !! west, east, north, south edges of the domain
-EAST  =  180.D0
-NORTH =  90.D0
-SOUTH = -90.D0
+WEST  = -180._JPRB              !! west, east, north, south edges of the domain
+EAST  =  180._JPRB
+NORTH =  90._JPRB
+SOUTH = -90._JPRB
 
 !* value from CDIMINFO
 IF( CDIMINFO/="NONE" )THEN
@@ -193,12 +217,12 @@ ENDIF
 !============================
 !*** 3. set PARAM: parameters
 ! * defaults
-PMANRIV=0.03D0                              !! manning coefficient river
-PMANFLD=0.10D0                              !! manning coefficient floodplain
-PGRV   =9.8D0                               !! gravity accerelation
-PDSTMTH=10000.D0                            !! downstream distance at river mouth [m]
-PCADP  =0.7D0                                !! CFL coefficient
-PMINSLP=1.D-5                               !! minimum slope (kinematic wave)
+PMANRIV=0.03_JPRB                              !! manning coefficient river
+PMANFLD=0.10_JPRB                              !! manning coefficient floodplain
+PGRV   =9.8_JPRB                               !! gravity accerelation
+PDSTMTH=10000._JPRB                            !! downstream distance at river mouth [m]
+PCADP  =0.7_JPRB                               !! CFL coefficient
+PMINSLP=1.E-5                                  !! minimum slope (kinematic wave)
 
 IMIS=-9999_JPIM
 RMIS=1.E20_JPRM
@@ -240,6 +264,12 @@ WRITE(LOGNAM,*) "CMF::CONFIG_NMLIST: end "
 WRITE(LOGNAM,*) "--------------------!"
 WRITE(LOGNAM,*) ""
 
+IF (REGIONALL>=2 )then 
+  WRITE(CREG,'(I0)') REGIONTHIS                !! Regional Output for MPI run
+  CSUFVEC=TRIM(CSUFVEC)//'-'//TRIM(CREG)       !! Change suffix of output file for each MPI node (only vector output)
+ENDIF
+
+
 END SUBROUTINE CMF_CONFIG_NMLIST
 !####################################################################
 
@@ -250,7 +280,7 @@ END SUBROUTINE CMF_CONFIG_NMLIST
 SUBROUTINE CMF_CONFIG_CHECK
 USE YOS_CMF_INPUT,      ONLY: LADPSTP,  LFPLAIN,  LKINE,    LPTHOUT,     &
                             & LROSPLIT, LGDWDLY,  LSEALEV, &
-                            & LWEVAP, LWEVAPFIX,LWEXTRACTRIV
+                            & LWEVAP,   LWEVAPFIX,LWEXTRACTRIV
 USE YOS_CMF_INPUT,      ONLY: DT, DTIN, DTSL
 IMPLICIT NONE
 !================================================
@@ -283,18 +313,13 @@ ENDIF
 
 IF ( .not.LFPLAIN .AND. .not.LKINE ) THEN
   WRITE(LOGNAM,*) "LFPLAIN=.false. & LKINE=.false."
-!   WRITE(LOGNAM,*) "NO FLOODPLAIN OPTION only available with kinematic wave (LKINE=.true.)"
-!   WRITE(LOGNAM,*) "stop"
-!   STOP 9
-  ! E. Dutra Allow this option for testing 
-  WRITE(LOGNAM,*) "NO FLOODPLAIN OPTION should only be active with kinematic wave (LKINE=.true.)"
+  WRITE(LOGNAM,*) "CAUTION: NO FLOODPLAIN OPTION reccomended to be used with kinematic wave (LKINE=.true.)"
 ENDIF
 
 IF ( LKINE .AND. LADPSTP ) THEN
   WRITE(LOGNAM,*) "LKINE=.true. & LADPSTP=.true."
-  WRITE(LOGNAM,*) "adaptive time step only available with local inertial equation (LKINE=.false.)"
-  WRITE(LOGNAM,*) "STOP"
-  STOP 9
+  WRITE(LOGNAM,*) "adaptive time step reccoomended only with local inertial equation (LKINE=.false.)"
+  WRITE(LOGNAM,*) "Set appropriate fixed time step for Kinematic Wave"
 ENDIF
 
 IF ( LKINE .AND. LPTHOUT ) THEN
@@ -317,6 +342,7 @@ IF ( LWEXTRACTRIV .AND. .NOT. LWEVAP ) THEN
   WRITE(LOGNAM,*) "LWEXTRACTRIV=true and LWEVAP=false"
   WRITE(LOGNAM,*) "LWEXTRACTRIV can only be active if LWEVAP is active"
 ENDIF 
+
 
 WRITE(LOGNAM,*) "CMF::CONFIG_CHECK: end"
 

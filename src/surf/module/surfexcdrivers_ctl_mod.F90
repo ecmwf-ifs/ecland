@@ -11,11 +11,13 @@ SUBROUTINE SURFEXCDRIVERS_CTL( &
  & , PUMLEV, PVMLEV, PTMLEV, PQMLEV, PAPHMS, PGEOMLEV, PCPTGZLEV &
  & , PSST, PTSKM1M, PCHAR, PSSRFL, PTICE, PTSNOW &
  & , PWLMX &
+ & , PUCURR, PVCURR &
 ! input data, soil
  & , PTSAM1M, PWSAM1M, KSOTY &
 ! input data, tiled
  & , PFRTI, PALBTI &
 !
+ & , PSSDP2, PSSDP3 &
  & , YDCST, YDEXC, YDVEG, YDSOIL, YDFLAKE, YDURB & 
 ! updated data, tiled
  & , PUSTRTI, PVSTRTI, PAHFSTI, PEVAPTI, PTSKTI &
@@ -79,6 +81,7 @@ USE VEVAPS_MOD
 !    M. Janiskova     July 2011->2013  modified computation of snow evaporation
 !    M. Janiskova     Jan 2015   use previous time step fluxes for heat&momentum
 !    J. McNorton      24/08/2022 urban tile
+!    P. Lopez         July 2025 Added ocean currents
 
 !  INTERFACE: 
 
@@ -131,6 +134,8 @@ USE VEVAPS_MOD
 !      PTICE    :    Ice temperature, top slab                        K
 !      PTSNOW   :    Snow temperature                                 K
 !      PWLMX    :    Maximum interception layer capacity              kg/m**2
+!      PUCURR   :    Ocean current U-component                        m/s
+!      PVCURR   :    Ocean current V-component                        m/s
 
 !    Reals with tile index (In/Out):
 !      PUSTRTI  :    SURFACE U-STRESS                                 N/m2 
@@ -223,10 +228,14 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSRFL(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTICE(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSNOW(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PALBTI(:,:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TEXC)        ,INTENT(IN)    :: YDEXC
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
@@ -306,7 +315,7 @@ ASSOCIATE(RCPD=>YDCST%RCPD, RD=>YDCST%RD, RETV=>YDCST%RETV, RG=>YDCST%RG, &
  & RSIGMA=>YDCST%RSIGMA, RTT=>YDCST%RTT, &
  & REPDU2=>YDEXC%REPDU2, RKAP=>YDEXC%RKAP, RZ0ICE=>YDEXC%RZ0ICE, &
  & RALFMAXSN=>YDSOIL%RALFMAXSN, &
- & RVTRSR=>YDVEG%RVTRSR, RVZ0M=>YDVEG%RVZ0M,LEURBAN=>YDURB%LEURBAN)
+ & RVTRSR=>YDVEG%RVTRSR,LEURBAN=>YDURB%LEURBAN)
 
 ZCONS1=1./(RG*PTSTEP)
 
@@ -334,8 +343,9 @@ CALL VUPDZ0S(KIDIA,KFDIA,KLON,KTILES,KSTEP,&
      & PTMLEV,PQMLEV,PAPHMS,PGEOMLEV,ZDSN,&
      & PUSTRTI,PVSTRTI,PAHFSTI,PEVAPTI,&
      & PTSKTI,PCHAR,PFRTI, &
-     & YDCST,YDEXC,YDVEG,YDFLAKE,YDURB, &
-     & ZZ0MTI,ZZ0HTI,ZZ0QTI,ZBUOMTI,ZZDLTI,ZRAQTI)
+     & PSSDP2,YDCST,YDEXC,YDVEG,YDFLAKE,YDURB, &
+     & ZZ0MTI,ZZ0HTI,ZZ0QTI,ZBUOMTI,ZZDLTI,ZRAQTI, &
+     & PUCURR,PVCURR)
 
 !*         1.3  FIND DOMINANT SURFACE TYPE parameters for postprocessing
 
@@ -461,7 +471,7 @@ DO JTILE=1,KTILES
    & PTMLEV,PQMLEV,PAPHMS,&
    & PTSKTI(:,JTILE),PWSAM1M,PTSAM1M,KSOTY,&
    & ZSRFD,ZRAQTI(:,JTILE),&
-   & YDCST,YDVEG,YDSOIL,&
+   & PSSDP2,PSSDP3,YDCST,YDVEG,YDSOIL,&
    & ZQSATI(:,JTILE),PQSTI(:,JTILE),PDQSTI(:,JTILE),&
    & ZWETB,PCPTSTI(:,JTILE),ZWETL,ZWETH,ZWETHS)
 ENDDO
@@ -477,6 +487,7 @@ DO JTILE=1,KTILES
    & PCPTSTI(:,JTILE),ZQSATI(:,JTILE),&
    & ZZ0MTI(:,JTILE),ZZ0HTI(:,JTILE),&
    & ZZ0QTI(:,JTILE),ZBUOMTI(:,JTILE),&
+   & PUCURR,PVCURR,&
    & YDCST,YDEXC,&
    & ZCFMTI(:,JTILE),PCFHTI(:,JTILE),&
    & PCFQTI(:,JTILE))

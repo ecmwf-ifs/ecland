@@ -41,6 +41,7 @@ SUBROUTINE FLAKERAD&
 ! !VERSION!  !DATE!     <Your name>
 ! 1.01T    27-Feb-2008  V. M. Stepanenko
 ! The code relevant to snow is dropped
+! M. Kelbling and S. Thober (UFZ) 11/6/2020 use of parameter values defined in namelist
 ! <End modifications>
 !
 ! Code Description:
@@ -91,8 +92,6 @@ REAL (KIND = JPRD), INTENT(OUT) :: PI_INTM_0_H_FLK (:)
 REAL (KIND = JPRD), INTENT(OUT) :: PI_INTM_H_D_FLK (:)
 
 !  Local variables of type REAL
-REAL (KIND = JPRD):: ZDEPTH_W_MAX    ! Maximum lake depth allowed
-REAL (KIND = JPRD):: ZDEPTH_W_MIN    ! Minimum lake depth allowed
 REAL (KIND = JPRD):: ZDEPTH_W
 !  Local variables of type INTEGER
 INTEGER (KIND = JPIM) :: & ! Help variable(s)
@@ -102,18 +101,16 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 IF (LHOOK) CALL DR_HOOK('FLAKERAD_MOD:FLAKERAD',0,ZHOOK_HANDLE)
 ASSOCIATE(RH_ICE_MIN_FLK=>YDFLAKE%RH_ICE_MIN_FLK, &
- & RH_ML_MIN_FLK=>YDFLAKE%RH_ML_MIN_FLK)
+ & RH_ML_MIN_FLK=>YDFLAKE%RH_ML_MIN_FLK, RDEPTH_W_MAX=>YDFLAKE%RDEPTH_W_MAX, &
+ & RDEPTH_W_MIN=>YDFLAKE%RDEPTH_W_MIN)
 
 !==============================================================================
 !  Start calculations
 !------------------------------------------------------------------------------
 
-ZDEPTH_W_MAX = 50.0_JPRD              ! Maximum lake depth simulated by FLAKE
-ZDEPTH_W_MIN =  2.0_JPRD              ! Minimum lake depth simulated by FLAKE
-
 DO JPOINT = KIDIA, KFDIA
   LAKEPOINT: IF (LDLAKEPOINT(JPOINT)) THEN ! The calculations are performed only for lake
-    ZDEPTH_W=MIN(ZDEPTH_W_MAX,MAX(ZDEPTH_W_MIN,PDEPTH_W(JPOINT)))
+    ZDEPTH_W=MIN(RDEPTH_W_MAX,MAX(RDEPTH_W_MIN,PDEPTH_W(JPOINT)))
     IF(PH_ICE_P_FLK(JPOINT).GE.RH_ICE_MIN_FLK) THEN            ! Ice exists
       PI_ICE_FLK(JPOINT) = PI_ATM_FLK(JPOINT)
       PI_BOT_FLK(JPOINT) = 0._JPRD

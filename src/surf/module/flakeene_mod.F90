@@ -51,8 +51,10 @@ SUBROUTINE FLAKEENE                                                      &
 !  Set lake shape factor to constant 0.65 value for safety (instability issues)
 ! 1.03       11.11.2010     G. Balsamo 
 !  Fixes for coupled atmospheric runs
-!            17.12.2015     F. Vana
-!  Support for single precision
+
+! 17.12.2015  F. Vana       Support for single precision
+!  M. Kelbling and S. Thober (UFZ) 11/6/2020 use of parameter values defined in namelist
+! 26.02.2025  T. Stockdale  Faster evolution of shape factor plus second-law constraints
 
 !
 ! Code Description:
@@ -158,6 +160,9 @@ REAL (KIND = JPRD):: ZR_H_ICESNOW      ! Dimensionless ratio, used to store inte
 REAL (KIND = JPRD):: ZR_RHO_C_ICESNOW  ! Dimensionless ratio, used to store intermediate results
 REAL (KIND = JPRD):: ZR_TI_ICESNOW     ! Dimensionless ratio, used to store intermediate results
 REAL (KIND = JPRD):: ZR_TSTAR_ICESNOW  ! Dimensionless ratio, used to store intermediate results
+REAL (KIND = JPRD):: ZR_TRATIO         ! Ratio of thermocline to total depth
+REAL (KIND = JPRD):: ZFLK_THERHP       ! Heat content of thermcoline on previous timestep
+REAL (KIND = JPRD):: ZFLK_C_T_LIMIT    ! Maximum value of C_T when ML is retreating
 
 !  The shape factor(s) at the previous time step ("p") and the updated value(s) ("n") 
 REAL (KIND = JPRD):: ZC_TT_FLK       ! Dimensionless parameter (thermocline)
@@ -180,8 +185,6 @@ REAL (KIND = JPRD):: ZW_STAR_SFC_FLK ! Convective velocity scale,
 REAL (KIND = JPRD):: ZFLAKE_BUOYPAR  ! Buoyancy parameter
 REAL (KIND = JPRD):: ZT_WATER        ! Temperature of water
 REAL (KIND = JPRD):: ZDEPTH_W(KLON)  ! Depth really used in the calculation
-REAL (KIND = JPRD):: ZDEPTH_W_MAX    ! Maximum lake depth allowed
-REAL (KIND = JPRD):: ZDEPTH_W_MIN    ! Minimum lake depth allowed
 REAL (KIND = JPRD):: ZC_T_CON        ! Mean lake shape factor
 REAL (KIND = JPRD):: ZD_C_T_DT_MAX   ! Maximum abs lake shape factor tendency
 REAL (KIND = JPRB):: ZEPS            ! Small "epsilon" in jprb precision
@@ -209,16 +212,24 @@ ASSOCIATE(RC_CBL_1=>YDFLAKE%RC_CBL_1, RC_CBL_2=>YDFLAKE%RC_CBL_2, &
  & RTPL_KAPPA_W=>YDFLAKE%RTPL_KAPPA_W, RTPL_L_F=>YDFLAKE%RTPL_L_F, &
  & RTPL_RHO_I=>YDFLAKE%RTPL_RHO_I, RTPL_RHO_W_R=>YDFLAKE%RTPL_RHO_W_R, &
  & RTPL_T_F=>YDFLAKE%RTPL_T_F, RTPL_T_R=>YDFLAKE%RTPL_T_R, &
- & RU_STAR_MIN_FLK=>YDFLAKE%RU_STAR_MIN_FLK)
+ & RU_STAR_MIN_FLK=>YDFLAKE%RU_STAR_MIN_FLK, &
+ & RDEPTH_W_MAX=>YDFLAKE%RDEPTH_W_MAX, RDEPTH_W_MIN=>YDFLAKE%RDEPTH_W_MIN, &
+ & RD_C_T_DT_MAX_A=>YDFLAKE%RD_C_T_DT_MAX_A, RC_I_FLK_A=>YDFLAKE%RC_I_FLK_A, &
+ & RH_ICE_FUSION_A=>YDFLAKE%RH_ICE_FUSION_A, RH_ICE_FUSION_B=>YDFLAKE%RH_ICE_FUSION_B, &
+ & RT_ICE_MIN_FLK=>YDFLAKE%RT_ICE_MIN_FLK, &
+ & RCONV_EQUIL_A=>YDFLAKE%RCONV_EQUIL_A, RCONV_EQUIL_B=>YDFLAKE%RCONV_EQUIL_B, &
+ & RCONV_EQUIL_C=>YDFLAKE%RCONV_EQUIL_C, NFLAKEV=>YDFLAKE%NFLAKEV)
 
 !==============================================================================
 !  Start calculations
 !------------------------------------------------------------------------------
 ZEPS=10._JPRB*EPSILON(ZEPS)           ! Small epsilon
-ZDEPTH_W_MAX = 50.0_JPRD              ! Maximum lake depth simulated by FLAKE
-ZDEPTH_W_MIN =  2.0_JPRD              ! Minimum lake depth simulated by FLAKE
 ZC_T_CON=(RC_T_MAX+RC_T_MIN)/2._JPRD  ! Average lake shape factor
-ZD_C_T_DT_MAX=(RC_T_MAX-RC_T_MIN)/(86400._JPRD*30._JPRD) ! Maximum abs C_T tendency
+IF(NFLAKEV==1) THEN
+  ZD_C_T_DT_MAX=(RC_T_MAX-RC_T_MIN)/(86400._JPRD*RD_C_T_DT_MAX_A) ! Maximum abs C_T tendency 30 day timescale
+ELSE
+  ZD_C_T_DT_MAX=(RC_T_MAX-RC_T_MIN)/(3600._JPRD*1._JPRD) ! Maximum abs C_T tendency 1 hour timescale
+ENDIF
 
 !_dm 
 ! Security. Set time-rate-of-change of prognostic variables to zero.
@@ -242,7 +253,7 @@ LAKEPOINT: IF (LDLAKEPOINT(JL)) THEN ! Prognostic variables are updated only
                                      ! for points, that are indicated as lakes
 
 ! Limit lake depth to MAX MIN values (note: FLAKE is a shallow-lake model)
-ZDEPTH_W(JL)=MIN(ZDEPTH_W_MAX ,MAX(ZDEPTH_W_MIN,PDEPTH_W(JL)))
+ZDEPTH_W(JL)=MIN(RDEPTH_W_MAX ,MAX(RDEPTH_W_MIN,PDEPTH_W(JL)))
 ! Security for thickness (prevents ICs imbalance)
 PH_ML_N_FLK(JL)=MIN(PH_ML_N_FLK(JL),ZDEPTH_W(JL))
 PH_ICE_N_FLK(JL)=MIN(PH_ICE_N_FLK(JL),ZDEPTH_W(JL))
@@ -277,7 +288,7 @@ ZD_C_T_DT     = 0._JPRD
 IF(PH_ICE_P_FLK(JL).GE.RH_ICE_MIN_FLK) THEN    ! Ice exists 
   IF(PH_ML_P_FLK(JL).LE.RH_ML_MIN_FLK) THEN    ! Mixed-layer depth is zero, compute flux 
     PQ_W_FLK(JL) = -RTPL_KAPPA_W*(PT_BOT_P_FLK(JL)-PT_WML_P_FLK(JL))/ &
-   & ZDEPTH_W(JL)                             ! Flux with linear T(z) 
+   & ZDEPTH_W(JL)                             ! Flux with linear T(z)
     ZPHI_T_PR0_FLK = RPHI_T_PR0_1*PC_T_P_FLK(JL)-RPHI_T_PR0_2         ! d\Phi(0)/d\zeta (thermocline)
     PQ_W_FLK(JL)   = PQ_W_FLK(JL)*MAX(ZPHI_T_PR0_FLK, 1._JPRD)      ! Account for an increased d\Phi(0)/d\zeta 
   ELSE                    
@@ -340,16 +351,16 @@ ELSE ICE_EXIST                                     ! Ice exists
   NO_MELTING: IF(.NOT.LL_ICE_MELTABOVE) THEN                 ! No melting from above
     
     ZPHI_I_PR0_FLK = PH_ICE_P_FLK(JL)/RH_ICE_MAX                          ! h_ice relative to its maximum value
-    ZC_I_FLK = RC_I_LIN - RC_I_MR*(1._JPRD+RPHI_I_AST_MR)*ZPHI_I_PR0_FLK    ! Shape factor (ice)
+    ZC_I_FLK = RC_I_LIN - RC_I_MR*(RC_I_FLK_A+RPHI_I_AST_MR)*ZPHI_I_PR0_FLK    ! Shape factor (ice)
     ZPHI_I_PR1_FLK = RPHI_I_PR1_LIN + RPHI_I_AST_MR*ZPHI_I_PR0_FLK         ! d\Phi_I(1)/d\zeta_I (ice)
     ZPHI_I_PR0_FLK = RPHI_I_PR0_LIN - ZPHI_I_PR0_FLK                      ! d\Phi_I(0)/d\zeta_I (ice)
 
-    ZH_ICE_THRESHOLD = MAX(1._JPRD, 2._JPRD*ZC_I_FLK*RTPL_C_I*(RTPL_T_F-PT_ICE_P_FLK(JL))/ &
+    ZH_ICE_THRESHOLD = MAX(1._JPRD, RH_ICE_FUSION_A*ZC_I_FLK*RTPL_C_I*(RTPL_T_F-PT_ICE_P_FLK(JL))/ &
    & RTPL_L_F)
     ZH_ICE_THRESHOLD = ZPHI_I_PR0_FLK/ZC_I_FLK*RTPL_KAPPA_I/RTPL_RHO_I/RTPL_C_I* &
    & ZH_ICE_THRESHOLD
     ZH_ICE_THRESHOLD = SQRT(MAX(0.0_JPRD,ZH_ICE_THRESHOLD*PDEL_TIME))     ! Threshold value of h_ice
-    ZH_ICE_THRESHOLD = MIN(0.9_JPRD*RH_ICE_MAX, MAX(ZH_ICE_THRESHOLD, RH_ICE_MIN_FLK))
+    ZH_ICE_THRESHOLD = MIN(RH_ICE_FUSION_B*RH_ICE_MAX, MAX(ZH_ICE_THRESHOLD, RH_ICE_MIN_FLK))
                                                                           ! h_ice(threshold) < 0.9*RH_Ice_max
 
     IF(PH_ICE_P_FLK(JL).LT.ZH_ICE_THRESHOLD) THEN  ! Use a quasi-equilibrium ice model
@@ -397,7 +408,7 @@ PH_ICE_N_FLK(JL) = MIN(PH_ICE_N_FLK(JL), RH_ICE_MAX)
 PT_ICE_N_FLK(JL) = MIN(PT_ICE_N_FLK(JL),  RTPL_T_F)    
 
 ! Security, avoid too low values (these constraints are used for debugging purposes)
-PT_ICE_N_FLK(JL) = MAX(PT_ICE_N_FLK(JL),  73.15_JPRD)    
+PT_ICE_N_FLK(JL) = MAX(PT_ICE_N_FLK(JL),  RT_ICE_MIN_FLK)    
 
 ! Remove too thin ice and/or snow
 IF(PH_ICE_N_FLK(JL).LT.RH_ICE_MIN_FLK)  THEN        ! Check ice
@@ -506,8 +517,8 @@ ELSE HTC_WATER                                      ! Open water
   ZCONV_EQUIL_H_SCALE = -PQ_W_FLK(JL)/MAX(PI_W_FLK(JL), RC_SMALL_FLK)
   IF(ZCONV_EQUIL_H_SCALE.GT.0._JPRD .AND. ZCONV_EQUIL_H_SCALE.LT.1._JPRD  &
     .AND. PT_WML_P_FLK(JL).GT.RTPL_T_R) THEN       ! The equilibrium CBL depth scale is only used above T_r
-    ZCONV_EQUIL_H_SCALE = SQRT(6._JPRD*ZCONV_EQUIL_H_SCALE)                 &
-                       + 2._JPRD*ZCONV_EQUIL_H_SCALE/(1._JPRD-ZCONV_EQUIL_H_SCALE)
+    ZCONV_EQUIL_H_SCALE = SQRT(RCONV_EQUIL_A*ZCONV_EQUIL_H_SCALE)                 &
+                        + RCONV_EQUIL_B*ZCONV_EQUIL_H_SCALE/(RCONV_EQUIL_C-ZCONV_EQUIL_H_SCALE)
     ZCONV_EQUIL_H_SCALE = MIN(ZDEPTH_W(JL), ZCONV_EQUIL_H_SCALE/PEXTINCOEF_WATER_TYP)
   ELSE
     ZCONV_EQUIL_H_SCALE = 0._JPRD       ! Set the equilibrium CBL depth to zero
@@ -523,14 +534,22 @@ ELSE HTC_WATER                                      ! Open water
   END IF 
 
 ! The rate of change of C_T
-  ZD_C_T_DT = MAX(ZW_STAR_SFC_FLK, PU_STAR_W_FLK(JL), RU_STAR_MIN_FLK)**2_JPIM
-  ZD_C_T_DT = ZN_T_MEAN*(ZDEPTH_W(JL)-PH_ML_P_FLK(JL))**2_JPIM       &
-           /RC_RELAX_C/ZD_C_T_DT                                 ! Relaxation time scale for C_T
-  ZD_C_T_DT = (RC_T_MAX-RC_T_MIN)/MAX(ZD_C_T_DT, RC_SMALL_FLK)     ! Rate-of-change of C_T 
+  IF(NFLAKEV==1) THEN
+    ZD_C_T_DT = MAX(ZW_STAR_SFC_FLK, PU_STAR_W_FLK(JL), RU_STAR_MIN_FLK)**2_JPIM
+    ZD_C_T_DT = ZN_T_MEAN*(ZDEPTH_W(JL)-PH_ML_P_FLK(JL))**2_JPIM       &
+             /RC_RELAX_C/ZD_C_T_DT                                 ! Relaxation time scale for C_T
+    ZD_C_T_DT = (RC_T_MAX-RC_T_MIN)/MAX(ZD_C_T_DT, RC_SMALL_FLK)     ! Rate-of-change of C_T 
+  ELSE ! New faster rate of change of C_T as recommended by DWD (Feb 2025)
+    IF (ZN_T_MEAN.GT.0._JPRD)  then !stratification exists, scale linearly by thermocline depth
+      ZD_C_T_DT = RC_RELAX_C*(RC_T_MAX-RC_T_MIN)&
+         /MAX((ZDEPTH_W(JL)-PH_ML_P_FLK(JL))/MAX(ZW_STAR_SFC_FLK, PU_STAR_W_FLK(JL), RU_STAR_MIN_FLK), RC_SMALL_FLK)
+    ELSE
+      ZD_C_T_DT =0.0_JPRB
+    END IF
+  ENDIF
 
 ! Compute the shape factor and the mixed-layer depth, 
 ! using different formulations for convection and wind mixing
-
   ZC_TT_FLK = RC_TT_1*PC_T_P_FLK(JL)-RC_TT_2       ! C_TT, using C_T at the previous time step
   ZC_Q_FLK = 2._JPRD*ZC_TT_FLK/PC_T_P_FLK(JL)      ! C_Q using C_T at the previous time step
 
@@ -657,9 +676,40 @@ ELSE HTC_WATER                                      ! Open water
       ZFLK_STR_2 = ZFLK_STR_2*(PT_WML_P_FLK(JL)-PT_BOT_P_FLK(JL))*ZD_C_T_DT
       ZD_T_BOT_DT = ZD_T_BOT_DT + ZFLK_STR_2       ! Add dC_T/dt term
       
+      IF(NFLAKEV>=2) THEN
+! Check to avoid violating second law of thermodynamics
+! If ML deepens too quickly, C_T does not respond fast enough, and T_BOT is decreased to
+! ensure the total heat content remains consistent with the temperature profile. This is
+! a particular issue for equatorial lakes where f is near 0 and stratification is weak, leading to
+! large quilibrium mixed layer depths when buoyancy forcing becomes small (Eq 38 in Mironov 2008).
+! To prevent this, we either have to speed up C_T adjustment or slow down ML deepening. Consistent
+! with the approach for mixed layer retreat, we choose to adjust C_T.
+        IF((PT_WML_N_FLK(JL)>PT_BOT_N_FLK(JL)).AND.(ZD_T_BOT_DT<0.0_JPRB)) THEN
+          PC_T_N_FLK(JL)=PC_T_N_FLK(JL)*(1.0_JPRB-ZD_T_BOT_DT/MAX((PT_WML_N_FLK(JL)-PT_BOT_N_FLK(JL)),RC_SMALL_FLK))
+          PC_T_N_FLK(JL)=MIN(RC_T_MAX, MAX(PC_T_N_FLK(JL), RC_T_MIN)) ! Keep C_T limits
+          ZD_T_BOT_DT = 0._JPRD
+        ENDIF
+! Apply same check for inverted temperature profiles, although this is probably less important 
+        IF((PT_WML_N_FLK(JL)<PT_BOT_N_FLK(JL)).AND.(ZD_T_BOT_DT>0.0_JPRB)) THEN
+          PC_T_N_FLK(JL)=PC_T_N_FLK(JL)*(1.0_JPRB+ZD_T_BOT_DT/MAX((PT_BOT_N_FLK(JL)-PT_WML_N_FLK(JL)),RC_SMALL_FLK))
+          PC_T_N_FLK(JL)=MIN(RC_T_MAX, MAX(PC_T_N_FLK(JL), RC_T_MIN)) ! Keep C_T limits
+          ZD_T_BOT_DT = 0._JPRD
+        ENDIF
+      ENDIF
+
     ELSE                                ! Mixed-layer retreat or stationary state
       ZD_T_BOT_DT = 0._JPRD             ! dT_bot/dt=0
-    END IF
+      IF(NFLAKEV>=2) THEN
+! Adjust C_T if necessary to prevent counter-gradient heat transport from thermocline to mixed layer
+        ZFLK_THERHP=((1.0_JPRB-PC_T_P_FLK(JL))*(ZDEPTH_W(JL)-PH_ML_P_FLK(JL))+ &
+     &     (PH_ML_P_FLK(JL)-PH_ML_N_FLK(JL)))*(PT_WML_P_FLK(JL)-PT_BOT_P_FLK(JL))  ! previous heat content of new thermocline
+        ZR_TRATIO=1.0_JPRB-PH_ML_N_FLK(JL)/ZDEPTH_W(JL)
+        ZFLK_STR_2=(ZDEPTH_W(JL)-PH_ML_N_FLK(JL))*(PT_MNW_N_FLK(JL)-PT_BOT_N_FLK(JL))
+        ZFLK_C_T_LIMIT=(ZFLK_STR_2-ZFLK_THERHP)/MAX((ZFLK_STR_2-ZR_TRATIO*ZFLK_THERHP),RC_SMALL_FLK) ! C_T_N must be less than or equal to this
+        PC_T_N_FLK(JL)=MIN(PC_T_N_FLK(JL),ZFLK_C_T_LIMIT)
+        PC_T_N_FLK(JL) = MIN(RC_T_MAX, MAX(PC_T_N_FLK(JL), RC_T_MIN)) ! Keep C_T limits to ensure consistency with subsequent timesteps
+      ENDIF
+    ENDIF
 
     PT_BOT_N_FLK(JL) = PT_BOT_P_FLK(JL) + ZD_T_BOT_DT*PDEL_TIME  ! Update T_bot  
     PT_BOT_N_FLK(JL) = MAX(PT_BOT_N_FLK(JL), RTPL_T_F)           ! Security, limit T_bot by the freezing point

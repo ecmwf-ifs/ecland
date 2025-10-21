@@ -1,5 +1,5 @@
 SUBROUTINE DATTIM(PJUL,KYMD,KHM)
-USE PARKIND1  ,ONLY : JPIM     ,JPRB , JPRD
+USE PARKIND1  ,ONLY : JPIM     ,JPRB , JPRD, JPIB
 USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
 ! (C) Copyright 1996- ECMWF.
 !
@@ -84,7 +84,7 @@ IF (LHOOK) CALL DR_HOOK('DATTIM',0,ZHOOK_HANDLE)
 !             ------------------
 
 ZTIME=REAL(NSTEP,KIND=JPRD)*TSTEP
-ISS=MOD(INT(ZTIME)+NSSSSS,86400)
+ISS=MOD(INT(ZTIME,KIND=JPIB)+NSSSSS,86400)
 IHH=ISS/3600
 IMM=MOD(ISS,3600)/60
 KHM=100*IHH+IMM
@@ -94,7 +94,7 @@ ztimcur=RTIMST+ztime
 !*       2.   DATE OF THE MODEL.
 !             ------------------
 
-IDAY=(INT(ZTIME)+NSSSSS)/86400
+IDAY=(INT(ZTIME,KIND=JPIB)+NSSSSS)/86400
 CALL INCDAT(NINDAT,IDAY,KYMD)
 
 !CBH!*       3.   Fractional Julian day, with 0 being 1 January 00 UT, in the
@@ -105,7 +105,7 @@ CALL INCDAT(NINDAT,IDAY,KYMD)
 iyy=nccaa(nindat)
 ztim1jan=rtime(iyy,1,1,0)
 !CBH      pjul=(ztimcur-ztim1jan+1.)/rday
-pjul=(ztimcur-ztim1jan)/rday+1.
+pjul=(ztimcur-ztim1jan)/rday+1._JPRB
 
 IF (LHOOK) CALL DR_HOOK('DATTIM',1,ZHOOK_HANDLE)
 

@@ -7,11 +7,18 @@ MODULE YOEPHY
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
 
-USE PARKIND1  ,ONLY : JPRB, JPIM
+USE PARKIND1  ,ONLY : JPRB, JPIM, JPRD
+USE YOS_NAMPARS1, ONLY : TESURF
 
 IMPLICIT NONE
 
 SAVE
+
+!     -----------------------------------------------------------------
+!*    PARAMETERS READ FROM NAMELISTS
+!     -----------------------------------------------------------------
+
+TYPE(TESURF) :: TMP_SURF
 
 !     -----------------------------------------------------------------
 !*    ** *YOEPHY* - SWITCHES RELATED TO DIABATIC PROCESSES
@@ -59,6 +66,7 @@ INTEGER(KIND=JPIM) :: NPHPROMA
 LOGICAL :: LBLEND
 
 LOGICAL :: LEFLAKE  ! FLake model
+INTEGER(KIND=JPIM) :: NFLAKEV
 LOGICAL :: LWCOU
 LOGICAL :: LWCOU2W
 LOGICAL :: LWCOUHMF
@@ -72,8 +80,10 @@ LOGICAL :: LEOPTSURF ! Read optimized parameters from namelist
 LOGICAL :: LEC4MAP  ! MAP FOR C3/C4 PHOTOSYNTHESIS TYPE
 LOGICAL :: LEAIRCO2COUP    ! Variable air CO2 in photosynthesis
 REAL(KIND=JPRB) :: RLAIINT
+
 LOGICAL :: LECLIM10D ! 10-day clim interpolation
 LOGICAL :: LESNML  ! Multi-layer snow activated 
+LOGICAL :: LESNICE  ! Snow over sea-ice (SL or ML) activated 
 LOGICAL :: LEURBAN ! Urban tile active
 LOGICAL :: LEINTWIND  ! Interpolate wind to match T/Q level 
 LOGICAL :: LEWARMSTART ! Apply warm start to surf prognostics (only snow)
@@ -81,11 +91,17 @@ LOGICAL :: LECOLDSTART ! Apply cold start to surf prognostics (only snow)
 INTEGER(KIND=JPIM) :: NSNMLWS ! Type of warm start to use (1,2,3)
 REAL(KIND=JPRB) :: RALFMINPSN ! Albedo of permanent snow
 LOGICAL :: LECMF1WAY  ! 1 way coupling with cama-flood
-INTEGER(KIND=JPIM) :: LECMF2LAKEC ! 2 way coupling with cama-flood updated lake cover 
+INTEGER(KIND=JPIM) :: NCMF2LAKEC ! 2 way coupling with cama-flood updated lake cover 
                                   ! 0 == OFF
                                   ! 1 == lake cover with flood fraction
                                   ! 2 == add flood fraction to lake cover 
-
+LOGICAL :: LBVOC_EMIS ! Switch for activating BVOC emissions
+INTEGER(KIND=JPIM) :: NBVOC_EMIS ! Number of BVOC emission fields
+INTEGER(KIND=JPIM),PARAMETER :: NBVOC_EMIS_DEFAULT=30 ! Maximum number of BVOC types
+CHARACTER(LEN=8), DIMENSION(NBVOC_EMIS_DEFAULT) :: BVOC_NAMES ! Names of BVOC emissions
+INTEGER(KIND=JPIM), PARAMETER :: DELTA_DAY_LAI_EMIS_BVOC=10 ! default days historic LAI info
+LOGICAL :: LESSDP_CALIB ! Activate calibration of Surface Spatially Distributed Parameters
+INTEGER (KIND=JPIM) :: NCWS ! Number of layers to merge at the end for the soil water profile (for > 4layers)
 !
 !     REFERENCE.
 !     ----------
@@ -104,6 +120,7 @@ INTEGER(KIND=JPIM) :: LECMF2LAKEC ! 2 way coupling with cama-flood updated lake 
 !     R. Hogan     ECMWF   14-01-2019  Replace LE4ALB with NALBEDOSCHEME
 !     A. Agusti-Panareda ECMWF 18-11-2020 Include LEAIRCO2COUP (use variable air CO2 in photosynthesis)
 !     A. Agusti-Panareda ECMWF 02-06-2021 Include photosynthesis parameters that are optimized with observations
+!     I. Ayan-Miguez June 2023 Include LESSDP_CALIB (activate calibrated surface spatially distributed parameters)
 !     ------------------------------------------------------------------
 
 !  NAME     TYPE     PURPOSE
@@ -144,6 +161,7 @@ INTEGER(KIND=JPIM) :: LECMF2LAKEC ! 2 way coupling with cama-flood updated lake 
 !       (1) MODIS 4 component (UV-Vis+NIR)x(direct+diffuse), (2) MODIS 6 component
 ! NEMISSSCHEME : INTEGER : (0) 2-band emissivity (window, non-window), 6-band emissivity
 ! LEFLAKE: LOGICAL : IF TRUE USE FLAKE OVER LAKES 
+! NFLAKEV: INTEGER : FLAKE VERSION, (1) original ECMWF scheme, (2) with second law constraints
 ! LEOCML : LOGICAL : IF TRUE USE OCEAN MIXED LAYER MODEL
 ! LEOCML : LOGICAL : IF TRUE USE LAI MONTHLY CLIMATOLOGY
 ! LESN09 : LOGICAL  : IF TRUE use snow 2009 
@@ -156,6 +174,7 @@ INTEGER(KIND=JPIM) :: LECMF2LAKEC ! 2 way coupling with cama-flood updated lake 
 ! RLAIINT : REAL: Relaxation factor between interactive LAI and climatological LAI (1:fully interactive, 0:climatological LAI is used, )
 ! LECLIM10D: Logical: IF TRUE interpolate between 10-day climate values (for albedo and LAI) 
 ! LBLEND: LOGICAL: OPTION TO MAKE BLENDING HEIGHT A FUNCTION OF Z0M
+! LBVOC_EMIS: Logical: IF TRUE compute online BVOC emis
 
 !     -----------------------------------------------------------------
 END MODULE YOEPHY

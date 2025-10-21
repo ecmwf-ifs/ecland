@@ -1,6 +1,7 @@
 MODULE SRFSN_ASN_MOD
 CONTAINS
 SUBROUTINE SRFSN_ASN(KIDIA,KFDIA,KLON,PTMST,LLNOSNOW,PASNM1M,&
+  & PCIL,LDNH,&
   & PMSN,PTSNM1M,PSNOWF,YDSOIL,YDCST,PASN)
 
 
@@ -21,6 +22,8 @@ USE YOS_CST  , ONLY : TCST
 !     PURPOSE.
 !     --------
 !          THIS ROUTINE CONTROLS THE ALBEDO EVOLUTION
+!          As a single prognostic snowpack for seasonal snow and land ice is used,
+!          the two different contributions are weighted by PCIL for sub-grid ice.
 
 !**   INTERFACE.
 !     ----------
@@ -40,6 +43,7 @@ USE YOS_CST  , ONLY : TCST
 
 !     INPUT PARAMETERS (LOGICAL):
 !    *LLNOSNOW*   NO-SNOW/SNOW MASK (TRUE IF NO-SNOW)
+!    *LDNH*       TRUE FOR NORTHERN HEMISPHERE
 
 !     INPUT PARAMETERS AT T-1 OR CONSTANT IN TIME (REAL):
 !    *PASNM1M*    SNOW ALBEDO                                      0-1
@@ -67,6 +71,7 @@ USE YOS_CST  , ONLY : TCST
 !     Modifications:
 !     Original   E. Dutra      ECMWF     04/12/2015
 !                G. Arduini    ECMWF     01/09/2021
+!                G. Arduini    ECMWF     Sept 2024 snow over land-ice
 
 !     ------------------------------------------------------------------
 
@@ -78,6 +83,8 @@ INTEGER(KIND=JPIM), INTENT(IN)   :: KFDIA
 INTEGER(KIND=JPIM), INTENT(IN)   :: KLON
 REAL(KIND=JPRB)   , INTENT(IN)   :: PTMST
 LOGICAL           , INTENT(IN)   :: LLNOSNOW(:) 
+REAL(KIND=JPRB)   , INTENT(IN)   :: PCIL(:)
+LOGICAL,            INTENT(IN)   :: LDNH(:)
 
 REAL(KIND=JPRB)   , INTENT(IN)   :: PASNM1M(:)
 REAL(KIND=JPRB)   , INTENT(IN)   :: PMSN(:)
@@ -91,7 +98,11 @@ REAL(KIND=JPRB)   , INTENT(OUT)  :: PASN(:)
 
 ! Local variables 
 INTEGER(KIND=JPIM) :: JL
-
+REAL(KIND=JPRB)    :: ZALBMIN, ZALBMAX_GL, ZRTAUA_GL,ZTSNTHR
+REAL(KIND=JPRB)    :: ZALBRESET(KLON)
+REAL(KIND=JPRB)    :: ZRTAUF_GL
+REAL(KIND=JPRB)    :: ZASN_L, ZASN_I
+REAL(KIND=JPRB)    :: ZEPSILON
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 !    -----------------------------------------------------------------
@@ -99,26 +110,72 @@ IF (LHOOK) CALL DR_HOOK('SRFSN_ASN_MOD:SRFSN_ASN',0,ZHOOK_HANDLE)
 
 !    -----------------------------------------------------------------
 
+! Glacier variables
+ZALBMIN=0.65_JPRB
+ZALBMAX_GL=YDSOIL%RALFMINPSN ! max albedo glacier
+!* Value tested over PROMICE Sites giving good results:
+!ZALBMAX_GL=0.815_JPRB 
+ZRTAUA_GL=YDSOIL%RTAUA/2._JPRB     ! RTAUA/2
+ZRTAUF_GL=0.085 !0.11_JPRB
+ZTSNTHR=5._JPRB
+ZEPSILON=100._JPRB*EPSILON(ZEPSILON)
+
+!*ZALBRESET=10._JPRB ! mm to reset to alfa_max
+! Use different albedo reset over Antarctica or NH Glaciers:
 DO JL=KIDIA,KFDIA
-  IF (LLNOSNOW(JL)) THEN
-    PASN(JL)= YDSOIL%RALFMAXSN
+  IF (LDNH(JL))THEN
+     ZALBRESET(JL)=5._JPRB ! mm to reset to alfa_max in NH
   ELSE
-!     IF (PMSN(JL) > 0.0_JPRB .OR. PTSNM1M(JL,1) > YDCST%RTT-2._JPRB ) THEN
-    IF (PMSN(JL) > 0.0_JPRB  ) THEN
-    ! MELTING CONDITIONS
-      PASN(JL)=(PASNM1M(JL)-YDSOIL%RALFMINSN)*&
-       & EXP(-YDSOIL%RTAUF*PTMST/YDCST%RDAY)+&
-       & YDSOIL%RALFMINSN
-    ELSE
-    ! NORMAL CONDITIONS
-      PASN(JL)=MAX(YDSOIL%RALFMINSN,PASNM1M(JL)-YDSOIL%RTAUA*PTMST/YDCST%RDAY)
-    ENDIF
-    ! UPDATE ALBEDO DUE TO SNOWFALL EVENTS
-    PASN(JL)=PASN(JL)+ MIN(MAX(PSNOWF(JL)*PTMST , 0._JPRB)/(10._JPRB) , 1._JPRB) *&
-     & (YDSOIL%RALFMAXSN-PASN(JL))
-    PASN(JL)=MIN(YDSOIL%RALFMAXSN,MAX(PASN(JL),YDSOIL%RALFMINSN))
-    
+     ZALBRESET(JL)=4._JPRB !5._JPRB ! mm to reset to alfa_max in SH (~Antarctica)
   ENDIF
+ENDDO
+
+DO JL=KIDIA,KFDIA
+   IF (LLNOSNOW(JL)) THEN
+     PASN(JL)= YDSOIL%RALFMAXSN
+   ELSE
+    ! Land part of the grid-cell
+      IF (PMSN(JL) > 0.0_JPRB  ) THEN
+      ! MELTING CONDITIONS
+        ZASN_L=(PASNM1M(JL)-YDSOIL%RALFMINSN)*&
+         & EXP(-YDSOIL%RTAUF*PTMST/YDCST%RDAY)+&
+         & YDSOIL%RALFMINSN
+      ELSE
+      ! NORMAL CONDITIONS
+        ZASN_L=MAX(YDSOIL%RALFMINSN,PASNM1M(JL)-YDSOIL%RTAUA*PTMST/YDCST%RDAY)
+      ENDIF
+      ! UPDATE ALBEDO DUE TO SNOWFALL EVENTS
+      ZASN_L=ZASN_L+ MIN(MAX(PSNOWF(JL)*PTMST , 0._JPRB)/(10._JPRB) , 1._JPRB) *&
+       & (YDSOIL%RALFMAXSN-ZASN_L)
+      ZASN_L=MIN(YDSOIL%RALFMAXSN,MAX(ZASN_L,YDSOIL%RALFMINSN))
+    
+    ! Ice part of the grid-cell
+      IF (PTSNM1M(JL,1) > YDCST%RTT-ZTSNTHR) THEN
+         ! MELTING CONDITIONS, modified minimum albedo and use different RTAUF.
+         ! ZRTAUF_GL gives a rate of change of albedo in between RTAUF and the linear 
+         ! relationship over a continuous change over 10-days.
+         ZASN_I=(PASNM1M(JL)-ZALBMIN)*EXP(-ZRTAUF_GL*PTMST/YDCST%RDAY)+ZALBMIN
+         !* Use linear relationship also in melting conditions.
+         !*ZASN_I=MAX(ZALBMIN,PASNM1M(JL)-YDSOIL%RTAUA*PTMST/YDCST%RDAY)
+      ELSE
+         ! Do not modify albedo in normal conditions.
+         ZASN_I=PASNM1M(JL)
+      ENDIF
+      ! UPDATE ALBEDO DUE TO SNOWFALL EVENTS, modified threhshold 
+      ZASN_I=ZASN_I+ MIN(MAX(PSNOWF(JL)*PTMST , 0._JPRB)/ZALBRESET(JL) , 1._JPRB) *&
+              & (ZALBMAX_GL-ZASN_I)
+      ZASN_I=MIN(ZALBMAX_GL,MAX(ZASN_I,ZALBMIN))
+
+    IF (PCIL(JL)<1._JPRB-ZEPSILON)THEN
+      PASN(JL)=(1._JPRB - PCIL(JL))*ZASN_L+PCIL(JL)*ZASN_I
+    ELSE
+      PASN(JL)=ZASN_I
+    ENDIF
+    ! Additional safety check, assuming RALFMAXSN (max asn seasonal snow) > RALFMINPSN (max asn glaciers)
+    !                                   RALFMINSN (min asn seasonal snow) < ZALBMIN (min asn glaciers)
+    PASN(JL)=MIN(YDSOIL%RALFMAXSN,MAX(PASN(JL),YDSOIL%RALFMINSN))
+
+   ENDIF
 ENDDO
 
 

@@ -75,9 +75,9 @@ ILNLT = KLON*KLAT
 NMSK=COUNT(LMASK)
 IF(NMSK == 0)RETURN
 
-ZSUM=0.
-ZMIN=1.e30
-ZMAX=-1.E30
+ZSUM=0._JPRB
+ZMIN=1.e30_JPRB
+ZMAX=-1.E30_JPRB
 IMINL=0
 IMAXL=0
 DO JL=1,ILNLT
@@ -103,18 +103,18 @@ IXMAX =  IMAXL-(IYMAX-1)*KLON
 IF ( CNAME == 'LATITUDE' .OR. CNAME == 'LONGITUD' ) THEN
 !to convert the lat/lon written value to deg
 WRITE(KULOUT,'(1X,/,1X,A8)') CNAME
-WRITE(KULOUT,'(1X,''MEAN-VALUE: '',G22.12,'' NUMBER: '',I10)')ZSUM*57.3248_JPRD,NMSK
-WRITE(KULOUT,'(1X,''MIN -VALUE: '',G22.12,'' AT (X,Y) = '',2I5)')&
+WRITE(KULOUT,'(1X,''MEAN-VALUE: '',G32.16,'' NUMBER: '',I10)')ZSUM*57.3248_JPRD,NMSK
+WRITE(KULOUT,'(1X,''MIN -VALUE: '',G32.16,'' AT (X,Y) = '',2I5)')&
       &ZMIN*57.3248_JPRB,IXMIN,IYMIN                                            
-WRITE(KULOUT,'(1X,''MAX -VALUE: '',G22.12,'' AT (X,Y) = '',2I5)')&
+WRITE(KULOUT,'(1X,''MAX -VALUE: '',G32.16,'' AT (X,Y) = '',2I5)')&
       &ZMAX*57.3248_JPRB,IXMAX,IYMAX                                            
 ELSE
 
 WRITE(KULOUT,'(1X,/,1X,A8)') CNAME
-WRITE(KULOUT,'(1X,''MEAN-VALUE: '',G24.14,'' NUMBER: '',I10)')ZSUM,NMSK
-WRITE(KULOUT,'(1X,''MIN -VALUE: '',G24.14,'' AT (X,Y) = '',2I5)')&
+WRITE(KULOUT,'(1X,''MEAN-VALUE: '',G32.16,'' NUMBER: '',I10)')ZSUM,NMSK
+WRITE(KULOUT,'(1X,''MIN -VALUE: '',G32.16,'' AT (X,Y) = '',2I5)')&
       &ZMIN,IXMIN,IYMIN                                            
-WRITE(KULOUT,'(1X,''MAX -VALUE: '',G24.14,'' AT (X,Y) = '',2I5)')&
+WRITE(KULOUT,'(1X,''MAX -VALUE: '',G32.16,'' AT (X,Y) = '',2I5)')&
       &ZMAX,IXMAX,IYMAX                                            
 ENDIF
 

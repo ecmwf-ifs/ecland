@@ -374,17 +374,8 @@ IF (LDPPCFLS) THEN
         PQ2M5(JL)=PQ2M5(JL)+&
                          &PFRTI(JL,JTILE)*ZQ2M5(JL,JTILE)
       ENDDO
-    ENDDO
+   ENDDO
 
-    ! Overwrite where dominant water or sea-ice. 
-    ! Using PLSM would be cleaner, but this should be eq.
-    DO JL=KIDIA,KFDIA
-      IF ((PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,5)+PFRTI(JL,6)+PFRTI(JL,7)+PFRTI(JL,8)+PFRTI(JL,9))<1.0_JPRB)THEN
-        PT2M5(JL)=ZT2M_DL5(JL)
-        PD2M5(JL)=ZD2M_DL5(JL)
-        PQ2M5(JL)=ZQ2M_DL5(JL)
-      ENDIF
-    ENDDO
   ELSE ! Business as usual
     DO JL=KIDIA,KFDIA
     IF (PZ0MW5(JL)>=PZ0HW5(JL))THEN
@@ -442,18 +433,6 @@ Z10NV=0.0_JPRB
 
 IF (LDPPCFLS) THEN
   IF (LT2MTILE)THEN
-    ! Overwrite where dominant water or sea-ice. 
-    ! Using PLSM would be cleaner, but this should be eq.
-    DO JL=KIDIA,KFDIA
-    IF ((PFRTI(JL,3)+PFRTI(JL,4)+PFRTI(JL,5)+PFRTI(JL,6)+PFRTI(JL,7)+PFRTI(JL,8)+PFRTI(JL,9))<1.0_JPRB)THEN
-        ZQ2M_DL(JL)=ZQ2M_DL(JL)+PQ2M(JL)
-        PQ2M(JL)=0.0_JPRB
-        ZD2M_DL(JL)=ZD2M_DL(JL)+PD2M(JL)
-        PD2M(JL)=0.0_JPRB
-        ZT2M_DL(JL)=ZT2M_DL(JL)+PT2M(JL)
-        PT2M(JL)=0.0_JPRB
-      ENDIF
-    ENDDO
     DO JTILE=1,KTILES
       DO JL=KIDIA,KFDIA
         ZQ2M(JL,JTILE)=ZQ2M(JL,JTILE)+PFRTI(JL,JTILE)*PQ2M(JL)

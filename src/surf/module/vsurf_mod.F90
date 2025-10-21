@@ -2,10 +2,12 @@ MODULE VSURF_MOD
 CONTAINS
 SUBROUTINE VSURF(KIDIA,KFDIA,KLON,KTILES,KLEVS,KTILE,&
  & KTVL, KCO2TYP, KTVH,&
- & JVTTL,KVEG, &
- & PLAI,&
- & PMU0,PCO2FLUX, &
- & PFRTI, PLAIL, PLAIH,&
+ & JVTTL,KVEG, KVEG_WET,&
+ & PPPFD_TOA, &
+ & PLAI,PLAI_WET,&
+ & PLAIP_WET,&
+ & PMU0,PLAT, PCO2FLUX, &
+ & PFRTI, PLAIL, PLAIH,PAVGPAR, PISOP_EP, &
  & PTMLEV, PQMLEV  , PCMLEV, PAPHMS,&
  & PTSKM1M,PWSAM1M,PTSAM1M,KSOTY,&
  & PSRFD ,PRAQ  ,PQSAM ,&
@@ -13,14 +15,16 @@ SUBROUTINE VSURF(KIDIA,KFDIA,KLON,KTILES,KLEVS,KTILE,&
  & PWETB ,PCPTS ,PWETL, PWETLU, PWETH, PWETHS , &  
  & PEVAP ,&
  & PAN,PAG,PRD ,PPWLIQ ,&
+ & PBVOCFLUX, PBVOCDIAG, &
  & PDHVEGS, PEXDIAG, &
- & YDCST, YDVEG, YDEXC, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB)
+ & PSSDP2, PSSDP3, YDCST, YDVEG, YDBVOC, YDEXC, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB)
   
 USE PARKIND1 , ONLY : JPIM, JPRB
 USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_THF  , ONLY : R4LES, R5LES, R2ES, R4IES, R3LES, R3IES, R5IES, RVTMP2
 USE YOS_CST  , ONLY : TCST
 USE YOS_VEG  , ONLY : TVEG
+USE YOS_BVOC , ONLY : TBVOC
 USE YOS_EXC  , ONLY : TEXC
 USE YOS_AGS  , ONLY : TAGS
 USE YOS_AGF  , ONLY : TAGF
@@ -28,7 +32,8 @@ USE YOS_SOIL , ONLY : TSOIL
 USE YOS_FLAKE, ONLY : TFLAKE
 USE YOS_URB  , ONLY : TURB
 USE COTWORESTRESS_MOD
-
+USE BVOC_EMIS_MOD
+USE YOMSURF_SSDP_MOD
 ! (C) Copyright 1990- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
@@ -59,12 +64,16 @@ USE COTWORESTRESS_MOD
 !     S. Boussetta/G.Balsamo June 2010 Add soil moisture scaling factor for Reco
 !     S. Boussetta/G.Balsamo June 2011 modularisation of Ags call
 !     A. Beljaars      26/02/2014   compute unstressed evaporation
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
 !     A. Agusti-Panareda Nov 2020  couple atm CO2 tracer with photosynthesis 
 !     A. Agusti-Panareda May 2021  Pass soil temperature to photosynthesis 
 !     A. Agusti-Panareda June 2021 Pass photosynthetic pathway for low vegetation (c3/c4)
 !     S. Boussetta     21/06/2022  Added Ronda (Ronda et al. 2002, J. App. Met.) SM stress function
 !     J. McNorton      24/08/2022  urban tile
 !     S. Boussetta     21/06/2022  Added LAI scaling by Cveg for Rc canopy resistance computaioin
+!     I. Ayan-Miguez   July 2023   Added PSSDP2 object for spatially distributed parameters
+!     V. Huijnen       31/10/2023  Add support for BVOC emissions
 
 !     PURPOSE
 !     -------
@@ -106,9 +115,14 @@ USE COTWORESTRESS_MOD
 !            9 : LAKE                  10 : URBAN
 !     *PLAIL*        LAI OF LOW VEGETATION
 !     *PLAIH*        LAI OF HIGH VEGETATION
+!     *PAVGPAR*      Average PAR
+!     *PISOP_EP*     Isoprene emission potential
 
 !     *PLAI*         LEAF AREA INDEX for both low and high                 (-)
+!     *PLAI_WET*     LEAF AREA INDEX for both low and high, incl. wet skin tile    (-)
+!     *PLAIP_WET*    LEAF AREA INDEX for both low and high, incl. wet skin tile, previous time step (-)
 !     *PMU0*        LOCAL COSINE OF INSTANTANEOUS MEAN SOLAR ZENITH ANGLE
+!     *PLAT*        Latitude (radians)
 
 !     *PTMLEV*      TEMPERATURE AT T-1, lowest model level
 !     *PQMLEV*      SPECIFIC HUMIDITY AT T-1, lowest model level
@@ -141,6 +155,8 @@ USE COTWORESTRESS_MOD
 !                    positive downwards, to be changed for diagnostic output
 !     *PRD*          DARK RESPIRATION                          KG_CO2/M2/S
 !                    positive upwards
+!     *PBVOCFLUX*    Biogenic VOC flux                         KG_BVOC/M2/S
+!     *PBVOCDIAG*    Biogenic VOC flux diagnostics             [variable]
 
 !     METHOD
 !     ------
@@ -157,14 +173,18 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTILE 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PPPFD_TOA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVL(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KCO2TYP(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(:)
 
 INTEGER(KIND=JPIM),INTENT(IN)    :: JVTTL
-INTEGER(KIND=JPIM),INTENT(IN)    :: KVEG(:,:)
+INTEGER(KIND=JPIM),INTENT(IN)    :: KVEG(:,:),KVEG_WET(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAI(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAI_WET(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIP_WET(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAT(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PEVAP(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAN(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAG(:)
@@ -172,9 +192,14 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PRD(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PDHVEGS(:,:,:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PEXDIAG(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCO2FLUX(:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCFLUX(:,:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBVOCDIAG(KLON,2)
+
 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIL(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPAR(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PISOP_EP(:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KSOTY(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTMLEV(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 
@@ -199,8 +224,11 @@ REAL(KIND=JPRB)   ,INTENT(INOUT) :: PWETHS(:)
 !ZLIQ is passed to compute soil moisture scaling factor in Reco (CO2 routine) CTESSEL
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PPWLIQ(KLON,KLEVS)
 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
+TYPE(TBVOC)       ,INTENT(IN)    :: YDBVOC
 TYPE(TEXC)        ,INTENT(IN)    :: YDEXC
 TYPE(TAGS)        ,INTENT(IN)    :: YDAGS
 TYPE(TAGF)        ,INTENT(IN)    :: YDAGF
@@ -217,13 +245,16 @@ REAL(KIND=JPRB) ::  ZDSP(KLON),ZDMAXT(KLON)
 REAL(KIND=JPRB) ::  ZWET(KLON)
 REAL(KIND=JPRB) ::  ZTSK(KLON)
 REAL(KIND=JPRB) ::  ZEPSILON
+INTEGER(KIND=JPIM) :: IVEG_BVOC(KLON)
 
 REAL(KIND=JPRB) ::  ZTSOIL(KLON)
+
 REAL(KIND=JPRB) ::  ZCOR, ZEPSF3, ZF, ZF1H, ZF1L, ZF2H, ZF2L, ZF2B, ZF21H, ZF21L, ZF21B, &
  & ZF3H, ZF3L, ZHSTRH, ZHSTRL, ZLAIH, ZLAIL, ZLAIHSC, ZLAILSC, ZQSAIR, &
- & ZRSMINH, ZRSMINL, ZRSMINB, ZRVA, ZRVB, ZSRFL, ZWROOTH, ZWROOTL, &
+ & ZRSMINH, ZRSMINL, ZRVA, ZRVB, ZSRFL, ZWROOTH, ZWROOTL, &
  & ZQWEVAP, ZWPWP, ZQWEVAPBARE, ZBARE, ZWPBARE,&
- & ZSALIN, ZRCLU
+ & ZSALIN, ZWCAPM
+
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 !     ------------------------------------------------------------------
@@ -236,15 +267,21 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('VSURF_MOD:VSURF',0,ZHOOK_HANDLE)
 ASSOCIATE(RCPD=>YDCST%RCPD, RETV=>YDCST%RETV, RLSTT=>YDCST%RLSTT, &
  & RLVTT=>YDCST%RLVTT, RTT=>YDCST%RTT, &
- & LEOCSA=>YDEXC%LEOCSA, &
- & LEVGEN=>YDSOIL%LEVGEN, RQWEVAP=>YDSOIL%RQWEVAP, RQWEVAPM=>YDSOIL%RQWEVAPM, &
+ & LEOCSA=>YDEXC%LEOCSA, RSALIN=>YDEXC%RSALIN, &
+ & LEVGEN=>YDSOIL%LEVGEN, RQWEVAP=>YDSOIL%RQWEVAP, &
  & RTF1=>YDSOIL%RTF1, RTF2=>YDSOIL%RTF2, RTF3=>YDSOIL%RTF3, RTF4=>YDSOIL%RTF4, &
- & RWCAP=>YDSOIL%RWCAP, RWCAPM=>YDSOIL%RWCAPM, RWPWP=>YDSOIL%RWPWP, &
- & RWPWPM=>YDSOIL%RWPWPM, RWRESTM=>YDSOIL%RWRESTM, &
+ & RWCAP=>YDSOIL%RWCAP, RWCAPM3D=>PSSDP3(:,:,SSDP3D_ID%NRWCAPM3D), RWPWP=>YDSOIL%RWPWP, &
+ & RWPWPM3D=>PSSDP3(:,:,SSDP3D_ID%NRWPWPM3D), RWRESTM3D=>PSSDP3(:,:,SSDP3D_ID%NRWRESTM3D), &
  & LEAGS=>YDVEG%LEAGS, LECTESSEL=>YDVEG%LECTESSEL, RCEPSW=>YDVEG%RCEPSW, &
+ & LEMIS_BVOC=>YDBVOC%LEMIS_BVOC, &
  & LEFARQUHAR=>YDVEG%LEFARQUHAR, LEAIRCO2COUP=>YDVEG%LEAIRCO2COUP, &
- & RVHSTR=>YDVEG%RVHSTR, RVLAI=>YDVEG%RVLAI, RVROOTSA=>YDVEG%RVROOTSA, &
- & RVRSMIN=>YDVEG%RVRSMIN, RVCOV=>YDVEG%RVCOV,LEURBAN=>YDURB%LEURBAN, RURBRES=>YDURB%RURBRES)
+ & RVCOVH2D=>PSSDP2(:,SSDP2D_ID%NRVCOVH2D), RVCOVL2D=>PSSDP2(:,SSDP2D_ID%NRVCOVL2D), &
+ & RVHSTRL2D=>PSSDP2(:,SSDP2D_ID%NRVHSTRL2D),RVHSTRH2D=>PSSDP2(:,SSDP2D_ID%NRVHSTRH2D), &
+ & RVLAI=>YDVEG%RVLAI, &
+ & RVROOTSAL3D=>PSSDP3(:,:,SSDP3D_ID%NRVROOTSAL3D), RVROOTSAH3D=>PSSDP3(:,:,SSDP3D_ID%NRVROOTSAH3D), &
+ & RVRSMINL2D=>PSSDP2(:,SSDP2D_ID%NRVRSMINL2D), RVRSMINH2D=>PSSDP2(:,SSDP2D_ID%NRVRSMINH2D), &
+ & RVRSMINB2D=>PSSDP2(:,SSDP2D_ID%NRVRSMINB2D), LEURBAN=>YDURB%LEURBAN, RURBRES=>YDURB%RURBRES, RCLU=>YDSOIL%RCLU, &
+ & RRSF1A=>YDSOIL%RRSF1A, RRSF1B=>YDSOIL%RRSF1B, RRSF1C=>YDSOIL%RRSF1C)
 
 
 ! This is needed as unitialized values end up being passed around otherwise
@@ -254,10 +291,9 @@ ZDMAXT(:)=0.0_JPRB
 ZRVA=5000._JPRB
 ZRVB=10._JPRB
 ZEPSF3=0.00001_JPRB ! security value for exponential sat-deficit dependence
-ZRSMINB=50._JPRB  ! bare soil minimum resistance
-ZRCLU=50._JPRB    ! unstressed canopy resis. for pot. evap. over grassland (50 s/m)
 
 ZEPSILON=EPSILON(ZEPSILON)
+
 !     ------------------------------------------------------------------
 
 
@@ -271,7 +307,7 @@ ZEPSILON=EPSILON(ZEPSILON)
 !*         2.2   SATURATION PARAMETERS,
 
 IF (LEOCSA .AND. KTILE  ==  1) THEN
-  ZSALIN=0.98_JPRB
+  ZSALIN=RSALIN
 ELSE
   ZSALIN=1.0_JPRB
 ENDIF
@@ -320,8 +356,9 @@ ENDDO
       ENDIF
       IF (LEVGEN) THEN
         JS=KSOTY(JL)
-        ZLIQ(JL,JK)=MAX(RWPWPM(JS),MIN(RWCAPM(JS),PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
-        ZLIQR(JL,JK)=MAX(RWRESTM(JS),MIN(RWCAPM(JS),PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
+        ZWCAPM=RWCAPM3D(JL,JK)
+        ZLIQ(JL,JK)=MAX(RWPWPM3D(JL,JK),MIN(ZWCAPM,PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
+        ZLIQR(JL,JK)=MAX(RWRESTM3D(JL,JK),MIN(ZWCAPM,PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
       ELSE
         ZLIQ(JL,JK)=MAX(RWPWP,MIN(RWCAP,PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
         ZLIQR(JL,JK)=MAX(0.05_JPRB,MIN(RWCAP,PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
@@ -333,21 +370,21 @@ ENDDO
 
   DO JL=KIDIA,KFDIA
 
-    ZRSMINL=RVRSMIN(KTVL(JL))
-    ZRSMINH=RVRSMIN(KTVH(JL))
+    ZRSMINL=RVRSMINL2D(JL)
+    ZRSMINH=RVRSMINH2D(JL)
 
 !           leaf area index  : ZLAI
     ZLAIL=PLAIL(JL)
     ZLAIH=PLAIH(JL)
 
 !   scaled leaf area index with cveg9= (rvcov)
-    IF(RVCOV(KTVL(JL)) /= 0.0_JPRB) THEN
-     ZLAILSC=PLAIL(JL)/RVCOV(KTVL(JL))
+    IF(RVCOVL2D(JL) /= 0.0_JPRB) THEN
+     ZLAILSC=PLAIL(JL)/RVCOVL2D(JL)
     ELSE
      ZLAILSC=PLAIL(JL)
     ENDIF
-    IF(RVCOV(KTVH(JL)) /= 0.0_JPRB) THEN
-     ZLAIHSC=PLAIH(JL)/RVCOV(KTVH(JL))
+    IF(RVCOVH2D(JL) /= 0.0_JPRB) THEN
+     ZLAIHSC=PLAIH(JL)/RVCOVH2D(JL)
     ELSE
      ZLAIHSC=PLAIH(JL)
     ENDIF   
@@ -361,18 +398,22 @@ ENDDO
     ZWROOTL=0.0_JPRB
     ZWROOTH=0.0_JPRB
     DO JK=1,KLEVS
-      ZWROOTL=ZWROOTL+ZLIQ(JL,JK)*RVROOTSA(JK,KTVL(JL))
-      ZWROOTH=ZWROOTH+ZLIQ(JL,JK)*RVROOTSA(JK,KTVH(JL))
+      ZWROOTL=ZWROOTL+ZLIQ(JL,JK)*RVROOTSAL3D(JL,JK)
+      ZWROOTH=ZWROOTH+ZLIQ(JL,JK)*RVROOTSAH3D(JL,JK)
     ENDDO
     IF (LEVGEN) THEN
        JS=KSOTY(JL)
-       ZWPWP=RWPWPM(JS)
-       ZQWEVAP=RQWEVAPM(JS)
+       ZWPWP=RWPWPM3D(JL,1_JPIM)
+       IF (JS >= 1) THEN
+         ZQWEVAP=1._JPRB/(RWCAPM3D(JL,1_JPIM)-ZWPWP)
+       ELSE
+         ZQWEVAP = 0.0_JPRB
+       ENDIF
 !      bare ground evaporation stress is calculated with the weighted average of
 !      residual and wilting point soil moisture (since it is common soil)
-       ZWPBARE=(RWPWPM(JS)*(1.0_JPRB-ZBARE)+RWRESTM(JS)*ZBARE)
+       ZWPBARE=(RWPWPM3D(JL,1_JPIM)*(1.0_JPRB-ZBARE)+RWRESTM3D(JL,1_JPIM)*ZBARE)
        IF (JS >=1 ) THEN
-          ZQWEVAPBARE=1._JPRB/(RWCAPM(JS)-ZWPBARE)
+          ZQWEVAPBARE=1._JPRB/(RWCAPM3D(JL,1_JPIM)-ZWPBARE)
        ELSE
           ZQWEVAPBARE=0._JPRB
        ENDIF
@@ -404,13 +445,13 @@ ENDDO
 !    ZF2H=MAX(RCEPSW,MIN(1.0_JPRB,(ZWROOTH-ZWPWP)*ZQWEVAP))
 
 !           radiation stress function (proposed by Alan Betts): ZF1 
-    ZSRFL=PSRFD(JL)/250._JPRB
-    ZF1L=1.0_JPRB/MAX(1.0_JPRB,0.81_JPRB*(1.+ZSRFL)/(ZSRFL+0.05_JPRB))
+    ZSRFL=PSRFD(JL)/RRSF1B
+    ZF1L=1.0_JPRB/MAX(1.0_JPRB,RRSF1A*(1.+ZSRFL)/(ZSRFL+RRSF1C))
     ZF1H=ZF1L
 
 !           atmospheric moisture deficit stress function : F3
-    ZHSTRL=RVHSTR(KTVL(JL))
-    ZHSTRH=RVHSTR(KTVH(JL))
+    ZHSTRL=RVHSTRL2D(JL)
+    ZHSTRH=RVHSTRH2D(JL)
     ZQSAIR=FOEEW(PTMLEV(JL))/PAPHMS(JL)
     ZCOR=1.0_JPRB/(1.0_JPRB-RETV  *ZQSAIR)
     ZQSAIR=ZQSAIR*ZCOR
@@ -431,7 +472,7 @@ ENDDO
       PWETL(JL) =1.0E+6_JPRB
     ENDIF
 
-    PWETLU(JL)=ZRCLU/(ZF1L*ZF3L) !Pot. Evap. Canopy resist. calc.
+    PWETLU(JL)=RCLU/(ZF1L*ZF3L) !Pot. Evap. Canopy resist. calc.
 
 !    IF(ZLAIH /= 0.0_JPRB) THEN
 !      PWETH(JL)=ZRSMINH/(ZLAIH*ZF1H*ZF2H*ZF3H)
@@ -447,7 +488,7 @@ ENDDO
     ENDIF   
 
     PWETHS(JL)=PWETH(JL)
-    PWETB(JL)=ZRSMINB/ZF2B
+    PWETB(JL)=RVRSMINB2D(JL)/ZF2B
 
     PEXDIAG(JL,1)=PWETL(JL)
     PEXDIAG(JL,2)=ZF1L
@@ -540,8 +581,9 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
       ENDIF
       IF (LEVGEN) THEN
         JS=KSOTY(JL)
-        ZLIQ(JL,JK)=MAX(RWPWPM(JS),MIN(RWCAPM(JS),PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
-        ZLIQR(JL,JK)=MAX(RWRESTM(JS),MIN(RWCAPM(JS),PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
+        ZWCAPM=RWCAPM3D(JL,JK)
+        ZLIQ(JL,JK)=MAX(RWPWPM3D(JL,JK),MIN(ZWCAPM,PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
+        ZLIQR(JL,JK)=MAX(RWRESTM3D(JL,JK),MIN(ZWCAPM,PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
       ELSE
         ZLIQ(JL,JK)=MAX(RWPWP,MIN(RWCAP,PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
         ZLIQR(JL,JK)=MAX(0.05_JPRB,MIN(RWCAP,PWSAM1M(JL,JK)*(1.0_JPRB-ZF)))
@@ -559,18 +601,22 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
     ZWROOTL=0.0_JPRB
     ZWROOTH=0.0_JPRB
     DO JK=1,KLEVS
-      ZWROOTL=ZWROOTL+ZLIQ(JL,JK)*RVROOTSA(JK,KTVL(JL))
-      ZWROOTH=ZWROOTH+ZLIQ(JL,JK)*RVROOTSA(JK,KTVH(JL))
+      ZWROOTL=ZWROOTL+ZLIQ(JL,JK)*RVROOTSAL3D(JL,JK)
+      ZWROOTH=ZWROOTH+ZLIQ(JL,JK)*RVROOTSAH3D(JL,JK)
     ENDDO
     IF (LEVGEN) THEN
        JS=KSOTY(JL)
-       ZWPWP=RWPWPM(JS)
-       ZQWEVAP=RQWEVAPM(JS)
+       ZWPWP=RWPWPM3D(JL,1_JPIM)
+       IF (JS >= 1) THEN
+         ZQWEVAP = 1._JPRB/(RWCAPM3D(JL,1_JPIM)-ZWPWP)
+       ELSE                   
+         ZQWEVAP=0._JPRB
+       ENDIF
 !      bare ground evaporation stress is calculated with the weighted average of
 !      residual and wilting point soil moisture (since it is common soil)
-       ZWPBARE=(RWPWPM(JS)*(1.0_JPRB-ZBARE)+RWRESTM(JS)*ZBARE)
+       ZWPBARE=(RWPWPM3D(JL,1_JPIM)*(1.0_JPRB-ZBARE)+RWRESTM3D(JL,1_JPIM)*ZBARE)
        IF (JS >=1 ) THEN
-          ZQWEVAPBARE=1._JPRB/(RWCAPM(JS)-ZWPBARE)
+          ZQWEVAPBARE=1._JPRB/(RWCAPM3D(JL,1_JPIM)-ZWPBARE)
        ELSE
           ZQWEVAPBARE=0._JPRB
        ENDIF
@@ -601,12 +647,12 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
 !    ZF2H=MAX(RCEPSW,MIN(1.0_JPRB,(ZWROOTH-ZWPWP)*ZQWEVAP))
 
 !           radiation stress function (proposed by Alan Betts): ZF1 
-    ZSRFL=PSRFD(JL)/250._JPRB
-    ZF1L=1.0_JPRB/MAX(1.0_JPRB,0.81_JPRB*(1.+ZSRFL)/(ZSRFL+0.05_JPRB))
+    ZSRFL=PSRFD(JL)/RRSF1B
+    ZF1L=1.0_JPRB/MAX(1.0_JPRB,RRSF1A*(1.+ZSRFL)/(ZSRFL+RRSF1C))
     ZF1H=ZF1L
 !           atmospheric moisture deficit stress function : F3
-    ZHSTRL=RVHSTR(KTVL(JL))
-    ZHSTRH=RVHSTR(KTVH(JL))
+    ZHSTRL=RVHSTRL2D(JL)
+    ZHSTRH=RVHSTRH2D(JL)
     ZQSAIR=FOEEW(PTMLEV(JL))/PAPHMS(JL)
     ZCOR=1.0_JPRB/(1.0_JPRB-RETV  *ZQSAIR)
     ZQSAIR=ZQSAIR*ZCOR
@@ -642,12 +688,20 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
     DO JL=KIDIA,KFDIA  
       ZWROOT(JL)=0._JPRB
       DO JK=1,KLEVS
-        ZWROOT(JL)=ZWROOT(JL)+ZLIQ(JL,JK)*RVROOTSA(JK,KVEG(JL,KTILE))
+        IF (KTILE == 4) THEN
+          ZWROOT(JL)=ZWROOT(JL)+ZLIQ(JL,JK)*RVROOTSAL3D(JL,JK)
+        ELSEIF (KTILE==6 .OR. KTILE==7 ) THEN   
+          ZWROOT(JL)=ZWROOT(JL)+ZLIQ(JL,JK)*RVROOTSAH3D(JL,JK)
+        ENDIF
       ENDDO
       IF (LEVGEN) THEN
          JS=KSOTY(JL)
-         ZWPWP=RWPWPM(JS)
-         ZQWEVAP=RQWEVAPM(JS)
+         ZWPWP=RWPWPM3D(JL,1_JPIM)
+         IF (JS >= 1) THEN
+           ZQWEVAP=1._JPRB/(RWCAPM3D(JL,1_JPIM)-ZWPWP)
+         ELSE
+           ZQWEVAP=0.0_JPRB
+         ENDIF
       ELSE
          ZWPWP=RWPWP
          ZQWEVAP=RQWEVAP
@@ -684,12 +738,13 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
 
 ! COTWORESTRESS (stress parameterisation from JC Calvet) is called. 
 ! ZWET is not computed for shaded snow, it will be taken from the high veg value
-    CALL COTWORESTRESS(KIDIA,KFDIA,KLON,KVEG(:,KTILE),KCO2TYP,PFRTI,&
+    CALL COTWORESTRESS(KIDIA,KFDIA,KLON,KVEG(:,KTILE),KTILE,KCO2TYP,PFRTI,&
          & PTMLEV,PQMLEV,PCMLEV,PAPHMS,&
          & ZTSK, ZTSOIL,&
          & PEVAP,PLAI,&
          & PSRFD,PRAQ,PMU0,&
          & ZF2,PQS,&
+         & PSSDP2,&
          & YDCST,YDAGS,YDAGF,YDVEG,YDFLAKE, &
          & PAN,PAG,PRD,&
          & ZWET,ZDSP,ZDMAXT)
@@ -702,6 +757,7 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
     ENDDO
   ENDIF !vegetation tiles, shaded snow tile
 
+
 ! bare soil (& urban)
   IF( KTILE == 8 .OR. KTILE == 10 ) THEN
     DO JL=KIDIA,KFDIA 
@@ -712,14 +768,16 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
       ENDIF
       IF (LEVGEN) THEN
          JS=KSOTY(JL)
-         ZWPWP=RWPWPM(JS)
-         ZQWEVAP=RQWEVAPM(JS)
+         ZWCAPM=RWCAPM3D(JL,1_JPIM)
+         ZWPWP=RWPWPM3D(JL,1_JPIM)
 !      bare ground evaporation stress is calculated with the weighted average of
 !      residual and wilting point soil moisture (since it is common soil)
-         ZWPBARE=(RWPWPM(JS)*(1.0_JPRB-ZBARE)+RWRESTM(JS)*ZBARE)
+         ZWPBARE=(RWPWPM3D(JL,1_JPIM)*(1.0_JPRB-ZBARE)+RWRESTM3D(JL,1_JPIM)*ZBARE)
          IF (JS >=1 ) THEN
-            ZQWEVAPBARE=1._JPRB/(RWCAPM(JS)-ZWPBARE)
+            ZQWEVAP=1._JPRB/(ZWCAPM-ZWPWP)
+            ZQWEVAPBARE=1._JPRB/(ZWCAPM-ZWPBARE)
          ELSE
+            ZQWEVAP = 0._JPRB
             ZQWEVAPBARE=0._JPRB
          ENDIF
          ZF21B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQR(JL,1)-ZWPBARE)*ZQWEVAPBARE))
@@ -733,7 +791,7 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
          ZF21B=MAX(RCEPSW,MIN(1.0_JPRB,(ZLIQ(JL,1)-ZWPWP)*ZQWEVAP))
          ZF2B=2_JPRB*ZF21B-(ZF21B*ZF21B)
       ENDIF
-      ZWET(JL)=ZRSMINB/ZF2B
+      ZWET(JL)=RVRSMINB2D(JL)/ZF2B
 ! check on dew-fall conditions
 ! we want ZET output 
 !      IF (PQMLEV(JL) > PQS(JL)) ZWET(JL)=0.0_JPRB
@@ -766,6 +824,34 @@ IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 .OR. KTILE==8 .OR. KTILE==10) THEN
   ENDIF
 
 ENDIF !tiles 4, 6, 7 , 8, 10
+
+!*         2.3c   Biogenic VOC emissions - including wet skin tile
+
+IF ( LEMIS_BVOC ) THEN   
+  PBVOCFLUX(KIDIA:KFDIA,:)=0._JPRB
+  IF (KTILE==3 .OR. KTILE==4 .OR. KTILE==6 .OR. KTILE==7 ) THEN
+  !VH IF (KTILE==4 .OR. KTILE==6 .OR. KTILE==7 ) THEN
+
+
+!   Set the soil temperature to be used for acclimation of photosynthetic traits
+!   Soil layer 3  (28 - 100cm) as it matches best with past 30-day mean of air T
+    DO JL=KIDIA,KFDIA  
+       ZTSOIL(JL) = PTSAM1M(JL,3)
+    ENDDO
+
+    IF (KTILE==3) THEN 
+      IVEG_BVOC(KIDIA:KFDIA)=KVEG_WET(KIDIA:KFDIA)
+    ELSE
+      IVEG_BVOC(KIDIA:KFDIA)=KVEG(KIDIA:KFDIA,KTILE)
+    ENDIF
+    CALL BVOC_EMIS(KIDIA,KFDIA,KLON,KTILE,IVEG_BVOC(:),&
+         & PPPFD_TOA, &
+         & PTMLEV,PCMLEV,ZTSK, ZTSOIL, & 
+         & PLAI_WET,PLAIP_WET, PSRFD, PMU0, PLAT, PAVGPAR, PISOP_EP, &
+         & YDBVOC,YDAGF,PBVOCDIAG,PBVOCFLUX)
+
+  ENDIF
+ENDIF
 
 
 IF (LEAGS) THEN

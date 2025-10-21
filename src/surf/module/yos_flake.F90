@@ -4,7 +4,7 @@
 
 MODULE YOS_FLAKE
 
-    ! (C) Copyright 2005- ECMWF.
+! (C) Copyright 2005- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
 ! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -142,8 +142,40 @@ TYPE (ROPTICPAR_MEDIUM):: ROPTICPAR_WATER_TRANS    ! Transparent Water (two-band
 TYPE (ROPTICPAR_MEDIUM):: ROPTICPAR_WHITEICE_REF   ! White ice
 TYPE (ROPTICPAR_MEDIUM):: ROPTICPAR_BLUEICE_REF    ! Blue ice
 TYPE (ROPTICPAR_MEDIUM):: ROPTICPAR_ICE_OPAQUE     ! Opaque ice
+! parameter for the optical characteristics of water
+! Fraction is only sensful for 2 or more bands
+! Fractions of total shortwave radiation flux: ROPT_XXX_FRACI_XXX
+! Extinction coefficients are named: ROPT_XXX_EXTCI_XXX
+! with I being the band
+REAL (KIND = JPRD):: ROPT_WAT_EXTC1_REF   ! Water(reference)
+REAL (KIND = JPRD):: ROPT_WAT_FRAC1_TRANS ! Water(transparent, two-band)
+REAL (KIND = JPRD):: ROPT_WAT_FRAC2_TRANS ! Water(transparent, two-band)
+REAL (KIND = JPRD):: ROPT_WAT_EXTC1_TRANS ! Water(transparent, two-band)
+REAL (KIND = JPRD):: ROPT_WAT_EXTC2_TRANS ! Water(transparent, two-band)
+REAL (KIND = JPRD):: ROPT_WICE_EXTC1_REF  ! White ices
+REAL (KIND = JPRD):: ROPT_BICE_EXTC1_REF  ! Blue ices
+REAL (KIND = JPRD):: ROPT_ICE_EXTC1_OP    ! Opaque ices
+
+! Lake parameters at ocean points - to receive meaningful FLAKE prognostics
+REAL (KIND = JPRB):: RC_SHAPE       ! The lake shape factor for sea tiles? is kept constant to 0.65
+REAL (KIND = JPRB):: RC_OC_MAXICEZ  ! max ice-depth and mult. fact. with fraction for ice depth (see surftstp_clt_mod)
+REAL (KIND = JPRB):: RC_OC_MAXDEPTH ! max ocean depth for FLAKE
+
+! Lake paramters in flakeene and flakerad module
+REAL (KIND = JPRD):: RDEPTH_W_MAX
+REAL (KIND = JPRD):: RDEPTH_W_MIN
+REAL (KIND = JPRD):: RD_C_T_DT_MAX_A
+REAL (KIND = JPRD):: RC_I_FLK_A
+REAL (KIND = JPRD):: RH_ICE_FUSION_A
+REAL (KIND = JPRD):: RH_ICE_FUSION_B
+REAL (KIND = JPRD):: RT_ICE_MIN_FLK
+REAL (KIND = JPRD):: RCONV_EQUIL_A
+REAL (KIND = JPRD):: RCONV_EQUIL_B
+REAL (KIND = JPRD):: RCONV_EQUIL_C
 
 LOGICAL :: LEFLAKE
+
+INTEGER (KIND = JPIM):: NFLAKEV
     
 END TYPE TFLAKE
 

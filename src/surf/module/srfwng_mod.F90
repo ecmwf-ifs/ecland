@@ -1,6 +1,6 @@
 MODULE SRFWNG_MOD
 CONTAINS
-SUBROUTINE SRFWNG(KIDIA,KFDIA,KLEVS,PTMST,KSOTY,&
+SUBROUTINE SRFWNG(KIDIA,KFDIA,KLEVS,KCWS,PTMST,KSOTY,&
  & PWL,PWLMX,PWSA,&
  & YDSOIL,&
  & PROS,PROD,PWFSD,&
@@ -10,6 +10,7 @@ USE PARKIND1  , ONLY : JPIM, JPRB
 USE YOMHOOK   , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_THF   , ONLY : RHOH2O
 USE YOS_SOIL  , ONLY : TSOIL
+USE YOMSURF_SSDP_MOD
 
 ! (C) Copyright 1989- ECMWF.
 !
@@ -38,6 +39,7 @@ USE YOS_SOIL  , ONLY : TSOIL
 !    *KIDIA*      START POINT
 !    *KFDIA*      END POINT
 !    *KLEVS*      NUMBER OF SOIL LAYERS
+!    *KCWS        Number of layers to merge at the end for the soil water profile (for > 4layers)
 !    *KSOTY*      SOIL TYPE                                     (1-7)
 
 !     INPUT PARAMETERS (REAL):
@@ -80,7 +82,10 @@ USE YOS_SOIL  , ONLY : TSOIL
 !     Modified    J.F. Estrade *ECMWF* 03-10-01 move in surf vob
 !     P. Viterbo    24-05-2004      Change surface units
 !     G. Balsamo    03-07-2006      Add soil type
-!     G. Balsamo    18-08-2015      Rewritten for soil multi-layer 
+!     G. Balsamo    18-08-2015      Rewritten for soil multi-layer
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
+!     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -90,6 +95,7 @@ IMPLICIT NONE
 INTEGER(KIND=JPIM), INTENT(IN)   :: KIDIA
 INTEGER(KIND=JPIM), INTENT(IN)   :: KFDIA
 INTEGER(KIND=JPIM), INTENT(IN)   :: KLEVS
+INTEGER(KIND=JPIM), INTENT(IN)   :: KCWS
 INTEGER(KIND=JPIM), INTENT(IN)   :: KSOTY(:)
 
 REAL(KIND=JPRB),    INTENT(IN)   :: PTMST
@@ -109,6 +115,7 @@ REAL(KIND=JPRB),    INTENT(OUT)  :: PROD(:)
 !                 ----------- -- ----- ----------
 
 INTEGER(KIND=JPIM) :: JL, JK, JS
+INTEGER(KIND=JPIM) :: KLEVS_WB,ILEVM1_WB
 
 REAL(KIND=JPRB) :: ZDI(KLEVS), ZIDI(KLEVS), ZRRRI(KLEVS)
 REAL(KIND=JPRB) :: ZDWD, ZDZWL,ZWSAT,ZTMST,ZHOH2O
@@ -132,6 +139,14 @@ DO JK=1,KLEVS
   ZIDI(JK)= 1.0_JPRB/RDAW(JK)
 ENDDO
 
+IF (KCWS .gt. 0_JPIM) THEN
+  KLEVS_WB=KLEVS-KCWS
+  ILEVM1_WB=KLEVS_WB-1
+ELSE
+  KLEVS_WB=KLEVS
+  ILEVM1_WB=KLEVS-1
+ENDIF
+
 !     ------------------------------------------------------------------
 !*         2. WATER CORRECTIONS AND VEGETATION RATIO UPDATE.
 !             ----- ----------- --- ---------- ----- -------
@@ -147,7 +162,7 @@ DO JL=KIDIA,KFDIA
     ENDIF
     PROD(JL) = 0._JPRB ! initialize sub-surface runoff to zero 
 !          LIMIT PW1,...,PW(n)       0. < PWD < WSAT
-    DO JK=1,KLEVS
+    DO JK=1,KLEVS_WB
       IF ( JK == 1_JPIM ) THEN
 !          LIMIT PWL        PWL < ZWLMX
         ZDZWL=MAX(0.0_JPRB,PWL(JL)-PWLMX(JL))
@@ -157,7 +172,7 @@ DO JL=KIDIA,KFDIA
 !          LIMIT PW(i)       0. < PW(i) < WSAT
       ZDWD=MIN(PWSA(JL,JK),0.0_JPRB)
       PWSA(JL,JK)=PWSA(JL,JK)-ZDWD
-      IF (JK < KLEVS) THEN
+      IF (JK < KLEVS_WB) THEN
 !          ACCOUNT for water correction on next level
         PWSA(JL,JK+1)=PWSA(JL,JK+1)+ZDWD*ZDI(JK)*ZIDI(JK+1)
       ENDIF
@@ -177,7 +192,7 @@ DO JL=KIDIA,KFDIA
       IF (SIZE(PDHWLS) > 0) THEN
 !      (negative values mean water lost by the layer)
         PDHWLS(JL,JK,6)=PDHWLS(JL,JK,6)-(RHOH2O*ZTMST)*ZDI(JK)*(ZDWD+ZRRRI(JK))
-        IF (JK < KLEVS) THEN
+        IF (JK < KLEVS_WB) THEN
           PDHWLS(JL,JK+1,6)=PDHWLS(JL,JK+1,6)+(RHOH2O*ZTMST)*ZDI(JK)*(ZDWD)
         ENDIF
       ENDIF

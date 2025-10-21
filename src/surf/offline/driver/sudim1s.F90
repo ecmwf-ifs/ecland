@@ -139,6 +139,8 @@ NVSF=NVSF+1 ! +FWET
 NVSF=NVSF+1 ! add VFPBLOB - global gaussian reduced index 
 NVSF=NVSF+1 ! add MVFCLAKEF  lake + flood 
 NVSF=NVSF+1 ! Include urban
+NVSF=NVSF+4 ! Include pavgpar + ISOP_EP + BVOCLAIL + BVOCLAIH
+NVSF=NVSF+1 ! Include land ice
 
 IVSFNVT=9 ! yomgpd1s: z0f,albf,itm,geo,z0h,sst,ci,soty,aror, climatology 
 IVSFVT=6 ! yomgpd1s: for each vegetation type: tile fraction, LAI, coverage,type,(rsmin),R0VT
@@ -163,7 +165,7 @@ NGPP=NGPP+NVEG*NVHILO !CTESSEL
 
 NGPA=NGPP+NVS1*NCSS
 NVPD=NVSF+NVDIAG
-NGCC=4 !ALBEDO LAIL LAIL FWET
+NGCC=7 !ALBEDO LAIL LAIL FWET AVGPAR BVOCLAIL BVOCLAIH
 
 !*       3.  GRID SIZE
 !            ---------

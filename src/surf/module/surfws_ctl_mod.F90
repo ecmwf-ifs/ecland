@@ -1,8 +1,8 @@
 MODULE SURFWS_CTL_MOD
 CONTAINS
 SUBROUTINE SURFWS_CTL( KIDIA, KFDIA, KLON, KLEVSN,  &
-                     & PSDOR, &
-                     & LSMASK, PFRTI,PMU0,          &
+                     & PSDOR,LDSICE, &
+                     & LSMASK, PCIL, PFRTI,PMU0,          &
                      & PTSA, PTSKIN, PALBSN,        &
                      & PTSN, PSSN, PRSN, PWSN,      &
                      & YDCST, YDSOIL                )
@@ -20,7 +20,7 @@ USE SURFWS_INIT_MLOFF_MOD
 USE SURFWS_FGPROF_MOD
 USE SURFWS_MASSADJ_MOD
 USE SURFWS_TSNADJ_MOD
-!USE YOMLUN   , ONLY : NULOUT
+USE EC_LUN   , ONLY : NULOUT
 
 USE ABORT_SURF_MOD
 
@@ -54,12 +54,11 @@ USE ABORT_SURF_MOD
 !    *KLEVSN*     Snow vertical levels
 
 !     INPUT PARAMETERS (REAL):
+!     *PCIL*         LAND-ICE FRACTION                                  (0-1)
 !    *PSDOR*      sub grid scale orography   (m)
 !    *PFRTI*      tile fractions             (-)
 !    *PMU0*       cos solar zenith angle     (-)
-
-!     INPUT PARAMETERS (LOGICAL):
-!    *LSMASK*     LAND/SEA MASK         (TRUE/FALSE)
+!    *LSMASK*     LAND/SEA MASK              (-)
 
 !     INPUT PARAMETERS AT T-1  (REAL):
 !    *PTSA*       soil temperature t-1       (K)
@@ -98,11 +97,13 @@ IMPLICIT NONE
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA, KFDIA, KLON, KLEVSN
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSDOR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PCIL(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSA(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSKIN(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PALBSN(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: LSMASK(:) 
+LOGICAL   ,INTENT(IN)    :: LDSICE(:) 
 
 ! Output fields:
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PTSN(:,:) 
@@ -229,17 +230,13 @@ DO JL=KIDIA,KFDIA
     LLNOSNOW(JL)=.FALSE.
   ENDIF
 
-  IF (LSMASK(JL) == 1._JPRB) THEN
-    LDLAND(JL) = .TRUE.
-  ELSE
-    LDLAND(JL) = .FALSE.
-  ENDIF
+  LDLAND(JL) = LSMASK(JL) > 0.5_JPRB
 ENDDO
 
 !******************************************************************
 ! 1.2 Define snow vertical grid and mean quantities for computation
 CALL SRFSN_VGRID(KIDIA,KFDIA,KLON,KLEVSN, LLNOSNOW, &
-               & PSDOR,                             &
+               & PSDOR,PCIL,LDLAND,               & ! to be fixed second PSDOR should be PCIL
                & PSSN,PRSN,                         &
                & ZLEVMIN,ZLEVMAX, &
                & ZLEVMIN_GL,ZLEVMAX_GL, &
@@ -273,34 +270,6 @@ ZSSN(KIDIA:KFDIA) = SUM(PSSN(KIDIA:KFDIA, :), DIM=2)
 ! routine
 ZWSN(KIDIA:KFDIA)    = 0._JPRB 
 
-!**! snow layer to absorbe residuals 
-!**!!KSNACC          = MINLOC(YDSOIL%RLEVSNMAX, DIM=1 )
-!**!!ZLEVMAX(KSNACC) = 1.E10_JPRB 
-!**
-!**! accumulated min snow depth 
-!**ZLEVMINA(1)    = ZLEVMIN(1)
-!**DO JK=2, KLEVSN
-!**  ZLEVMINA(JK) = ZLEVMINA(JK-1) + ZLEVMIN(JK)
-!**ENDDO
-!**
-!**! 1.3 Find # of active snow layer
-!**DO JL=KIDIA,KFDIA
-!**  IF ( LLNOSNOW(JL) ) THEN
-!**    KLEVSNA(JL) = 1
-!**  ELSE
-!**    KLEVSNA(JL) = 1
-!**    DO JK=2, KLEVSN
-!**    ! IF ( ZDSNTOT(JL) < ZLEVMINA(JK) ) THEN
-!**      IF ( ZDSNTOTREAL(JL) < ZLEVMINA(JK) ) THEN
-!**        KLEVSNA(JL) = JK-1
-!**        EXIT
-!**      ELSE
-!**        KLEVSNA(JL) = JK 
-!**      ENDIF
-!**    ENDDO
-!**  ENDIF 
-!**ENDDO 
-
 ! ZSNDEPTH is the depth of each layer with respect to zero.
 
 IF (NSNMLWS == 3_JPIM) THEN
@@ -320,11 +289,11 @@ ENDDO
 !------ SURFWS_INIT -----!
 ! Basic initialization warm start fields:
 DO JL=KIDIA,KFDIA
-    ZTSNWS(JL,1:KLEVSN)   = ZTSN(JL)
-    ZRSNWS(JL,1:KLEVSN)   = ZRSN(JL)
-    ZSSNWS(JL,1)          = ZSSN(JL)
-    ZSSNWS(JL,2:KLEVSN)   = 0._JPRB
-    ZWSNWS(JL,1:KLEVSN)   = 0._JPRB
+  ZTSNWS(JL,1:KLEVSN)   = ZTSN(JL)
+  ZRSNWS(JL,1:KLEVSN)   = ZRSN(JL)
+  ZSSNWS(JL,1)          = ZSSN(JL)
+  ZSSNWS(JL,2:KLEVSN)   = 0._JPRB
+  ZWSNWS(JL,1:KLEVSN)   = 0._JPRB
 ENDDO
 ZTCONSTAVG=0._JPRB
 ZTCONSTSTD=0._JPRB
@@ -354,7 +323,7 @@ IF (NSNMLWS == 1_JPIM) THEN
 
 ELSE IF (NSNMLWS == 2_JPIM) THEN
   CALL SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN,INCL, PMU0,PSDOR,  & ! Input
-               & PTSA(:,1), PTSKIN, &
+               & PTSA(:,1), PTSKIN,LDLAND, &
                & ZDSNTOT, ZSNDEPTH,               &
                & ZSNPERT,                & ! Input
                & ZDSNREAL,ZTSN, ZRSN, ZSSN, ZWSN,PALBSN,            & ! Input
@@ -395,7 +364,7 @@ CALL SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN,               &
                  & ZTSNWS, ZRSNWS, YDCST, YDSOIL)
 
 
-CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,         &
+CALL SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,LDLAND,  &
                  &  KLEVSNA,ZTHRESWS,                   &
                  &  ZDSN,ZDSNREAL,ZSNDEPTH,ZSNDEPTHREAL,&
                  &  ZRSN, ZSSN, ZRSNMAX, ZDSNTOT,       &

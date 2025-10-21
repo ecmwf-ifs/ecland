@@ -6,7 +6,7 @@ SUBROUTINE SURFSEB_CTL(KIDIA,KFDIA,KLON,KTILES,KTVL,KTVH,&
  & PSNM,PRSN,PHLICE, & 
  & PSLRFL,PTSKRAD,PEMIS,PASL,PBSL,PAQL,PBQL,&
  & PTHKICE,PSNTICE,&
- & YDCST,YDEXC,YDVEG,YDFLAKE,YDSOIL,YDURB,&
+ & PSSDP2,YDCST,YDEXC,YDVEG,YDFLAKE,YDSOIL,YDURB,&
  !out
  & PJS,PJQ,PSSK,PTSK,PSSH,PSLH,PSTR,PG0,&
  & PSL,PQL, &
@@ -21,6 +21,7 @@ USE YOS_VEG   , ONLY : TVEG
 USE YOS_FLAKE , ONLY : TFLAKE
 USE YOS_SOIL  , ONLY : TSOIL
 USE YOS_URB   , ONLY : TURB
+USE YOMSURF_SSDP_MOD
 ! (C) Copyright 2003- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
@@ -59,6 +60,9 @@ USE YOS_URB   , ONLY : TURB
 !    I. Sandu              24-02-2014  Lambda skin values by vegetation type instead of tile
 !    E. Dutra              10/10/2014  net longwave tiled 
 !    S. Boussetta          15/04/2018  increase lambda skin for wettile to 20
+!    M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                              use of parameter values defined in namelist
+!    I. Ayan-Miguez        July 2023 Added PSSDP2 object for spatially distributed parameters
 !    J. McNorton           24/08/2022  urban tile
 
 !  INTERFACE: 
@@ -179,6 +183,7 @@ REAL(KIND=JPRB),    INTENT(OUT) :: PG0(:,:)
 REAL(KIND=JPRB),    INTENT(OUT) :: PSL(:)
 REAL(KIND=JPRB),    INTENT(OUT) :: PQL(:)
 LOGICAL,            INTENT(IN)  :: LNEMOLIMTHK
+REAL(KIND=JPRB),    INTENT(IN)  :: PSSDP2(:,:)
 
 !        Local variables
 
@@ -213,8 +218,13 @@ ASSOCIATE(RCPD=>YDCST%RCPD, RLSTT=>YDCST%RLSTT, RLVTT=>YDCST%RLVTT, &
  & LELWDD=>YDEXC%LELWDD, LELWTL=>YDEXC%LELWTL, &
  & RH_ICE_MIN_FLK=>YDFLAKE%RH_ICE_MIN_FLK, &
  & RHOCI=>YDSOIL%RHOCI, RHOICE=>YDSOIL%RHOICE, RQSNCR=>YDSOIL%RQSNCR, &
+ & RVLAMSKL2D=>PSSDP2(:,SSDP2D_ID%NRVLAMSKL2D), &
+ & RVLAMSKH2D=>PSSDP2(:,SSDP2D_ID%NRVLAMSKH2D), RVLAMSKSL2D=>PSSDP2(:,SSDP2D_ID%NRVLAMSKSL2D), &
+ & RVLAMSKSH2D=>PSSDP2(:,SSDP2D_ID%NRVLAMSKSH2D), &
  & RVLAMSK=>YDVEG%RVLAMSK, RVLAMSKS=>YDVEG%RVLAMSKS, &
- & RVTRSR=>YDVEG%RVTRSR, RURBTC=>YDURB%RURBTC)
+ & RVTRSR=>YDVEG%RVTRSR, RURBTC=>YDURB%RURBTC, &
+ & RVLAMSK_DESERT=>YDVEG%RVLAMSK_DESERT, RVLAMSK_SNOW=>YDVEG%RVLAMSK_SNOW, &
+ & RVLAMSKS_DESERT=>YDVEG%RVLAMSKS_DESERT, RVLAMSKS_SNOW=>YDVEG%RVLAMSKS_SNOW)
 ZDELTA=RVTMP2              ! moisture coeff. in cp  
 ZLARGE=1.E10_JPRB          ! large number to impose Tsk=SST
 ZLARGESN=50._JPRB          ! large number to constrain Tsk variations in case
@@ -290,33 +300,33 @@ DO JT=1,KTILES
       ZLAMSK(JL,JT)=ZLARGE
     ENDDO
   CASE(2) ! Sea ice with possibly a snow layer on top of it
-     IF (LNEMOLIMTHK) THEN
-        DO JL=KIDIA,KFDIA
-           IF (PSNTICE(JL) > 0.0_JPRB) THEN
-              ! For now use same conductivity as snow on land
-              ! Possible refinement: take fractional snow cover for thin layers of snow into account
-              IF (PTSKM1M(JL,JT) >= PTSRF(JL,JT).AND.PTSKM1M(JL,JT) > ZRTTMEPS) THEN
-                 ZLAMSK(JL,JT)=ZLARGESN
-              ELSE
-                 ZLAMSK(JL,JT)=ZSNOW ! Snow tile!!
-              ENDIF
-           ELSE
-              IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
-                 ZLAMSK(JL,JT)=RVLAMSKS(12)
-              ELSE
-                 ZLAMSK(JL,JT)=RVLAMSK(12)
-              ENDIF
-           ENDIF
-        ENDDO
-     ELSE
+!*    IF (LNEMOLIMTHK) THEN
+!*        DO JL=KIDIA,KFDIA
+!*           IF (PSNTICE(JL) > 0.0_JPRB) THEN
+!*              ! For now use same conductivity as snow on land
+!*              ! Possible refinement: take fractional snow cover for thin layers of snow into account
+!*              IF (PTSKM1M(JL,JT) >= PTSRF(JL,JT).AND.PTSKM1M(JL,JT) > ZRTTMEPS) THEN
+!*                 ZLAMSK(JL,JT)=ZLARGESN
+!*              ELSE
+!*                 ZLAMSK(JL,JT)=ZSNOW ! Snow tile!!
+!*              ENDIF
+!*           ELSE
+!*              IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
+  !*               ZLAMSK(JL,JT)=RVLAMSKS_SNOW
+!*              ELSE
+!*                 ZLAMSK(JL,JT)=RVLAMSK_SNOW
+!*              ENDIF
+!*           ENDIF
+!*        ENDDO
+!*     ELSE
         DO JL=KIDIA,KFDIA
            IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
-              ZLAMSK(JL,JT)=RVLAMSKS(12)
+                 ZLAMSK(JL,JT)=RVLAMSKS_SNOW
            ELSE
-              ZLAMSK(JL,JT)=RVLAMSK(12)
+                 ZLAMSK(JL,JT)=RVLAMSK_SNOW
            ENDIF
         ENDDO
-     ENDIF
+!*    ENDIF
   CASE(3)
     DO JL=KIDIA,KFDIA
       !IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
@@ -330,9 +340,9 @@ DO JT=1,KTILES
   CASE(4)
     DO JL=KIDIA,KFDIA
       IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
-        ZLAMSK(JL,JT)=RVLAMSKS(KTVL(JL))
+        ZLAMSK(JL,JT)=RVLAMSKSL2D(JL)
       ELSE
-        ZLAMSK(JL,JT)=RVLAMSK(KTVL(JL))
+        ZLAMSK(JL,JT)=RVLAMSKL2D(JL)
       ENDIF
     ENDDO
   ZFRSR=1.0_JPRB-RVTRSR(1)
@@ -347,16 +357,16 @@ DO JT=1,KTILES
   CASE(6)
      DO JL=KIDIA,KFDIA
       IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
-        ZLAMSK(JL,JT)=RVLAMSKS(KTVH(JL))
+        ZLAMSK(JL,JT)=RVLAMSKSH2D(JL)
       ELSE
-        ZLAMSK(JL,JT)=RVLAMSK(KTVH(JL))
+        ZLAMSK(JL,JT)=RVLAMSKH2D(JL)
       ENDIF
     ENDDO
     ZFRSR=1.0_JPRB-RVTRSR(3)
   CASE(7)
      DO JL=KIDIA,KFDIA
       IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
-        ZLAMSK(JL,JT)=RVLAMSKS(KTVH(JL))/(1._JPRB+ZSTABEXSN(JL)*RVLAMSKS(KTVH(JL)))
+        ZLAMSK(JL,JT)=RVLAMSKSH2D(JL)/(1._JPRB+ZSTABEXSN(JL)*RVLAMSKSH2D(JL))
       ELSE
         ZLAMSK(JL,JT)=ZSNOWHVEG/(1._JPRB+ZSTABEXSN(JL)*ZSNOWHVEG)
       ENDIF
@@ -365,9 +375,9 @@ DO JT=1,KTILES
   CASE(8)
     DO JL=KIDIA,KFDIA
       IF (PTSKM1M(JL,JT) > PTSRF(JL,JT)) THEN
-        ZLAMSK(JL,JT)=RVLAMSKS(8)
+        ZLAMSK(JL,JT)=RVLAMSKS_DESERT
       ELSE
-        ZLAMSK(JL,JT)=RVLAMSK(8)
+        ZLAMSK(JL,JT)=RVLAMSK_DESERT
       ENDIF
     ENDDO
    CASE(9)

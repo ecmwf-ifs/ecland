@@ -3,7 +3,7 @@ CONTAINS
 SUBROUTINE SURFEXCDRIVERSTL_CTL( &
  &   KIDIA, KFDIA, KLON, KLEVS, KTILES, KSTEP &
  & , PTSTEP, PRVDIFTS &
- & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF &
+ & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF, LDREGBUOF &
 ! input data, non-tiled
  & , KTVL, KTVH, PCVL, PCVH, PCUR &
  & , PLAIL, PLAIH &
@@ -11,10 +11,12 @@ SUBROUTINE SURFEXCDRIVERSTL_CTL( &
  & , PUMLEV5, PVMLEV5 , PTMLEV5, PQMLEV5, PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST   , PTSKM1M5, PCHAR  , PSSRFL5, PTICE5 , PTSNOW5  &
  & , PWLMX5 &
+ & , PUCURR5, PVCURR5 &
 ! input data, soil - trajectory
  & , PTSAM1M5, PWSAM1M5, KSOTY &
 ! input data, tiled - trajectory
  & , PFRTI, PALBTI5 &
+ & , PSSDP2, PSSDP3 &
 !
  & , YDCST   , YDEXC   , YDVEG , YDSOIL , YDFLAKE, YDURB & 
 ! updated data, tiled - trajectory
@@ -105,6 +107,9 @@ USE VEVAPSTL_MOD
 !    P. Lopez         June 2015  Added regularization of wet skin tile
 !                                perturbation in low wind situations.
 !    J. McNorton      24/08/2022 urban tile
+!    P. Lopez         July 2025 Added ocean currents (trajectory only)
+!    P. Lopez         July 2025 Added optional (LDREGBUOF) extra regularization 
+!                               when surface buoyancy flux is very small.
 
 !  INTERFACE: 
 
@@ -133,6 +138,7 @@ USE VEVAPSTL_MOD
 !      LDKPERTS :    TRUE when pertubations of surf. exchange coefficients used
 !      LDSURF2  :    TRUE when simplified surface scheme called
 !      LDREGSF  :    TRUE when regularization used
+!      LDREGBUOF:    TRUE for extra regularization when surface buoyancy flux is very small
 
 !*      Reals with tile index (In): 
 !  Trajectory  Perturbation  Description                               Unit
@@ -164,6 +170,8 @@ USE VEVAPSTL_MOD
 !  PTICE5      PTICE         Ice temperature, top slab                 K
 !  PTSNOW5     PTSNOW        Snow temperature                          K
 !  PWLMX5      ---           Maximum interception layer capacity       kg/m**2
+!  PUCURR5     ---           Ocean current U-component                 m/s
+!  PVCURR5     ---           Ocean current V-component                 m/s
 !  PSNM5       ---           SNOW MASS (per unit area)                      kg/m**2
 !  PRSN5       ---          SNOW DENSITY                                   kg/m**3
 
@@ -242,6 +250,7 @@ LOGICAL           ,INTENT(IN)    :: LDNOPERT
 LOGICAL           ,INTENT(IN)    :: LDKPERTS
 LOGICAL           ,INTENT(IN)    :: LDSURF2
 LOGICAL           ,INTENT(IN)    :: LDREGSF
+LOGICAL           ,INTENT(IN)    :: LDREGBUOF
 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVL(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(:) 
@@ -267,6 +276,8 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSRFL5(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTICE5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSNOW5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSAM1M5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 
@@ -319,6 +330,8 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSNOW(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PALBTI(:,:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:) 
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TEXC)        ,INTENT(IN)    :: YDEXC
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
@@ -407,7 +420,7 @@ IF (LHOOK) CALL DR_HOOK('SURFEXCDRIVERSTL_CTL_MOD:SURFEXCDRIVERSTL_CTL',0,ZHOOK_
 ASSOCIATE(RCPD=>YDCST%RCPD, RD=>YDCST%RD, RETV=>YDCST%RETV, RG=>YDCST%RG, &
  & RSIGMA=>YDCST%RSIGMA, RTT=>YDCST%RTT, &
  & REPDU2=>YDEXC%REPDU2, RKAP=>YDEXC%RKAP, RZ0ICE=>YDEXC%RZ0ICE, &
- & RVTRSR=>YDVEG%RVTRSR, RVZ0M=>YDVEG%RVZ0M,LEURBAN=>YDURB%LEURBAN)
+ & RVTRSR=>YDVEG%RVTRSR, LEURBAN=>YDURB%LEURBAN)
 
 ZCONS1=1./(RG*PTSTEP)
 
@@ -439,8 +452,9 @@ IF (LDNOPERT) THEN
    & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5, ZDSN5,&
    & PUSTRTI5, PVSTRTI5, PAHFSTI5, PEVAPTI5 ,&
    & PTSKTI5 , PCHAR   , PFRTI   ,&
-   & YDCST   , YDEXC   ,YDVEG    ,YDFLAKE   , YDURB  , &
-   & ZZ0MTI5 , ZZ0HTI5 , ZZ0QTI5 , ZBUOMTI5 , ZZDLTI5, ZRAQTI5 )
+   & PSSDP2, YDCST   , YDEXC   ,YDVEG    ,YDFLAKE   , YDURB  , &
+   & ZZ0MTI5 , ZZ0HTI5 , ZZ0QTI5 , ZBUOMTI5 , ZZDLTI5, ZRAQTI5 , &
+   & PUCURR5 , PVCURR5)
 
 ! perturbations are put to zero
 
@@ -459,13 +473,14 @@ ELSE
    & PTMLEV5 , PQMLEV5 , PAPHMS5 , PGEOMLEV5, ZDSN5,&
    & PUSTRTI5, PVSTRTI5, PAHFSTI5, PEVAPTI5 ,&
    & PTSKTI5 , PCHAR   , PFRTI   ,&
-   & YDCST   , YDEXC   ,YDVEG    ,YDFLAKE   , YDURB   ,&
+   & PSSDP2, YDCST   , YDEXC   ,YDVEG    ,YDFLAKE   , YDURB   ,&
    & ZZ0MTI5 , ZZ0HTI5 , ZZ0QTI5 , ZBUOMTI5 , ZZDLTI5 , ZRAQTI5 ,&
    & PUMLEV  , PVMLEV  ,&
    & PTMLEV  , PQMLEV  , PAPHMS  , PGEOMLEV ,&
    & PUSTRTI , PVSTRTI , PAHFSTI , PEVAPTI  ,&
    & PTSKTI  , &
-   & ZZ0MTI  , ZZ0HTI  , ZZ0QTI  , ZBUOMTI  , ZZDLTI  , ZRAQTI )
+   & ZZ0MTI  , ZZ0HTI  , ZZ0QTI  , ZBUOMTI  , ZZDLTI  , ZRAQTI , &
+   & PUCURR5 , PVCURR5)
 ENDIF
 
 
@@ -640,7 +655,7 @@ DO JTILE=1,KTILES
      & PTMLEV5  ,PQMLEV5 ,PAPHMS5 ,&
      & PTSKTI5(:,JTILE)  ,PWSAM1M5,PTSAM1M5, KSOTY, &
      & ZSRFD5, ZRAQTI5(:,JTILE) , &
-     & YDCST, YDVEG, YDSOIL,&
+     & PSSDP2, PSSDP3, YDCST, YDVEG, YDSOIL,&
      & ZQSATI5(:,JTILE),PQSTI5(:,JTILE)  ,PDQSTI5(:,JTILE) ,&
      & ZWETB5, PCPTSTI5(:,JTILE), ZWETL5 , ZWETH5, ZWETHS5 )  
 
@@ -661,7 +676,7 @@ DO JTILE=1,KTILES
      & PTMLEV5  ,PQMLEV5 ,PAPHMS5 ,&
      & PTSKTI5(:,JTILE)  ,PWSAM1M5,PTSAM1M5, KSOTY,&
      & ZSRFD5   ,ZRAQTI5(:,JTILE)  ,&
-     & YDCST    ,YDVEG   ,YDSOIL   ,&
+     & PSSDP2   ,PSSDP3  ,YDCST    ,YDVEG   ,YDSOIL   ,&
      & ZQSATI5(:,JTILE)  ,PQSTI5(:,JTILE)  ,PDQSTI5(:,JTILE) ,&
      & ZWETB5, PCPTSTI5(:,JTILE)  , ZWETL5 , ZWETH5, ZWETHS5,&
      & PTMLEV   ,PQMLEV  ,PAPHMS  ,&
@@ -686,6 +701,7 @@ IF (LDNOPERT) THEN
      & PCPTSTI5(:,JTILE),ZQSATI5(:,JTILE) ,&
      & ZZ0MTI5(:,JTILE) ,ZZ0HTI5(:,JTILE) ,&
      & ZZ0QTI5(:,JTILE) ,ZBUOMTI5(:,JTILE),&
+     & PUCURR5,PVCURR5,&
      & YDCST,YDEXC,&
      & ZCFMTI5(:,JTILE) ,PCFHTI5(:,JTILE) ,&
      & PCFQTI5(:,JTILE) )
@@ -698,11 +714,12 @@ IF (LDNOPERT) THEN
 ELSE
   DO JTILE=1,KTILES
     CALL VEXCSSTL(KIDIA,KFDIA,KLON,PTSTEP,PRVDIFTS,&
-     & LDKPERTS, &
+     & LDKPERTS, LDREGBUOF,&
      & PUMLEV5,PVMLEV5,PTMLEV5,PQMLEV5,PAPHMS5,PGEOMLEV5,PCPTGZLEV5,&
      & PCPTSTI5(:,JTILE),ZQSATI5(:,JTILE) ,&
      & ZZ0MTI5(:,JTILE) ,ZZ0HTI5(:,JTILE) ,&
      & ZZ0QTI5(:,JTILE) ,ZBUOMTI5(:,JTILE),&
+     & PUCURR5,PVCURR5,&
      & YDCST            ,YDEXC            ,&
      & ZCFMTI5(:,JTILE) ,PCFHTI5(:,JTILE) ,&
      & PCFQTI5(:,JTILE) ,&

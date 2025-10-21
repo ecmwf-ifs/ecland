@@ -10,6 +10,7 @@
 
 list( APPEND module_src
     abort_surf_mod.F90
+    bvoc_emis_mod.F90
     canalb_mod.F90
     ccetr_mod.F90
     cotwo_mod.F90
@@ -41,9 +42,14 @@ list( APPEND module_src
     sppcflsad_mod.F90
     sppcflstl_mod.F90
     sppgust_mod.F90
+    srfbvoc_mod.F90
     srfcotwo_mod.F90
     srfene_mod.F90
     srfi_mod.F90
+    srfil_mod.F90
+    srfils_mod.F90
+    srfilsad_mod.F90
+    srfilstl_mod.F90
     srfis_mod.F90
     srfisad_mod.F90
     srfistl_mod.F90
@@ -89,6 +95,8 @@ list( APPEND module_src
     srfwlsad_mod.F90
     srfwlstl_mod.F90
     srfwng_mod.F90
+    susdp_deriv_ctl_mod.F90
+    sussurf_params.F90
     sucotwo_mod.F90
     sufarquhar_mod.F90
     sugridmlm_mod.F90
@@ -118,7 +126,9 @@ list( APPEND module_src
     surfws_massadj_mod.F90
     surfws_tsnadj_mod.F90
     surwn_mod.F90
+    susbvoc_mod.F90
     suscst_mod.F90
+    susdp_dflt_ctl_mod.F90
     susflake_mod.F90
     susocean_ml_mod.F90
     susrad_mod.F90
@@ -149,8 +159,10 @@ list( APPEND module_src
     vupdz0s_mod.F90
     vupdz0sad_mod.F90
     vupdz0stl_mod.F90
+    yomsurf_ssdp_mod.F90
     yos_agf.F90
     yos_ags.F90
+    yos_bvoc.F90
     yos_cst.F90
     yos_dim.F90
     yos_exc.F90
@@ -158,6 +170,7 @@ list( APPEND module_src
     yos_flake.F90
     yos_lw.F90
     yos_mlm.F90
+    yos_nampars1.F90
     yos_ocean_ml.F90
     yos_rad.F90
     yos_rdi.F90
@@ -192,6 +205,8 @@ list(APPEND external_src
     surftstpsad.F90
     surftstpstl.F90
     surfws.F90
+    susdp_deriv.F90
+    susdp_dflt.F90
     susurf.F90
 )
 list(TRANSFORM external_src PREPEND external/)

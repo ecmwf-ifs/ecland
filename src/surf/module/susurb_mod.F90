@@ -2,7 +2,7 @@ MODULE SUSURB_MOD
 CONTAINS
 !SUBROUTINE SUSURB(LD_LURBAN,LD_LURBUI,YDURB)
 SUBROUTINE SUSURB(LD_LEURBAN,YDURB)
-    ! (C) Copyright 2021- ECMWF.
+! (C) Copyright 2021- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
 ! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -65,7 +65,6 @@ REAL (KIND = JPRB)::aa
 REAL (KIND = JPRB)::bb
 REAL (KIND = JPRB)::cc
 REAL (KIND = JPRB)::dd
-REAL (KIND = JPRB)::RMODW
 INTEGER           ::i
 INTEGER           ::j
 
@@ -126,7 +125,7 @@ ASSOCIATE( LEURBAN=>YDURB%LEURBAN, &
  & RROOTC=>YDURB%RROOTC,RROATC=>YDURB%RROATC,RSATSH=>YDURB%RSATSH, &
  & RCDG=>YDURB%RCDG,RCDA=>YDURB%RCDA,RCHIS=>YDURB%RCHIS, &
  & RSBCONS=>YDURB%RSBCONS,RGACC=>YDURB%RGACC,RAIRRHO=>YDURB%RAIRRHO, &
- & RMODZ=>YDURB%RMODZ,RVKSQ=>YDURB%RVKSQ,REXPDR=>YDURB%REXPDR, &
+ & RMODZ=>YDURB%RMODZ,RMODW=>YDURB%RMODW,RVKSQ=>YDURB%RVKSQ,REXPDR=>YDURB%REXPDR, &
  & RHWR=>YDURB%RHWR,RHGT=>YDURB%RHGT,RWRR=>YDURB%RWRR,RCANEMIS=>YDURB%RCANEMIS, &
  & RURBEMIS=>YDURB%RURBEMIS,RCANZTM=>YDURB%RCANZTM,RCANZTH=>YDURB%RCANZTH, &
  & RCANHC=>YDURB%RCANHC,RCANRES=>YDURB%RCANRES,RROORES=>YDURB%RROORES,&
@@ -151,22 +150,22 @@ REXPDR  = 0.15_JPRB             ! Exponential decay of recirculation
 
 ! Material properties
 
-RBUIZ0M = 0.05_JPRB            ! Rough. len. for mom. of building materials
+!RBUIZ0M = 0.05_JPRB            ! Rough. len. for mom. of building materials
 RWALTHK = 0.15_JPRB             ! Thickness of wall (m) (not currently used)
 RROOTHK = 0.15_JPRB             ! Thickness of roof (m) (not currently used)
 RROATHK = 0.15_JPRB             ! Thickness of road (m) (not currently used)
-RWALALB = 0.6_JPRB              ! Albedo of wall
-RROOALB = 0.16_JPRB             ! Albedo of roof
-RROAALB = 0.05_JPRB             ! Albedo of road
-RWALEMIS= 0.96_JPRB             ! Emissivity of wall
-RROOEMIS= 0.96_JPRB             ! Emissivity of roof
-RROAEMIS= 0.99_JPRB             ! Emissivity of road
-RWALVHC = 3.0E+06_JPRB          ! Volumetric heat capcity of wall (J m-3 K-1)
-RROOVHC = 2.0E+06_JPRB          ! Volumetric heat capcity of roof (J m-3 K-1)
-RROAVHC = 3.0E+06_JPRB          ! Volumetric heat capcity of road (J m-3 K-1)
-RWALTC  = 20.0_JPRB             ! Thermal conductivity of wall (W m-1 K-1)(skin thick inc.*0.07)
-RROOTC  = 10.0_JPRB             ! Thermal conductivity of roof (W m-1 K-1)(replace 0.035)
-RROATC  = 20.0_JPRB             ! Thermal conductivity of road (W m-1 K-1)(with dz-1)
+!RWALALB = 0.6_JPRB              ! Albedo of wall
+!RROOALB = 0.16_JPRB             ! Albedo of roof
+!RROAALB = 0.05_JPRB             ! Albedo of road
+!RWALEMIS= 0.96_JPRB             ! Emissivity of wall
+!RROOEMIS= 0.96_JPRB             ! Emissivity of roof
+!RROAEMIS= 0.99_JPRB             ! Emissivity of road
+!RWALVHC = 3.0E+06_JPRB          ! Volumetric heat capcity of wall (J m-3 K-1)
+!RROOVHC = 2.0E+06_JPRB          ! Volumetric heat capcity of roof (J m-3 K-1)
+!RROAVHC = 3.0E+06_JPRB          ! Volumetric heat capcity of road (J m-3 K-1)
+!RWALTC  = 20.0_JPRB             ! Thermal conductivity of wall (W m-1 K-1)(skin thick inc.*0.07)
+!RROOTC  = 10.0_JPRB             ! Thermal conductivity of roof (W m-1 K-1)(replace 0.035)
+!RROATC  = 20.0_JPRB             ! Thermal conductivity of road (W m-1 K-1)(with dz-1)
 
 ! Mapped variables which are currently set as a single value
 RHGT    = 8.0_JPRB             ! Average building height (m) (estimated. from london see UK https://buildingheights.emu-analytics.net)
@@ -194,11 +193,11 @@ LEURBAN=LD_LEURBAN
 
 ! MOISTURE VARIABLES
 
-RURBALP  = 7.65E-01_JPRB 
-RURBCON  = 6.67E-13_JPRB
-RURBLAM  = 35.2_JPRB
-RURBSAT  = 0.15_JPRB
-RURBSRES = 0.001_JPRB
+!RURBALP  = 7.65E-01_JPRB 
+!RURBCON  = 6.67E-13_JPRB
+!RURBLAM  = 35.2_JPRB
+!RURBSAT  = 0.15_JPRB
+!RURBSRES = 0.001_JPRB
 !==============================================================================
 
 ! CALCULATE CANYON EMISSIVITY BASED ON HWR - Based on Harman 2004 and Porson 2010

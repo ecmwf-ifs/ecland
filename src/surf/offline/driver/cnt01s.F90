@@ -2,9 +2,13 @@ SUBROUTINE CNT01S
 USE PARKIND1  ,ONLY : JPIM     ,JPRB,   JPRD
 USE YOMHOOK   ,ONLY : LHOOK   , DR_HOOK, JPHOOK
 USE YOMLUN1S , ONLY : NULOUT
-USE YOEPHY,    ONLY : LECMF1WAY
+USE YOEPHY,    ONLY : LECMF1WAY, NCMF2LAKEC
 USE MPL_MODULE
 USE CMF_DRV_CONTROL_MOD,  ONLY: CMF_DRV_INIT, CMF_DRV_INPUT
+
+#ifdef UseMPI_CMF
+USE YOS_CMF_MAP, ONLY : REGIONALL
+#endif
 
 #ifdef DOC
 ! (C) Copyright 1995- ECMWF.
@@ -56,13 +60,14 @@ USE CMF_DRV_CONTROL_MOD,  ONLY: CMF_DRV_INIT, CMF_DRV_INPUT
 !        Original : 95-03-01
 !        Bart vd Hurk (KNMI): Writing of restart file
 !        E. Dutra : May 2019: added Cama-Flood coupling initialization
+!        I. Ayan-Miguez: Dec 2022: Added CaMa-Flood MPI coupling 
 !     ------------------------------------------------------------------
 #endif
 
 IMPLICIT NONE
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
-INTEGER(KIND=JPIM) :: MYPROC, NPROC
+INTEGER(KIND=JPIM) :: MYPROC, NPROC, NPROC_CMF
 #include "su0yom1s.intfb.h"
 #include "cnt21s.intfb.h"
 #include "cntend.intfb.h"
@@ -81,11 +86,20 @@ CALL SU0YOM1S
 
 !*    Initialize Cama-flood if necessary 
 IF (LECMF1WAY) THEN
+  IF (MYPROC == 1) THEN
+#ifdef UseMPI_CMF
+    NPROC_CMF=REGIONALL
+#else
+    NPROC_CMF=1
+#endif
+  ENDIF
+  CALL MPL_BROADCAST(NPROC_CMF, KROOT=1, KTAG=100, CDSTRING='CNT01S:NPROC_CMF')
+
   WRITE(NULOUT,*)' CMF_COUPLING: CALLING CMF_DRV_INPUT'
   CALL CMF_DRV_INPUT()
-  IF( MYPROC == 1 ) THEN
+  IF(MYPROC <= MIN(NPROC, NPROC_CMF)) THEN
     WRITE(NULOUT,*)' CMF_COUPLING: CALLING CMF_DRV_INIT'
-    CALL CMF_DRV_INIT()
+    CALL CMF_DRV_INIT(NCMF2LAKEC)
   ENDIF
   CALL MPL_BARRIER()
 ENDIF

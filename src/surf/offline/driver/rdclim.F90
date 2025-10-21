@@ -66,6 +66,8 @@ USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
 !      E. Dutra 07/2014 : netcdf4 
 !      R. Hogan 15/01/2019   6-component MODIS albedo
 !      A. Agusti-Panareda 17/06/2021: Add C3/C4 type of photosynthetic pathway
+!      V. Huijnen 13/08/2024: Add Avg PAR
+!      
 !      G. Arduini fixes for regular lat/lon      
 !
 !     ------------------------------------------------------------------
@@ -78,19 +80,19 @@ USE YOMGPD1S , ONLY : GPD &
                      &,VFALUVI,VFALUVV,VFALUVG &
                      &,VFALNII,VFALNIV,VFALNIG &
                      &,VFCVL, VFCUR &
-                     &,VFCVH,VFTVL,VFTVH,VFSST,VFCI,VFSOTY &
-                     &,VFSDOR, VFCO2TYP&
+                     &,VFCVH,VFTVL,VFTVH,VFSST,VFCI,VFCIL,VFSOTY &
+                     &,VFSDOR, VFCO2TYP,VFISOP_EP &
                      &,VFLDEPTH,VFCLAKE, VFCLAKEF &
                      &,VFZO,VFHO,VFHO_INV,VFDO,VFOCDEPTH,VFADVT &
                      &,VFADVS, VFTRI0, VFTRI1, VFSWDK_SAVE &
-                     &,VFLAIL,VFLAIH,VFFWET,VFRSML,VFRSMH,VFR0VT&
-                     &,VFPGLOB
-USE YOMCC1S  , ONLY : GPCC,VCALB,VCLAIL,VCLAIH,VCFWET
+                     &,VFLAIL,VFBVOCLAIL,VFLAIH,VFBVOCLAIH,VFFWET,VFRSML,VFRSMH,VFR0VT&
+                     &,VFPGLOB,  VFAVGPAR
+USE YOMCC1S  , ONLY : GPCC,VCALB,VCLAIL,VCBVOCLAIL,VCLAIH,VCBVOCLAIH,VCFWET,VCAVGPAR
 USE YOMGC1S  , ONLY : LMASK
 USE YOMDPHY  , ONLY : NLON, NLAT, NPOI, NVSF, NGCC, NLALO  ,NVHILO, NCLIMDAT,NCOM, NPOIP,NPOIPALL, NPOIALL, NPOIOFF
 USE YOMLUN1S , ONLY : NULOUT, RMISS
 USE YOMLOG1S , ONLY : NDIMCDF
-USE YOEPHY   , ONLY : LELAIV, LEURBAN, LEC4MAP
+USE YOEPHY   , ONLY : LELAIV, LEURBAN, LEC4MAP, LBVOC_EMIS
 USE NETCDF
 USE NETCDF_UTILS, ONLY: NCERROR
 USE MPL_MODULE
@@ -149,7 +151,7 @@ IF( MYPROC == 1 ) THEN
     SELECT CASE (TRIM(CNAME))
       CASE('x','lon')
         NILON=DIMLEN
-        IF (TRIM(CNAME) .EQ. 'lon') THEN
+        IF (TRIM(CNAME) == 'lon') THEN
           NILON_SAVE=NILON
         ENDIF
         WRITE(*,*)'DIMENSION x ',TRIM(CNAME),' FOUND WITH LEN=',NILON
@@ -301,9 +303,61 @@ VFFWET(1:NPOI)=SUM(VCFWET(1:NPOI,1:NCLIMDAT),DIM=2)/NCLIMDAT
 
 
 
+!
+!* -- climatological PAR (AVGPAR)
+IF ( LBVOC_EMIS ) THEN   
 
+IF( MYPROC == 1 ) THEN
+  CALL NCERROR( NF90_INQ_VARID(NCID, 'par_avg', NVARID),'getting varid par_avg' )
+  CALL NCERROR( NF90_GET_VAR(NCID,NVARID,ZREAL3D,ISTART3,ICOUNT3),'READING par_avg')
+ENDIF
+VCAVGPAR(1:NPOI,1:NCLIMDAT)=0._JPRB
 
+DO JMON=1,NCLIMDAT
+  IF( MYPROC == 1 ) THEN
+   WRITE(CDUM,'(A6,I2.2)')'AVGPAR',JMON
+   !ZREALD(:)=ZREAL3D(:,JMON)
+   CALL MINMAX(CDUM,ZREAL3D(:,JMON),NMX,NMY,LMASK,NULOUT)
+  ENDIF
+  CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL3D(:,JMON),KSENDCOUNTS=NPOIP(:),CDSTRING="RDCLIM:VCAVGPAR")
+  VCAVGPAR(:,JMON)=PACK(ZBUF(:),LMASK(ISTP:IENP))
+ENDDO
+VFAVGPAR(1:NPOI)=SUM(VCAVGPAR(1:NPOI,1:NCLIMDAT),DIM=2)/NCLIMDAT
 
+ELSE
+VCAVGPAR(1:NPOI,1:NCLIMDAT)=0._JPRB
+VFAVGPAR(1:NPOI)=SUM(VCAVGPAR(1:NPOI,1:NCLIMDAT),DIM=2)/NCLIMDAT
+ENDIF
+
+!* -- LAI for online BVOC emission module
+IF ( LBVOC_EMIS ) THEN   
+
+  DO JMON=1,NCLIMDAT
+    IF( MYPROC == 1 ) THEN
+    WRITE(CDUM,'(A4,I2.2)')'LAIL',JMON
+      CALL MINMAX(CDUM,ZREAL3D(:,JMON),NMX,NMY,LMASK,NULOUT)
+    ENDIF
+    CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL3D(:,JMON),KSENDCOUNTS=NPOIPALL(:),CDSTRING="RDCLIM:VCBVOCLAIL")    
+    VCBVOCLAIL(:,JMON)=PACK(ZBUF(:),LMASK(ISTP:IENP))
+  ENDDO
+
+  DO JMON=1,NCLIMDAT
+    IF( MYPROC == 1 ) THEN
+      WRITE(CDUM,'(A4,I2.2)')'LAIH',JMON
+      CALL MINMAX(CDUM,ZREAL3D(:,JMON),NMX,NMY,LMASK,NULOUT)
+    ENDIF
+    CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL3D(:,JMON),KSENDCOUNTS=NPOIPALL(:),CDSTRING="RDCLIM:VCBVOCLAIH")
+    VCBVOCLAIH(:,JMON)=PACK(ZBUF(:),LMASK(ISTP:IENP))
+  ENDDO
+
+  VFBVOCLAIL(1:NPOI)=SUM(VCBVOCLAIL(1:NPOI,1:NCLIMDAT),DIM=2)/NCLIMDAT    
+  VFBVOCLAIH(1:NPOI)=SUM(VCBVOCLAIH(1:NPOI,1:NCLIMDAT),DIM=2)/NCLIMDAT    
+ELSE
+  VCBVOCLAIH(1:NPOI,1:NCLIMDAT)=0._JPRB
+  VCBVOCLAIL(1:NPOI,1:NCLIMDAT)=0._JPRB
+  VFBVOCLAIL(1:NPOI)=0._JPRB
+  VFBVOCLAIH(1:NPOI)=0._JPRB
+ENDIF
 
 
 ! !* LAI
@@ -341,7 +395,7 @@ IF (LELAIV) THEN
     VCLAIH(:,JMON)=PACK(ZBUF(:),LMASK(ISTP:IENP))
   ENDDO
   VFLAIL(1:NPOI)=SUM(VCLAIL(1:NPOI,1:NCLIMDAT),DIM=2)/NCLIMDAT
-  VFLAIH(1:NPOI)=SUM(VCLAIH(1:NPOI,1:NCLIMDAT),DIM=2)/NCLIMDAT    
+  VFLAIH(1:NPOI)=SUM(VCLAIH(1:NPOI,1:NCLIMDAT),DIM=2)/NCLIMDAT
 ELSE
   VCLAIH(1:NPOI,1:NCLIMDAT)=0._JPRB
   VCLAIL(1:NPOI,1:NCLIMDAT)=0._JPRB
@@ -359,17 +413,17 @@ ENDDO
 
 !! 2D FIELDS
 IF (LEURBAN) THEN
-NVARS2D=18
-CVARS2D(1:NVARS2D)=(/'landsea','geopot ','cvl    ', &
-                      'cvh    ','tvl    ','tvh    ','cu     ','sotype ','sdor   ',&
-                      'sst    ','seaice ','LDEPTH ','CLAKE  ','z0m    ','lz0h   ',&
-                      'x      ','CLAKEF ','Ctype  '/)
+NVARS2D=20
+CVARS2D(1:NVARS2D)=(/ 'landsea    ','geopot     ','cvl        ', &
+                      'cvh        ','tvl        ','tvh        ','cu         ','sotype     ','sdor       ',&
+                      'sst        ','seaice     ','glacierMask','LDEPTH     ','CLAKE      ','z0m        ','lz0h       ',&
+                      'x          ','CLAKEF     ','Ctype      ','ISOP_EP    '/)
 ELSE
-NVARS2D=17
-CVARS2D(1:NVARS2D)=(/'landsea','geopot ','cvl    ', &
-                      'cvh    ','tvl    ','tvh    ','sotype ','sdor   ',&
-                      'sst    ','seaice ','LDEPTH ','CLAKE  ','z0m    ','lz0h   ',&
-                      'x      ','CLAKEF ','Ctype  '/)
+NVARS2D=19
+CVARS2D(1:NVARS2D)=(/ 'landsea    ','geopot     ','cvl        ', &
+                      'cvh        ','tvl        ','tvh        ','sotype     ','sdor       ',&
+                      'sst        ','seaice     ','glacierMask','LDEPTH     ','CLAKE      ','z0m        ','lz0h       ',&
+                      'x          ','CLAKEF     ','Ctype      ','ISOP_EP    '/)
 VFCUR(1:NPOI)=0._JPRB !Creates an array of zeros if urban is not used
 ENDIF
 
@@ -419,9 +473,15 @@ DO IVAR=1,NVARS2D
     CASE('seaice')
       IF ( STATUS /= 0 ) ZBUF(:) = 0._JPRB
       VFCI(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
+    CASE('glacierMask')
+      IF ( STATUS /= 0 ) ZBUF(:) = 0._JPRB
+      VFCIL(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
     CASE('LDEPTH')
       IF ( STATUS /= 0 ) ZBUF(:) = 10._JPRB
       VFLDEPTH(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
+    CASE('ISOP_EP')
+      IF ( STATUS /= 0 ) ZBUF(:) = 0._JPRB
+      VFISOP_EP(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
     CASE('CLAKE')
        IF ( STATUS /= 0 ) ZBUF(:) = 0._JPRB
        VFCLAKE(1:NPOI)=PACK(ZBUF,LMASK(ISTP:IENP))
@@ -497,23 +557,23 @@ ENDDO
 
 !* -- KPP!
 ! 2nd dimension is now NCOM instead of month
-VFZO(1:NPOI,1:(NCOM+1))=0.
-VFHO(1:NPOI,1:(NCOM+1))=0.
-VFHO_INV(1:NPOI,1:(NCOM+1))=0.
-VFDO(1:NPOI,1:(NCOM+1))=0.
-VFOCDEPTH(1:NPOI)=0.
-VFADVT(1:NPOI,1:NCOM)=0.
-VFADVS(1:NPOI,1:NCOM)=0.
-VFTRI0(1:NPOI,1:(NCOM+1))=0.
-VFTRI1(1:NPOI,1:(NCOM+1))=0.
-VFSWDK_SAVE(1:NPOI,1:(NCOM+1))=0.
+VFZO(1:NPOI,1:(NCOM+1))=0._JPRB
+VFHO(1:NPOI,1:(NCOM+1))=0._JPRB
+VFHO_INV(1:NPOI,1:(NCOM+1))=0._JPRB
+VFDO(1:NPOI,1:(NCOM+1))=0._JPRB
+VFOCDEPTH(1:NPOI)=0._JPRB
+VFADVT(1:NPOI,1:NCOM)=0._JPRB
+VFADVS(1:NPOI,1:NCOM)=0._JPRB
+VFTRI0(1:NPOI,1:(NCOM+1))=0._JPRB
+VFTRI1(1:NPOI,1:(NCOM+1))=0._JPRB
+VFSWDK_SAVE(1:NPOI,1:(NCOM+1))=0._JPRB
 WRITE(NULOUT,*) 'RDCLIM CALLED, VFTRI, VFSWDK_SAVE, VFOCDEPTH... RESET'
 
 !* Check final values
 
 DO JL=1,NPOI
   DO J=1,NVSF
-    IF (GPD(JL,J) == -999.) THEN
+    IF (GPD(JL,J) == -999._JPRB) THEN
       WRITE(NULOUT,*) 'INCORRECT SURFACE PROPERTIES IN RDCLIM'
       WRITE(NULOUT,*)JL,J
       CALL ABORT
@@ -521,7 +581,7 @@ DO JL=1,NPOI
   ENDDO
   DO J=1,NGCC
     DO JMO=1,NCLIMDAT
-      IF (GPCC(JL,jmo,J) == -999.) THEN
+      IF (GPCC(JL,jmo,J) == -999._JPRB) THEN
         WRITE(NULOUT,*)'INCORRECT SURFACE SEASONAL PROPERTIES IN RDCLIM'
         CALL ABORT
       ENDIF

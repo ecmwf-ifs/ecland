@@ -16,151 +16,86 @@ CONTAINS
 !####################################################################
 ! -- CMF_CALC_PTHOUT
 ! --
-! --
 !####################################################################
 SUBROUTINE CMF_CALC_PTHOUT
-USE PARKIND1,           ONLY: JPIM, JPRB
-USE YOS_CMF_INPUT,      ONLY: DT, PGRV, LBITSAFE
-USE YOS_CMF_MAP,        ONLY: NSEQMAX, NPTHOUT, NPTHLEV, PTH_UPST, PTH_DOWN, PTH_DST, &
+USE PARKIND1,           ONLY: JPIM, JPRB, JPRD
+USE YOS_CMF_INPUT,      ONLY: DT, PGRV
+USE YOS_CMF_MAP,        ONLY: NSEQALL, NPTHOUT, NPTHLEV, PTH_UPST, PTH_DOWN, PTH_DST, &
                             & PTH_ELV, PTH_WTH, PTH_MAN, I2MASK
 USE YOS_CMF_MAP,        ONLY: D2RIVELV
-USE YOS_CMF_PROG,       ONLY: D2RIVSTO, D2FLDSTO, D1PTHFLW, D2RIVOUT, D2FLDOUT
-USE YOS_CMF_PROG,       ONLY: D1PTHFLW_PRE, D2RIVDPH_PRE
-USE YOS_CMF_DIAG,       ONLY: D2PTHOUT, D2PTHINF, D2RIVINF, D2FLDINF, D2SFCELV
+USE YOS_CMF_PROG,       ONLY: D1PTHFLW, D1PTHFLW_PRE, D2RIVDPH_PRE
+USE YOS_CMF_DIAG,       ONLY: D2SFCELV, D2STORGE, D1PTHFLWSUM, D2SFCELV_PRE
 IMPLICIT NONE
-!*** Local
-REAL(KIND=JPRB)    ::  D2SFCELV_PRE(NSEQMAX,1)                  !! water surface elev (t-1)[m] (for floodplain)
-REAL(KIND=JPRB)    ::  D2RATE(NSEQMAX,1)                        !! outflow correction
-
+! Save for OpenMP
 INTEGER(KIND=JPIM),SAVE ::  IPTH, ILEV, ISEQ, ISEQP, JSEQP
-REAL(KIND=JPRB),SAVE    ::  DSLOPE, DFLW, DOUT_PRE, DFLW_PRE, DFLW_IMP, DSTO_TMP
-!$OMP THREADPRIVATE         (DSLOPE, DFLW, DOUT_PRE, DFLW_PRE, DFLW_IMP, DSTO_TMP, ILEV, ISEQP, JSEQP)
-
+REAL(KIND=JPRB),SAVE    ::  DSLP, DFLW, DOUT_pr, DFLW_pr, DFLW_im, RATE
+!$OMP THREADPRIVATE        (DSLP, DFLW, DOUT_pr, DFLW_pr, DFLW_im, RATE, ILEV, ISEQP, JSEQP)
 !================================================
-!$OMP PARALLEL DO
-DO ISEQ=1, NSEQMAX
+!$OMP PARALLEL DO SIMD
+DO ISEQ=1, NSEQALL
   D2SFCELV_PRE(ISEQ,1) = D2RIVELV(ISEQ,1)+D2RIVDPH_PRE(ISEQ,1)
-  D2PTHOUT(ISEQ,1) = 0.D0
-  D2PTHINF(ISEQ,1) = 0.D0
-  D2RATE(ISEQ,1)=-999.
 END DO
-!$OMP END PARALLEL DO
+!$OMP END PARALLEL DO SIMD
 
-D1PTHFLW(:,:) = 0._JPRB 
+D1PTHFLW(:,:) = 0._JPRB
 !$OMP PARALLEL DO
 DO IPTH=1, NPTHOUT  
+
   ISEQP=PTH_UPST(IPTH)
   JSEQP=PTH_DOWN(IPTH)
   !! Avoid calculation outside of domain
-  IF (ISEQP == 0 .OR. JSEQP== 0 ) CYCLE
-  IF (I2MASK(ISEQP,1) == 1 .OR. I2MASK(JSEQP,1) == 1 ) CYCLE
+  IF (ISEQP<=0 .OR. JSEQP<=0 ) CYCLE
+  IF (I2MASK(ISEQP,1)>0 .OR. I2MASK(JSEQP,1)>0 ) CYCLE  !! I2MASK is for 1: kinemacit 2: dam  no bifurcation
   
-  DSLOPE  = (D2SFCELV(ISEQP,1)-D2SFCELV(JSEQP,1)) * PTH_DST(IPTH)**(-1.D0)
-  DSLOPE = max(-0.005D0,min(0.005D0,DSLOPE))                                    !! v390 stabilization
+  DSLP  = (D2SFCELV(ISEQP,1)-D2SFCELV(JSEQP,1)) * PTH_DST(IPTH)**(-1._JPRB)
+  DSLP = max(-0.005_JPRB,min(0.005_JPRB,DSLP))                                    !! v390 stabilization
 
   DO ILEV=1, NPTHLEV
 
     DFLW = MAX(D2SFCELV(ISEQP,1),D2SFCELV(JSEQP,1)) - PTH_ELV(IPTH,ILEV) 
-    DFLW = MAX(DFLW,0.D0)
+    DFLW = MAX(DFLW,0._JPRB)
 
-    DFLW_PRE = MAX(D2SFCELV_PRE(ISEQP,1),D2SFCELV_PRE(JSEQP,1)) - PTH_ELV(IPTH,ILEV)
-    DFLW_PRE = MAX(DFLW_PRE,0.D0)
+    DFLW_pr = MAX(D2SFCELV_PRE(ISEQP,1),D2SFCELV_PRE(JSEQP,1)) - PTH_ELV(IPTH,ILEV)
+    DFLW_pr = MAX(DFLW_pr,0._JPRB)
 
-    DFLW_IMP = (DFLW*DFLW_PRE)**0.5D0                                       !! semi implicit flow depth
-    IF( DFLW_IMP<=0.D0 ) DFLW_IMP=DFLW
+    DFLW_im = (DFLW*DFLW_pr)**0.5_JPRB                                       !! semi implicit flow depth
+    DFLW_im = MAX( DFLW_im,(DFLW*0.01_JPRB)**0.5_JPRB )
 
-    IF( DFLW_IMP>1.D-5 )THEN                         !! local inertial equation, see [Bates et al., 2010, J.Hydrol.]
-      DOUT_PRE = D1PTHFLW_PRE(IPTH,ILEV) * PTH_WTH(IPTH,ILEV)**(-1.D0)                         !! outflow (t-1) [m2/s] (unit width)
-      D1PTHFLW(IPTH,ILEV) = PTH_WTH(IPTH,ILEV) * ( DOUT_PRE + PGRV*DT*DFLW_IMP*DSLOPE ) &
-                         * ( 1.D0 + PGRV*DT*PTH_MAN(ILEV)**2.D0*abs(DOUT_PRE)*DFLW_IMP**(-7.D0/3.D0) )**(-1.D0)
+    IF( DFLW_im>1.E-5 )THEN                         !! local inertial equation, see [Bates et al., 2010, J.Hydrol.]
+      DOUT_pr = D1PTHFLW_PRE(IPTH,ILEV) * PTH_WTH(IPTH,ILEV)**(-1._JPRB)                         !! outflow (t-1) [m2/s] (unit width)
+      D1PTHFLW(IPTH,ILEV) = PTH_WTH(IPTH,ILEV) * ( DOUT_pr + PGRV*DT*DFLW_im*DSLP ) &
+                         * ( 1._JPRB + PGRV*DT*PTH_MAN(ILEV)**2._JPRB * abs(DOUT_pr)*DFLW_im**(-7._JPRB/3._JPRB) )**(-1._JPRB)
     ELSE
-      D1PTHFLW(IPTH,ILEV) = 0.D0
+      D1PTHFLW(IPTH,ILEV) = 0._JPRB
     ENDIF
   END DO
 END DO
 !$OMP END PARALLEL DO
 
-IF( LBITSAFE )THEN  !! Aboid OMP ATOMIC for bit identical simulation
-  DO IPTH=1, NPTHOUT  
-    ISEQP=PTH_UPST(IPTH)
-    JSEQP=PTH_DOWN(IPTH)
-    DO ILEV=1, NPTHLEV
-      IF( D1PTHFLW(IPTH,ILEV) >= 0.D0 )THEN                                  !! total outflow from each grid
-        D2PTHOUT(ISEQP,1) = D2PTHOUT(ISEQP,1) + D1PTHFLW(IPTH,ILEV)
-      ELSE
-        D2PTHOUT(JSEQP,1) = D2PTHOUT(JSEQP,1) - D1PTHFLW(IPTH,ILEV)
-      ENDIF
-    END DO
-  END DO
-ELSE
-!$OMP PARALLEL DO
-  DO IPTH=1, NPTHOUT  
-    ISEQP=PTH_UPST(IPTH)
-    JSEQP=PTH_DOWN(IPTH)
-    DO ILEV=1, NPTHLEV
-      IF( D1PTHFLW(IPTH,ILEV) >= 0.D0 )THEN                                  !! total outflow from each grid
-!$OMP ATOMIC
-        D2PTHOUT(ISEQP,1) = D2PTHOUT(ISEQP,1) + D1PTHFLW(IPTH,ILEV)
-      ELSE
-!$OMP ATOMIC
-        D2PTHOUT(JSEQP,1) = D2PTHOUT(JSEQP,1) - D1PTHFLW(IPTH,ILEV)
-      ENDIF
-    END DO
-  END DO
-!$OMP END PARALLEL DO
-ENDIF
+D1PTHFLWSUM(:)=0._JPRB
+DO ILEV=1, NPTHLEV
+  D1PTHFLWSUM(:)=D1PTHFLWSUM(:)+D1PTHFLW(:,ILEV)  !! bifurcation height layer summation
+END DO
 
-!$OMP PARALLEL DO                                              !! calculate total outflow from a grid
-DO ISEQ=1, NSEQMAX
-  IF( D2PTHOUT(ISEQ,1) > 1.D-10 )THEN
-    DSTO_TMP = ( D2RIVSTO(ISEQ,1)+D2FLDSTO(ISEQ,1) ) &
-                  - D2RIVOUT(ISEQ,1)*DT + D2RIVINF(ISEQ,1)*DT - D2FLDOUT(ISEQ,1)*DT + D2FLDINF(ISEQ,1)*DT
-    D2RATE(ISEQ,1) = MIN( DSTO_TMP * (D2PTHOUT(ISEQ,1)*DT)**(-1.), 1.D0 )
-  ELSE
-    D2RATE(ISEQ,1) = 1.D0
+!! Storage change limitter (to prevent sudden increase of upstream water level) (v423)
+!$OMP PARALLEL DO
+DO IPTH=1, NPTHOUT  
+  ISEQP=PTH_UPST(IPTH)
+  JSEQP=PTH_DOWN(IPTH)
+  IF( D1PTHFLWSUM(IPTH)/=0._JPRB )THEN
+    RATE= 0.05_JPRB*min(D2STORGE(ISEQP,1),D2STORGE(JSEQP,1)) / abs(D1PTHFLWSUM(IPTH)*DT)  !! flow limit: 5% storage for stability
+    RATE= min(RATE, 1.0_JPRB )
+    D1PTHFLW(IPTH,:) =D1PTHFLW(IPTH,:) *RATE
+    D1PTHFLWSUM(IPTH)=D1PTHFLWSUM(IPTH)*RATE
   ENDIF
-  D2PTHOUT(ISEQ,1) = D2PTHOUT(ISEQ,1) * D2RATE(ISEQ,1)
 END DO
 !$OMP END PARALLEL DO
-
-
-IF( LBITSAFE )THEN  !! Aboid OMP ATOMIC for bit identical simulation
-  DO IPTH=1, NPTHOUT
-    ISEQP=PTH_UPST(IPTH)
-    JSEQP=PTH_DOWN(IPTH)
-    DO ILEV=1, NPTHLEV
-      IF( D1PTHFLW(IPTH,ILEV) >= 0.D0 )THEN
-        D1PTHFLW(IPTH,ILEV) = D1PTHFLW(IPTH,ILEV)*D2RATE(ISEQP,1)
-        D2PTHINF(JSEQP,1) = D2PTHINF(JSEQP,1) + D1PTHFLW(IPTH,ILEV)             !! total inflow [m3/s] (from upstream)
-      ELSE
-        D1PTHFLW(IPTH,ILEV) = D1PTHFLW(IPTH,ILEV)*D2RATE(JSEQP,1)
-        D2PTHINF(ISEQP,1) = D2PTHINF(ISEQP,1) - D1PTHFLW(IPTH,ILEV)             !! total inflow [m3/s] (from upstream)
-      ENDIF
-      D1PTHFLW_PRE(IPTH,ILEV)=D1PTHFLW(IPTH,ILEV)
-    END DO
-  END DO
-ELSE
-!$OMP PARALLEL DO   
-  DO IPTH=1, NPTHOUT
-    ISEQP=PTH_UPST(IPTH)
-    JSEQP=PTH_DOWN(IPTH)
-    DO ILEV=1, NPTHLEV
-      IF( D1PTHFLW(IPTH,ILEV) >= 0.D0 )THEN
-        D1PTHFLW(IPTH,ILEV) = D1PTHFLW(IPTH,ILEV)*D2RATE(ISEQP,1)
-!$OMP ATOMIC
-        D2PTHINF(JSEQP,1) = D2PTHINF(JSEQP,1) + D1PTHFLW(IPTH,ILEV)             !! total inflow [m3/s] (from upstream)
-      ELSE
-        D1PTHFLW(IPTH,ILEV) = D1PTHFLW(IPTH,ILEV)*D2RATE(JSEQP,1)
-!$OMP ATOMIC
-        D2PTHINF(ISEQP,1) = D2PTHINF(ISEQP,1) - D1PTHFLW(IPTH,ILEV)             !! total inflow [m3/s] (from upstream)
-      ENDIF
-      D1PTHFLW_PRE(IPTH,ILEV)=D1PTHFLW(IPTH,ILEV)
-    END DO
-  END DO
-!$OMP END PARALLEL DO
-ENDIF
 
 END SUBROUTINE CMF_CALC_PTHOUT
 !####################################################################
 
+
+
+
+!####################################################################
 END MODULE CMF_CALC_PTHOUT_MOD

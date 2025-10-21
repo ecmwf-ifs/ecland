@@ -37,7 +37,9 @@ list(APPEND offline_driver_src
     rdclim.F90
     rdcoor.F90
     rdfvar.F90
+    rdnml_params.F90
     rdres.F90
+    rdssdp.F90
     rdsupr.F90
     stepo1s.F90
     su0phy1s.F90

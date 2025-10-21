@@ -1,7 +1,7 @@
 INTERFACE
 SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON,KLEVS,KLEVSN, KTILES,&
-                    & PSDOR, &
-                    & PLSM, PFRTI, PMU0,                          &
+                    & PSDOR,LDSICE, &
+                    & PLSM, PCIL, PFRTI, PMU0,                          &
                     & PTSAM1M,PTSKIN, PALBSN,                      &  
                     & PTSNM1M ,PSNM1M ,                            &
                     & PRSNM1M, PWSNM1M                              )
@@ -34,6 +34,7 @@ SUBROUTINE SURFWS    (YDSURF,KIDIA,KFDIA,KLON,KLEVS,KLEVSN, KTILES,&
 
 !     INPUT PARAMETERS (REAL):
 !     *PLSM*         LAND-SEA MASK                                  (0-1)
+!     *PCIL*         LAND-ICE FRACTION                              (0-1)
 !     *PSNM1M*       SNOW MASS (per unit area)                      kg/m**2
 !     *PRSNM1M*      SNOW DENSITY                                   kg/m**3
 
@@ -68,6 +69,8 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVSN
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTILES
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLSM(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PCIL(:)
+LOGICAL   ,INTENT(IN)    :: LDSICE(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PMU0(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSDOR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 

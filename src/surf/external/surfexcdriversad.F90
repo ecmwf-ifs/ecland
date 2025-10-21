@@ -1,7 +1,7 @@
 SUBROUTINE SURFEXCDRIVERSAD  ( YDSURF, &
  &   KIDIA , KFDIA, KLON, KLEVS, KLEVSN, KTILES, KSTEP &
  & , PTSTEP, PRVDIFTS &
- & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF &
+ & , LDNOPERT, LDKPERTS, LDSURF2, LDREGSF, LDREGBUOF &
 ! input data, non-tiled - trajectory
  & , KTVL   , KTVH    , PCVL   , PCVH , PCUR &
  & , PLAIL  , PLAIH   &
@@ -9,6 +9,8 @@ SUBROUTINE SURFEXCDRIVERSAD  ( YDSURF, &
  & , PUMLEV5, PVMLEV5 , PTMLEV5, PQMLEV5, PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST   , PTSKM1M5, PCHAR  , PSSRFL5, PTICE5 , PTSNOW5  &
  & , PWLMX5 &
+ & , PUCURR5, PVCURR5 &
+ & , PSSDP2, PSSDP3 &
 ! input data, soil - trajectory
  & , PTSAM1M5, PWSAM1M5, KSOTY &
 ! input data, tiled - trajectory
@@ -86,6 +88,9 @@ USE SURFEXCDRIVERSAD_CTL_MOD
 !    M. Janiskova           Apr 2012 Perturbation of top layer surface fields
 !    P. Lopez               June 2015  Added regularization of wet skin tile
 !                                      perturbation in low wind situations.
+!    P. Lopez               July 2025 Added ocean currents (trajectory only)
+!    P. Lopez               July 2025 Added optional (LDREGBUOF) extra regularization 
+!                                     when surface buoyancy flux is very small.
 
 !  INTERFACE: 
 
@@ -115,6 +120,7 @@ USE SURFEXCDRIVERSAD_CTL_MOD
 !      LDKPERTS :    TRUE when pertubations of exchange coefficients are used
 !      LDSURF2  :    TRUE when simplified surface scheme called
 !      LDREGSF  :    TRUE when regularization used
+!      LDREGBUOF:    TRUE for extra regularization when surface buoyancy flux is very small
 
 !*      Reals with tile index (In): 
 !  Trajectory  Perturbation  Description                               Unit
@@ -142,12 +148,14 @@ USE SURFEXCDRIVERSAD_CTL_MOD
 !  PCHAR       ---           "EQUIVALENT" CHARNOCK PARAMETER           -
 !  PSSRFL5     PSSRFL        NET SHORTWAVE RADIATION FLUX AT SURFACE   W/m2
 !  PTSAM1M5    PTSAM1M       SURFACE TEMPERATURE                       K
-!  PWSAM1M5    PWSAM1M       SOIL MOISTURE ALL LAYERS                 m**3/m**3
+!  PWSAM1M5    PWSAM1M       SOIL MOISTURE ALL LAYERS                  m**3/m**3
 !  PTICE5      PTICE         Ice temperature, top slab                 K
 !  PTSNOW5     PTSNOW        Snow temperature                          K
 !  PWLMX5      ---           Maximum interception layer capacity       kg/m**2
-!     PSNM5    ---  :       SNOW MASS (per unit area)                      kg/m**2
-!     PRSN5    ---  :        SNOW DENSITY                                   kg/m**3
+!  PUCURR5     ---           Ocean current U-component                 m/s
+!  PVCURR5     ---           Ocean current V-component                 m/s
+!  PSNM5       ---           SNOW MASS (per unit area)                 kg/m**2
+!  PRSN5       ---           SNOW DENSITY                              kg/m**3
 
 !*      Reals with tile index (In/Out):
 !  Trajectory  Perturbation  Description                               Unit
@@ -223,6 +231,7 @@ LOGICAL           ,INTENT(IN)    :: LDNOPERT
 LOGICAL           ,INTENT(IN)    :: LDKPERTS
 LOGICAL           ,INTENT(IN)    :: LDSURF2
 LOGICAL           ,INTENT(IN)    :: LDREGSF
+LOGICAL           ,INTENT(IN)    :: LDREGBUOF
 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVL(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTVH(:) 
@@ -247,7 +256,11 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PCHAR(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSRFL5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTICE5(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSNOW5(:) 
-REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLMX5(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PUCURR5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PVCURR5(:) 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWSAM1M5(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PFRTI(:,:) 
@@ -419,6 +432,14 @@ ENDIF
 
 IF(UBOUND(PWLMX5,1) < KLON) THEN
   CALL ABORT_SURF('SURFEXCDRIVERSAD: PWLMX5 TOO SHORT!')
+ENDIF
+
+IF(UBOUND(PUCURR5,1) < KLON) THEN
+  CALL ABORT_SURF('SURFEXCDRIVERSAD: PUCURR5 TOO SHORT!')
+ENDIF
+
+IF(UBOUND(PVCURR5,1) < KLON) THEN
+  CALL ABORT_SURF('SURFEXCDRIVERSAD: PVCURR5 TOO SHORT!')
 ENDIF
 
 IF(UBOUND(PTSAM1M5,1) < KLON) THEN
@@ -928,15 +949,17 @@ ENDIF
 CALL SURFEXCDRIVERSAD_CTL( &
  &   KIDIA    , KFDIA, KLON, KLEVS, KTILES, KSTEP &
  & , PTSTEP   , PRVDIFTS &
- & , LDNOPERT , LDKPERTS, LDSURF2, LDREGSF &
+ & , LDNOPERT , LDKPERTS, LDSURF2, LDREGSF, LDREGBUOF &
  & , KTVL     , KTVH    , PCVL   , PCVH, PCUR &
  & , PLAIL    , PLAIH &
  & , PSNM5    , PRSN5 &
  & , PUMLEV5  , PVMLEV5 , PTMLEV5, PQMLEV5 , PAPHMS5, PGEOMLEV5, PCPTGZLEV5 &
  & , PSST     , PTSKM1M5, PCHAR  , PSSRFL5 , PTICE5 , PTSNOW5  &
  & , PWLMX5   &
+ & , PUCURR5  , PVCURR5 &
  & , PTSAM1M5 , PWSAM1M5 , KSOTY &
  & , PFRTI    , PALBTI5  &
+ & , PSSDP2   , PSSDP3 &
  & , YSURF%YCST, YSURF%YEXC, YSURF%YVEG, YSURF%YSOIL, YSURF%YFLAKE, YSURF%YURB & 
  & , PUSTRTI5 , PVSTRTI5, PAHFSTI5 , PEVAPTI5,PTSKTI5 &
  & , PZ0M5    , PZ0H5    &

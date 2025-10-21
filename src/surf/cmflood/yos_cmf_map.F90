@@ -11,28 +11,36 @@ MODULE YOS_CMF_MAP
 !  distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
 ! See the License for the specific language governing permissions and limitations under the License.
 !==========================================================
-USE PARKIND1, ONLY: JPIM, JPRM, JPRB
+USE PARKIND1, ONLY: JPIM, JPRM, JPRB,JPRD
 IMPLICIT NONE
 SAVE 
 !================================================
 !*** river network
 INTEGER(KIND=JPIM),ALLOCATABLE           ::  I2NEXTX(:,:)       !! POINT DOWNSTREAM HORIZONTAL
 INTEGER(KIND=JPIM),ALLOCATABLE           ::  I2NEXTY(:,:)       !! POINT DOWNSTREAM VERTICAL
-INTEGER(KIND=JPIM),ALLOCATABLE           ::  I2RIVSEQ(:,:)      !! river sequence map:# of cellls from the hilltop cell
 
 INTEGER(KIND=JPIM),ALLOCATABLE           ::  I1SEQX(:)          !! 1D SEQUENCE HORIZONTAL
 INTEGER(KIND=JPIM),ALLOCATABLE           ::  I1SEQY(:)          !! 1D SEQUENCE VERTICAL
 INTEGER(KIND=JPIM),ALLOCATABLE           ::  I1NEXT(:)          !! 1D DOWNSTREAM
-INTEGER(KIND=JPIM)                       ::  NSEQRIV            !! LENGTH OF 1D SEQUNECE FOR RIVER
-INTEGER(KIND=JPIM)                       ::  NSEQALL            !! LENGTH OF 1D SEQUNECE FOR RIVER AND MOUTH
-INTEGER(KIND=JPIM)                       ::  NSEQMAX            !! MAX OF NSEQALL (PARALLEL)
+INTEGER(KIND=JPIM)                       ::  NSEQRIV            !! END OF RIVER-LINK  SEQUENCE (1 ~ NSEQRIV)
+INTEGER(KIND=JPIM)                       ::  NSEQALL            !! END OF RIVER-MOUTH SEQUENCE (NSEQRUV+1 ~ NSEQALL)
+INTEGER(KIND=JPIM)                       ::  NSEQMAX            !! TOTAL GRIDS ON RIVER MAP (lakes added in future dev)
 
 INTEGER(KIND=JPIM),ALLOCATABLE           ::  I2VECTOR(:,:)      !! VECTOR INDEX
 INTEGER(KIND=JPIM),ALLOCATABLE           ::  I2REGION(:,:)      !! REGION INDEX
 INTEGER(KIND=JPIM)                       ::  REGIONALL          !! REGION TOTAL
 INTEGER(KIND=JPIM)                       ::  REGIONTHIS         !! REGION THIS CPU
+INTEGER(KIND=JPIM)                       ::  MPI_COMM_CAMA      !! MPI COMMUNICATOR
 
-INTEGER(KIND=JPIM)                       ::  RIVSEQMAX          !! MAX. OF CATCH. IN A RIVER
+INTEGER(KIND=JPIM),ALLOCATABLE           ::  I1UPST(:,:)        !! UPSTREAM SEQ
+INTEGER(KIND=JPIM),ALLOCATABLE           ::  I1UPN(:)           !! MAX UPSTREAM NUMBER
+
+INTEGER(KIND=JPIM),ALLOCATABLE           ::  I1P_OUT(:,:)        !! BIF PTH OUT
+INTEGER(KIND=JPIM),ALLOCATABLE           ::  I1P_OUTN(:)           !! MAX UPSTREAM NUMBER
+
+INTEGER(KIND=JPIM),ALLOCATABLE           ::  I1P_INF(:,:)        !! UPSTREAM SEQ
+INTEGER(KIND=JPIM),ALLOCATABLE           ::  I1P_INFN(:)           !! MAX UPSTREAM NUMBER
+
 
 !================================================
 !*** lat, lon
@@ -57,8 +65,9 @@ INTEGER(KIND=JPIM),ALLOCATABLE           ::  I2MASK(:,:)        !! Mask
 !================================================
 !*** Floodplain Topography (diagnosed)
 REAL(KIND=JPRB),ALLOCATABLE              ::  D2RIVSTOMAX(:,:)   !! maximum river storage [m3]
-REAL(KIND=JPRB),ALLOCATABLE              ::  D2RIVELV(:,:)      !! elevation of river bed [m3]
 REAL(KIND=JPRB),ALLOCATABLE              ::  D2FLDSTOMAX(:,:,:) !! MAXIMUM FLOODPLAIN STORAGE [M3]
+
+REAL(KIND=JPRB),ALLOCATABLE              ::  D2RIVELV(:,:)      !! elevation of river bed [m3]
 REAL(KIND=JPRB),ALLOCATABLE              ::  D2FLDGRD(:,:,:)    !! FLOODPLAIN GRADIENT
 REAL(KIND=JPRB)                          ::  DFRCINC            !! FLOODPLAIN FRACTION INCREMENT [-] (1/NLFP)
 
@@ -78,6 +87,18 @@ REAL(KIND=JPRB),ALLOCATABLE              ::  PTH_DST(:)         !! FLOOD PATHWAY
 REAL(KIND=JPRB),ALLOCATABLE              ::  PTH_ELV(:,:)         !! FLOOD PATHWAY ELEVATION [m]
 REAL(KIND=JPRB),ALLOCATABLE              ::  PTH_WTH(:,:)         !! FLOOD PATHWAY WIDTH [m]
 REAL(KIND=JPRB),ALLOCATABLE              ::  PTH_MAN(:)         !! FLOOD PATHWAY Manning
+
+!================================================
+! input matrix (converted from NX:NY*INPN to NSEQMAX*INPN)
+INTEGER(KIND=JPIM),ALLOCATABLE           :: INPX(:,:)        !! INPUT GRID XIN
+INTEGER(KIND=JPIM),ALLOCATABLE           :: INPY(:,:)        !! INPUT GRID YIN
+REAL(KIND=JPRB),ALLOCATABLE              :: INPA(:,:)        !! INPUT AREA
+
+! input matrix Inverse
+INTEGER(KIND=JPIM),ALLOCATABLE           :: INPXI(:,:,:)        !! OUTPUT GRID XOUT
+INTEGER(KIND=JPIM),ALLOCATABLE           :: INPYI(:,:,:)        !! OUTPUT GRID YOUT
+REAL(KIND=JPRB),ALLOCATABLE              :: INPAI(:,:,:)        !! OUTPUT AREA
+INTEGER(KIND=JPIM)                       :: INPNI               !! MAX INPUT NUMBER for inverse interpolation
 
 DATA REGIONALL  /1/
 DATA REGIONTHIS /1/

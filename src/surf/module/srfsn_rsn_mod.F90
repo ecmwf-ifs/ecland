@@ -1,7 +1,7 @@
 MODULE SRFSN_RSN_MOD
 CONTAINS
-SUBROUTINE SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,PFRSN,&
-                    &PRSNM1M,PSSNM1M,PTSNM1M,PWSNM1M,PWSN,&
+SUBROUTINE SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,PCIL,LDLAND,&
+                    &PFRSN,PRSNM1M,PSSNM1M,PTSNM1M,PWSNM1M,PWSN,&
                     &PSNOWF,PUSRF,PVSRF,PTSRF,&
                     &YDSOIL,YDCST,PRSN,PDHTSS)
 
@@ -23,6 +23,8 @@ USE YOS_CST  , ONLY : TCST
 !     PURPOSE.
 !     --------
 !          THIS ROUTINE COMPUTES THE SNOW DENSITY
+!          As a single prognostic snowpack for seasonal snow and land ice is used,
+!          the two different contributions are weighted by PCIL for sub-grid ice.
 
 !**   INTERFACE.
 !     ----------
@@ -74,7 +76,7 @@ USE YOS_CST  , ONLY : TCST
 !     Modifications:
 !     Original   E. Dutra      ECMWF     04/12/2015
 !                G. Arduini    ECMWF     01/09/2021
-
+!     Modified   G. Arduini    ECMWF     Sept 2024    snow over land-ice
 !     ------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -85,7 +87,9 @@ INTEGER(KIND=JPIM), INTENT(IN)   :: KFDIA
 INTEGER(KIND=JPIM), INTENT(IN)   :: KLON
 INTEGER(KIND=JPIM), INTENT(IN)   :: KLEVSN
 REAL(KIND=JPRB)   , INTENT(IN)   :: PTMST
+REAL(KIND=JPRB)   , INTENT(IN)   :: PCIL(:)
 LOGICAL           , INTENT(IN)   :: LLNOSNOW(:) 
+LOGICAL           , INTENT(IN)   :: LDLAND(:)
 REAL(KIND=JPRB)   , INTENT(IN)   :: PFRSN(:)
 
 REAL(KIND=JPRB)   , INTENT(IN)   :: PRSNM1M(:,:)
@@ -119,6 +123,7 @@ REAL(KIND=JPRB)     :: ZEPS,ZADD,ZTMST
 REAL(KIND=JPRB)     :: ZRSNDTWINDCOMP ! WIND-DRIVEN COMPACTION
 REAL(KIND=JPRB)     :: ZFWCOMP1, ZFWCOMP2, ZFTAUW, ZTAUW
 REAL(KIND=JPRB)     :: ZGAMMAMOB(KLEVSN), ZGAMMAW(KLEVSN), ZDSN(KLEVSN)
+REAL(KIND=JPRB)     :: ZSD_THR, ZDSN_SUM
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 !    -----------------------------------------------------------------
@@ -151,7 +156,11 @@ DO JL=KIDIA,KFDIA
     ZRHOFRESH = RHOMINSNA + RHOMINSNB*(PTSRF(JL)-RTT) + &
         & RHOMINSNC*(PUSRF(JL)**2+PVSRF(JL)**2)**0.25_JPRB
     ZRHOFRESH=MAX(ZRHOFRESH,RHOMINSND)
-!     ZRHOFRESH=100._JPRB
+    ! Assuming fresh snow over full glacier points at 300 kg m-3
+    IF (PCIL(JL)>1._JPRB-ZEPS .AND. LDLAND(JL))THEN
+      !*ZRHOFRESH=300._JPRB !Alexander et al. JGR 2019
+      ZRHOFRESH=280._JPRB !Alexander et al. JGR 2019
+    ENDIF
   !* FIRST GUESS SNOW DENSITY AFTER SNOWFALL
     ZSNOWFM = PTMST*PSNOWF(JL) 
     ZRSTAR(1) = ( PSSNM1M(JL,1) + ZSNOWFM ) / MAX( ZEPS,&
@@ -200,9 +209,17 @@ DO JL=KIDIA,KFDIA
         ZADD = ZADD + PSSNM1M(JL,JK)
       ENDIF
     ENDDO
-    !PRSN(JL,:) = ZRSTAR(:)  
-    PRSN(JL,:)=MIN(RHOMAXSN_NEW,ZRSTAR(:))
-    PRSN(JL,:)=MAX(RHOMINSND,ZRSTAR(:))
+    IF (PCIL(JL)<1._JPRB-ZEPS .AND. LDLAND(JL))THEN
+      PRSN(JL,:)=MIN(RHOMAXSN_NEW,ZRSTAR(:))
+      PRSN(JL,:)=MAX(RHOMINSND,ZRSTAR(:))
+    ELSE
+      PRSN(JL,1)=MIN(315._JPRB,ZRSTAR(1))  !Fausto et al. Frontiers 2018 ~(315-44)
+      ZSD_THR=1._JPRB
+      ZDSN_SUM=PSSNM1M(JL,1) / PRSNM1M(JL,1)
+      DO JK=2,KLEVSN
+            PRSN(JL,JK)=MAX(PRSN(JL,1), MIN(RHOMAXSN_NEW, ZRSTAR(JK)) ) ! layers below 1m are evolving
+      ENDDO
+    ENDIF
 
 
   ENDIF

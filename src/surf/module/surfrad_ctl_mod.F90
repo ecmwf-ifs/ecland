@@ -2,16 +2,17 @@ MODULE SURFRAD_CTL_MOD
 CONTAINS
 SUBROUTINE SURFRAD_CTL(KDDN,KMMN,KMON,KSECO,&
  & KIDIA,KFDIA,KLON,KTILES,KSW,KLW,&
- & LDNH,&
+ & LDNH,LDLAND,&
  & PALBF,PALBICEF,PTVH,&
  & PALCOEFF,PCUR,PCVH,&
  & PASN,PMU0,PTS,PWND,&
- & PWS1,KSOTY,PFRTI,PHLICE,PTLICE,&  
+ & PWS1,KSOTY,PFRTI,PHLICE,PTLICE,&
+ & PSSDP3,& 
  & YDCST,YDLW,YDSW,YDRAD,YDRDI,YDSOIL,YDFLAKE,&
  & YDURB,PALBD,PALBP,PALB,&
  & PSPECTRALEMISS,PEMIT,&
  & PALBTI,PCCNL,PCCNO,&
- & LNEMOLIMALB)
+ & LNEMOLIMALB,LESNICE)
 
 USE PARKIND1 , ONLY : JPIM, JPRB
 USE YOMHOOK  , ONLY : LHOOK, DR_HOOK, JPHOOK
@@ -25,6 +26,7 @@ USE YOS_FLAKE, ONLY : TFLAKE
 USE YOS_URB  , ONLY : TURB
 USE CANALB_MOD
 USE ABORT_SURF_MOD
+USE YOMSURF_SSDP_MOD
 
 ! (C) Copyright 1991- ECMWF.
 !
@@ -47,6 +49,7 @@ USE ABORT_SURF_MOD
 !        --------------------
 !     ==== INPUTS ===
 ! LDNH   : LOGICAL  : .TRUE. FOR Northern Hemisphere
+! LDLAND : LOGICAL  : .TRUE. FOR Land point
 ! PALBF  : REAL     : FIXED BACKGROUND SURFACE SHORTWAVE ALBEDO
 ! PALBICEF REAL     : FIXED SEA-ICE ALBEDO (FROM COUPLER)
 ! PTVH   : REAL     : DOMINANT HIGH VEGETATION TYPE
@@ -143,8 +146,12 @@ USE ABORT_SURF_MOD
 !     Robin Hogan   ECMWF   15-01-2019 MODIS albedo 2x3-components 
 !     Robin Hogan   ECMWF   26-02-2019 Removed general spectral rescaling (RWEIGHT)
 !     Robin Hogan   ECMWF   26-02-2019 Use Moody et al. for snow albedo in 2 spectral bands
+!     M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
 !     S. Boussetta          22-06-2022 Added explicit snow albedo for snow under high veg
 !     J. McNorton           24-08-2022 urban tile
+!     I. Ayan-Miguez (BSC)  Sep 2023   Added PSSDP3 object for spatially distributed parameters
+!     G. Arduini            Sep 2024   Land and sea ice tile
 !-----------------------------------------------------------------------
 
 IMPLICIT NONE
@@ -177,6 +184,7 @@ REAL(KIND=JPRB),    INTENT(IN)  :: PWS1(:)
 REAL(KIND=JPRB),    INTENT(IN)  :: PFRTI(:,:)
 REAL(KIND=JPRB),    INTENT(IN)  :: PHLICE(:) 
 REAL(KIND=JPRB),    INTENT(IN)  :: PTLICE(:)
+REAL(KIND=JPRB),    INTENT(IN)  :: PSSDP3(:,:,:)
 TYPE(TCST),         INTENT(IN)  :: YDCST
 TYPE(TLW),          INTENT(IN)  :: YDLW
 TYPE(TSW),          INTENT(IN)  :: YDSW
@@ -194,8 +202,10 @@ REAL(KIND=JPRB),    INTENT(OUT) :: PEMIT(:)
 REAL(KIND=JPRB),    INTENT(OUT) :: PCCNL(:)
 REAL(KIND=JPRB),    INTENT(OUT) :: PCCNO(:)
 LOGICAL        ,    INTENT(IN)  :: LNEMOLIMALB
+LOGICAL        ,    INTENT(IN)  :: LESNICE
 
 LOGICAL,   INTENT(IN)  :: LDNH(:)
+LOGICAL,   INTENT(IN)  :: LDLAND(:)
 
 !     -----------------------------------------------------------------
 !*       0.2   LOCAL ARRAYS.
@@ -267,8 +277,9 @@ ASSOCIATE(RDAY=>YDCST%RDAY, RTT=>YDCST%RTT, &
  & REMISS_WEIGHT=>YDRDI%REMISS_WEIGHT, REMISS_OLD_WEIGHT=>YDRDI%REMISS_OLD_WEIGHT, &
  & REPALB=>YDRDI%REPALB, NLWEMISS=>YDRAD%NLWEMISS, &
  & LESN09=>YDSOIL%LESN09, LEVGEN=>YDSOIL%LEVGEN, RWCAP=>YDSOIL%RWCAP, &
+ & RWCAPM3D=>PSSDP3(:,:,SSDP3D_ID%NRWCAPM3D), RWPWP=>YDSOIL%RWPWP, &
+ & RWPWPM3D=>PSSDP3(:,:,SSDP3D_ID%NRWPWPM3D), &
  & RWRR=>YDURB%RWRR, RROOALB=>YDURB%RROOALB,RURBEMIS=>YDURB%RURBEMIS, &
- & RWCAPM=>YDSOIL%RWCAPM, RWPWP=>YDSOIL%RWPWP, RWPWPM=>YDSOIL%RWPWPM, &
  & RALBICE_AN=>YDSW%RALBICE_AN, RALBICE_AR=>YDSW%RALBICE_AR, RSUN=>YDSW%RSUN, NUVVIS=>YDRAD%NUVVIS)
 
 !     ------------------------------------------------------------------
@@ -357,9 +368,8 @@ DO JL=KIDIA,KFDIA
 ! DRY SNOW-FREE LOW-VEG
   IF(LEVGEN)THEN
     IF (KSOTY(JL)> 0_JPIM) THEN
-      JS=KSOTY(JL)
-      ZWCP=1.0_JPRB/(RWCAPM(JS)-RWPWPM(JS))
-      ZPROP = MAX(0.0_JPRB,MIN(1.0_JPRB,(PWS1(JL)-RWPWPM(JS))*ZWCP ) )
+      ZWCP=1.0_JPRB/(RWCAPM3D(JL,1_JPIM)-RWPWPM3D(JL,1_JPIM))
+      ZPROP = MAX(0.0_JPRB,MIN(1.0_JPRB,(PWS1(JL)-RWPWPM3D(JL,1_JPIM))*ZWCP ) )
     ELSE
       ZPROP = 1.0_JPRB
     ENDIF
@@ -594,6 +604,16 @@ DO JSW=1,KSW
       ZADTI2=ZALBICE_AN
       ZAPTI2=ZALBICE_AN
     ENDIF
+    IF (LDLAND(JL))THEN ! land-ice
+      IF (LDNH(JL)) THEN
+        ! 0.40 as used in Avanzi et al. for land ice...
+        ZADTI2=0.40_JPRB !0.60_JPRB
+        ZAPTI2=0.40_JPRB !0.60_JPRB
+      ELSE
+        ZADTI2=0.40_JPRB !*0.60_JPRB
+        ZAPTI2=0.40_JPRB !*0.60_JPRB
+      ENDIF
+    ENDIF
 
 ! SNOW ON LOW-VEG+BARE-SOIL
     
@@ -622,6 +642,10 @@ DO JSW=1,KSW
       ZADTI5 = MIN(0.98_JPRB, MAX(0.02_JPRB, ZADTI5)) ! Security
     ENDIF
     ZAPTI5 = ZADTI5 ! Direct albedo = Diffuse albedo
+    IF (.NOT. LDLAND(JL) .AND. LESNICE) THEN ! Snow over sea-ice
+      ZADTI5=ZADTI2
+      ZAPTI5=ZAPTI2
+    ENDIF
     !UPDATE FOR URBAN SNOW AS A FUNCTION OF SNOW COVER (Jarvi et al. 2014 - upto 0.85)
     ! Assume linear relationship from 0.18-0.85
     IF (LEURBAN) THEN

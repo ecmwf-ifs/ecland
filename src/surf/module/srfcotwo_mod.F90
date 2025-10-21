@@ -1,19 +1,20 @@
 MODULE SRFCOTWO_MOD
 CONTAINS
 SUBROUTINE SRFCOTWO(KIDIA,KFDIA,KLON,KLEVS,KTILES,&
- & KVEG,KVTTL,KCO2TYP,KSOTY,&
+ & KVEG,KVTTL,KCO2TYP,&
  & PTSTEP, &
  & PTMLEV,PQMLEV,PAPHMS,&
  & PCVT,PFRTI,PLAIVT,PWLIQ ,&
  & PWSOIL,PTSOIL,&
  & PDSN,PFWET,PLAT, &
  & PANTI,PAGTI,PRDTI,&
+ & PSSDP3,&
  & YDCST,YDVEG,YDSOIL,YDAGS,&
  & PANDAYVT,PANFMVT,&
  & PAG,PRD,PAN,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX,&
  & PDHCO2S)
 
- ! (C) Copyright 2005- ECMWF.
+! (C) Copyright 2005- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
 ! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -29,6 +30,9 @@ SUBROUTINE SRFCOTWO(KIDIA,KFDIA,KLON,KLEVS,KTILES,&
 !     Sebastien Lafont (ECMWF)    18/05/2006
 !     S. Boussetta/G.Balsamo June 2010 Add soil moisture scaling factor for Reco
 !     S. Boussetta/G.Balsamo October 2010 Add snowpack and cold season temeprature effects on respiration
+!     M. Kelbling and S. Thober (UFZ) 25/5/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
+!     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
 
 !     PURPOSE
 !     -------
@@ -113,7 +117,7 @@ USE YOS_CST  , ONLY : TCST
 USE YOS_VEG  , ONLY : TVEG
 USE YOS_SOIL , ONLY : TSOIL
 USE YOS_AGS  , ONLY : TAGS
-
+USE YOMSURF_SSDP_MOD
 
 IMPLICIT NONE
 
@@ -121,7 +125,6 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLON
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS
-INTEGER(KIND=JPIM),INTENT(IN)    :: KSOTY(:) 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KTILES
 INTEGER(KIND=JPIM),INTENT(IN)    :: KVTTL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSTEP 
@@ -142,6 +145,7 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PANTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PAGTI(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRDTI(:,:)
 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
 TYPE(TSOIL)       ,INTENT(IN)    :: YDSOIL
@@ -169,7 +173,7 @@ REAL(KIND=JPRB) ::     ZFWCO2(KLON),ZWROOT(KLON)
 INTEGER(KIND=JPIM) :: KVEG(KLON,KTILES)
 REAL(KIND=JPRB) ::ZRWCAP
 
-INTEGER(KIND=JPIM) :: JL, JTILE, JVT, JS, JK ,IVT, ICTYPE
+INTEGER(KIND=JPIM) :: JL, JTILE, JVT, JK ,IVT, ICTYPE
 REAL(KIND=JPRB)    :: ZRHO,ZCVS
 REAL(KIND=JPRB)    :: ZAGVT(KLON,YDVEG%NVTILES),ZRDVT(KLON,YDVEG%NVTILES),&
  &                    ZANVT(KLON,YDVEG%NVTILES),ZRSOIL_STRVT(KLON,YDVEG%NVTILES),ZRNOQ10VT(KLON,YDVEG%NVTILES),&
@@ -181,6 +185,7 @@ REAL(KIND=JPRB)    :: ZFITAUSN(KLON)
 
 REAL(KIND=JPRB)    :: ZBARE(KLON)
 REAL(KIND=JPRB)    :: ZRQ10,ZCH4S
+REAL(KIND=JPRB)    :: ZFROOTFR
 REAL(KIND=JPRB)    :: ZEPSR  !limit value for ZRQ10 when temperature is very high (>56deg)
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -244,9 +249,12 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SRFCOTWO_MOD:SRFCOTWO',0,ZHOOK_HANDLE)
 ASSOCIATE(RQ10=>YDAGS%RQ10, RVR0VT=>YDAGS%RVR0VT, RVCH4QVT=>YDAGS%RVCH4QVT, RVCH4S=>YDAGS%RVCH4S, &
  & RD=>YDCST%RD, RETV=>YDCST%RETV, RTT=>YDCST%RTT, RPI=>YDCST%RPI, &
- & LEVGEN=>YDSOIL%LEVGEN, RWCAP=>YDSOIL%RWCAP, RWCAPM=>YDSOIL%RWCAPM, &
+ & LEVGEN=>YDSOIL%LEVGEN, RWCAP=>YDSOIL%RWCAP, RWCAPM3D=>PSSDP3(:,:,SSDP3D_ID%NRWCAPM3D), &
  & RWPWP=>YDSOIL%RWPWP, &
- & NVTILES=>YDVEG%NVTILES, RVROOTSA=>YDVEG%RVROOTSA)
+ & NVTILES=>YDVEG%NVTILES, RVROOTSAL3D=>PSSDP3(:,:,SSDP3D_ID%NRVROOTSAL3D), &
+ & RVROOTSAH3D=>PSSDP3(:,:,SSDP3D_ID%NRVROOTSAH3D), &
+ & RVQ10A=>YDVEG%RVQ10A, RVQ10B=>YDVEG%RVQ10B, RVQ10C=>YDVEG%RVQ10C, &
+ & RVQ10D=>YDVEG%RVQ10D, RVQ10MIN=>YDVEG%RVQ10MIN)
 
 ! initialization of local variables
 
@@ -273,7 +281,6 @@ ASSOCIATE(RQ10=>YDAGS%RQ10, RVR0VT=>YDAGS%RVR0VT, RVCH4QVT=>YDAGS%RVCH4QVT, RVCH
     ZRQ10=2.0_JPRB
     ZCH4S=1.0_JPRB
 
-ZEPSR=0.0001_JPRB !limit value for ZRQ10 when soil temperature is above 56deg 
 
 ! End initialization
 
@@ -329,19 +336,31 @@ ENDDO
 !after Alberget et al. 2010 Biogeosciences
 ! ZFWCO2=wg/wfc
 DO JL=KIDIA,KFDIA  
-    ZWROOT(JL)=0._JPRB
-  DO JTILE=1,KTILES
-    DO JK=1,KLEVS
-      ZWROOT(JL)=ZWROOT(JL)+PWLIQ(JL,JK,JTILE)*RVROOTSA(JK,KVEG(JL,JTILE))
-    ENDDO
-  ENDDO
-  IF (LEVGEN) THEN
-    JS=KSOTY(JL)
-    IF (JS.GE.1_JPIM) ZRWCAP=1.0_JPRB/RWCAPM(JS)
-  ELSE
+   ZWROOT(JL)=0._JPRB
+   IF ( .NOT. LEVGEN) THEN
       ZRWCAP=1.0_JPRB/RWCAP
-  ENDIF
-  ZFWCO2(JL)=MIN(1.0_JPRB,(ZWROOT(JL)*ZRWCAP))
+   ENDIF
+   DO JTILE=1,KTILES
+      DO JK=1,KLEVS
+         IF (LEVGEN) THEN
+            IF (RWCAPM3D(JL,JK).NE.0_JPRB) THEN
+               ZRWCAP=1.0_JPRB/RWCAPM3D(JL,JK)
+            ELSE
+               ZRWCAP=0.0_JPRB
+            ENDIF
+         ENDIF
+         ! ZWROOT(JL)=ZWROOT(JL)+PWLIQ(JL,JK,JTILE)*RVROOTSA(JK,KVEG(JL,JTILE))
+         IF (JTILE == 4_JPIM) THEN
+            ZFROOTFR = RVROOTSAL3D(JL,JK)
+         ELSEIF (JTILE == 6_JPIM .OR. JTILE == 7_JPIM ) THEN
+            ZFROOTFR = RVROOTSAH3D(JL,JK)
+         ELSE
+            ZFROOTFR = 0_JPRB
+         ENDIF
+         ZFWCO2(JL)=ZFWCO2(JL) + (PWLIQ(JL,JK,JTILE) * ZFROOTFR * ZRWCAP)
+      ENDDO
+   ENDDO
+   ZFWCO2(JL)=MIN(1.0_JPRB,ZFWCO2(JL))
 ENDDO
 
 ! Reco is the sum of Rd and Rsoil_str. Rsoil_str is calculated via a Q10 
@@ -394,9 +413,9 @@ ZFSN(JL)=1._JPRB-ZCVS*(1._JPRB-exp(-2._JPRB*MAX(PDSN(JL),0._JPRB)))
 
 !For respiration Q10 is computed after (McGuire et al., Global Biochemical cycles vol6 n 2, 101-124, June 1992)
 ! to take into account Q10 temperature dependency esspecially for low values  
-ZRQ10=2.5665_JPRB-0.05308_JPRB*ZTSOIL+0.00238_JPRB*ZTSOIL*ZTSOIL-0.00004_JPRB*ZTSOIL*ZTSOIL*ZTSOIL
+ZRQ10=RVQ10A-RVQ10B*ZTSOIL+RVQ10C*ZTSOIL*ZTSOIL-RVQ10D*ZTSOIL*ZTSOIL*ZTSOIL
 !ZRQ10=RQ10 previously fixed to 2.
-ZRQ10=MAX(ZRQ10,ZEPSR)
+ZRQ10=MAX(ZRQ10,RVQ10MIN)
 
   ICTYPE=1
   IF (KCO2TYP(JL).EQ.4) THEN
@@ -405,21 +424,22 @@ ZRQ10=MAX(ZRQ10,ZEPSR)
 
 ! Correct scaling factor to fit growth rate for 2018 (typical year)
   !new climate.v021+(GIEMS+CAMA_V2)
-  ZCH4S=0.019354194163949404_JPRB 
-  
+  ZCH4S=0.019354194163949404_JPRB   
+
   DO JVT=1,NVTILES
 ! ! For low temperature season respiration should be lower (Q10 higher) (McDowell et al.Tree Physiology 20, 2000) 
 
 !  correspondancy between tiles and high/low types
-     IF  (JVT  ==  1 ) THEN
-        IVT=4 !type low veg
+     IF  (JVT  ==  1 ) THEN 
+        IVT=4 !type low veg      
      ELSEIF ((JVT .EQ.  2) .AND. (PFRTI(JL,7) .EQ. 0._JPRB)) THEN  ! (KVEG(JL,6)=KVEG(JL,7)=KTVH )
         IVT=6 !type high veg KVEG
      ELSEIF ((JVT .EQ.  2) .AND. (PFRTI(JL,7) .GT. 0._JPRB)) THEN  !(KVEG(JL,6)=KVEG(JL,7)=KTVH )
         IVT=7 !shaded snow same type high veg
      ENDIF
-
+       
     ZRSOIL_STRVT(JL,JVT)=ZFWCO2(JL)*RVR0VT(KVEG(JL,IVT),ICTYPE)*ZRQ10**(0.1_JPRB*(ZTSOIL-25._JPRB))
+
     ZRSOIL_STRVT(JL,JVT)=ZFSN(JL)*ZRSOIL_STRVT(JL,JVT)
  
     ZRNOQ10VT(JL,JVT)=ZFWCO2(JL)*RVR0VT(KVEG(JL,IVT),ICTYPE)

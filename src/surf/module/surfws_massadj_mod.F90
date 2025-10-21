@@ -1,7 +1,7 @@
 MODULE SURFWS_MASSADJ_MOD
 CONTAINS
 
-SUBROUTINE SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,    &
+SUBROUTINE SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,LDLAND,&
                        &   KLEVSNA, ZTHRESWS,             &
                        &  PDSN,PDSNREAL,PSNDEPTH,PSNDEPTHR,&
                        &  PRSN, PSSN, PRSNMAX, PDSNTOT,   &
@@ -100,6 +100,7 @@ IMPLICIT NONE
 INTEGER(KIND=JPIM), INTENT(IN)  :: KLON, KIDIA, KFDIA
 INTEGER(KIND=JPIM), INTENT(IN)  :: KLEVSN
 INTEGER(KIND=JPIM), INTENT(IN)  :: KLEVSNA(:)
+LOGICAL,            INTENT(IN)  :: LDLAND(:)
 
 REAL(KIND=JPRB),    INTENT(IN)  :: PDSN(:,:), PDSNREAL(:,:), PSNDEPTH(:, :), PSNDEPTHR(:, :)
 REAL(KIND=JPRB),    INTENT(IN)  :: PRSN(:), PSSN(:)
@@ -156,7 +157,7 @@ KFILLING  = 1._JPIM
 ! 2.3.1 snow density: recompute profiles spanning bottom snow density value:
 !       Looking for value which minimizes the error in mass:
 DO JL=KIDIA, KFDIA
-  IF (PDSNTOT(JL) >= ZTHRESWS) THEN
+  IF (PDSNTOT(JL) >= ZTHRESWS .and. LDLAND(JL)) THEN
     ZRSNWSTST(JL,1:KLEVSN)=PRSNWS(JL,1:KLEVSN)
     ZERRORTST = 0._JPRB
     ZRBOTTOMTST=PRSNWS(JL, KLEVSNA(JL))
@@ -202,7 +203,7 @@ DO JL=KIDIA, KFDIA
   
 ! 2.3.2 snow density: recompute profiles spanning top snow density value:
 !       Looking for value which minimizes the error in mass:
-    IF ( PSSN(JL) < ZSNPERT ) THEN
+    IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN
       ZRSNWSTST(JL,:) = PRSNWS(JL,:)
       ZRSNTOPSTORE    = PRSNTOP(JL)
       ZRSNTOPTST      = PRSNTOP(JL)
@@ -283,7 +284,7 @@ DO JL=KIDIA, KFDIA
         ICOUNT = ICOUNT + 1_JPIM
       END DO
   
-    ELSE ! Glacier filling:
+    ELSEIF ( PSSN(JL) >= ZSNPERT .AND. LDLAND(JL) ) THEN ! Glacier filling
          ! We fill/remove density (mass) from the first three layers, the active
          ! ones here so why 1:KLEVSNA(JL)-2 over glacier. The remaining mass is
          ! put in the accumulation layer KLEVSNA(JL)-1
@@ -334,7 +335,7 @@ DO JL=KIDIA, KFDIA
 ! 2.3.3 Update the liquid water part.
 ! We diagnose slw using the diagnostic formulation used in srfsn_lwimp for each
 ! layer
-    IF ( PSSN(JL) < ZSNPERT ) THEN
+    IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN
       DO JK=1, KLEVSNA(JL)
       ! SNOW LIQUID WATER CAPACITY
         ZLWC     = FLWC( PSSNWS(JL, JK), PRSNWS(JL, JK) )

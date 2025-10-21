@@ -1,12 +1,14 @@
 INTERFACE
 SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
- & PTVL   , PCO2TYP,PTVH   ,PSOTY  ,PSDOR,PCVLC  ,PCVHC, PCURC, &
+ & PSSDP2, PTVL   , PCO2TYP,PTVH   ,PSOTY  ,PSDOR,PCVLC  ,PCVHC, PCURC, &
  & PLAILC  ,PLAIHC, PLAILI, PLAIHI,&
- & PLSM   ,PCI    ,PCLAKE ,PHLICE,&
- & PGEMU  ,PSNM1M ,PWLM1M ,PRSNM1M,&  
- & LDLAND ,LDSICE ,LDLAKE ,LDNH, LDOCN_KPP,&
+ & PLAILCP, PLAIHCP, PAVGPARC, &
+ & PLSM   ,PCI    ,PCIL, PCLAKE ,PHLICE,&
+ & PGEMU  ,PSNM1M ,PWLM1M ,PRSNM1M,LESNICE, &  
+ & LDLAND ,LDSICE , LDLICE, LDLAKE ,LDNH, LDOCN_KPP,&
  & KTVL   ,KCO2TYP, KTVH   ,KSOTY,&
- & PCVL   ,PCVH, PCUR,PLAIL, PLAIH,  PWLMX  ,PFRTI)
+ & PCVL   ,PCVH, PCUR, PLAIL, PLAIH, PLAILP, PLAIHP, PAVGPAR,&
+ & PWLMX  ,PFRTI, PCSN)
 
 ! (C) Copyright 1999- ECMWF.
 !
@@ -44,8 +46,10 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !     *PCURC*        URBAN COVER (PASSIVE - CLIMATE)                (0-1)
 !     *PLAILC*        LOW LAI (CLIMATE)                             m2/m2
 !     *PLAIHC*        HIGH LAI (CLIMATE)                            m2/m2
+!     *PAVGPARC*     Average PAR for use in BVOC emissions module   ?
 !     *PLSM*         LAND-SEA MASK                                  (0-1)
 !     *PCI*          SEA-ICE FRACTION                               (0-1)
+!     *PCIL*         LAND-ICE FRACTION                                  (0-1)
 !     *PCLAKE*       LAKE FRACTION                                  (0-1)
 !     *PHLICE*       LAKE ICE THICKNESS                               m 
 !     *PGEMU*        COSINE OF LATITUDE
@@ -56,6 +60,7 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !     OUTPUT PARAMETERS (LOGICAL):
 !     *LDLAND*       LAND INDICATOR
 !     *LDSICE*       SEA-ICE INDICATOR
+!     *LDLICE*       LAND-ICE INDICATOR
 !     *LDLAKE*       LAKE INDICATOR
 !     *LDNH*         NORTHERN HEMISPHERE INDICATOR
 !     *LDOCN_KPP*    KPP MODEL INDICATOR 
@@ -66,12 +71,14 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !     *PCUR*         URBAN COVER (CORRECTED)                        (0-1)
 !     *PLAIL*        LOW LAI (REAL)                                 m2/m2
 !     *PLAIH*        HIGH LAI (REAL)                                m2/m2
+!     *PAVGPAR*      Average PAR for use in BVOC emissions module   ?
 !     *PWLMX*        MAXIMUM SKIN RESERVOIR CAPACITY                kg/m**2
 !     *PFRTI*        TILE FRACTIONS                                 (0-1)
 !            1 : WATER                  5 : SNOW ON LOW-VEG+BARE-SOIL
 !            2 : ICE                    6 : DRY SNOW-FREE HIGH-VEG
 !            3 : WET SKIN               7 : SNOW UNDER HIGH-VEG
 !            4 : DRY SNOW-FREE LOW-VEG  8 : BARE SOIL
+!     *PCSN*         SNOW COVER FRACTION (diagnostic)                (0-1)
 
 !     OUTPUT PARAMETERS (INTEGER):
 !     *KTVL*         LOW VEGETATION TYPE
@@ -92,6 +99,9 @@ SUBROUTINE SURFBC    (YDSURF,KIDIA,KFDIA,KLON,KTILES,KLEVSN,&
 !     E. Dutra/G. Balsamo 01-05-2008    Add lake tile
 !     Y. Takaya        07-10-2008       Add flag for ocean mixed layer model
 !     S. Boussetta/G.Balsamo May 2009 Add lai
+!     I. Ayan-Miguez June 2023        Add object with spatailly distributed parameters
+!     G. Arduini     Jan 2024        snow over sea-ice
+!     G. Arduini     Sept 2024        Land-ice fraction
 !     ------------------------------------------------------------------
 
 USE PARKIND1, ONLY : JPIM, JPRB
@@ -103,6 +113,7 @@ IMPLICIT NONE
 ! Declaration of arguments
 
 TYPE(C_PTR)       ,INTENT(IN)    :: YDSURF
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON 
@@ -118,18 +129,24 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVHC(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCURC(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILC(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHC(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILCP(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHCP(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PAVGPARC(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAILI(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLAIHI(:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PLSM(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCI(:) 
+REAL(KIND=JPRB)   ,INTENT(INOUT) :: PCIL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PGEMU(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSNM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PWLM1M(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PRSNM1M(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCLAKE(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PHLICE(:)
+LOGICAL           ,INTENT(IN)    :: LESNICE 
 LOGICAL           ,INTENT(OUT)   :: LDLAND(:) 
 LOGICAL           ,INTENT(OUT)   :: LDSICE(:) 
+LOGICAL           ,INTENT(OUT)   :: LDLICE(:) 
 LOGICAL           ,INTENT(OUT)   :: LDNH(:) 
 LOGICAL           ,INTENT(OUT)   :: LDLAKE(:)  
 LOGICAL           ,INTENT(OUT)   :: LDOCN_KPP(:)  
@@ -142,9 +159,13 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCVH(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCUR(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PLAIL(:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PLAIH(:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PLAILP(:) 
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PLAIHP(:)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PAVGPAR(:)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PWLMX(:) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PFRTI(:,:) 
 
+REAL(KIND=JPRB),    INTENT(OUT) :: PCSN(:)
 
 !     ------------------------------------------------------------------
 

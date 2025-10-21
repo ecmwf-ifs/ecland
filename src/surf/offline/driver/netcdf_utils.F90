@@ -171,6 +171,9 @@ SELECT CASE(CNAME)
   CASE('seaice')
     CLNAME='sea ice fraction'
     CUNITS='-'
+  CASE('glacierMask')
+    CLNAME='land-ice fraction'
+    CUNITS='-'
   CASE('CanopInt')
     CLNAME='canopy interception depth'
     CUNITS='kg m-2'
@@ -261,6 +264,12 @@ SELECT CASE(CNAME)
   CASE('fwet')
     CLNAME='climatological wetland fraction'
     CUNITS='-'
+  CASE('par_avg')
+    CLNAME='climatological PAR'
+    CUNITS='W m-2'
+  CASE('ISOP_EP')
+    CLNAME='Isoprene emission potential'
+    CUNITS='ug m-2 s-1'
   CASE('Anday','An')
     CLNAME='net CO2 assimilation'
     CUNITS='kg m-2 s-1'
@@ -462,6 +471,15 @@ SELECT CASE(CNAME)
   CASE('CH4flux')
     CLNAME='Net CH4 flux'
     CUNITS='kg m-2 s-1'
+  CASE('BVOCflux')
+    CLNAME='Net BVOC flux for emission type 1'
+    CUNITS='kg m-2 s-1'
+  CASE('BVOCflux1')
+    CLNAME=' BVOC flux diagnostics type 1'
+    CUNITS='-'
+  CASE('BVOCflux2')
+    CLNAME=' BVOC flux diagnostics type 2'
+    CUNITS='-'
   CASE('biomass')
     CLNAME='Active biomass'
     CUNITS='kg m-2'

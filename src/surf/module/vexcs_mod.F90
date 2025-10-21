@@ -1,7 +1,7 @@
 MODULE VEXCS_MOD
 CONTAINS
 
-SUBROUTINE VEXCS(KIDIA,KFDIA,KLON,KITT,K_VMASS,LDINIT,&
+SUBROUTINE VEXCS(KIDIA,KFDIA,KLON,KITT,KTILE,K_VMASS,LDINIT,&
  & PUMLEV,PVMLEV,PTMLEV,PQMLEV,PAPHMS,PGEOMLEV,PCPTGZLEV,&
  & PCPTS,PQSAM,PZ0MM,PZ0HM,PZ0QM,PZDL,PBUOM,PUCURR,PVCURR,PI10FGCV,&
  & YDCST,YDEXC,&
@@ -36,6 +36,7 @@ USE YOS_EXC   , ONLY : TEXC
 !                                   (based on vdfexcs)
 !     Modified A. Beljaars       30/10/2013 Change scaling of transfer coeff.
 !     Modified A. Beljaars       02/02/2017 Introduction of tracer transfer coeff.
+!     Modified M. Kelbling and S. Thober (UFZ) 11/6/2020 use of parameter values defined in namelist
 
 !     PURPOSE
 !     -------
@@ -120,6 +121,7 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLON
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KITT 
+INTEGER(KIND=JPIM),INTENT(IN)    :: KTILE 
 INTEGER(KIND=JPIM),INTENT(IN)    :: K_VMASS
 LOGICAL           ,INTENT(IN)    :: LDINIT 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PUMLEV(:) 
@@ -171,6 +173,10 @@ REAL(KIND=JPRB) :: ZA, ZAUX1, ZAUX2, ZB, ZCDNH,&
  & ZL, ZPRH, ZPRH0, ZPRH1, ZPRM, ZPRM0, ZPRM1, &
  & ZPRQ, ZPRQ0, ZRIB1, ZRHO, ZUABS, ZWST2, &
  & ZX2, ZPRC0, ZPRC  
+
+! for snow sublimation due to wind blowing
+LOGICAL           :: LESNOWSUBL
+REAL(KIND=JPRB)   :: ZSUBLSNW,ZUT,ZUV,ZASUB, ZBSUB
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 !             INCLUDE STABILITY FUNCTIONS
@@ -185,7 +191,8 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 IF (LHOOK) CALL DR_HOOK('VEXCS_MOD:VEXCS',0,ZHOOK_HANDLE)
 ASSOCIATE(RD=>YDCST%RD, RETV=>YDCST%RETV, RG=>YDCST%RG, &
- & REPDU2=>YDEXC%REPDU2, RKAP=>YDEXC%RKAP, RPARZI=>YDEXC%RPARZI)
+ & REPDU2=>YDEXC%REPDU2, RKAP=>YDEXC%RKAP, RPARZI=>YDEXC%RPARZI, &
+ & RETACONV=>YDEXC%RETACONV )
 
 ZCON1  =RVTMP2-RETV
 ZCON2  =2.0_JPRB/3._JPRB
@@ -195,6 +202,8 @@ ZCON3  =RKAP**2
 
 ZIPBL=RPARZI
 
+! Wind blowing snow sublimation is turned off by default
+LESNOWSUBL=.FALSE. 
 !     ------------------------------------------------------------------
 
 !*       2.   COMPUTATION OF BASIC QUANTITIES
@@ -405,7 +414,7 @@ DO JIT=1, KITT
 
 !             SAFETY PROVISION FOR DIVERGING ITERATIONS
 
-    IF (ZETA*ZETA3(JL)  <  0.0_JPRB) ZETA=ZETA3(JL)*0.5_JPRB
+    IF (ZETA*ZETA3(JL)  <  0.0_JPRB) ZETA=ZETA3(JL)*RETACONV
     ZETA2(JL)=ZETA3(JL)
     ZF2(JL)  =ZF3(JL)
     ZETA3(JL)=ZETA
@@ -493,6 +502,26 @@ DO JL=KIDIA,KFDIA
   PCFQ(JL)=ZAUX2/(ZPRM*ZPRQ)
   PKH(JL) =PCFH(JL)/ZRHO
   PKC(JL) =ZUABS*ZCON3/(ZPRM*ZPRC)
+
+! GA: snow sublimation due to wind blowing increases the transfer coefficient
+!       for moisture in exposed snow and forest snow
+        ! Also density always below 350
+  IF (LESNOWSUBL) THEN
+    IF (KTILE == 5 ) THEN
+      ZUT=6.98_JPRB+0.0033_JPRB*(PTMLEV(JL)-245.88_JPRB)**2._JPRB
+      ZUV=MIN(25._JPRB,SQRT(PUMLEV(JL)**2+PVMLEV(JL)**2)) ! Added a safety limiter to wind speed to avoid too large sublimation
+      ZASUB=0.0018_JPRB
+      ZBSUB=3.6_JPRB
+      !*IF (ZUV>ZUT .AND. PRSN(JL) <= 350._JPRB)THEN
+      IF (ZUV>ZUT)THEN
+        ZSUBLSNW=ZASUB*(273.16/PTMLEV(JL))**4._JPRB*(ZUV/ZUT)**(ZBSUB-1_JPRB)
+      ELSE
+        ZSUBLSNW=0._JPRB
+      ENDIF
+
+      PCFQ(JL)=PCFQ(JL) + ZUABS*ZRHO*ZSUBLSNW ! rho*|U|*Cq + rho*|U|*Cq_snsub
+    ENDIF
+  ENDIF
 
 ENDDO
 

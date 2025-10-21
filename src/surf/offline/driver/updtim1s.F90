@@ -11,13 +11,14 @@ USE YOMCST   , ONLY : RPI      ,RDAY     ,REA      ,RI0, REPSM
 USE YOERIP   , ONLY : RIP0M    ,RCODECM  ,RSIDECM  ,RCOVSRM  ,&
      &            RSIVSRM
 USE YOMDYN1S , ONLY : NSTEP    ,TSTEP
-USE YOMCC1S  , ONLY : VCALB ,VCLAIL   ,VCLAIH,VCFWET
+USE YOMCC1S  , ONLY : VCALB ,VCLAIL   ,VCLAIH,VCFWET,VCAVGPAR
 
 USE YOMGPD1S , ONLY : VFALBF   ,&
      &                VFALUVP,VFALUVD,VFALNIP,VFALNID , &
      &                VFALUVI,VFALUVV,VFALUVG, &
      &                VFALNII,VFALNIV,VFALNIG, &
-     &                VFLAIL,VFLAIH ,VFFWET,VFTVL,VFTVH
+     &                VFLAIL,VFLAIH ,VFFWET,VFTVL,VFTVH, VFBVOCLAIL, VFBVOCLAIH, &
+     &                VFAVGPAR
 
 USE YOMDPHY  , ONLY : NPOI
 USE YOEPHY, ONLY: LECTESSEL, LECLIM10D
@@ -75,7 +76,7 @@ USE YOMCT01S , ONLY : NSTART
 !     ------------------------------------------------------------------
 #endif
 
-USE PARKIND1  ,ONLY : JPIM     ,JPRB , JPRD
+USE PARKIND1  ,ONLY : JPIM     ,JPRB , JPRD, JPIB
 USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
 
 IMPLICIT NONE
@@ -85,10 +86,13 @@ INTEGER(KIND=JPIM) :: KSTEP
 REAL(KIND=JPRB) :: PTDT,PTSTEP
 
 !* Local variables
-INTEGER(KIND=JPIM) :: ITIME,IZT,IPR,NRADFR,ISTADD,ISTASS,IYMD,IHM,IDD,&
-     &      IMM,IYYYY,IHH,ISS,IMT1,IMT2,IYT1,IYT2,JL,IMT11,IMT12,IDD1,IDD2
+INTEGER(KIND=JPIM) :: ITIME,IPR,NRADFR,ISTADD,ISTASS,IYMD,IHM,IDD, &
+     &      IMM,IYYYY,IHH,ISS,IMT1,IMT2,IYT1,IYT2,JL,IMT11,IMT12,IDD1,IDD2, &
+     &      IDD_BVOC, IMM_BVOC, IYYYY_BVOC, IMT11_BVOC,IMT12_BVOC
+INTEGER(KIND=JPIB) :: IZT
 REAL(KIND=JPRD) :: ZTETA,ZSTATI,ZHGMT,ZDEASOM,ZDECLIM,ZEQTIMM,ZSOVRM,&
-     &      ZWSOVRM,ZJUL,ZTIMTR,ZT1,ZT2,ZT,ZWEI1,ZWEI2
+     &      ZWSOVRM,ZJUL,ZTIMTR,ZT1,ZT2,ZT,ZT_BVOC,ZWEI1,ZWEI2,ZWEI1_BVOC,ZWEI2_BVOC, &
+     &      ZT1_BVOC,ZT2_BVOC
 !          ,ZRVCOV(0:20) !original CTESSEL (0:7)
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -101,7 +105,7 @@ IF (LHOOK) CALL DR_HOOK('UPDTIM1S',0,ZHOOK_HANDLE)
  
 
 ITIME=NINT(PTSTEP)
-IZT=NINT(REAL(PTSTEP,KIND=JPRD)*(REAL(KSTEP,KIND=JPRD)+0.5_JPRD))
+IZT=NINT(REAL(PTSTEP,KIND=JPRD)*(REAL(KSTEP,KIND=JPRD)+0.5_JPRD),KIND=JPIB)
 !CBH      IZT=NINT(PTSTEP*(REAL(KSTEP)))
 RSTATI=REAL(IZT,KIND=JPRD)
 NSTADD=IZT/NINT(RDAY)
@@ -136,13 +140,13 @@ RTDT=PTDT
 
 NRADFR=1
 ITIME=NINT( TSTEP)
-IZT=NINT( REAL(TSTEP,KIND=JPRD)*(REAL(KSTEP,KIND=JPRD)+0.5_JPRD))
+IZT=NINT( REAL(TSTEP,KIND=JPRD)*(REAL(KSTEP,KIND=JPRD)+0.5_JPRD),KIND=JPIB)
 !CBH      IZT=NINT( TSTEP*(REAL(KSTEP)))
 ZSTATI=REAL(IZT,KIND=JPRD)+REAL(0.5_JPRD*NRADFR*ITIME,KIND=JPRD)
 ISTADD=IZT/NINT(RDAY)
 ISTASS=MOD(IZT,NINT(RDAY))
 ZTIMTR=RTIMST+ZSTATI
-ZHGMT=REAL(MOD(NINT(ZSTATI)+NSSSSS,NINT(RDAY)),KIND=JPRD)
+ZHGMT=REAL(MOD(NINT(ZSTATI,KIND=JPIB)+NSSSSS,NINT(RDAY)),KIND=JPRD)
 
 ZTETA=RTETA(ZTIMTR)
 ZDEASOM=RRS(ZTETA)
@@ -168,6 +172,34 @@ if (nstep == 0 .OR. ihm == 0000 .or. nstep==nstart) then
   idd=ndd(iymd)
   imm=nmm(iymd)
   iyyyy=nccaa(iymd)
+
+!START BVOC EMISSION MODULE: compute approximately 10 days prior to current date
+
+if (idd <= 10) then ! if subtracting 10 days gets us in the prior month/year
+	! compute new day
+	if (imm == 3) then
+		idd_bvoc=18+idd !omit leap years
+	else if ((imm == 5) .OR. (imm == 7) .OR. (imm == 10) .OR. (imm == 12)) then
+		idd_bvoc=20+idd
+	else
+		idd_bvoc=21+idd
+	endif
+	!compute new month and year
+     	if(imm == 1) then
+		imm_bvoc=12
+		iyyyy_bvoc=iyyyy-1
+     	else
+		imm_bvoc=imm-1
+		iyyyy_bvoc=iyyyy
+     	endif
+else				! simple case when day > 10
+  	idd_bvoc=idd-10
+  	imm_bvoc=imm
+  	iyyyy_bvoc=iyyyy
+endif
+
+!END NEW BVOC EMISSION MODULE
+  
   ihh=ihm/100
   iss=60*ihh+60*mod(ihm,100)
 
@@ -260,13 +292,49 @@ ELSE ! LECLIM10D FALSE
 
   imt11=imt1
   imt12=imt2
+
+  ! START NEW BVOC EMISSION MODULE
+     if (idd_bvoc >= 15) then
+      imt1=imm_bvoc		!current month
+      imt2=1+mod(imm_bvoc,12)	!month after
+      iyt1=iyyyy_bvoc
+     if(imt2 == 1) then
+      iyt2=iyt1+1
+     else
+      iyt2=iyt1
+     endif
+  else
+    imt1=1+mod(imm_bvoc+10,12)  ! this gives the month before
+    imt2=imm_bvoc		! this gives the current month
+    if(imt1 == 12) then
+      iyt1=iyyyy_bvoc-1
+    else
+      iyt1=iyyyy_bvoc
+    endif
+    iyt2=iyyyy_bvoc
+  endif
+  zt1_bvoc=RTIME(iyt1,imt1,15,0)       !mid of month before or current
+  zt2_bvoc=RTIME(iyt2,imt2,15,0)       !mid of month current or after
+
+  imt11_bvoc=imt1
+  imt12_bvoc=imt2
+  !END NEW BVOC EMISSION MODULE
+
+WRITE(NULOUT,*) 'imt11_bvoc,imt12_bvoc  = ', imt11_bvoc,imt12_bvoc
+  
 ENDIF  ! LECLIM10D
 
 
 ! zt=RTIME(iyyyy,imm,idd,iss)
-zt=RTIME(iyyyy,imm,idd,0)  !updated assuming we're at 00UTC 
+zt=RTIME(iyyyy,imm,idd,0)  !updated assuming we're at 00UTC
 zwei1=(zt2-zt)/(zt2-zt1)
-zwei2=1.-zwei1
+zwei2=1._JPRB-zwei1
+
+zt_bvoc=RTIME(iyyyy_bvoc,imm_bvoc,idd_bvoc,0) ! new bvoc emission module
+zwei1_bvoc=(zt2_bvoc-zt_bvoc)/(zt2_bvoc-zt1_bvoc)
+zwei2_bvoc=1._JPRB-zwei1_bvoc
+VFBVOCLAIL(:)=zwei1_bvoc*VCLAIL(:,imt11_bvoc)+zwei2_bvoc*VCLAIL(:,imt12_bvoc)
+VFBVOCLAIH(:)=zwei1_bvoc*VCLAIH(:,imt11_bvoc)+zwei2_bvoc*VCLAIH(:,imt12_bvoc)
 
 
 vfalbf(:)=zwei1*vcalb(:,imt11)+zwei2*vcalb(:,imt12)
@@ -277,6 +345,7 @@ VFALNID(:)=zwei1*vcalb(:,imt11)+zwei2*vcalb(:,imt12)
 VFLAIL(:)=zwei1*VCLAIL(:,imt11)+zwei2*VCLAIL(:,imt12)
 VFLAIH(:)=zwei1*VCLAIH(:,imt11)+zwei2*VCLAIH(:,imt12)
 VFFWET(:)=zwei1*VCFWET(:,imt11)+zwei2*VCFWET(:,imt12)
+VFAVGPAR(:)=zwei1*VCAVGPAR(:,imt11)+zwei2*VCAVGPAR(:,imt12)
 
 ! 6-component MODIS albedo: to use an albedo independent of solar
 ! zenith angle, set only the isotropic component

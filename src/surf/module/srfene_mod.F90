@@ -3,7 +3,8 @@ CONTAINS
 SUBROUTINE SRFENE(&
  & KIDIA  , KFDIA  , KLON  , KLEVS,&
  & LDLAND , LDSICE ,&
- & PTSAM1M, KSOTY, PCVL , PCVH ,&
+ & PTSAM1M , PCVL , PCVH ,&
+ & PSSDP3 ,&
  & YDCST  , YDSOIL ,&
  & PENES)  
 
@@ -21,7 +22,9 @@ SUBROUTINE SRFENE(&
 !     Modified  P.VITERBO  99-03-26   Tiling of the land surface
 !               P.VITERBO  2004-05-24 Move to surf library
 !               G.BALSAMO  2006-07-03 Add soil type 
-
+!               M. Kelbling and S. Thober (UFZ) 11/6/2020 implemented spatially distributed parameters and
+!                                               use of parameter values defined in namelist
+!               I. Ayan-Miguez (BSC) Sep 2023  Add PSSDP3 object for spatially distributed parameters
 !     PURPOSE.
 !     --------
 
@@ -44,7 +47,6 @@ SUBROUTINE SRFENE(&
 !    *KFDIA*      END POINT
 !    *KLON*       NUMBER OF GRID POINTS PER PACKET
 !    *KLEVS*      NUMBER OF SOIL LAYERS
-!    *KSOTY*      SOIL TYPE                                        (1-7)
 
 !     INPUT PARAMETERS (LOGICAL):
 
@@ -82,6 +84,7 @@ USE YOMHOOK   , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_THF   , ONLY : RHOH2O
 USE YOS_CST   , ONLY : TCST
 USE YOS_SOIL  , ONLY : TSOIL
+USE YOMSURF_SSDP_MOD
 
 IMPLICIT NONE
 
@@ -89,12 +92,12 @@ INTEGER(KIND=JPIM),INTENT(IN)    :: KLON
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLEVS 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFDIA 
-INTEGER(KIND=JPIM),INTENT(IN)    :: KSOTY(:) 
 LOGICAL           ,INTENT(IN)    :: LDLAND(:) 
 LOGICAL           ,INTENT(IN)    :: LDSICE(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PTSAM1M(:,:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVL(:) 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PCVH(:)
+REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TSOIL)       ,INTENT(IN)    :: YDSOIL
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PENES(:,:) 
@@ -103,7 +106,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PENES(:,:)
 
 REAL(KIND=JPRB) :: ZF(KLON,KLEVS)
 
-INTEGER(KIND=JPIM) :: JK, JL, JS
+INTEGER(KIND=JPIM) :: JK, JL
 
 REAL(KIND=JPRB) :: ZWA,ZRCSOIL,ZWCAP
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
@@ -116,9 +119,9 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SRFENE_MOD:SRFENE',0,ZHOOK_HANDLE)
 ASSOCIATE(RLMLT=>YDCST%RLMLT, &
  & LEVGEN=>YDSOIL%LEVGEN, RDAI=>YDSOIL%RDAI, RDAT=>YDSOIL%RDAT, &
- & RRCSICE=>YDSOIL%RRCSICE, RRCSOIL=>YDSOIL%RRCSOIL, RRCSOILM=>YDSOIL%RRCSOILM, &
+ & RRCSICE=>YDSOIL%RRCSICE, RRCSOIL=>YDSOIL%RRCSOIL, RRCSOILM3D=>PSSDP3(:,:,SSDP3D_ID%NRRCSOILM3D), &
  & RTF1=>YDSOIL%RTF1, RTF2=>YDSOIL%RTF2, RTF3=>YDSOIL%RTF3, RTF4=>YDSOIL%RTF4, &
- & RWCAP=>YDSOIL%RWCAP, RWCAPM=>YDSOIL%RWCAPM)
+ & RWCAP=>YDSOIL%RWCAP, RWCAPM3D=>PSSDP3(:,:,SSDP3D_ID%NRWCAPM3D))
 
 !     ------------------------------------------------------------------
 
@@ -164,9 +167,8 @@ DO JK=1,KLEVS
 
     IF (LDLAND(JL)) THEN
       IF (LEVGEN) THEN
-         JS=KSOTY(JL)
-         ZWCAP=RWCAPM(JS)
-         ZRCSOIL=RRCSOILM(JS)
+         ZWCAP=RWCAPM3D(JL,JK)
+         ZRCSOIL=RRCSOILM3D(JL,JK)
       ELSE
          ZWCAP=RWCAP
          ZRCSOIL=RRCSOIL

@@ -2,7 +2,7 @@ SUBROUTINE SUINIF1S(LOPLEFT)
 USE PARKIND1  ,ONLY : JPIM     ,JPRB,  JPRD
 USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
 USE YOMCT01S , ONLY : NSTART
-USE YOMDPHY  , ONLY : NPOI     ,NTRAC
+USE YOMDPHY  , ONLY : NPOI     ,NTRAC    ,NCSS        
 USE YOMFORC1S, ONLY : GFOR     ,JPSTPFC  ,JPTYFC   ,UFI     ,&
                       &VFI      ,TFI      ,QFI      ,PSFI    ,&
                       &SRFFI    ,TRFFI    ,R30FI    ,S30FI   ,&
@@ -13,6 +13,11 @@ USE YOMGF1S  , ONLY : UNLEV0   ,VNLEV0   ,TNLEV0   ,QNLEV0   ,CNLEV0 ,&
                       &PNLP0    ,UNLEV1   ,VNLEV1   ,TNLEV1   ,&
                       &QNLEV1   ,CNLEV1   ,FSSRD    ,FSTRD    ,FLSRF    ,&
                       &FCRF     ,FLSSF    ,FCSF , PNLP1
+USE YOEPHY   , ONLY : LESSDP_CALIB
+USE YOMGPD1S , ONLY : GPD_SDP2, GPD_SDP3, VFTVL, VFTVH, VFSOTY
+USE YOMSURF_SSDP_MOD
+USE YOMDPHY  , ONLY : YDSURF
+USE YOMDIM1S , ONLY : NPROMA
 USE MPL_MODULE
 
 ! (C) Copyright 1995- ECMWF.
@@ -63,6 +68,7 @@ USE MPL_MODULE
 !        Original : 95-03-21
 !        Bart vd HURK (KNMI) Multi-column use of netCDF and restart utility
 !        Anna Agusti-Panareda 2020-11-17 Atmospheric CO2 forcing
+!        Iria Ayan-Miguez June 2023 Initialization of spatially distributed parameters
 
 IMPLICIT NONE
 
@@ -74,6 +80,7 @@ INTEGER(KIND=JPIM) :: MUFI,MVFI,MTFI,MQFI,MPSFI,MSRFFI,MTRFFI,MR30FI,MS30FI, &
 LOGICAL LOPLEFT ! FLAG FOR RUNNING MORE GRID POINTS
 INTEGER(KIND=JPIM) :: MYPROC, NPROC
 REAL(KIND=JPHOOK)    :: ZHOOK_HANDLE
+INTEGER(KIND=JPIM) :: IST, IEND, IST1, IEND1
 
 #include "sudyn1s.intfb.h"
 #include "suct01s.intfb.h"
@@ -84,9 +91,12 @@ REAL(KIND=JPHOOK)    :: ZHOOK_HANDLE
 #include "sufcdf.intfb.h"
 #include "sugdi1s.intfb.h"
 #include "sucdh1s.intfb.h"
-
+#include "rdssdp.intfb.h"
       
 #include "netcdf.inc"
+
+#include "susdp_dflt.h"
+#include "susdp_deriv.h"
 
 IF (LHOOK) CALL DR_HOOK('SUINIF1S',0,ZHOOK_HANDLE)
 
@@ -146,6 +156,37 @@ ELSE
   ENDIF
 
 ENDIF
+
+!$OMP PARALLEL DO SCHEDULE(DYNAMIC,1) PRIVATE(IST,IEND)
+DO IST=1,NPOI,NPROMA
+  IEND=MIN(IST+NPROMA-1,NPOI)
+  CALL SUSDP_DFLT(YDSURF=YDSURF,PTVL=VFTVL(IST:IEND),PTVH=VFTVH(IST:IEND),PSLT=VFSOTY(IST:IEND),&
+          & PSSDP2=GPD_SDP2(IST:IEND,:),PSSDP3=GPD_SDP3(IST:IEND,:,:),KLEVS3D=NCSS)
+ENDDO
+!$OMP END PARALLEL DO
+ 
+IF (LESSDP_CALIB) THEN
+  IF (CFSURF == 'netcdf') THEN
+    IF (MYPROC == 1) NCID = NCOPN('surf_param.nc', NCNOWRIT, IERR)
+    WRITE(NULOUT,*)'NETCDF-FILE surf_param.nc OPENED ON UNIT ', NCID
+  ENDIF
+  CALL RDSSDP(NCID)
+  IF (CFSURF == 'netcdf') THEN
+    IF( MYPROC == 1) CALL NCCLOS(NCID,IERR)
+  ENDIF
+ENDIF
+
+! Compute derived spatially distributed parameters (SDP)
+!$OMP PARALLEL DO SCHEDULE(DYNAMIC,1) PRIVATE(IST,IEND,IST1,IEND1)
+DO IST=1,NPOI,NPROMA
+  IEND=MIN(IST+NPROMA-1,NPOI)
+  IST1 = 1
+  IEND1 = IEND-IST+1
+  CALL SUSDP_DERIV(YDSURF=YDSURF,KIDIA=IST1,KFDIA=IEND1,PSLT=VFSOTY(IST:IEND),&
+          & PSSDP2=GPD_SDP2(IST:IEND,:),PSSDP3=GPD_SDP3(IST:IEND,:,:),KLEVS3D=NCSS)
+ENDDO
+!$OMP END PARALLEL DO
+ 
 
 !*       INITIALISATION OF THE ATMOSPHERIC FORCING.
 

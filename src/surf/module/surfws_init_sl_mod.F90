@@ -2,7 +2,7 @@ MODULE SURFWS_INIT_SL_MOD
 CONTAINS
 
 SUBROUTINE SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN, NCL, PMU0,PSDOR,              &  ! Input
-                     &  PTSOIL, PTSKIN, &
+                     &  PTSOIL, PTSKIN,LDLAND, &
                      &  ZDSNTOT, ZSNDEPTH,                  &       
                      &  ZSNPERT,                                           &  ! Input
                      &  ZDSNR,PTSN, PRSN, PSSN, PWSN,PASN,                 &  ! Input
@@ -126,6 +126,7 @@ INTEGER(KIND=JPIM), INTENT(IN) :: KFDIA
 INTEGER(KIND=JPIM), INTENT(IN) :: KLON
 INTEGER(KIND=JPIM), INTENT(IN) :: KLEVSN
 INTEGER(KIND=JPIM), INTENT(IN) :: NCL
+LOGICAL,            INTENT(IN) :: LDLAND(:)
 
 REAL(KIND=JPRB), INTENT(IN)    :: ZDSNTOT(:), PTSN(:), PRSN(:), PSSN(:), PWSN(:)
 REAL(KIND=JPRB), INTENT(IN)    :: ZSNDEPTH(:,:)
@@ -284,7 +285,6 @@ ZEPSILON  = 10E4*EPSILON(ZEPSILON)
     ZTCENTRANIGHT5G(1:NCL)=(/ 8.646,-4.116,17.832,0.864,13.553,3.306,-13.676,4.103,-3.558,15.345,7.959,10.417,6.273,-6.906,0.014,0.08,9.283,-3.586,12.804,-8.389,10.967,-0.992,6.082,2.21,20.907,14.257,3.953  /)
     ZTCENTRBNIGHT5G(1:NCL)=(/ 5.237,-6.464,15.365,1.736,9.252,4.252,-10.678,8.443,-2.222,12.488,8.495,7.322,2.912,-3.087,-3.215,5.289,12.155,1.65,11.715,-8.374,9.672,-0.374,5.802,-0.713,18.464,14.556,1.457  /)
     ZTCENTRCNIGHT5G(1:NCL)=(/ 3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.75,3.749,3.75,3.75,3.75,3.75,3.75  /)
-
 
 
   ZTCONSTAVGDAY2(1:NCL)=(/ -0.1,12.338,9.796,3.439,-0.908,8.98,13.406,-0.1,7.781,-1.186,9.49,0.043,14.778,-0.1,13.568,9.597,-0.118,-0.137,-0.1,12.222,-0.123,21.834,11.454,10.18,7.013,16.779,-0.248  /)
@@ -526,7 +526,15 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
 !*******************************************************************************
   DO JL=KIDIA, KFDIA
     IF (PMU0(JL) > ZEPSILON ) THEN ! Daytime
-    IF ( PSSN(JL) < ZSNPERT ) THEN ! seasonal snow
+        ! Initialise values to avoid floating point errors
+        ZTCENTRA=ZTCENTRADAY2
+        ZTCENTRB=ZTCENTRBDAY2
+        ZTCENTRC=ZTCENTRCDAY2
+        ZTCONSTAVG=ZTCONSTAVGDAY2
+        ZTCONSTSTD=ZTCONSTSTDDAY2
+        KLEVMID(JL)=MAX(KLEVSNA(JL)-1,1)
+
+    IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN ! seasonal snow
       IF ( ZDSNTOT(JL) < 0.15_JPRB ) THEN 
         ZTCENTRA=ZTCENTRADAY2
         ZTCENTRB=ZTCENTRBDAY2
@@ -620,7 +628,15 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
         ZTCONSTSTD=ZTCONSTSTDDAY5G
     ENDIF
     ELSEIF (PMU0(JL)<=ZEPSILON) THEN !nighttime
-    IF ( PSSN(JL) < ZSNPERT ) THEN ! seasonal snow
+        ! Initialise values to avoid floating point errors
+        ZTCENTRA=ZTCENTRANIGHT2
+        ZTCENTRB=ZTCENTRBNIGHT2
+        ZTCENTRC=ZTCENTRCNIGHT2
+        ZTCONSTAVG=ZTCONSTAVGNIGHT2
+        ZTCONSTSTD=ZTCONSTSTDNIGHT2
+        KLEVMID(JL)=MAX(KLEVSNA(JL)-1,1)
+
+    IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN ! seasonal snow
       IF ( ZDSNTOT(JL) < 0.15_JPRB ) THEN 
         ZTCENTRA=ZTCENTRANIGHT2
         ZTCENTRB=ZTCENTRBNIGHT2
@@ -719,6 +735,12 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
     PTCONSTSTD(JL,1:NCL)=ZTCONSTSTD(1:NCL)
 
 ! Assign density depending on snow depth::
+    ! Initialise arrays, to avoid undesired effects.
+    ZRMLRA(1:NCL)=ZRMLRA2(1:NCL)
+    ZRMLRB(1:NCL)=ZRMLRB2(1:NCL)
+    ZRMLRC(1:NCL)=ZRMLRC2(1:NCL)
+    ZRMLRD(1:NCL)=ZRMLRD2(1:NCL)
+    ZRMLRE(1:NCL)=ZRMLRE2(1:NCL)
     IF ( ZDSNTOT(JL) < 0.15_JPRB ) THEN 
       ZRCENTRA=ZRCENTRA2
       ZRCENTRB=ZRCENTRB2
@@ -867,7 +889,7 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
       ZRMLRD=ZRMLRD5M
       ZRMLRE=ZRMLRE5M
 
-      KLEVMID(JL)=KLEVSNA(JL)-1
+      KLEVMID(JL)=MAX(KLEVSNA(JL)-1,1)
      
     ENDIF
 ! Final assignment:
@@ -906,7 +928,7 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
 
 !*****************************************
 ! 2.1 Initialize warm start (WS) variables
-    IF ( PSSN(JL) < ZSNPERT ) THEN
+    IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL)) THEN
         PTSNWS(JL, 1)          = MIN(RTT,PTSKIN(JL))
         PTSNWS(JL, 2:KLEVSN-1) = PTSN(JL)
         PTSNWS(JL, KLEVSN)     = MIN(RTT,PTSOIL(JL))
@@ -946,7 +968,7 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
           ENDIF
         ENDIF
 
-    ELSE ! Glacier ini
+    ELSE ! Glacier or sea-ice ini
         KLEVSNA(JL)=KLEVSN !KSNACC+1
 
         PTSNWS(JL, 1)        = MIN(RTT,PTSKIN(JL))
@@ -971,6 +993,7 @@ ZTMLRENIGHT3(1:NCL)=(/-0.045,0.051,-0.028,-0.01,0.038,-0.019,0.018,-0.121,0.063,
       PRSNTOP(JL)=300._JPRB
     ENDIF
   ENDDO 
+
 END ASSOCIATE
 
 !    -----------------------------------------------------------------

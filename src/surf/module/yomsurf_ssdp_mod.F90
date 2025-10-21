@@ -1,0 +1,73 @@
+MODULE YOMSURF_SSDP_MOD
+
+! (C) Copyright 2025- ECMWF.
+!
+! This software is licensed under the terms of the Apache Licence Version 2.0
+! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+! In applying this licence, ECMWF does not waive the privileges and immunities
+! granted to it by virtue of its status as an intergovernmental organisation
+! nor does it submit to any jurisdiction.
+
+!  PURPOSE
+!  -------
+!  Manage the surface spatially distributed parameters in the OSM and the IFS to 
+!  localize them in the SD_S2 and SD_S3 objects
+!
+!  AUTHOR
+!  ------
+!  Iria Ayan-Miguez (BSC) June 2023
+!
+! ---------------------------------------------------------------------------------
+
+USE PARKIND1, ONLY : JPIM, JPRB
+
+IMPLICIT NONE
+
+SAVE
+
+! One ID name for each variable in the VSURF2 group
+TYPE TYPE_SSDP2D_ID
+  INTEGER(KIND=JPIM) :: NRVCOVH2D, NRVCOVL2D, NRVHSTRH2D, NRVHSTRL2D,& 
+         & NRVLAMSKH2D, NRVLAMSKL2D, NRVLAMSKSH2D, NRVLAMSKSL2D,&
+         & NRVRSMINH2D, NRVRSMINL2D, NRVZ0HH2D, NRVZ0HL2D,&
+         & NRVZ0MH2D, NRVZ0ML2D, NRVAHL2D, NRVAMMAXH2D, NRVAMMAXL2D,&
+         & NRVBHL2D, NRVCEH2D, NRVCEL2D, NRVCFH2D, NRVCFL2D,&
+         & NRVCNAH2D, NRVCNAL2D, NRVDMAXH2D, NRVDMAXL2D, NRVEPSOH2D,&
+         & NRVEPSOL2D, NRVF2IH2D, NRVF2IL2D, NRVFZEROSTH2D,&
+         & NRVFZEROSTL2D, NRVGAMMH2D, NRVGAMML2D, NRVGCH2D,&
+         & NRVGCL2D, NRVGMESH2D, NRVGMESL2D, NRVLAIMINH2D,&
+         & NRVLAIMINL2D, NRVQDAMMAXH2D, NRVQDAMMAXL2D, NRVQDGAMMH2D,&
+         & NRVQDGAMML2D, NRVQDGMESH2D, NRVQDGMESL2D, &
+         & NRVSEFOLDH2D, NRVSEFOLDL2D, NRVT1AMMAXH2D,&
+         & NRVT1AMMAXL2D, NRVT1GMESH2D, NRVT1GMESL2D, NRVT2AMMAXH2D,&
+         & NRVT2AMMAXL2D, NRVT2GMESH2D, NRVT2GMESL2D, NRVTOPTH2D,&
+         & NRVTOPTL2D, NRXBOMEGAMH2D, NRXBOMEGAML2D,&
+         & NRVRSMINB2D, NRVANMAXH2D, NRVANMAXL2D,&
+         & NRVBSLAI_NITROH2D, NRVBSLAI_NITROL2D
+END TYPE
+
+TYPE(TYPE_SSDP2D_ID), PARAMETER :: SSDP2D_ID=TYPE_SSDP2D_ID(1,2,3,4,5,6,7,8,9,10,&
+        & 11,12,13,14,15,16,17,18,19,20, &
+        & 21,22,23,24,25,26,27,28,29,30, &
+        & 31,32,33,34,35,36,37,38,39,40, &
+        & 41,42,43,44,45,46,47,48,49,50, &
+        & 51,52,53,54,55,56,57,58,59,60, &
+        & 61,62,63,64,65)
+
+INTEGER(KIND=JPIM), PARAMETER :: NSSDP2D = 65 ! Number of SSDP2D variables
+
+! One ID name for each variable in the VSURF3 group
+TYPE TYPE_SSDP3D_ID
+  INTEGER(KIND=JPIM) :: NRCGDRYM3D, NRLAMBDAM3D, NRMVGALPHA3D,&
+        & NRNFACM3D, NRWCONSM3D, NRWRESTM3D, NRWSATM3D,&
+        & NRVROOTSAH3D, NRVROOTSAL3D, NRLAMBDADRYM3D,&
+        & NRLAMSAT1M3D, NRRCSOILM3D, NRWCAPM3D, NRWPWPM3D,&
+        & NRMFACM3D, NRDMAXM3D, NRDMINM3D
+END TYPE
+
+TYPE(TYPE_SSDP3D_ID), PARAMETER :: SSDP3D_ID=TYPE_SSDP3D_ID(1,2,3,4,5,6,7,8,9,10,&
+        & 11,12,13,14,15,16,17)
+
+INTEGER(KIND=JPIM), PARAMETER :: NSSDP3D = 17 ! Number of SSDP3D variables
+
+END MODULE YOMSURF_SSDP_MOD

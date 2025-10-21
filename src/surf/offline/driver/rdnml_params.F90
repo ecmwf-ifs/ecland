@@ -1,0 +1,1098 @@
+MODULE RDNML_PARAMS
+
+! (C) Copyright 2025- ECMWF.
+!
+! This software is licensed under the terms of the Apache Licence Version 2.0
+! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+! In applying this licence, ECMWF does not waive the privileges and immunities
+! granted to it by virtue of its status as an intergovernmental organisation
+! nor does it submit to any jurisdiction.
+
+CONTAINS
+  SUBROUTINE RDNML_SNOW(TMP_SURF)
+
+    USE YOMLUN1S, ONLY : NULOUT, NULNAM
+    USE YOS_NAMPARS1, ONLY : TESURF
+    USE PARKIND1, ONLY : JPIM     ,JPRB
+    USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
+
+    IMPLICIT NONE
+
+    TYPE(TESURF),      INTENT(INOUT) :: TMP_SURF
+
+    ! * snow related (new parameterization) constants
+    REAL(KIND=JPRB) :: RLWCSWEA = 200.0_JPRB
+    REAL(KIND=JPRB) :: RLWCSWEB = 0.03_JPRB
+    REAL(KIND=JPRB) :: RLWCSWEC = 0.1_JPRB
+    REAL(KIND=JPRB) :: RTEMPAMP = 4.0_JPRB
+    REAL(KIND=JPRB) :: RHOMINSNA = 109.0_JPRB
+    REAL(KIND=JPRB) :: RHOMINSNB = 6.0_JPRB
+    REAL(KIND=JPRB) :: RHOMINSNC = 26.0_JPRB
+    REAL(KIND=JPRB) :: RHOMINSND = 50.0_JPRB
+    REAL(KIND=JPRB) :: RSNDTOVERA = 3.7E7_JPRB
+    REAL(KIND=JPRB) :: RSNDTOVERB = 8.1E-2_JPRB
+    REAL(KIND=JPRB) :: RSNDTOVERC = 1.8E-2_JPRB
+    REAL(KIND=JPRB) :: RSNDTDESTA = 2.8E-06_JPRB
+    REAL(KIND=JPRB) :: RSNDTDESTB = 4.2E-2_JPRB
+    REAL(KIND=JPRB) :: RSNDTDESTC = 460.0_JPRB
+    REAL(KIND=JPRB) :: RSNDTDESTROI = 150.0_JPRB
+
+    ! * Snow wind-induced densification parameters
+    REAL(KIND=JPRB) :: RSNDAMOB = 1.25_JPRB
+    REAL(KIND=JPRB) :: RSNDMOB = 295.0_JPRB
+    REAL(KIND=JPRB) :: RSNDAW = 2.868_JPRB
+    REAL(KIND=JPRB) :: RSNDBW = 0.085_JPRB
+    REAL(KIND=JPRB) :: RSNDKV = 1.25_JPRB
+    REAL(KIND=JPRB) :: RSNDATAUW = 10.0_JPRB
+    REAL(KIND=JPRB) :: RSNDBTAUW = 3.25_JPRB
+    REAL(KIND=JPRB) :: RSNDWCOMPMAX = 350.0_JPRB
+
+    ! * Snow solar absorption parameters
+    REAL(KIND=JPRB) :: SSAG1 = 0.16E-3_JPRB
+    REAL(KIND=JPRB) :: SSAG2 = 0._JPRB
+    REAL(KIND=JPRB) :: SSAG3 = 0.11E-12_JPRB
+    REAL(KIND=JPRB) :: SSAGSNSMAX = 2.796E-3
+    REAL(KIND=JPRB) :: SSASNEXTMIN = 5._JPRB
+    REAL(KIND=JPRB) :: SSASNEXTMAX = 50.0_JPRB
+    REAL(KIND=JPRB) :: SSASNEXTCNST = 0.0038_JPRB
+
+    ! * New snow heat conductivity parameters
+    REAL(KIND=JPRB) :: SNHCONDAV = -0.06023_JPRB
+    REAL(KIND=JPRB) :: SNHCONDBV = 2.5425_JPRB
+    REAL(KIND=JPRB) :: SNHCONDCV = 289.99_JPRB
+    REAL(KIND=JPRB) :: SNHCONDPOV = 1000._JPRB*100._JPRB ! 100000.0_JPRB
+
+    REAL(KIND=JPRB) :: RHOMAXSN_NEW = 500.0_JPRB ! New snow density max value
+
+    ! ! * vlamsk
+    REAL(KIND=JPRB) :: RSNLARGE = 10000000000.0_JPRB
+    REAL(KIND=JPRB) :: RSNLARGESN = 50.0_JPRB
+    REAL(KIND=JPRB) :: RSNLARGEWT = 20.0_JPRB
+    REAL(KIND=JPRB) :: RSNSNOW = 7.0_JPRB
+    REAL(KIND=JPRB) :: RSNSNOWHVEG = 20.0_JPRB
+    REAL(KIND=JPRB) :: RSNRTTEMP = 272.96_JPRB
+
+    ! * Other snow parameters
+    REAL(KIND=JPRB) :: RSNPERT = 9000.0_JPRB
+    REAL(KIND=JPRB) :: RSNGLC = 10000.0_JPRB
+    REAL(KIND=JPRB) :: RSMINZ = 0.01_JPRB
+    REAL(KIND=JPRB) :: RSFRESH = 1.0_JPRB/3600._JPRB
+
+! Range of albedos simulated by prognostic snow albedo scheme, with
+! values from Dutra et al. (2010). Values of 0.52 and 0.88 have been
+! used in the past due to a broadband-to-spectral correction that is
+! no longer needed.
+    REAL(KIND=JPRB) :: RALFMINSN = 0.50_JPRB
+    REAL(KIND=JPRB) :: RALFMAXSN = 0.85_JPRB
+
+    ! parameter Snow thermal conductivity function
+    REAL(KIND=JPRB) :: FSNTCONDA = 0.024_JPRB
+    REAL(KIND=JPRB) :: FSNTCONDB = -1.23E-4_JPRB
+    REAL(KIND=JPRB) :: FSNTCONDC = 2.5E-06_JPRB
+    REAL(KIND=JPRB) :: RLICE = 0.3_JPRB
+    REAL(KIND=JPRB) :: RQSNCRINV = 10.0_JPRB
+
+    ! sea ice related
+    REAL(KIND=JPRB) :: RDARSICE = 1.5_JPRB
+    REAL(KIND=JPRB) :: RDANSICE = 1.5_JPRB
+    REAL(KIND=JPRB) :: RRCSICE = 1.884E06_JPRB ! 1884000.0_JPRB
+    REAL(KIND=JPRB) :: RCONDSICE = 2.03_JPRB
+
+    REAL(KIND=JPRB) :: RSNPER = 1000.0_JPRB
+    REAL(KIND=JPRB) :: RHOMINSN = 100.0_JPRB
+    REAL(KIND=JPRB) :: RHODELTASN = 200.0_JPRB
+    REAL(KIND=JPRB) :: RTAUF = 0.24_JPRB
+    REAL(KIND=JPRB) :: RTAUA = 0.008_JPRB
+    REAL(KIND=JPRB) :: RALAMSN = 1.88_JPRB
+    REAL(KIND=JPRB) :: RDSNMAX = 1.0_JPRB
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+#include "namparsnow.h"
+
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_SNOW',0,ZHOOK_HANDLE)
+
+    !     ------------------------------------------------------------------
+    !*         1.     READ NAMELIST
+    !                 -------------
+
+!    WRITE(*,*) "Reading global snow parameters from namelist..."
+
+    REWIND(NULNAM)
+    READ(NULNAM,NAMPARSNOW)
+
+    !     ------------------------------------------------------------------
+    !*         2.     WRITE VALUES TO TMP_SURF
+    !                 -------------
+
+    TMP_SURF%RLWCSWEA     = RLWCSWEA
+    TMP_SURF%RLWCSWEB     = RLWCSWEB
+    TMP_SURF%RLWCSWEC     = RLWCSWEC
+    TMP_SURF%RTEMPAMP     = RTEMPAMP
+    TMP_SURF%RHOMINSNA    = RHOMINSNA
+    TMP_SURF%RHOMINSNB    = RHOMINSNB
+    TMP_SURF%RHOMINSNC    = RHOMINSNC
+    TMP_SURF%RHOMINSND    = RHOMINSND
+    TMP_SURF%RSNDTOVERA   = RSNDTOVERA
+    TMP_SURF%RSNDTOVERB   = RSNDTOVERB
+    TMP_SURF%RSNDTOVERC   = RSNDTOVERC
+    TMP_SURF%RSNDTDESTA   = RSNDTDESTA
+    TMP_SURF%RSNDTDESTB   = RSNDTDESTB
+    TMP_SURF%RSNDTDESTC   = RSNDTDESTC
+    TMP_SURF%RSNDTDESTROI = RSNDTDESTROI
+    TMP_SURF%RHOMAXSN_NEW = RHOMAXSN_NEW
+
+    TMP_SURF%RSNDAMOB     = RSNDAMOB
+    TMP_SURF%RSNDMOB      = RSNDMOB
+    TMP_SURF%RSNDAW       = RSNDAW
+    TMP_SURF%RSNDBW       = RSNDBW
+    TMP_SURF%RSNDKV       = RSNDKV
+    TMP_SURF%RSNDATAUW    = RSNDATAUW
+    TMP_SURF%RSNDBTAUW    = RSNDBTAUW
+    TMP_SURF%RSNDWCOMPMAX = RSNDWCOMPMAX
+
+    TMP_SURF%SSAG1        = SSAG1
+    TMP_SURF%SSAG2        = SSAG2
+    TMP_SURF%SSAG3        = SSAG3
+    TMP_SURF%SSAGSNSMAX   = SSAGSNSMAX
+    TMP_SURF%SSASNEXTMIN  = SSASNEXTMIN
+    TMP_SURF%SSASNEXTMAX  = SSASNEXTMAX
+    TMP_SURF%SSASNEXTCNST = SSASNEXTCNST
+
+    TMP_SURF%SNHCONDAV    = SNHCONDAV
+    TMP_SURF%SNHCONDBV    = SNHCONDBV
+    TMP_SURF%SNHCONDCV    = SNHCONDCV
+    TMP_SURF%SNHCONDPOV   = SNHCONDPOV
+    
+    TMP_SURF%RSNLARGE     = RSNLARGE
+    TMP_SURF%RSNLARGESN   = RSNLARGESN
+    TMP_SURF%RSNLARGEWT   = RSNLARGEWT
+    TMP_SURF%RSNSNOW      = RSNSNOW
+    TMP_SURF%RSNSNOWHVEG  = RSNSNOWHVEG
+    TMP_SURF%RSNRTTEMP    = RSNRTTEMP
+
+    TMP_SURF%RSNPERT      = RSNPERT
+    TMP_SURF%RSNGLC       = RSNGLC
+    TMP_SURF%RSMINZ       = RSMINZ
+
+    TMP_SURF%RLICE        = RLICE
+    TMP_SURF%RQSNCRINV    = RQSNCRINV
+    TMP_SURF%RDARSICE     = RDARSICE
+    TMP_SURF%RDANSICE     = RDANSICE
+    TMP_SURF%RRCSICE      = RRCSICE
+    TMP_SURF%RCONDSICE    = RCONDSICE
+
+    TMP_SURF%FSNTCONDA    = FSNTCONDA
+    TMP_SURF%FSNTCONDB    = FSNTCONDB
+    TMP_SURF%FSNTCONDC    = FSNTCONDC
+
+    TMP_SURF%RSNPER       = RSNPER
+    TMP_SURF%RHOMINSN     = RHOMINSN
+    TMP_SURF%RHODELTASN   = RHODELTASN
+    TMP_SURF%RTAUF        = RTAUF
+    TMP_SURF%RTAUA        = RTAUA
+    TMP_SURF%RALAMSN      = RALAMSN
+    TMP_SURF%RDSNMAX      = RDSNMAX
+    TMP_SURF%RSFRESH      = RSFRESH
+
+    TMP_SURF%RALFMINSN    = RALFMINSN
+    TMP_SURF%RALFMAXSN    = RALFMAXSN
+
+
+    !     ------------------------------------------------------------------
+    !*         3.     PRINT FINAL VALUES
+    !                 ------------------
+
+    WRITE(UNIT=NULOUT,FMT='('' NAMPARSNOW namelist '')')
+    WRITE(NULOUT,*) '   RLWCSWEA     = ',  RLWCSWEA  
+    WRITE(NULOUT,*) '   RLWCSWEB     = ',  RLWCSWEB
+    WRITE(NULOUT,*) '   RLWCSWEC     = ',  RLWCSWEC  
+    WRITE(NULOUT,*) '   RTEMPAMP     = ',  RTEMPAMP  
+    WRITE(NULOUT,*) '   RHOMINSNA    = ',  RHOMINSNA   
+    WRITE(NULOUT,*) '   RHOMINSNB    = ',  RHOMINSNB  
+    WRITE(NULOUT,*) '   RHOMINSNC    = ',  RHOMINSNC  
+    WRITE(NULOUT,*) '   RHOMINSND    = ',  RHOMINSND  
+    WRITE(NULOUT,*) '   RSNDTOVERA   = ',  RSNDTOVERA  
+    WRITE(NULOUT,*) '   RSNDTOVERB   = ',  RSNDTOVERB  
+    WRITE(NULOUT,*) '   RSNDTOVERC   = ',  RSNDTOVERC  
+    WRITE(NULOUT,*) '   RSNDTDESTA   = ',  RSNDTDESTA  
+    WRITE(NULOUT,*) '   RSNDTDESTB   = ',  RSNDTDESTB 
+    WRITE(NULOUT,*) '   RSNDTDESTC   = ',  RSNDTDESTC  
+    WRITE(NULOUT,*) '   RSNDTDESTROI = ',  RSNDTDESTROI  
+    WRITE(NULOUT,*) '   RHOMAXSN_NEW = ',  RHOMAXSN_NEW
+    WRITE(NULOUT,*) '   RSNDAMOB     = ',  RSNDAMOB
+    WRITE(NULOUT,*) '   RSNDMOB      = ',  RSNDMOB
+    WRITE(NULOUT,*) '   RSNDAW       = ',  RSNDAW
+    WRITE(NULOUT,*) '   RSNDBW       = ',  RSNDBW
+    WRITE(NULOUT,*) '   RSNDKV       = ',  RSNDKV
+    WRITE(NULOUT,*) '   RSNDATAUW    = ',  RSNDATAUW
+    WRITE(NULOUT,*) '   RSNDBTAUW    = ',  RSNDBTAUW
+    WRITE(NULOUT,*) '   RSNDWCOMPMAX = ',  RSNDWCOMPMAX
+    WRITE(NULOUT,*) '   SSAG1        = ',  SSAG1
+    WRITE(NULOUT,*) '   SSAG2        = ',  SSAG2
+    WRITE(NULOUT,*) '   SSAG3        = ',  SSAG3
+    WRITE(NULOUT,*) '   SSAGSNSMAX   = ',  SSAGSNSMAX
+    WRITE(NULOUT,*) '   SSASNEXTMIN  = ',  SSASNEXTMIN
+    WRITE(NULOUT,*) '   SSASNEXTMAX  = ',  SSASNEXTMAX
+    WRITE(NULOUT,*) '   SSASNEXTCNST = ',  SSASNEXTCNST
+    WRITE(NULOUT,*) '   SNHCONDAV    = ',  SNHCONDAV
+    WRITE(NULOUT,*) '   SNHCONDBV    = ',  SNHCONDBV
+    WRITE(NULOUT,*) '   SNHCONDCV    = ',  SNHCONDCV
+    WRITE(NULOUT,*) '   SNHCONDPOV   = ',  SNHCONDPOV
+    WRITE(NULOUT,*) '   RSNLARGE     = ',  RSNLARGE
+    WRITE(NULOUT,*) '   RSNLARGESN   = ',  RSNLARGESN
+    WRITE(NULOUT,*) '   RSNLARGEWT   = ',  RSNLARGEWT
+    WRITE(NULOUT,*) '   RSNSNOW      = ',  RSNSNOW
+    WRITE(NULOUT,*) '   RSNSNOWHVEG  = ',  RSNSNOWHVEG
+    WRITE(NULOUT,*) '   RSNRTTEMP    = ',  RSNRTTEMP
+    WRITE(NULOUT,*) '   RSNPERT      = ',  RSNPERT
+    WRITE(NULOUT,*) '   RSNGLC       = ',  RSNGLC
+    WRITE(NULOUT,*) '   RSMINZ       = ',  RSMINZ
+    WRITE(NULOUT,*) '   RLICE        = ',  RLICE
+    WRITE(NULOUT,*) '   RQSNCRINV    = ',  RQSNCRINV
+    WRITE(NULOUT,*) '   RDARSICE     = ',  RDARSICE
+    WRITE(NULOUT,*) '   RDANSICE     = ',  RDANSICE
+    WRITE(NULOUT,*) '   RRCSICE      = ',  RRCSICE
+    WRITE(NULOUT,*) '   RCONDSICE    = ',  RCONDSICE
+    WRITE(NULOUT,*) '   FSNTCONDA    = ',  FSNTCONDA
+    WRITE(NULOUT,*) '   FSNTCONDB    = ',  FSNTCONDB
+    WRITE(NULOUT,*) '   FSNTCONDC    = ',  FSNTCONDC
+    WRITE(NULOUT,*) '   RSNPER       = ',  RSNPER
+    WRITE(NULOUT,*) '   RHOMINSN     = ',  RHOMINSN
+    WRITE(NULOUT,*) '   RHODELTASN   = ',  RHODELTASN
+    WRITE(NULOUT,*) '   RTAUF        = ',  RTAUF
+    WRITE(NULOUT,*) '   RTAUA        = ',  RTAUA
+    WRITE(NULOUT,*) '   RALAMSN      = ',  RALAMSN
+    WRITE(NULOUT,*) '   RDSNMAX      = ',  RDSNMAX
+    WRITE(NULOUT,*) '   RSFRESH      = ',  RSFRESH
+    WRITE(NULOUT,*) '   RALFMINSN    = ',  RALFMINSN
+    WRITE(NULOUT,*) '   RALFMAXSN    = ',  RALFMAXSN
+   
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_SNOW',1,ZHOOK_HANDLE)
+
+  END SUBROUTINE RDNML_SNOW
+
+  SUBROUTINE RDNML_SOIL(TMP_SURF)
+
+    USE YOMLUN1S, ONLY : NULOUT, NULNAM
+    USE YOS_NAMPARS1, ONLY : TESURF
+    USE PARKIND1, ONLY : JPIM     ,JPRB, JPRM
+    USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
+
+    IMPLICIT NONE
+
+    TYPE(TESURF),       INTENT(INOUT) :: TMP_SURF
+
+    REAL(KIND=JPRB) :: RTF1 = 274.16_JPRB
+    REAL(KIND=JPRB) :: RTF2 = 272.16_JPRB  ! 270.16_JPRB in CY48R1.0
+    REAL(KIND=JPRB) :: RLAMBDAICE = 2.2_JPRB
+    REAL(KIND=JPRB) :: RLAMBDAWAT = 0.57_JPRB
+    REAL(KIND=JPRB) :: RKERST1 = 0.1_JPRB
+    REAL(KIND=JPRB) :: RKERST2 = 1.0_JPRB
+    REAL(KIND=JPRB) :: RKERST3 = 1.0_JPRB
+    REAL(KIND=JPRB) :: RSRDEP = 0.5_JPRB
+    REAL(KIND=JPRB) :: RSIGORMIN = 100.0_JPRB
+    REAL(KIND=JPRB) :: RSIGORMAX = 1000.0_JPRB
+    REAL(KIND=JPRB) :: RWLMAX = 0.2_JPRB
+    REAL(KIND=JPRB) :: RPSFR = 2.0_JPRB
+
+    REAL(KIND=JPRB) :: RBARPWP = -15.0_JPRB
+    REAL(KIND=JPRB) :: RVGBARCAP = -0.10_JPRB
+    REAL(KIND=JPRB) :: RBARCAP = -0.33_JPRB
+    REAL(KIND=JPRB) :: RCLU = 50.0_JPRB
+
+    REAL(KIND=JPRB) :: RRSF1A = 0.81_JPRB
+    REAL(KIND=JPRB) :: RRSF1B = 250.0_JPRB
+    REAL(KIND=JPRB) :: RRSF1C = 0.05_JPRB
+
+    REAL(KIND=JPRB) :: RRHOSM = 2700.0_JPRB
+    REAL(KIND=JPRB) :: RLAMBDAQ = 7.7_JPRB
+    REAL(KIND=JPRB) :: RLAMBDAO = 2.0_JPRB
+    REAL(KIND=JPRB) :: RLAMBDAMIN = 0.19_JPRB
+    REAL(KIND=JPRB) :: RLAMBDAMAX = 2.0_JPRB
+
+    REAL(KIND=JPRB) :: RLAMBDRYMA = 0.135_JPRB
+    REAL(KIND=JPRB) :: RLAMBDRYMB = 64.7_JPRB
+    REAL(KIND=JPRM) :: RLAMBDRYMC = 0.947_JPRM
+
+    REAL(KIND=JPRB) :: RTFREEZSICECEL = -1.7_JPRB
+    REAL(KIND=JPRB) :: RTMELTSICECEL = 0.0_JPRB
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+#include "namparsoil.h"
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_SOIL',0,ZHOOK_HANDLE)
+
+
+    !     ------------------------------------------------------------------
+    !*         0.     ALLOCATE ARRAYS
+    !                 -------------
+
+    !     ------------------------------------------------------------------
+    !*         1.     READ NAMELIST
+    !                 -------------
+
+!    WRITE(*,*) "Reading global soil parameters from namelist..."
+
+    REWIND(NULNAM)
+    READ(NULNAM,NAMPARSOIL)
+
+    !     ------------------------------------------------------------------
+    !*         2.     WRITE VALUES TO TMP_SURF
+    !                 -------------
+    TMP_SURF%RTF1         = RTF1
+    TMP_SURF%RTF2         = RTF2
+    TMP_SURF%RLAMBDAICE   = RLAMBDAICE
+    TMP_SURF%RLAMBDAWAT   = RLAMBDAWAT
+    TMP_SURF%RKERST1      = RKERST1
+    TMP_SURF%RKERST2      = RKERST2
+    TMP_SURF%RKERST3      = RKERST3
+    TMP_SURF%RSRDEP       = RSRDEP
+    TMP_SURF%RSIGORMIN    = RSIGORMIN
+    TMP_SURF%RSIGORMAX    = RSIGORMAX
+    TMP_SURF%RWLMAX       = RWLMAX
+    TMP_SURF%RPSFR        = RPSFR
+    TMP_SURF%RBARPWP      = RBARPWP
+    TMP_SURF%RVGBARCAP    = RVGBARCAP
+    TMP_SURF%RBARCAP      = RBARCAP
+    TMP_SURF%RCLU         = RCLU
+    TMP_SURF%RRSF1A       = RRSF1A
+    TMP_SURF%RRSF1B       = RRSF1B
+    TMP_SURF%RRSF1C       = RRSF1C
+    TMP_SURF%RRHOSM       = RRHOSM
+    TMP_SURF%RLAMBDAQ     = RLAMBDAQ
+    TMP_SURF%RLAMBDAO     = RLAMBDAO
+    TMP_SURF%RLAMBDAMIN   = RLAMBDAMIN
+    TMP_SURF%RLAMBDAMAX   = RLAMBDAMAX
+    TMP_SURF%RLAMBDRYMA   = RLAMBDRYMA
+    TMP_SURF%RLAMBDRYMB   = RLAMBDRYMB
+    TMP_SURF%RLAMBDRYMC   = RLAMBDRYMC
+    TMP_SURF%RTFREEZSICECEL = RTFREEZSICECEL
+    TMP_SURF%RTMELTSICECEL = RTMELTSICECEL
+
+    !     ------------------------------------------------------------------
+    !*         3.     PRINT FINAL VALUES
+    !                 ------------------
+
+    WRITE(UNIT=NULOUT,FMT='('' NAMPARSOIL namelist '')')
+    WRITE(NULOUT,*) '   RTF1           = ', RTF1
+    WRITE(NULOUT,*) '   RTF2           = ', RTF2
+    WRITE(NULOUT,*) '   RLAMBDAICE     = ', RLAMBDAICE
+    WRITE(NULOUT,*) '   RLAMBDAWAT     = ', RLAMBDAWAT
+    WRITE(NULOUT,*) '   RKERST1        = ', RKERST1
+    WRITE(NULOUT,*) '   RKERST2        = ', RKERST2
+    WRITE(NULOUT,*) '   RKERST3        = ', RKERST3
+    WRITE(NULOUT,*) '   RSRDEP         = ', RSRDEP
+    WRITE(NULOUT,*) '   RSIGORMIN      = ', RSIGORMIN
+    WRITE(NULOUT,*) '   RSIGORMAX      = ', RSIGORMAX
+    WRITE(NULOUT,*) '   RWLMAX         = ', RWLMAX
+    WRITE(NULOUT,*) '   RPSFR          = ', RPSFR
+    WRITE(NULOUT,*) '   RBARPWP        = ', RBARPWP
+    WRITE(NULOUT,*) '   RVGBARCAP      = ', RVGBARCAP
+    WRITE(NULOUT,*) '   RBARCAP        = ', RBARCAP
+    WRITE(NULOUT,*) '   RCLU           = ', RCLU
+    WRITE(NULOUT,*) '   RRSF1A         = ', RRSF1A
+    WRITE(NULOUT,*) '   RRSF1B         = ', RRSF1B
+    WRITE(NULOUT,*) '   RRSF1C         = ', RRSF1C
+    WRITE(NULOUT,*) '   RRHOSM         = ', RRHOSM
+    WRITE(NULOUT,*) '   RLAMBDAQ       = ', RLAMBDAQ
+    WRITE(NULOUT,*) '   RLAMBDAO       = ', RLAMBDAO
+    WRITE(NULOUT,*) '   RLAMBDAMIN     = ', RLAMBDAMIN
+    WRITE(NULOUT,*) '   RLAMBDAMAX     = ', RLAMBDAMAX
+    WRITE(NULOUT,*) '   RLAMBDRYMA     = ', RLAMBDRYMA
+    WRITE(NULOUT,*) '   RLAMBDRYMB     = ', RLAMBDRYMB
+    WRITE(NULOUT,*) '   RLAMBDRYMC     = ', RLAMBDRYMC
+    WRITE(NULOUT,*) '   RTFREEZSICECEL = ', RTFREEZSICECEL
+    WRITE(NULOUT,*) '   RTMELTSICECEL  = ', RTMELTSICECEL
+    
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_SOIL',1,ZHOOK_HANDLE)
+
+  END SUBROUTINE RDNML_SOIL
+
+  SUBROUTINE RDNML_VEG(TMP_SURF)
+
+    USE YOMLUN1S, ONLY : NULOUT, NULNAM
+    USE YOS_NAMPARS1, ONLY : TESURF
+    USE PARKIND1, ONLY : JPIM     ,JPRB
+    USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
+
+    IMPLICIT NONE
+
+    TYPE(TESURF),       INTENT(INOUT) :: TMP_SURF
+
+    REAL(KIND=JPRB) :: RVQ10A = 2.5665_JPRB
+    REAL(KIND=JPRB) :: RVQ10B = 0.05308_JPRB
+    REAL(KIND=JPRB) :: RVQ10C = 0.00238_JPRB
+    REAL(KIND=JPRB) :: RVQ10D = 0.00004_JPRB
+    REAL(KIND=JPRB) :: RVQ10MIN = 0.0001_JPRB
+
+    REAL(KIND=JPRB) :: RVINTER = 0.5_JPRB
+    REAL(KIND=JPRB) :: RLHAERO = 15.0_JPRB
+    REAL(KIND=JPRB) :: RLHAEROS = 10.0_JPRB
+    REAL(KIND=JPRB) :: RCEPSW = 1.E-3_JPRB
+
+    REAL(KIND=JPRB) :: RVLAMSK_DESERT = 15.0_JPRB
+    REAL(KIND=JPRB) :: RVLAMSK_SNOW = 58.0_JPRB
+    REAL(KIND=JPRB) :: RVLAMSKS_DESERT = 15.0_JPRB
+    REAL(KIND=JPRB) :: RVLAMSKS_SNOW = 58.0_JPRB
+
+    REAL(KIND=JPRB) :: RVZ0M_BARE = 0.013_JPRB
+    REAL(KIND=JPRB) :: RVZ0M_SNOW = 0.0013_JPRB
+    REAL(KIND=JPRB) :: RVZ0H_BARE = 0.00013_JPRB
+    REAL(KIND=JPRB) :: RVZ0H_SNOW = 0.00013_JPRB
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+
+#include "namparveg.h"
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_VEG',0,ZHOOK_HANDLE)
+
+    !     ------------------------------------------------------------------
+    !*         0.     ALLOCATE ARRAYS
+    !                 -------------
+
+    !     ------------------------------------------------------------------
+    !*         1.     READ NAMELIST
+    !                 -------------
+
+!    WRITE(*,*) "Reading global veg parameters from namelist..."
+
+    REWIND(NULNAM)
+    READ(NULNAM,NAMPARVEG)
+
+    !     ------------------------------------------------------------------
+    !*         2.     WRITE VALUES TO TMP_SURF
+    !                 -------------
+    TMP_SURF%RVQ10A       = RVQ10A
+    TMP_SURF%RVQ10B       = RVQ10B
+    TMP_SURF%RVQ10C       = RVQ10C
+    TMP_SURF%RVQ10D       = RVQ10D
+    TMP_SURF%RVQ10MIN     = RVQ10MIN
+
+    TMP_SURF%RVINTER      = RVINTER
+    TMP_SURF%RLHAERO      = RLHAERO
+    TMP_SURF%RLHAEROS     = RLHAEROS
+    TMP_SURF%RCEPSW       = RCEPSW
+
+    TMP_SURF%RVLAMSK_DESERT = RVLAMSK_DESERT
+    TMP_SURF%RVLAMSK_SNOW   = RVLAMSK_SNOW
+    TMP_SURF%RVLAMSKS_DESERT= RVLAMSKS_DESERT
+    TMP_SURF%RVLAMSKS_SNOW  = RVLAMSKS_SNOW
+
+    TMP_SURF%RVZ0M_BARE     = RVZ0M_BARE
+    TMP_SURF%RVZ0M_SNOW     = RVZ0M_SNOW
+    TMP_SURF%RVZ0H_BARE     = RVZ0H_BARE
+    TMP_SURF%RVZ0H_SNOW     = RVZ0H_SNOW
+
+    !     ------------------------------------------------------------------
+    !*         3.     PRINT FINAL VALUES
+    !                 ------------------
+
+    WRITE(UNIT=NULOUT,FMT='('' NAMPARVEG namelist '')')
+ 
+    WRITE(NULOUT,*) '   RVQ10A         = ', RVQ10A
+    WRITE(NULOUT,*) '   RVQ10B         = ', RVQ10B
+    WRITE(NULOUT,*) '   RVQ10C         = ', RVQ10C
+    WRITE(NULOUT,*) '   RVQ10D         = ', RVQ10D
+    WRITE(NULOUT,*) '   RVQ10MIN       = ', RVQ10MIN
+    WRITE(NULOUT,*) '   RVINTER        = ', RVINTER
+    WRITE(NULOUT,*) '   RLHAERO        = ', RLHAERO
+    WRITE(NULOUT,*) '   RLHAEROS       = ', RLHAEROS
+    WRITE(NULOUT,*) '   RCEPSW         = ', RCEPSW
+    WRITE(NULOUT,*) '   RVLAMSK_DESERT = ', RVLAMSK_DESERT
+    WRITE(NULOUT,*) '   RVLAMSK_SNOW   = ', RVLAMSK_SNOW
+    WRITE(NULOUT,*) '   RVLAMSKS_DESERT= ', RVLAMSKS_DESERT
+    WRITE(NULOUT,*) '   RVLAMSKS_SNOW  = ', RVLAMSKS_SNOW
+    WRITE(NULOUT,*) '   RVZ0M_BARE     = ', RVZ0M_BARE
+    WRITE(NULOUT,*) '   RVZ0M_SNOW     = ', RVZ0M_SNOW
+    WRITE(NULOUT,*) '   RVZ0H_BARE     = ', RVZ0H_BARE
+    WRITE(NULOUT,*) '   RVZ0H_SNOW     = ', RVZ0H_SNOW  
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_VEG',1,ZHOOK_HANDLE)
+
+  END SUBROUTINE RDNML_VEG
+
+  SUBROUTINE RDNML_AGS(TMP_SURF)
+
+    USE YOMLUN1S, ONLY : NULOUT, NULNAM
+    USE YOS_NAMPARS1, ONLY : TESURF
+    USE PARKIND1, ONLY : JPIM     ,JPRB, JPRD
+    USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
+
+    IMPLICIT NONE
+
+    TYPE(TESURF),       INTENT(INOUT) :: TMP_SURF
+
+    REAL(KIND=JPRB) :: RAW = 4.7_JPRB       ! Calvet et al. (2004)
+    REAL(KIND=JPRB) :: RASW = 2.8_JPRB      ! Calvet et al. (2004)
+    REAL(KIND=JPRB) :: RBW = 7.0_JPRB       ! Calvet et al. (2004)
+    REAL(KIND=JPRB) :: RDMAXN = 3.0E-2_JPRB
+    REAL(KIND=JPRB) :: RDMAXX = 3.0E-1_JPRB
+    REAL(KIND=JPRB) :: RPARCF = 0.48_JPRB
+    REAL(KIND=JPRB) :: RPCCO2 = 0.40_JPRB
+    REAL(KIND=JPRB) :: RIAOPT = 500.0_JPRB
+    REAL(KIND=JPRB) :: RDSPOPT = 0.0_JPRB
+    REAL(KIND=JPRB) :: RXGT = 0.5_JPRB
+    REAL(KIND=JPRB) :: RDIFRACF = 0.2510_JPRB
+    REAL(KIND=JPRB) :: RSHP1AMMAX = 0.3_JPRB
+    REAL(KIND=JPRB) :: RSHP2AMMAX = 0.3_JPRB
+    REAL(KIND=JPRB) :: RSHP1GMES = 0.3_JPRB
+    REAL(KIND=JPRB) :: RSHP2GMES = 0.3_JPRB
+    REAL(KIND=JPRB) :: RMAXFZERO = 0.95_JPRB
+    REAL(KIND=JPRB) :: RCC_NIT_BASE_DIL = 10.0_JPRB
+    REAL(KIND=JPRB) :: RLAIB_NITROA = 5.76_JPRB
+    REAL(KIND=JPRB) :: RLAIB_NITROB = 0.64_JPRB
+    REAL(KIND=JPRB) :: RLAIB_NITROMIN = 3.8_JPRB
+    REAL(KIND=JPRB) :: RVGMES_FLDEXP = 0.321_JPRB
+    REAL(KIND=JPRB) :: RESPBSTR_COEF = 2.0_JPRB
+    REAL(KIND=JPRD) :: REPS_COEF = 2.0_JPRD
+    REAL(KIND=JPRD) :: RGSC_COEF = 2.0_JPRD
+    REAL(KIND=JPRB) :: RXBOMEGA = 0.9442719_JPRB
+    REAL(KIND=JPRB) :: RRDCF = 0.111111_JPRB
+    REAL(KIND=JPRB) :: RCONDCTMIN = 0.0002_JPRB
+    REAL(KIND=JPRB) :: RCONDSTMIN = 1E-05_JPRB
+    REAL(KIND=JPRB) :: RANFMINIT = 1E-08_JPRB
+    REAL(KIND=JPRB) :: RRESPFACTOR_NIT = 1.16E-07_JPRB
+    REAL(KIND=JPRB) :: RCNS_NIT = 0.8_JPRB
+    REAL(KIND=JPRB) :: RCA_1X_CO2_NIT = 0.38_JPRB
+    REAL(KIND=JPRB) :: RCA_2X_CO2_NIT = 0.52_JPRB
+    REAL(KIND=JPRB) :: RCC_NIT = 0.753846_JPRB
+    REAL(KIND=JPRB) :: RCO2FRAC = 0.000400_JPRB
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+#include "namparags.h"
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_AGS',0,ZHOOK_HANDLE)
+
+    !     ------------------------------------------------------------------
+    !*         0.     ALLOCATE ARRAYS
+    !                 -------------
+
+    !     ------------------------------------------------------------------
+    !*         1.     READ NAMELIST
+    !                 -------------
+
+!    WRITE(*,*) "Reading global ags parameters from namelist..."
+
+    REWIND(NULNAM)
+    READ(NULNAM,NAMPARAGS)
+
+    !     ------------------------------------------------------------------
+    !*         2.     WRITE VALUES TO TMP_SURF
+    !                 -------------
+    TMP_SURF%RAW          = RAW
+    TMP_SURF%RASW         = RASW
+    TMP_SURF%RBW          = RBW
+    TMP_SURF%RDMAXN       = RDMAXN
+    TMP_SURF%RDMAXX       = RDMAXX
+    TMP_SURF%RPARCF       = RPARCF
+    TMP_SURF%RPCCO2       = RPCCO2
+    TMP_SURF%RIAOPT       = RIAOPT
+    TMP_SURF%RDSPOPT      = RDSPOPT
+    TMP_SURF%RXGT         = RXGT
+    TMP_SURF%RDIFRACF     = RDIFRACF
+    TMP_SURF%RSHP1AMMAX   = RSHP1AMMAX
+    TMP_SURF%RSHP2AMMAX   = RSHP2AMMAX
+    TMP_SURF%RSHP1GMES    = RSHP1GMES
+    TMP_SURF%RSHP2GMES    = RSHP2GMES
+    TMP_SURF%RMAXFZERO    = RMAXFZERO
+    TMP_SURF%RCC_NIT_BASE_DIL = RCC_NIT_BASE_DIL
+    TMP_SURF%RLAIB_NITROA = RLAIB_NITROA
+    TMP_SURF%RLAIB_NITROB = RLAIB_NITROB
+    TMP_SURF%RLAIB_NITROMIN = RLAIB_NITROMIN
+    TMP_SURF%RVGMES_FLDEXP = RVGMES_FLDEXP
+    TMP_SURF%RESPBSTR_COEF = RESPBSTR_COEF
+    TMP_SURF%REPS_COEF    = REPS_COEF
+    TMP_SURF%RGSC_COEF    = RGSC_COEF
+
+    TMP_SURF%RXBOMEGA     = RXBOMEGA
+    TMP_SURF%RRDCF        = RRDCF
+    TMP_SURF%RCONDCTMIN   = RCONDCTMIN
+    TMP_SURF%RCONDSTMIN   = RCONDSTMIN
+    TMP_SURF%RANFMINIT    = RANFMINIT
+    TMP_SURF%RRESPFACTOR_NIT = RRESPFACTOR_NIT
+    TMP_SURF%RCNS_NIT     = RCNS_NIT
+    TMP_SURF%RCA_1X_CO2_NIT = RCA_1X_CO2_NIT
+    TMP_SURF%RCA_2X_CO2_NIT = RCA_2X_CO2_NIT
+    TMP_SURF%RCC_NIT      = RCC_NIT
+    TMP_SURF%RCO2FRAC     = RCO2FRAC
+
+    !     ------------------------------------------------------------------
+    !*         3.     PRINT FINAL VALUES
+    !                 ------------------
+
+    WRITE(UNIT=NULOUT,FMT='('' NAMPARAGS namelist '')')
+ 
+    WRITE(NULOUT,*)'   RAW              = ', RAW
+    WRITE(NULOUT,*)'   RASW             = ', RASW
+    WRITE(NULOUT,*)'   RBW              = ', RBW
+    WRITE(NULOUT,*)'   RDMAXN           = ', RDMAXN
+    WRITE(NULOUT,*)'   RDMAXX           = ', RDMAXX
+    WRITE(NULOUT,*)'   RPARCF           = ', RPARCF
+    WRITE(NULOUT,*)'   RPCCO2           = ', RPCCO2
+    WRITE(NULOUT,*)'   RIAOPT           = ', RIAOPT
+    WRITE(NULOUT,*)'   RDSPOPT          = ', RDSPOPT
+    WRITE(NULOUT,*)'   RXGT             = ', RXGT
+    WRITE(NULOUT,*)'   RDIFRACF         = ', RDIFRACF
+    WRITE(NULOUT,*)'   RSHP1AMMAX       = ', RSHP1AMMAX
+    WRITE(NULOUT,*)'   RSHP2AMMAX       = ', RSHP2AMMAX
+    WRITE(NULOUT,*)'   RSHP1GMES        = ', RSHP1GMES
+    WRITE(NULOUT,*)'   RSHP2GMES        = ', RSHP2GMES
+    WRITE(NULOUT,*)'   RMAXFZERO        = ', RMAXFZERO
+    WRITE(NULOUT,*)'   RCC_NIT_BASE_DIL = ', RCC_NIT_BASE_DIL
+    WRITE(NULOUT,*)'   RLAIB_NITROA     = ', RLAIB_NITROA
+    WRITE(NULOUT,*)'   RLAIB_NITROB     = ', RLAIB_NITROB
+    WRITE(NULOUT,*)'   RLAIB_NITROMIN   = ', RLAIB_NITROMIN
+    WRITE(NULOUT,*)'   RVGMES_FLDEXP    = ', RVGMES_FLDEXP
+    WRITE(NULOUT,*)'   RESPBSTR_COEF    = ', RESPBSTR_COEF
+    WRITE(NULOUT,*)'   REPS_COEF        = ', REPS_COEF
+    WRITE(NULOUT,*)'   RGSC_COEF        = ', RGSC_COEF
+    WRITE(NULOUT,*)'   RXBOMEGA         = ', RXBOMEGA
+    WRITE(NULOUT,*)'   RRDCF            = ', RRDCF
+    WRITE(NULOUT,*)'   RCONDCTMIN       = ', RCONDCTMIN
+    WRITE(NULOUT,*)'   RCONDSTMIN       = ', RCONDSTMIN
+    WRITE(NULOUT,*)'   RANFMINIT        = ', RANFMINIT
+    WRITE(NULOUT,*)'   RRESPFACTOR_NIT  = ', RRESPFACTOR_NIT
+    WRITE(NULOUT,*)'   RCNS_NIT         = ', RCNS_NIT
+    WRITE(NULOUT,*)'   RCA_1X_CO2_NIT   = ', RCA_1X_CO2_NIT
+    WRITE(NULOUT,*)'   RCA_2X_CO2_NIT   = ', RCA_2X_CO2_NIT
+    WRITE(NULOUT,*)'   RCC_NIT          = ', RCC_NIT
+    WRITE(NULOUT,*)'   RCO2FRAC         = ', RCO2FRAC
+ 
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_AGS',1,ZHOOK_HANDLE)
+
+  END SUBROUTINE RDNML_AGS
+
+  SUBROUTINE RDNML_FLAKE(TMP_SURF)
+
+    USE YOMLUN1S, ONLY : NULOUT, NULNAM
+    USE YOS_NAMPARS1, ONLY : TESURF
+    USE PARKIND1, ONLY : JPIM     ,JPRB     ,JPRD
+    USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
+
+    IMPLICIT NONE
+
+    TYPE(TESURF),       INTENT(INOUT) :: TMP_SURF
+
+    REAL(KIND=JPRB) :: RC_SHAPE = 0.65_JPRB
+    REAL(KIND=JPRB) :: RC_OC_MAXICEZ = 0.1_JPRB
+    REAL(KIND=JPRB) :: RC_OC_MAXDEPTH = 50.0_JPRB
+
+    !  Dimensionless constants
+    !  in the equations for the mixed-layer depth
+    !  and for the shape factor with respect to the temperature profile in the thermocline
+    REAL(KIND=JPRB) :: RC_CBL_1 = 0.17_JPRD
+    REAL(KIND=JPRB) :: RC_CBL_2 = 1.0_JPRD
+    REAL(KIND=JPRB) :: RC_SBL_ZM_N = 0.5_JPRD
+    REAL(KIND=JPRB) :: RC_SBL_ZM_S = 10.0_JPRD
+    REAL(KIND=JPRB) :: RC_SBL_ZM_I = 20.0_JPRD
+    REAL(KIND=JPRB) :: RC_RELAX_H = 0.03_JPRD
+    REAL(KIND=JPRB) :: RC_RELAX_C = 0.03_JPRD
+
+    !  Parameters of the shape functions
+    REAL(KIND=JPRB) :: RC_T_MIN = 0.5_JPRB
+    REAL(KIND=JPRB) :: RC_T_MAX = 0.8_JPRB
+    REAL(KIND=JPRB) :: RC_B1 = 2._JPRD/3._JPRD
+    REAL(KIND=JPRB) :: RC_B2 = 3._JPRD/5._JPRD
+    REAL(KIND=JPRB) :: RC_S_LIN = 0.5_JPRB
+    REAL(KIND=JPRB) :: RPHI_S_PR0_LIN = 1.0_JPRB
+    REAL(KIND=JPRB) :: RC_I_LIN = 0.5_JPRB
+    REAL(KIND=JPRB) :: RPHI_I_PR0_LIN = 1.0_JPRB
+    REAL(KIND=JPRB) :: RPHI_I_PR1_LIN = 1.0_JPRB
+    REAL(KIND=JPRB) :: RH_ICE_MAX = 3.0_JPRB
+
+    REAL(KIND=JPRB) :: RTPL_A_T = 1.6509E-05_JPRB
+
+    REAL(KIND=JPRD) :: ROPT_WAT_EXTC1_REF = 3.0_JPRD
+    REAL(KIND=JPRD) :: ROPT_WAT_FRAC1_TRANS = 0.1_JPRD
+    REAL(KIND=JPRD) :: ROPT_WAT_EXTC1_TRANS = 2.0_JPRD
+    REAL(KIND=JPRD) :: ROPT_WAT_EXTC2_TRANS = 0.2_JPRD
+    REAL(KIND=JPRD) :: ROPT_WICE_EXTC1_REF = 17.1_JPRD
+    REAL(KIND=JPRD) :: ROPT_BICE_EXTC1_REF = 8.4_JPRD
+    REAL(KIND=JPRD) :: ROPT_ICE_EXTC1_OP = 1.0E+07_JPRD
+
+    !  Parameters used in flakeen flakerad module
+    REAL(KIND=JPRD) :: RDEPTH_W_MAX = 50.0_JPRD
+    REAL(KIND=JPRD) :: RDEPTH_W_MIN = 2.0_JPRD
+    REAL(KIND=JPRD) :: RD_C_T_DT_MAX_A = 30.0_JPRD
+    REAL(KIND=JPRD) :: RC_I_FLK_A = 1.0_JPRD
+    REAL(KIND=JPRD) :: RH_ICE_FUSION_A = 2.0_JPRD
+    REAL(KIND=JPRD) :: RH_ICE_FUSION_B = 0.9_JPRD
+    REAL(KIND=JPRD) :: RT_ICE_MIN_FLK = 73.15_JPRD
+    REAL(KIND=JPRD) :: RCONV_EQUIL_A = 6.0_JPRD
+    REAL(KIND=JPRD) :: RCONV_EQUIL_B = 2.0_JPRD
+    REAL(KIND=JPRD) :: RCONV_EQUIL_C = 1.0_JPRD
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE    
+
+#include "namparflake.h"
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_FLAKE',0,ZHOOK_HANDLE)
+
+    !     ------------------------------------------------------------------
+    !*         0.     ALLOCATE ARRAYS
+    !                 -------------
+
+    !     ------------------------------------------------------------------
+    !*         1.     READ NAMELIST
+    !                 -------------
+
+!    WRITE(*,*) "Reading global flake parameters from namelist..."
+
+    REWIND(NULNAM)
+    READ(NULNAM,NAMPARFLAKE)
+
+    !     ------------------------------------------------------------------
+    !*         2.     WRITE VALUES TO TMP_SURF
+    !                 -------------
+    TMP_SURF%RC_SHAPE        = RC_SHAPE
+    TMP_SURF%RC_OC_MAXICEZ   = RC_OC_MAXICEZ
+    TMP_SURF%RC_OC_MAXDEPTH  = RC_OC_MAXDEPTH
+
+    TMP_SURF%RC_CBL_1        = RC_CBL_1
+    TMP_SURF%RC_CBL_2        = RC_CBL_2
+    TMP_SURF%RC_SBL_ZM_N     = RC_SBL_ZM_N
+    TMP_SURF%RC_SBL_ZM_S     = RC_SBL_ZM_S
+    TMP_SURF%RC_SBL_ZM_I     = RC_SBL_ZM_I
+    TMP_SURF%RC_RELAX_H      = RC_RELAX_H
+    TMP_SURF%RC_RELAX_C      = RC_RELAX_C
+
+    TMP_SURF%RC_T_MIN        = RC_T_MIN
+    TMP_SURF%RC_T_MAX        = RC_T_MAX
+    TMP_SURF%RC_B1           = RC_B1
+    TMP_SURF%RC_B2           = RC_B2
+    TMP_SURF%RC_S_LIN        = RC_S_LIN
+    TMP_SURF%RPHI_S_PR0_LIN  = RPHI_S_PR0_LIN
+    TMP_SURF%RC_I_LIN        = RC_I_LIN
+    TMP_SURF%RPHI_I_PR0_LIN  = RPHI_I_PR0_LIN
+    TMP_SURF%RPHI_I_PR1_LIN  = RPHI_I_PR1_LIN
+    TMP_SURF%RH_ICE_MAX      = RH_ICE_MAX
+
+    TMP_SURF%RTPL_A_T        = RTPL_A_T
+
+    TMP_SURF%ROPT_WAT_EXTC1_REF     = ROPT_WAT_EXTC1_REF
+    TMP_SURF%ROPT_WAT_FRAC1_TRANS   = ROPT_WAT_FRAC1_TRANS
+    TMP_SURF%ROPT_WAT_EXTC1_TRANS   = ROPT_WAT_EXTC1_TRANS
+    TMP_SURF%ROPT_WAT_EXTC2_TRANS   = ROPT_WAT_EXTC2_TRANS
+    TMP_SURF%ROPT_WICE_EXTC1_REF    = ROPT_WICE_EXTC1_REF
+    TMP_SURF%ROPT_BICE_EXTC1_REF    = ROPT_BICE_EXTC1_REF
+    TMP_SURF%ROPT_ICE_EXTC1_OP      = ROPT_ICE_EXTC1_OP
+
+    TMP_SURF%RDEPTH_W_MAX    = RDEPTH_W_MAX
+    TMP_SURF%RDEPTH_W_MIN    = RDEPTH_W_MIN
+    TMP_SURF%RD_C_T_DT_MAX_A = RD_C_T_DT_MAX_A
+    TMP_SURF%RC_I_FLK_A      = RC_I_FLK_A
+    TMP_SURF%RH_ICE_FUSION_A = RH_ICE_FUSION_A
+    TMP_SURF%RH_ICE_FUSION_B = RH_ICE_FUSION_B
+    TMP_SURF%RT_ICE_MIN_FLK  = RT_ICE_MIN_FLK
+    TMP_SURF%RCONV_EQUIL_A   = RCONV_EQUIL_A
+    TMP_SURF%RCONV_EQUIL_B   = RCONV_EQUIL_B
+    TMP_SURF%RCONV_EQUIL_C   = RCONV_EQUIL_C
+
+    !     ------------------------------------------------------------------
+    !*         3.     PRINT FINAL VALUES
+    !                 ------------------
+
+    WRITE(UNIT=NULOUT,FMT='('' NAMPARFLAKE namelist '')')
+ 
+    WRITE(NULOUT,*) '   RC_SHAPE               = ', RC_SHAPE
+    WRITE(NULOUT,*) '   RC_OC_MAXICEZ          = ', RC_OC_MAXICEZ
+    WRITE(NULOUT,*) '   RC_OC_MAXDEPTH         = ', RC_OC_MAXDEPTH
+    WRITE(NULOUT,*) '   RC_CBL_1               = ', RC_CBL_1
+    WRITE(NULOUT,*) '   RC_CBL_2               = ', RC_CBL_2
+    WRITE(NULOUT,*) '   RC_SBL_ZM_N            = ', RC_SBL_ZM_N
+    WRITE(NULOUT,*) '   RC_SBL_ZM_S            = ', RC_SBL_ZM_S
+    WRITE(NULOUT,*) '   RC_SBL_ZM_I            = ', RC_SBL_ZM_I
+    WRITE(NULOUT,*) '   RC_RELAX_H             = ', RC_RELAX_H
+    WRITE(NULOUT,*) '   RC_RELAX_C             = ', RC_RELAX_C
+    WRITE(NULOUT,*) '   RC_T_MIN               = ', RC_T_MIN
+    WRITE(NULOUT,*) '   RC_T_MAX               = ', RC_T_MAX
+    WRITE(NULOUT,*) '   RC_B1                  = ', RC_B1
+    WRITE(NULOUT,*) '   RC_B2                  = ', RC_B2
+    WRITE(NULOUT,*) '   RC_S_LIN               = ', RC_S_LIN
+    WRITE(NULOUT,*) '   RPHI_S_PR0_LIN         = ', RPHI_S_PR0_LIN
+    WRITE(NULOUT,*) '   RC_I_LIN               = ', RC_I_LIN
+    WRITE(NULOUT,*) '   RPHI_I_PR0_LIN         = ', RPHI_I_PR0_LIN
+    WRITE(NULOUT,*) '   RPHI_I_PR1_LIN         = ', RPHI_I_PR1_LIN
+    WRITE(NULOUT,*) '   RH_ICE_MAX             = ', RH_ICE_MAX
+    WRITE(NULOUT,*) '   RTPL_A_T               = ', RTPL_A_T
+    WRITE(NULOUT,*) '   ROPT_WAT_EXTC1_REF     = ', ROPT_WAT_EXTC1_REF
+    WRITE(NULOUT,*) '   ROPT_WAT_FRAC1_TRANS   = ', ROPT_WAT_FRAC1_TRANS
+    WRITE(NULOUT,*) '   ROPT_WAT_EXTC1_TRANS   = ', ROPT_WAT_EXTC1_TRANS
+    WRITE(NULOUT,*) '   ROPT_WAT_EXTC2_TRANS   = ', ROPT_WAT_EXTC2_TRANS
+    WRITE(NULOUT,*) '   ROPT_WICE_EXTC1_REF    = ', ROPT_WICE_EXTC1_REF
+    WRITE(NULOUT,*) '   ROPT_BICE_EXTC1_REF    = ', ROPT_BICE_EXTC1_REF
+    WRITE(NULOUT,*) '   ROPT_ICE_EXTC1_OP      = ', ROPT_ICE_EXTC1_OP
+    WRITE(NULOUT,*) '   RDEPTH_W_MAX           = ', RDEPTH_W_MAX
+    WRITE(NULOUT,*) '   RDEPTH_W_MIN           = ', RDEPTH_W_MIN
+    WRITE(NULOUT,*) '   RD_C_T_DT_MAX_A        = ', RD_C_T_DT_MAX_A
+    WRITE(NULOUT,*) '   RC_I_FLK_A             = ', RC_I_FLK_A
+    WRITE(NULOUT,*) '   RH_ICE_FUSION_A        = ', RH_ICE_FUSION_A
+    WRITE(NULOUT,*) '   RH_ICE_FUSION_B        = ', RH_ICE_FUSION_B
+    WRITE(NULOUT,*) '   RT_ICE_MIN_FLK         = ', RT_ICE_MIN_FLK
+    WRITE(NULOUT,*) '   RCONV_EQUIL_A          = ', RCONV_EQUIL_A
+    WRITE(NULOUT,*) '   RCONV_EQUIL_B          = ', RCONV_EQUIL_B
+    WRITE(NULOUT,*) '   RCONV_EQUIL_C          = ', RCONV_EQUIL_C
+    
+    IF (LHOOK) CALL DR_HOOK('RDNML_FLAKE',1,ZHOOK_HANDLE)
+
+  END SUBROUTINE RDNML_FLAKE
+
+  SUBROUTINE RDNML_EXC(TMP_SURF)
+
+    USE YOMLUN1S, ONLY : NULOUT, NULNAM
+    USE YOS_NAMPARS1, ONLY : TESURF
+    USE PARKIND1, ONLY : JPIM     ,JPRB
+    USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
+
+    IMPLICIT NONE
+
+    TYPE(TESURF),       INTENT(INOUT) :: TMP_SURF
+
+    REAL(KIND=JPRB) :: RSSRFLTIMAX = 700.0_JPRB
+    REAL(KIND=JPRB) :: RBLENDWMO = 40.0_JPRB
+    REAL(KIND=JPRB) :: RZ0MWMO = 0.03_JPRB
+    REAL(KIND=JPRB) :: RETACONV = 0.5_JPRB
+    REAL(KIND=JPRB) :: RCDFC = 0.002_JPRB
+    REAL(KIND=JPRB) :: RBLENDSNVEG = 0.25_JPRB
+    
+    REAL(KIND=JPRB) :: RUGNA = 0.5_JPRB
+    REAL(KIND=JPRB) :: RUGNB = 12.0_JPRB
+    REAL(KIND=JPRB) :: RUGN = 7.20_JPRB
+
+    REAL(KIND=JPRB) :: RKAP = 0.4_JPRB
+    REAL(KIND=JPRB) :: RPARZIINI = 1000.0_JPRB
+    REAL(KIND=JPRB) :: RZ0ICEINI = 0.001_JPRB
+    REAL(KIND=JPRB) :: REPUST = 0.0001_JPRB
+    REAL(KIND=JPRB) :: RNUINI = 1.5E-05_JPRB
+    REAL(KIND=JPRB) :: RNUMINI = 0.11_JPRB
+    REAL(KIND=JPRB) :: RNUHINI = 0.4_JPRB
+    REAL(KIND=JPRB) :: RNUQINI = 0.62_JPRB
+    REAL(KIND=JPRB) :: RCHAR = 0.018_JPRB ! 0.0155_JPRB in CY48R1.0
+
+    REAL(KIND=JPRB) :: RAZ0ICE = 0.00605_JPRB
+    REAL(KIND=JPRB) :: RBZ0ICE = 17.0_JPRB
+    REAL(KIND=JPRB) :: RCZ0ICE = 0.00093_JPRB
+    REAL(KIND=JPRB) :: RDZ0ICE = 0.5_JPRB
+
+    INTEGER(KIND=JPIM) :: RITZ0WN = 15_JPIM
+    REAL(KIND=JPRB) :: RACDZ0WN = 0.0008_JPRB
+    REAL(KIND=JPRB) :: RBCDZ0WN = 8E-05_JPRB
+    REAL(KIND=JPRB) :: RXEPSZ0WN = 1E-05_JPRB
+    REAL(KIND=JPRB) :: RUSTMINZ0WN = 1E-06_JPRB
+    REAL(KIND=JPRB) :: RPCHARMAXZ0WN = 0.1_JPRB
+    REAL(KIND=JPRB) :: RZ0FGZ0WN = 0.01_JPRB
+    REAL(KIND=JPRB) :: RSALIN = 0.98_JPRB
+    REAL(KIND=JPRB) :: RBLENDZ0 = 10.0_JPRB
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+#include "namparexc.h"
+
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_EXC',0,ZHOOK_HANDLE)
+
+    !     ------------------------------------------------------------------
+    !*         0.     ALLOCATE ARRAYS
+    !                 -------------
+
+    !     ------------------------------------------------------------------
+    !*         1.     READ NAMELIST
+    !                 -------------
+
+!    WRITE(*,*) "Reading global exc parameters from namelist..."
+
+    REWIND(NULNAM)
+    READ(NULNAM,NAMPAREXC)
+
+    !     ------------------------------------------------------------------
+    !*         2.     WRITE VALUES TO TMP_SURF
+    !                 -------------
+    TMP_SURF%RSSRFLTIMAX       = RSSRFLTIMAX
+    TMP_SURF%RBLENDWMO         = RBLENDWMO
+    TMP_SURF%RZ0MWMO           = RZ0MWMO
+    TMP_SURF%RETACONV          = RETACONV
+    TMP_SURF%RCDFC             = RCDFC
+    TMP_SURF%RBLENDSNVEG       = RBLENDSNVEG
+    
+    TMP_SURF%RUGNA             = RUGNA
+    TMP_SURF%RUGNB             = RUGNB
+    TMP_SURF%RUGN              = RUGN
+
+    TMP_SURF%RKAP              = RKAP
+    TMP_SURF%RPARZIINI         = RPARZIINI
+    TMP_SURF%RZ0ICEINI         = RZ0ICEINI
+    TMP_SURF%REPUST            = REPUST
+    TMP_SURF%RNUINI            = RNUINI
+    TMP_SURF%RNUMINI           = RNUMINI
+    TMP_SURF%RNUHINI           = RNUHINI
+    TMP_SURF%RNUQINI           = RNUQINI
+    TMP_SURF%RCHAR             = RCHAR
+
+    TMP_SURF%RAZ0ICE           = RAZ0ICE
+    TMP_SURF%RBZ0ICE           = RBZ0ICE
+    TMP_SURF%RCZ0ICE           = RCZ0ICE
+    TMP_SURF%RDZ0ICE           = RDZ0ICE
+
+    TMP_SURF%RITZ0WN           = RITZ0WN
+    TMP_SURF%RACDZ0WN          = RACDZ0WN
+    TMP_SURF%RBCDZ0WN          = RBCDZ0WN
+    TMP_SURF%RXEPSZ0WN         = RXEPSZ0WN
+    TMP_SURF%RUSTMINZ0WN       = RUSTMINZ0WN
+    TMP_SURF%RPCHARMAXZ0WN     = RPCHARMAXZ0WN
+    TMP_SURF%RZ0FGZ0WN         = RZ0FGZ0WN
+
+    TMP_SURF%RSALIN            = RSALIN
+    TMP_SURF%RBLENDZ0          = RBLENDZ0
+
+    !     ------------------------------------------------------------------
+    !*         3.     PRINT FINAL VALUES
+    !                 ------------------
+
+    WRITE(UNIT=NULOUT,FMT='('' NAMPAREXC namelist '')')
+
+    WRITE(NULOUT,*) '   RSSRFLTIMAX       = ', RSSRFLTIMAX
+    WRITE(NULOUT,*) '   RBLENDWMO         = ', RBLENDWMO
+    WRITE(NULOUT,*) '   RZ0MWMO           = ', RZ0MWMO
+    WRITE(NULOUT,*) '   RETACONV          = ', RETACONV
+    WRITE(NULOUT,*) '   RCDFC             = ', RCDFC
+    WRITE(NULOUT,*) '   RBLENDSNVEG       = ', RBLENDSNVEG
+    WRITE(NULOUT,*) '   RUGNA             = ', RUGNA
+    WRITE(NULOUT,*) '   RUGNB             = ', RUGNB
+    WRITE(NULOUT,*) '   RUGN              = ', RUGN
+    WRITE(NULOUT,*) '   RKAP              = ', RKAP
+    WRITE(NULOUT,*) '   RPARZIINI         = ', RPARZIINI
+    WRITE(NULOUT,*) '   RZ0ICEINI         = ', RZ0ICEINI
+    WRITE(NULOUT,*) '   REPUST            = ', REPUST
+    WRITE(NULOUT,*) '   RNUINI            = ', RNUINI
+    WRITE(NULOUT,*) '   RNUMINI           = ', RNUMINI
+    WRITE(NULOUT,*) '   RNUHINI           = ', RNUHINI
+    WRITE(NULOUT,*) '   RNUQINI           = ', RNUQINI
+    WRITE(NULOUT,*) '   RCHAR             = ', RCHAR
+    WRITE(NULOUT,*) '   RAZ0ICE           = ', RAZ0ICE
+    WRITE(NULOUT,*) '   RBZ0ICE           = ', RBZ0ICE
+    WRITE(NULOUT,*) '   RCZ0ICE           = ', RCZ0ICE
+    WRITE(NULOUT,*) '   RDZ0ICE           = ', RDZ0ICE
+    WRITE(NULOUT,*) '   RITZ0WN           = ', RITZ0WN
+    WRITE(NULOUT,*) '   RACDZ0WN          = ', RACDZ0WN
+    WRITE(NULOUT,*) '   RBCDZ0WN          = ', RBCDZ0WN
+    WRITE(NULOUT,*) '   RXEPSZ0WN         = ', RXEPSZ0WN
+    WRITE(NULOUT,*) '   RUSTMINZ0WN       = ', RUSTMINZ0WN
+    WRITE(NULOUT,*) '   RPCHARMAXZ0WN     = ', RPCHARMAXZ0WN
+    WRITE(NULOUT,*) '   RZ0FGZ0WN         = ', RZ0FGZ0WN
+    WRITE(NULOUT,*) '   RSALIN            = ', RSALIN
+    WRITE(NULOUT,*) '   RBLENDZ0          = ', RBLENDZ0
+    
+    IF (LHOOK) CALL DR_HOOK('RDNML_EXC',1,ZHOOK_HANDLE)
+
+  END SUBROUTINE RDNML_EXC
+
+  SUBROUTINE RDNML_URB(TMP_SURF)
+
+    USE YOMLUN1S, ONLY : NULOUT, NULNAM
+    USE YOS_NAMPARS1, ONLY : TESURF
+    USE PARKIND1, ONLY : JPIM     ,JPRB
+    USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
+
+    IMPLICIT NONE
+
+    TYPE(TESURF),       INTENT(INOUT) :: TMP_SURF
+
+    REAL(KIND=JPRB) :: RBUIZ0M = 0.05_JPRB ! 0.005_JPRB in CY48R1.0
+    REAL(KIND=JPRB) :: RWALALB = 0.6_JPRB
+    REAL(KIND=JPRB) :: RROOALB = 0.16_JPRB
+    REAL(KIND=JPRB) :: RROAALB = 0.05_JPRB
+    REAL(KIND=JPRB) :: RWALEMIS = 0.96_JPRB
+    REAL(KIND=JPRB) :: RROOEMIS = 0.96_JPRB
+    REAL(KIND=JPRB) :: RROAEMIS = 0.99_JPRB
+    REAL(KIND=JPRB) :: RWALVHC = 3.0E+06_JPRB
+    REAL(KIND=JPRB) :: RROOVHC = 2.0E+06_JPRB
+    REAL(KIND=JPRB) :: RROAVHC = 3.0E+06_JPRB
+    REAL(KIND=JPRB) :: RWALTC = 20.0_JPRB
+    REAL(KIND=JPRB) :: RROOTC = 10.0_JPRB
+    REAL(KIND=JPRB) :: RROATC = 20.0_JPRB
+    REAL(KIND=JPRB) :: RURBALP = 7.65E-01_JPRB
+    REAL(KIND=JPRB) :: RURBCON = 6.67E-13_JPRB
+    REAL(KIND=JPRB) :: RURBLAM = 35.2_JPRB
+    REAL(KIND=JPRB) :: RURBSAT = 0.15_JPRB
+    REAL(KIND=JPRB) :: RURBSRES = 0.001_JPRB
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+
+#include "namparurb.h"
+
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_URB',0,ZHOOK_HANDLE)
+
+    !     ------------------------------------------------------------------
+    !*         0.     ALLOCATE ARRAYS
+    !                 -------------
+
+    !     ------------------------------------------------------------------
+    !*         1.     READ NAMELIST
+    !                 -------------
+
+!    WRITE(*,*) "Reading global urban parameters from namelist..."
+
+    REWIND(NULNAM)
+    READ(NULNAM,NAMPARURB)
+
+    !     ------------------------------------------------------------------
+    !*         2.     WRITE VALUES TO TMP_SURF
+    !                 -------------
+    TMP_SURF%RBUIZ0M  = RBUIZ0M
+    TMP_SURF%RWALALB  = RWALALB
+    TMP_SURF%RROOALB  = RROOALB
+    TMP_SURF%RROAALB  = RROAALB
+    TMP_SURF%RWALEMIS = RWALEMIS
+    TMP_SURF%RROOEMIS = RROOEMIS
+    TMP_SURF%RROAEMIS = RROAEMIS
+    TMP_SURF%RWALVHC  = RWALVHC
+    TMP_SURF%RROOVHC  = RROOVHC
+    TMP_SURF%RROAVHC  = RROAVHC 
+    TMP_SURF%RWALTC   = RWALTC
+    TMP_SURF%RROOTC   = RROOTC
+    TMP_SURF%RROATC   = RROATC
+    TMP_SURF%RURBALP  = RURBALP
+    TMP_SURF%RURBCON  = RURBCON
+    TMP_SURF%RURBLAM  = RURBLAM
+    TMP_SURF%RURBSAT  = RURBSAT
+    TMP_SURF%RURBSRES = RURBSRES
+
+    !     ------------------------------------------------------------------
+    !*         3.     PRINT FINAL VALUES
+    !                 ------------------
+
+    WRITE(UNIT=NULOUT,FMT='('' NAMPARURB namelist '')')
+
+    WRITE(NULOUT,*) '   RBUIZ0M  = ', RBUIZ0M
+    WRITE(NULOUT,*) '   RWALALB  = ', RWALALB
+    WRITE(NULOUT,*) '   RROOALB  = ', RROOALB
+    WRITE(NULOUT,*) '   RROAALB  = ', RROAALB
+    WRITE(NULOUT,*) '   RWALEMIS = ', RWALEMIS
+    WRITE(NULOUT,*) '   RROOEMIS = ', RROOEMIS
+    WRITE(NULOUT,*) '   RROAEMIS = ', RROAEMIS
+    WRITE(NULOUT,*) '   RWALVHC  = ', RWALVHC
+    WRITE(NULOUT,*) '   RROOVHC  = ', RROOVHC
+    WRITE(NULOUT,*) '   RROAVHC  = ', RROAVHC 
+    WRITE(NULOUT,*) '   RWALTC   = ', RWALTC
+    WRITE(NULOUT,*) '   RROOTC   = ', RROOTC
+    WRITE(NULOUT,*) '   RROATC   = ', RROATC
+    WRITE(NULOUT,*) '   RURBALP  = ', RURBALP
+    WRITE(NULOUT,*) '   RURBCON  = ', RURBCON
+    WRITE(NULOUT,*) '   RURBLAM  = ', RURBLAM
+    WRITE(NULOUT,*) '   RURBSAT  = ', RURBSAT
+    WRITE(NULOUT,*) '   RURBSRES = ', RURBSRES
+
+    IF (LHOOK) CALL DR_HOOK('RDNML_URB',1,ZHOOK_HANDLE)
+
+  END SUBROUTINE RDNML_URB
+
+END MODULE RDNML_PARAMS
