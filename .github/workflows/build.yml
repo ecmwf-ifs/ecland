@@ -231,6 +231,7 @@ jobs:
       id: buildcmake
       uses: ecmwf-actions/build-package@v2
       with:
+        save_cache: false
         self_coverage: false
         force_build: true
         cache_suffix: "${{ matrix.build_type }}-${{ env.CACHE_SUFFIX }}"
