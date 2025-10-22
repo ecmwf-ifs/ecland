@@ -190,7 +190,7 @@ for RLOOP in $(seq 1 ${NLOOP}); do
   echo "*******************************************************************************"
   START=$(date +%s)
   ulimit -s unlimited
-  export OMP_STACKSIZE=2G
+#  export OMP_STACKSIZE=2G
   log ${LAUNCH} ${ECLAND_MASTER} || {
     sleep 1
     echo
