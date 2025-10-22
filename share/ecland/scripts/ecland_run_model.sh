@@ -189,6 +189,8 @@ for RLOOP in $(seq 1 ${NLOOP}); do
   echo -e "\n+ ${LAUNCH_CMD} \n"
   echo "*******************************************************************************"
   START=$(date +%s)
+  ulimit -s unlimited
+  export OMP_STACKSIZE=2G
   log ${LAUNCH} ${ECLAND_MASTER} || {
     sleep 1
     echo

@@ -182,7 +182,6 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         printenv >> $GITHUB_ENV
         echo "CACHE_SUFFIX=$CC-$($CC -dumpversion)" >> $GITHUB_ENV
-        ulimit -s unlimited
 
     - name: Install MPI
       shell: bash -eux {0}
