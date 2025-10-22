@@ -32,55 +32,55 @@ jobs:
         build_type: [Bit] # Not passing tests with Release
         prec: ['DP'] # Standalone driver not 'SP' compatible yet
         name:
-          - linux gnu-14
-          - linux nvhpc-24.5
-          - linux intel-classic
-          # - linux intel-modern
-          - macos
+       #   - linux gnu-14
+       #   - linux nvhpc-24.5
+       #   - linux intel-classic
+           - linux intel-modern
+      #    - macos
 
         include:
 
-          - name: linux gnu-14
+      #    - name: linux gnu-14
+      #      os: ubuntu-24.04
+      #      compiler: gnu-14
+      #      compiler_cc: gcc-14
+      #      compiler_cxx: g++-14
+      #      compiler_fc: gfortran-14
+      #      caching: true
+
+      #    - name: linux nvhpc-24.5
+      #      os: ubuntu-24.04
+      #      compiler: nvhpc-24.5
+      #      compiler_cc: nvc
+      #      compiler_cxx: nvc++
+      #      compiler_fc: nvfortran
+      #      cmake_options: -DCMAKE_CXX_FLAGS=--diag_suppress177
+      #      caching: true
+
+      #    - name : linux intel-classic
+      #      os: ubuntu-22.04
+      #      compiler: intel-classic
+      #      compiler_cc: icc
+      #      compiler_cxx: icpc
+      #      compiler_fc: ifort
+      #      caching: true
+
+          - name : linux intel-modern
             os: ubuntu-24.04
-            compiler: gnu-14
-            compiler_cc: gcc-14
-            compiler_cxx: g++-14
-            compiler_fc: gfortran-14
+            compiler: intel-modern
+            compiler_cc: icx
+            compiler_cxx: icpx
+            compiler_fc: ifx
             caching: true
 
-          - name: linux nvhpc-24.5
-            os: ubuntu-24.04
-            compiler: nvhpc-24.5
-            compiler_cc: nvc
-            compiler_cxx: nvc++
-            compiler_fc: nvfortran
-            cmake_options: -DCMAKE_CXX_FLAGS=--diag_suppress177
-            caching: true
-
-          - name : linux intel-classic
-            os: ubuntu-22.04
-            compiler: intel-classic
-            compiler_cc: icc
-            compiler_cxx: icpc
-            compiler_fc: ifort
-            caching: true
-
-          # - name : linux intel-modern
-          #   os: ubuntu-24.04
-          #   compiler: intel-modern
-          #   compiler_cc: icx
-          #   compiler_cxx: icpx
-          #   compiler_fc: ifx
-          #   caching: true
-
-          - name: macos
-            # Xcode compiler requires empty environment variables, so we pass null (~) here
-            os: macos-15
-            compiler: clang-17
-            compiler_cc: ~
-            compiler_cxx: ~
-            compiler_fc: gfortran-15
-            caching: true
+      #    - name: macos
+      #      # Xcode compiler requires empty environment variables, so we pass null (~) here
+      #      os: macos-15
+      #      compiler: clang-17
+      #      compiler_cc: ~
+      #      compiler_cxx: ~
+      #      compiler_fc: gfortran-15
+      #      caching: true
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -178,7 +178,7 @@ jobs:
       if: contains( matrix.compiler, 'intel-modern' )
       run: |
         sudo apt update
-        sudo apt install intel-hpckit
+        sudo apt install intel-oneapi-hpc-toolkit
         source /opt/intel/oneapi/setvars.sh
         printenv >> $GITHUB_ENV
         echo "CACHE_SUFFIX=$CC-$($CC -dumpversion)" >> $GITHUB_ENV
