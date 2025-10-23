@@ -116,8 +116,9 @@ jobs:
           sudo apt-get install ninja-build libcurl4-openssl-dev
         fi
 
-        if [[ "${{ matrix.compiler }}" =~ gnu ]]; then
+        if [[ "${{ matrix.name }}" =~ gnu ]]; then
           sudo apt-get install libnetcdff-dev
+          sudo apt-get install libopenmpi-dev openmpi-bin 
         fi
 
         printenv
