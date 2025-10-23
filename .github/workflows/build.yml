@@ -187,6 +187,7 @@ jobs:
         echo "CACHE_SUFFIX=$CC-$($CC -dumpversion)" >> $GITHUB_ENV
 
     - name: Install MPI
+      if: ${{ !contains(matrix.name, 'gnu') }}
       shell: bash -eux {0}
       run: |
         FCFLAGS=-fPIC CFLAGS=-fPIC FFLAGS=-fPIC ${ECLAND_TOOLS}/install-mpi.sh --mpi openmpi --prefix ${DEPS_DIR}/openmpi
