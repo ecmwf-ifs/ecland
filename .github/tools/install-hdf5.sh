@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-version=1.14.4-3
-
+HDF5_VERSION=1.14.6
 TEMPORARY_FILES="${TMPDIR:-/tmp}"
+USE_CONFIGURE_BUILD=false
+
 export HDF5_INSTALL_DIR=$(pwd)/hdf5-install
 while [ $# != 0 ]; do
     case "$1" in
@@ -13,7 +14,10 @@ while [ $# != 0 ]; do
         TEMPORARY_FILES="$2"; shift
         ;;
     "--version")
-        version="$2"; shift
+        HDF5_VERSION="$2"; shift
+        ;;
+    "--use-configure")
+       USE_CONFIGURE_BUILD=true ; shift
         ;;
     *)
         echo "Unrecognized argument '$1'"
@@ -23,22 +27,16 @@ while [ $# != 0 ]; do
     shift
 done
 
-HDF5_MIRROR=https://support.hdfgroup.org/ftp/HDF5/releases
-HDF5_VERSION=${version}
+# Choose HDF5
 
-# Pick out version parts separated by '.'
 VERSION_PARTS=($(echo ${HDF5_VERSION} | tr "." "\n"))
-# Major version, e.g., 1.14
-MAJOR_VERSION=${VERSION_PARTS[0]}.${VERSION_PARTS[1]}
+MAJOR__VERSION=${VERSION_PARTS[0]}\_${VERSION_PARTS[1]}
+FULL_VERSION=${VERSION_PARTS[0]}\_${VERSION_PARTS[1]}\_${VERSION_PARTS[2]}
 
-# Minor version parts, including patch level (if any), e.g., 3 or 4-3
-MINOR_VERSION_PARTS=($(echo ${VERSION_PARTS[2]} | tr "-" "\n"))
+URL="https://support.hdfgroup.org/releases/hdf5/v${MAJOR__VERSION}/v${FULL_VERSION}/downloads/hdf5-${HDF5_VERSION}.tar.gz"
+FOLDER="hdf5-${HDF5_VERSION}"
 
-# Minor version without patch level
-MINOR_VERSION=${MINOR_VERSION_PARTS[0]}
-
-URL=${HDF5_MIRROR}/hdf5-${MAJOR_VERSION}/hdf5-${MAJOR_VERSION}.${MINOR_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz
-FOLDER=hdf5-${HDF5_VERSION}
+# Download hdf5
 
 if [ ! -d "${TEMPORARY_FILES}/${FOLDER}" ]; then
   echo "Downloading ${TEMPORARY_FILES}/${FOLDER} from URL [${URL}]"
@@ -49,8 +47,19 @@ else
    echo "Download already present in ${TEMPORARY_FILES}/${FOLDER}"
 fi
 
-mkdir -p ${TEMPORARY_FILES}/build-${FOLDER} && cd ${TEMPORARY_FILES}/build-${FOLDER}
-rm -rf ./*
-cmake -G Ninja ${TEMPORARY_FILES}/${FOLDER} -DHDF5_BUILD_FORTRAN=ON -DHDF5_BUILD_HL_LIB=ON -DBUILD_TESTING=OFF
-cmake --build . --config Release
-cmake --install . --prefix "${HDF5_INSTALL_DIR}"
+# Build hdf5
+
+if [ "$USE_CONFIGURE_BUILD" = true ]; then
+   cd ${TEMPORARY_FILES}/hdf*
+   mkdir -p "${HDF5_INSTALL_DIR}"
+   ./configure --prefix="${HDF5_INSTALL_DIR}" --enable-shared --enable-fortran --enable-hl
+   make -j
+   make install
+else
+   cmake -G Ninja -S  ${TEMPORARY_FILES}/${FOLDER} -B "build-${FOLDER}" -DHDF5_BUILD_FORTRAN=ON -DHDF5_BUILD_HL_LIB=ON -DBUILD_TESTING=OFF 
+   cmake --build  "build-${FOLDER}" --config Release
+   cmake --install "build-${FOLDER}" --prefix ${HDF5_INSTALL_DIR}
+fi
+
+exit 0
+

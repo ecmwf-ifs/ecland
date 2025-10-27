@@ -32,21 +32,13 @@ jobs:
         build_type: [Bit] # Not passing tests with Release
         prec: ['DP'] # Standalone driver not 'SP' compatible yet
         name:
-          - linux gnu-10
           - linux gnu-14
-          # - linux nvhpc-23.5  # Not yet passing tests...
+          - linux nvhpc-24.5
           - linux intel-classic
+          - linux intel-modern
           - macos
 
         include:
-
-          - name: linux gnu-10
-            os: ubuntu-22.04
-            compiler: gnu-10
-            compiler_cc: gcc-10
-            compiler_cxx: g++-10
-            compiler_fc: gfortran-10
-            caching: true
 
           - name: linux gnu-14
             os: ubuntu-24.04
@@ -56,14 +48,14 @@ jobs:
             compiler_fc: gfortran-14
             caching: true
 
-          # - name: linux nvhpc-23.5
-          #   os: ubuntu-22.04
-          #   compiler: nvhpc-23.5
-          #   compiler_cc: nvc
-          #   compiler_cxx: nvc++
-          #   compiler_fc: nvfortran
-          #   cmake_options: -DCMAKE_CXX_FLAGS=--diag_suppress177
-          #   caching: true
+          - name: linux nvhpc-24.5
+            os: ubuntu-24.04
+            compiler: nvhpc-24.5
+            compiler_cc: nvc
+            compiler_cxx: nvc++
+            compiler_fc: nvfortran
+            cmake_options: -DCMAKE_CXX_FLAGS=--diag_suppress177
+            caching: true
 
           - name : linux intel-classic
             os: ubuntu-22.04
@@ -73,13 +65,23 @@ jobs:
             compiler_fc: ifort
             caching: true
 
+          - name : linux intel-modern
+            os: ubuntu-24.04
+            compiler: intel-modern
+            compiler_cc: icx
+            compiler_cxx: icpx
+            compiler_fc: ifx
+            caching: true
+            ctest_options: |
+               --test-command "bash -c 'ulimit -s unlimited && ctest -VV --output-on-failure'"
+
           - name: macos
             # Xcode compiler requires empty environment variables, so we pass null (~) here
-            os: macos-13
-            compiler: clang-14
+            os: macos-15
+            compiler: clang-17
             compiler_cc: ~
             compiler_cxx: ~
-            compiler_fc: gfortran-13
+            compiler_fc: gfortran-15
             caching: true
 
     runs-on: ${{ matrix.os }}
@@ -114,8 +116,9 @@ jobs:
           sudo apt-get install ninja-build libcurl4-openssl-dev
         fi
 
-        if [[ "${{ matrix.compiler }}" =~ gnu ]]; then
+        if [[ "${{ matrix.name }}" =~ gnu ]]; then
           sudo apt-get install libnetcdff-dev
+          sudo apt-get install libopenmpi-dev openmpi-bin 
         fi
 
         printenv
@@ -153,25 +156,41 @@ jobs:
       if: contains( matrix.compiler, 'nvhpc' )
       shell: bash -eux {0}
       run: |
-        ${ECLAND_TOOLS}/install-nvhpc.sh --prefix /opt/nvhpc --version 23.5
+        ${ECLAND_TOOLS}/install-nvhpc.sh --prefix /opt/nvhpc --version 24.5
         source /opt/nvhpc/env.sh
         echo "${NVHPC_DIR}/compilers/bin"                   >> $GITHUB_PATH
         [ -z ${MPI_HOME+x} ] || echo "MPI_HOME=${MPI_HOME}" >> $GITHUB_ENV
-        echo "localhost slots=72" >> ${MPI_HOME}/etc/openmpi-default-hostfile
-        echo "ECLAND_LAUNCH_SERIAL_MPI=1" >> $GITHUB_ENV
+
+    - name: Download Intel compiler
+      if: contains( matrix.compiler, 'intel' )
+      run: |
+        wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+        sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+        rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+        sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
 
     - name: Install Intel oneAPI compiler
-      if: contains( matrix.compiler, 'intel' )
+      if: contains( matrix.compiler, 'intel-classic' )
       run: |
         ${ECLAND_TOOLS}/install-intel-oneapi.sh
         source /opt/intel/oneapi/setvars.sh
         printenv >> $GITHUB_ENV
         echo "CACHE_SUFFIX=$CC-$($CC -dumpversion)" >> $GITHUB_ENV
 
+    - name: Install Intel modern compiler
+      if: contains( matrix.compiler, 'intel-modern' )
+      run: |
+        sudo apt update
+        sudo apt install intel-hpckit
+        source /opt/intel/oneapi/setvars.sh
+        printenv >> $GITHUB_ENV
+        echo "CACHE_SUFFIX=$CC-$($CC -dumpversion)" >> $GITHUB_ENV
+
     - name: Install MPI
+      if: ${{ !contains(matrix.name, 'gnu') }}
       shell: bash -eux {0}
       run: |
-        FCFLAGS=-fPIC CFLAGS=-fPIC FFLAGS=-fPIC ${ECLAND_TOOLS}/install-mpi.sh --mpi openmpi --prefix  ${DEPS_DIR}/openmpi
+        FCFLAGS=-fPIC CFLAGS=-fPIC FFLAGS=-fPIC ${ECLAND_TOOLS}/install-mpi.sh --mpi openmpi --prefix ${DEPS_DIR}/openmpi
         [ -f ${DEPS_DIR}/openmpi/env.sh ] && source ${DEPS_DIR}/openmpi/env.sh
         [ -z ${MPI_HOME+x} ] || echo "MPI_HOME=${MPI_HOME}" >> $GITHUB_ENV
 
@@ -182,54 +201,71 @@ jobs:
         [ -z ${MPI_HOME+x} ] || echo "${MPI_HOME}/bin" >> $GITHUB_PATH
 
     - name: Install HDF5
-      if: contains( matrix.compiler, 'intel' )
+      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc')
       run: |
         if [[ -f ${{ env.DEPS_DIR }}/hdf5/lib/libhdf5.settings ]]; then
           echo "::debug::HDF5 restored from cache"
         else
-          ${ECLAND_TOOLS}/install-hdf5.sh --prefix ${{ env.DEPS_DIR }}/hdf5
+         if [[ "${{ matrix.compiler }}" == intel-classic ]]; then
+            ${ECLAND_TOOLS}/install-hdf5.sh --use-configure ON --version 1.14.3 --prefix "${{ env.DEPS_DIR }}/hdf5"
+          else
+            ${ECLAND_TOOLS}/install-hdf5.sh --prefix "${{ env.DEPS_DIR }}/hdf5"
+          fi
         fi
         echo "HDF5_ROOT=${{ env.DEPS_DIR }}/hdf5" >> $GITHUB_ENV
 
     - name: Install NetCDF C
-      if: contains( matrix.compiler, 'intel' )
+      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc')
       run: |
         if [[ -f ${{ env.DEPS_DIR }}/netcdf/bin/nc-config ]]; then
           echo "::debug::NetCDF C restored from cache"
         else
-          ${ECLAND_TOOLS}/install-netcdf-c.sh --prefix ${{ env.DEPS_DIR }}/netcdf --hdf5-root ${HDF5_ROOT}
+          ${ECLAND_TOOLS}/install-netcdf-c.sh --prefix ${{ env.DEPS_DIR }}/netcdf --hdf5-root ${HDF5_ROOT} --version 4.9.2
         fi
         echo "NETCDF_ROOT=${{ env.DEPS_DIR }}/netcdf" >> $GITHUB_ENV
 
     - name: Install NetCDF Fortran
-      if: contains( matrix.compiler, 'intel' )
+      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc')
       run: |
         if [[ -f ${NETCDF_ROOT}/bin/nf-config ]]; then
           echo "::debug::NetCDF Fortran restored from cache"
         else
-          ${ECLAND_TOOLS}/install-netcdf-fortran.sh --prefix ${{ env.DEPS_DIR }}/netcdf --netcdf-root ${NETCDF_ROOT}
+          ${ECLAND_TOOLS}/install-netcdf-fortran.sh --prefix ${{ env.DEPS_DIR }}/netcdf --netcdf-root ${NETCDF_ROOT} --version 4.6.2
         fi
 
-    - name: Build & Test
-      id: build-test
+    - name: Build with CMake 
+      id: buildcmake
       uses: ecmwf-actions/build-package@v2
       with:
+        save_cache: false
         self_coverage: false
         force_build: true
         cache_suffix: "${{ matrix.build_type }}-${{ env.CACHE_SUFFIX }}"
         recreate_cache: ${{ matrix.caching == false }}
         dependencies: |
           ecmwf/ecbuild
-          ecmwf/eccodes
+          ecmwf-ifs/fiat
+          ecmwf/eccodes@refs/tags/2.44.0
         dependency_branch: develop
         dependency_cmake_options: |
-          ecmwf/eccodes: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF -DENABLE_AEC=OFF"
-        cmake_options: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.cmake_options }} -DENABLE_MPI=ON -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' }}"
-        ctest_options: "${{ matrix.ctest_options }}"
+          ecmwf/eccodes: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF"
+          ecmwf-ifs/fiat: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTS=OFF -DENABLE_DR_HOOK_NVTX=OFF -DENABLE_MPI=ON"
+        cmake_options: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.cmake_options }} -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' }}"
+        self_build: true
+        self_test: false 
+
+    - name: Run Tests 
+      shell: bash
+      run: |
+        if [[ "$(uname)" != "Darwin" ]]; then
+          ulimit -s unlimited
+        fi
+        ctest -VV  --output-on-failure ${{ matrix.ctest_options }}
+      working-directory: build
 
     - name: Verify tools
       run: |
-        export PATH=${{ steps.build-test.outputs.bin_path }}:$PATH
+        export PATH=${{ steps.buildcmake.outputs.bin_path }}:$PATH
 
         echo "+ ecland --info"
         ecland --info
