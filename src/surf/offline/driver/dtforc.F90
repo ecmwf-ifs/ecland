@@ -319,15 +319,15 @@ IF ( NACCTYPE .eq.2 .AND. LPREINT ) THEN
    !# THREE CONSECUTIVE FORCING TIME STEPS ARE USED.
    !# ONE BEFORE AND ONE AFTER THE ACTUAL ONE THAT WE DEVIDE INTO SUBSTEPS
    !# THE DIVISION IS DONE IN A WAY TO PRESERVE THE ORIGINAL FORECAST VALUE (AS SUM OF SUBVALUES)
-   ZWa(:,:)=0.
+   ZWa(:,:)=0._JPRD
    IFF1=IFFF !actually = (rtimtr-RTSTFC)/DTIMFC+1
    IFF2=IFF1+1
    IFF3=IFF2+1
    IF (IFF1.LE.1) THEN
-      IFF1=-99
+      IFF1=-99_JPIM
    ENDIF
    IF (IFF2.EQ.NSTPFC) THEN
-      IFF3=-99
+      IFF3=-99_JPIM
    ENDIF
    IF (IFF1.LT.0 .AND. IFF3.LT.0) then
       WRITE(*,*) "ERROR - The precip values in the 1st and 3rd time steps are both empty"
@@ -335,78 +335,78 @@ IF ( NACCTYPE .eq.2 .AND. LPREINT ) THEN
       STOP 2
    ELSE IF (IFF1.GT.0 .AND. IFF3.LT.0) THEN
       IF (NFORC.EQ.2) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,1)=0.2
-         ZWa(2,2)=0.8
+         ZWa(1,1)=0.6_JPRD
+         ZWa(1,2)=0.4_JPRD
+         ZWa(2,1)=0.2_JPRD
+         ZWa(2,2)=0.8_JPRD
       ELSE IF (NFORC.EQ.3) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,1)=0.2
-         ZWa(2,2)=0.8
-         ZWa(3,2)=1.0
+         ZWa(1,1)=0.6_JPRD
+         ZWa(1,2)=0.4_JPRD
+         ZWa(2,1)=0.2_JPRD
+         ZWa(2,2)=0.8_JPRD
+         ZWa(3,2)=1.0_JPRD
       ELSE IF (NFORC.EQ.6) THEN
-         ZWa(1,1)=0.8
-         ZWa(1,2)=0.2
-         ZWa(2,1)=0.6
-         ZWa(2,2)=0.4
-         ZWa(3,1)=0.4
-         ZWa(3,2)=0.6
-         ZWa(4,1)=0.2
-         ZWa(4,2)=0.8
-         ZWa(5,1)=0.1
-         ZWa(5,2)=0.9
-         ZWa(6,2)=1.0
+         ZWa(1,1)=0.8_JPRD
+         ZWa(1,2)=0.2_JPRD
+         ZWa(2,1)=0.6_JPRD
+         ZWa(2,2)=0.4_JPRD
+         ZWa(3,1)=0.4_JPRD
+         ZWa(3,2)=0.6_JPRD
+         ZWa(4,1)=0.2_JPRD
+         ZWa(4,2)=0.8_JPRD
+         ZWa(5,1)=0.1_JPRD
+         ZWa(5,2)=0.9_JPRD
+         ZWa(6,2)=1.0_JPRD
       ENDIF
    ELSE IF (IFF1.LT.0 .AND. IFF3.GT.0) THEN
       IF (NFORC.EQ.2) THEN
-         ZWa(1,2)=1.0
-         ZWa(2,2)=0.4
-         ZWa(2,3)=0.6
+         ZWa(1,2)=1.0_JPRD
+         ZWa(2,2)=0.4_JPRD
+         ZWa(2,3)=0.6_JPRD
       ELSE IF (NFORC.EQ.3) THEN
-         ZWa(1,2)=1.0
-         ZWa(2,2)=0.8
-         ZWa(2,3)=0.2
-         ZWa(3,2)=0.4
-         ZWa(3,3)=0.6
+         ZWa(1,2)=1.0_JPRD
+         ZWa(2,2)=0.8_JPRD
+         ZWa(2,3)=0.2_JPRD
+         ZWa(3,2)=0.4_JPRD
+         ZWa(3,3)=0.6_JPRD
       ELSE IF (NFORC.EQ.6) THEN
-         ZWa(1,2)=1.0
-         ZWa(2,2)=0.9
-         ZWa(2,3)=0.1
-         ZWa(3,2)=0.8
-         ZWa(3,3)=0.2
-         ZWa(4,2)=0.6
-         ZWa(4,3)=0.4
-         ZWa(5,2)=0.4
-         ZWa(5,3)=0.6
-         ZWa(6,2)=0.2
-         ZWa(6,3)=0.8
+         ZWa(1,2)=1.0_JPRD
+         ZWa(2,2)=0.9_JPRD
+         ZWa(2,3)=0.1_JPRD
+         ZWa(3,2)=0.8_JPRD
+         ZWa(3,3)=0.2_JPRD
+         ZWa(4,2)=0.6_JPRD
+         ZWa(4,3)=0.4_JPRD
+         ZWa(5,2)=0.4_JPRD
+         ZWa(5,3)=0.6_JPRD
+         ZWa(6,2)=0.2_JPRD
+         ZWa(6,3)=0.8_JPRD
       ENDIF
    ELSE IF (IFF1.GT.0 .AND. IFF3.GT.0) THEN
       IF (NFORC.EQ.2) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,2)=0.4
-         ZWa(2,3)=0.6
+         ZWa(1,1)=0.6_JPRD
+         ZWa(1,2)=0.4_JPRD
+         ZWa(2,2)=0.4_JPRD
+         ZWa(2,3)=0.6_JPRD
       ELSE IF (NFORC.EQ.3) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,2)=1.0
-         ZWa(3,2)=0.4
-         ZWa(3,3)=0.6
+         ZWa(1,1)=0.6_JPRD
+         ZWa(1,2)=0.4_JPRD
+         ZWa(2,2)=1.0_JPRD
+         ZWa(3,2)=0.4_JPRD
+         ZWa(3,3)=0.6_JPRD
       ELSE IF (NFORC.EQ.6) THEN
-         ZWa(1,1)=0.8
-         ZWa(1,2)=0.2
-         ZWa(2,1)=0.5
-         ZWa(2,2)=0.5
-         ZWa(3,1)=0.2
-         ZWa(3,2)=0.8
-         ZWa(4,2)=0.8
-         ZWa(4,3)=0.2
-         ZWa(5,2)=0.5
-         ZWa(5,3)=0.5
-         ZWa(6,2)=0.2
-         ZWa(6,3)=0.8
+         ZWa(1,1)=0.8_JPRD
+         ZWa(1,2)=0.2_JPRD
+         ZWa(2,1)=0.5_JPRD
+         ZWa(2,2)=0.5_JPRD
+         ZWa(3,1)=0.2_JPRD
+         ZWa(3,2)=0.8_JPRD
+         ZWa(4,2)=0.8_JPRD
+         ZWa(4,3)=0.2_JPRD
+         ZWa(5,2)=0.5_JPRD
+         ZWa(5,3)=0.5_JPRD
+         ZWa(6,2)=0.2_JPRD
+         ZWa(6,3)=0.8_JPRD
       ENDIF
    ENDIF
 ENDIF 
@@ -519,8 +519,8 @@ IF (LPREINT .AND. NACCTYPE.eq.2 .and. (NFORC.eq.2 .or. NFORC.eq.3 .or. NFORC.eq.
    DO JJ=1,NPOI
       DO JK=1,NFORC
          TP2=DTIMFC*(R30FI(JJ,IFF2)+S30FI(JJ,IFF2))
-         IF (TP2.LE.0.001) THEN
-            ZWTMP(JJ,JK)=0.
+         IF (TP2.LE.0.001_JPRB) THEN
+            ZWTMP(JJ,JK)=0._JPRB
          ELSE
             IF (IFF1.LT.0) THEN
                TP3=DTIMFC*(R30FI(JJ,IFF3)+S30FI(JJ,IFF3))
@@ -537,18 +537,18 @@ IF (LPREINT .AND. NACCTYPE.eq.2 .and. (NFORC.eq.2 .or. NFORC.eq.3 .or. NFORC.eq.
       END DO
    END DO
 
-   ZWSUM(:)=0.
+   ZWSUM(:)=0._JPRB
    DO JK=1,NFORC
       ZWSUM(:)=ZWSUM(:)+ZWTMP(:,JK)
    ENDDO
 
    DO JJ=1,NPOI
-      IF (ZWSUM(JJ).GT.0.001) THEN
+      IF (ZWSUM(JJ).GT.0.001_JPRB) THEN
          FLSRF(JJ)=NFORC*R30FI(JJ,IFF2)*(ZWTMP(JJ,STACT)/ZWSUM(JJ))
          FLSSF(JJ)=NFORC*S30FI(JJ,IFF2)*(ZWTMP(JJ,STACT)/ZWSUM(JJ))
       ELSE
-         FLSRF(JJ)=0.
-         FLSSF(JJ)=0.
+         FLSRF(JJ)=0._JPRB
+         FLSSF(JJ)=0._JPRB
       END IF
    ENDDO
 ENDIF
@@ -619,7 +619,7 @@ ELSE
 ! Using values from timeseries used in IFS radiation code from CMIP6 file (CY48)
 
   call dattim(ZJUL,IYMD,IHM)
-  YYYY=INT(IYMD/10000._JPRB)
+  YYYY=INT(IYMD/10000)
   IYYYY=MIN(MAX(1,YYYY-RCO2REFYEAR+1),RNCO2YEARS)
 
   ZCO2=RANCO2(IYYYY)
