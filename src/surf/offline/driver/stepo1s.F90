@@ -145,13 +145,6 @@ ELSE
     ENDIF
   ENDDO
   !$OMP END PARALLEL DO
-!Note since Soil Liquid Water is not available at NSTART
-!the value at NSTART+1 is used.
-  IF(NSTEP == NSTART+1)THEN
-    QLQNUA(:,:)=0.5_JPRB*D1SWAFR(:,:)+ZFAC*D1SWAFR(:,:)
-  ELSE
-    QLQNUA(:,:)=QLQNUA(:,:)+ZFAC*D1SWAFR(:,:)
-  ENDIF
 ENDIF
 
 !*       3.   WRITE OUT DIAGNOSTIC VARIABLES AND TENDENCIES.
@@ -200,7 +193,6 @@ IF (LACCUMW) THEN
       QLQNUA(IST:IEND,:) = 0.5*D1SWAFR(1:IPROMA,:,IBL)
     ENDDO
     !$OMP END PARALLEL DO
-    QLQNUA(:,:)=0.5_JPRB*D1SWAFR(:,:)
 
   ENDIF
 ENDIF
