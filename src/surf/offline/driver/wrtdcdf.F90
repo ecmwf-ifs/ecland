@@ -313,6 +313,27 @@ ENDWHERE
 
 !* calculation of total soil wetness
 
+!DO JL=1,NPOI
+!  IF(LEVGEN)THEN
+!    JS=NINT(VFSOTY(JL))
+!    ZWPWP=RWPWPM(JS)
+!    ZWSAT=RWSATM(JS)
+!  ELSE
+!    ZWPWP=RWPWP
+!    ZWSAT=RWSAT
+!  ENDIF
+!  IF ( (ZWSAT-ZWPWP) > 0._JPRB ) THEN
+!    ZSWET(JL)=&
+!     &(DOT_PRODUCT(ZPA*QLINUA(JL,:),RDAW(:))-&
+!     &SUM(RDAW)*ZWPWP)/&
+!     &(SUM(RDAW)*(ZWSAT-ZWPWP))
+!  ELSE
+!    ZSWET(JL)=0.0_JPRB
+!  ENDIF
+!ENDDO
+
+!* calculation of root zone soil moisture content: all liquid water
+!  above wilting point in layers where roots are found
 !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
 DO IST = 1, NPOI, NPROMA
   IEND = MIN(IST+NPROMA-1,NPOI)
@@ -322,156 +343,66 @@ DO IST = 1, NPOI, NPROMA
   DO JL=IST,IEND
     IL = JL-IST+1
 
+  ZCVL=VFCVL(IL,IBL)*S2RVCOVL2D(JL)
+  ZCVH=VFCVH(IL,IBL)*S2RVCOVH2D(JL)
+
+  ZSROOT(JL)=0._JPRB
+  DO JK=1,NCSS
     IF(LEVGEN)THEN
-      JS=NINT(VFSOTY(IL,IBL))
-      ZWPWP=RWPWPM(JS)
-      ZWSAT=RWSATM(JS)
+      ZWPWP=S3RWPWPM3D(JL,JK)
     ELSE
       ZWPWP=RWPWP
-      ZWSAT=RWSAT
     ENDIF
-    IF ( (ZWSAT-ZWPWP) > 0._JPRB ) THEN
-      ZSWET(JL)=&
-       &(DOT_PRODUCT(ZPA*QLINUA(JL,:),RDAW(:))-&
-       &SUM(RDAW)*ZWPWP)/&
-       &(SUM(RDAW)*(ZWSAT-ZWPWP))
-    ELSE
-      ZSWET(JL)=0.0_JPRB
+    IF((ZCVL > 0._JPRB .AND. S3RVROOTSAL3D(JL,JK) > 0._JPRB) .OR.&
+      &(ZCVH > 0._JPRB .AND. S3RVROOTSAH3D(JL,JK) > 0._JPRB)) THEN
+       ZSROOT(JL)=ZSROOT(JL)+&
+        &MAX(ZPA*ZLIQ(JL,JK)-RDAW(JK)*RHOH2O*ZWPWP, 0.0_JPRB)
     ENDIF
   ENDDO
 ENDDO
+ENDDO
 !$OMP END PARALLEL DO
 
-!* calculation of root zone soil moisture content: all liquid water
-!  above wilting point in layers where roots are found
+!* calculation of depth of frozen ground and thaw layer
+!$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+DO IST = 1, NPOI, NPROMA
+  IEND = MIN(IST+NPROMA-1,NPOI)
+  IBL = (IST-1)/NPROMA + 1
+  IPROMA = IEND-IST+1
 
-!<<<<<<< HEAD
-!DO JL=1,NPOI
-!  IBL=MAX((JL-1)/NPROMA,1)
-!  IF(IBL == 1)THEN
-!    IL = JL
-!  ELSE
-!    IL=MOD(JL,(IBL-1)*NPROMA)
-!  ENDIF
-!
-!  ZCVL=VFCVL(IL,IBL)*S2RVCOVL2D(IL)
-!  ZCVH=VFCVH(IL,IBL)*S2RVCOVH2D(IL)
-!
-!  ZSROOT(JL)=0._JPRB
-!  DO JK=1,NCSS
-!    IF(LEVGEN)THEN
-!      ZWPWP=S3RWPWPM3D(IL,JK)
-!    ELSE
-!      ZWPWP=RWPWP
-!    ENDIF
-!    IF((ZCVL > 0._JPRB .AND. S3RVROOTSAL3D(IL,JK) > 0._JPRB) .OR.&
-!      &(ZCVH > 0._JPRB .AND. S3RVROOTSAH3D(IL,JK) > 0._JPRB)) THEN
-!       ZSROOT(JL)=ZSROOT(JL)+&
-!        &MAX(ZPA*ZLIQ(JL,JK)-RDAW(JK)*RHOH2O*ZWPWP, 0.0_JPRB)
-!=======
-!!$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
-!DO IST = 1, NPOI, NPROMA
-!  IEND = MIN(IST+NPROMA-1,NPOI)
-!  IBL = (IST-1)/NPROMA + 1
-!  IPROMA = IEND-IST+1
-!
-!  DO JL=IST,IEND
-!    IL = JL-IST+1
-!
-!    ITYPL=NINT(VFTVL(IL,IBL))
-!    ITYPH=NINT(VFTVH(IL,IBL))
-!    ZCVL=VFCVL(IL,IBL)*ZRVCOV(ITYPL)
-!    ZCVH=VFCVH(IL,IBL)*ZRVCOV(ITYPH)
-!    IF(LEVGEN)THEN
-!      JS=NINT(VFSOTY(IL,IBL))
-!      ZWPWP=RWPWPM(JS)
-!    ELSE
-!      ZWPWP=RWPWP
-!>>>>>>> 554c5cc (Array indexing bug fixes)
-!    ENDIF
-!  
-!    ZSROOT(JL)=0.
-!    DO JK=1,NCSS
-!      IF((ZCVL > 0. .AND. ZRVROOTSA(JK,ITYPL) > 0.) .OR.&
-!       &(ZCVH > 0. .AND. ZRVROOTSA(JK,ITYPH) > 0.)) THEN
-!        ZSROOT(JL)=ZSROOT(JL)+&
-!         &MAX(ZPA*ZLIQ(JL,JK)-RDAW(JK)*RHOH2O*ZWPWP, 0.0_JPRB)
-!      ENDIF
-!    ENDDO
-!  ENDDO
-!ENDDO
-!!$OMP END PARALLEL DO
-!
-!!* calculation of depth of frozen ground and thaw layer
-!<<<<<<< HEAD
-!DO JL=1,NPOI
-!  ZFDEPT(JL)=0._JPRB
-!  ZBOT=0._JPRB
-!  DO JK=1,NCSS
-!    ZF = 0_JPRB
-!    IF (ZQLINUA(JL,JK) > 0._JPRB ) THEN
-!      ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
-!    ENDIF
-!    ZTOP=ZBOT
-!    ZBOT=ZTOP+RDAW(JK)
-!    IF(ZF > 0._JPRB)THEN
-!      ZFDEPT(JL)=MIN(SUM(RDAW),ZTOP+ZF*(ZBOT-ZTOP))
-!    ENDIF
-!  ENDDO
-!
-!  ZBOT=SUM(RDAW)
-!  ZFTHAW(JL)=ZBOT
-!  DO JK=NCSS,1,-1
-!    ZF=0._JPRB
-!    IF ( ZQLINUA(JL,JK) > 0._JPRB ) THEN
-!      ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
-!    ENDIF
-!    ZTOP=ZBOT-RDAW(JK)
-!    IF(ZF > 0._JPRB)THEN
-!      ZFTHAW(JL)=MAX(0._JPRB,ZBOT+ZF*(ZTOP-ZBOT))
-!    ENDIF
-!    ZBOT=ZTOP
-!=======
-!!$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
-!DO IST = 1, NPOI, NPROMA
-!  IEND = MIN(IST+NPROMA-1,NPOI)
-!  IBL = (IST-1)/NPROMA + 1
-!  IPROMA = IEND-IST+1
-!
-!  DO JL=IST,IEND
-!    IL = JL-IST+1
-!
-!    ZFDEPT(JL)=0.
-!    ZBOT=0.
-!    DO JK=1,NCSS
-!      ZF = 0_JPRB
-!      IF (ZQLINUA(JL,JK) > 0._JPRB ) THEN
-!        ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
-!      ENDIF
-!      ZTOP=ZBOT
-!      ZBOT=ZTOP+RDAW(JK)
-!      IF(ZF > 0.)THEN
-!        ZFDEPT(JL)=MIN(SUM(RDAW),ZTOP+ZF*(ZBOT-ZTOP))
-!      ENDIF
-!    ENDDO
-!
-!    ZBOT=SUM(RDAW)
-!    ZFTHAW(JL)=ZBOT
-!    DO JK=NCSS,1,-1
-!      ZF=0._JPRB
-!      IF ( ZQLINUA(JL,JK) > 0._JPRB ) THEN
-!        ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
-!      ENDIF
-!      ZTOP=ZBOT-RDAW(JK)
-!      IF(ZF > 0.)THEN
-!        ZFTHAW(JL)=MAX(0._JPRB,ZBOT+ZF*(ZTOP-ZBOT))
-!      ENDIF
-!      ZBOT=ZTOP
-!    ENDDO
-!>>>>>>> 554c5cc (Array indexing bug fixes)
-!  ENDDO
-!ENDDO
-!!$OMP END PARALLEL DO
+  DO JL=IST,IEND
+    IL = JL-IST+1
+
+    ZFDEPT(JL)=0.
+    ZBOT=0.
+  DO JK=1,NCSS
+    ZF = 0_JPRB
+    IF (ZQLINUA(JL,JK) > 0._JPRB ) THEN
+      ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
+    ENDIF
+    ZTOP=ZBOT
+    ZBOT=ZTOP+RDAW(JK)
+    IF(ZF > 0._JPRB)THEN
+      ZFDEPT(JL)=MIN(SUM(RDAW),ZTOP+ZF*(ZBOT-ZTOP))
+    ENDIF
+  ENDDO
+
+  ZBOT=SUM(RDAW)
+  ZFTHAW(JL)=ZBOT
+  DO JK=NCSS,1,-1
+    ZF=0._JPRB
+    IF ( ZQLINUA(JL,JK) > 0._JPRB ) THEN
+      ZF=MAX(0._JPRB,MIN(1._JPRB,1._JPRB-QLQNUA(JL,JK)/ZQLINUA(JL,JK)))
+    ENDIF
+    ZTOP=ZBOT-RDAW(JK)
+    IF(ZF > 0._JPRB)THEN
+      ZFTHAW(JL)=MAX(0._JPRB,ZBOT+ZF*(ZTOP-ZBOT))
+    ENDIF
+    ZBOT=ZTOP
+  ENDDO
+ENDDO
+ENDDO
+!$OMP END PARALLEL DO
 
 !* ===============================================================
 !     START OUTPUT
@@ -2078,7 +2009,8 @@ IF(LWRCO2)THEN
 
 !* -- BVOC flux
   IF( MYPROC == 1 ) NVARID = NCVID(NPOS,'BVOCflux',IERR)
-  ZVALUE(:)=D1SBVOCFLUX2(:,IA)*ZWA
+  CALL PACK_BUFFER(D1SBVOCFLUX2(:,IA,:), ZVALUE)
+  ZVALUE = ZVALUE*ZWA
   CALL MPL_GATHERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZVALUE(:),KRECVCOUNTS=NPOIP(:),CDSTRING="WRTDCDF:")
   IF( MYPROC == 1 ) THEN
     ZOUTPUT(:,1)=UNPACK(ZBUF(:),LMASK(ISTP:IENP),RMISS)
@@ -2873,7 +2805,8 @@ IF(LWRVTY)THEN
   !* -- BVOC flux diagnostics type 1, specified per vegetation type
   IF( MYPROC == 1 ) NVARID = NCVID(NPOS,'BVOCflux1',IERR)
   DO JVT=1,NVHILO
-    ZVALUE(:)=D1SBVOCST1(:,JVT) ! *ZWA ! VH: Not accumulated ; no need to multiply..
+!   ZVALUE(:)=D1SBVOCST1(:,JVT) ! *ZWA ! VH: Not accumulated ; no need to multiply..
+    CALL PACK_BUFFER(D1SBVOCST1(:,JVT,:), ZVALUE)
     CALL MPL_GATHERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZVALUE(:),KRECVCOUNTS=NPOIP(:),CDSTRING="WRTDCDF:")
     IF( MYPROC == 1 ) ZOUTPUT(:,JVT)=UNPACK(ZBUF(:),LMASK(ISTP:IENP),RMISS)
   ENDDO
@@ -2889,7 +2822,8 @@ IF(LWRVTY)THEN
   !* -- BVOC flux diagnostics type 2, specified per vegetation type
   IF( MYPROC == 1 ) NVARID = NCVID(NPOS,'BVOCflux2',IERR)
   DO JVT=1,NVHILO
-    ZVALUE(:)=D1SBVOCST2(:,JVT) ! *ZWA ! VH: Not accumulated ; no need to multiply..
+!   ZVALUE(:)=D1SBVOCST2(:,JVT) ! *ZWA ! VH: Not accumulated ; no need to multiply..
+    CALL PACK_BUFFER(D1SBVOCST2(:,JVT,:), ZVALUE)
     CALL MPL_GATHERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZVALUE(:),KRECVCOUNTS=NPOIP(:),CDSTRING="WRTDCDF:")
     IF( MYPROC == 1 ) ZOUTPUT(:,JVT)=UNPACK(ZBUF(:),LMASK(ISTP:IENP),RMISS)
   ENDDO
