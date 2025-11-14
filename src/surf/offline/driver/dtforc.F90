@@ -17,8 +17,9 @@ USE YOMLOG1S , ONLY : LDBGS1,IDBGS1
 USE YOMGC1S  , ONLY : GELAM   ,GELAT, GEMU
 USE YOERIP   , ONLY : RCODECM  ,RSIDECM  ,RCOVSRM  ,RSIVSRM
 USE YOMCST   , ONLY : RDAY, REA , REPSM, RMD, RMCO2, RANCO2, RCO2REFYEAR, RNCO2YEARS
-USE YOMDPHY  , ONLY : NPOI, NTRAC
+USE YOMDPHY  , ONLY : NPOI, NTRAC, NLEV
 USE YOEPHY   , ONLY : LEAIRCO2COUP
+USE YOMDIM1S , ONLY : NPROMA
 
 
 #ifdef DOC
@@ -119,10 +120,11 @@ REAL(KIND=JPRD) :: Z_ZENITH1,Z_S_ELEV1, Z_ZENITH2,Z_S_ELEV2,Z_ANGLE1,Z_ANGLE2
 REAL(KIND=JPRD) :: ZJUL,ZCO2
 
 
-INTEGER(KIND=JPIM) :: NFORC, JK, JKK, STACT, IFFF,JJ
+INTEGER(KIND=JPIM) :: NFORC, JK, JKK, STACT, IFFF,JJ,II
 INTEGER(KIND=JPIM) :: IYMD,IHM,IYYYY,YYYY
 
 INTEGER(KIND=JPIM) :: ITMP
+INTEGER(KIND=JPIM) :: IST,IEND,IPROMA,IBL
 
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
@@ -136,10 +138,19 @@ IF ( LSWINT ) THEN
     Z_RADCON=Z_TWOPI/360.0_JPRD
     Z_CONRAD=360.0_JPRD/Z_TWOPI
     ! Solar zenith angle computation
-    ZMU0M(:)=MAX( RSIDECM*GEMU(:) &
-        & -RCODECM*RCOVSRM*SQRT(1._JPRD-GEMU(:)**2)*COS(GELAM(:)) &
-        & +RCODECM*RSIVSRM*SQRT(1._JPRD-GEMU(:)**2)*SIN(GELAM(:)) &
-        & ,0._JPRD)
+
+    !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+    DO IST = 1, NPOI, NPROMA
+      IEND = MIN(IST+NPROMA-1,NPOI)
+      IBL = (IST-1)/NPROMA + 1
+      IPROMA = IEND-IST+1
+
+      ZMU0M(IST:IEND)=MAX( RSIDECM*GEMU(1:IPROMA,IBL) &
+          & -RCODECM*RCOVSRM*SQRT(1._JPRD-GEMU(1:IPROMA,IBL)**2)*COS(GELAM(1:IPROMA,IBL)) &
+          & +RCODECM*RSIVSRM*SQRT(1._JPRD-GEMU(1:IPROMA,IBL)**2)*SIN(GELAM(1:IPROMA,IBL)) &
+          & ,0._JPRD)
+    ENDDO
+    !$OMP END PARALLEL DO
 ENDIF 
 
 
@@ -265,10 +276,19 @@ IF (NACCTYPE.eq.2) THEN
                 ZWSOVRM=ZSOVRM*2._JPRD*Z_PI/RDAY
                 ZCOVSRM=COS(ZWSOVRM)
                 ZSIVSRM=SIN(ZWSOVRM)
-                ZANG(:)=ZANG(:)+MAX( ZSIDECM*GEMU(:) &
-                    & -ZCODECM*ZCOVSRM*SQRT(1._JPRD-GEMU(:)**2)*COS(GELAM(:)) &
-                    & +ZCODECM*ZSIVSRM*SQRT(1._JPRD-GEMU(:)**2)*SIN(GELAM(:)) &
-                    & ,0._JPRD)
+
+                !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+                DO IST = 1, NPOI, NPROMA
+                  IEND = MIN(IST+NPROMA-1,NPOI)
+                  IBL = (IST-1)/NPROMA + 1
+                  IPROMA = IEND-IST+1
+
+                  ZANG(IST:IEND)=ZANG(IST:IEND)+MAX( ZSIDECM*GEMU(1:IPROMA,IBL) &
+                      & -ZCODECM*ZCOVSRM*SQRT(1._JPRD-GEMU(1:IPROMA,IBL)**2)*COS(GELAM(1:IPROMA,IBL)) &
+                      & +ZCODECM*ZSIVSRM*SQRT(1._JPRD-GEMU(1:IPROMA,IBL)**2)*SIN(GELAM(1:IPROMA,IBL)) &
+                      & ,0._JPRD)
+                ENDDO
+                !$OMP END PARALLEL DO
             END DO
             ZANG(:)=ZANG(:)/4
 
@@ -324,10 +344,10 @@ IF ( NACCTYPE .eq.2 .AND. LPREINT ) THEN
    IFF2=IFF1+1
    IFF3=IFF2+1
    IF (IFF1.LE.1) THEN
-      IFF1=-99
+      IFF1=-99_JPRB
    ENDIF
    IF (IFF2.EQ.NSTPFC) THEN
-      IFF3=-99
+      IFF3=-99_JPRB
    ENDIF
    IF (IFF1.LT.0 .AND. IFF3.LT.0) then
       WRITE(*,*) "ERROR - The precip values in the 1st and 3rd time steps are both empty"
@@ -335,78 +355,78 @@ IF ( NACCTYPE .eq.2 .AND. LPREINT ) THEN
       STOP 2
    ELSE IF (IFF1.GT.0 .AND. IFF3.LT.0) THEN
       IF (NFORC.EQ.2) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,1)=0.2
-         ZWa(2,2)=0.8
+         ZWa(1,1)=0.6_JPRB
+         ZWa(1,2)=0.4_JPRB
+         ZWa(2,1)=0.2_JPRB
+         ZWa(2,2)=0.8_JPRB
       ELSE IF (NFORC.EQ.3) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,1)=0.2
-         ZWa(2,2)=0.8
-         ZWa(3,2)=1.0
+         ZWa(1,1)=0.6_JPRB
+         ZWa(1,2)=0.4_JPRB
+         ZWa(2,1)=0.2_JPRB
+         ZWa(2,2)=0.8_JPRB
+         ZWa(3,2)=1.0_JPRB
       ELSE IF (NFORC.EQ.6) THEN
-         ZWa(1,1)=0.8
-         ZWa(1,2)=0.2
-         ZWa(2,1)=0.6
-         ZWa(2,2)=0.4
-         ZWa(3,1)=0.4
-         ZWa(3,2)=0.6
-         ZWa(4,1)=0.2
-         ZWa(4,2)=0.8
-         ZWa(5,1)=0.1
-         ZWa(5,2)=0.9
-         ZWa(6,2)=1.0
+         ZWa(1,1)=0.8_JPRB
+         ZWa(1,2)=0.2_JPRB
+         ZWa(2,1)=0.6_JPRB
+         ZWa(2,2)=0.4_JPRB
+         ZWa(3,1)=0.4_JPRB
+         ZWa(3,2)=0.6_JPRB
+         ZWa(4,1)=0.2_JPRB
+         ZWa(4,2)=0.8_JPRB
+         ZWa(5,1)=0.1_JPRB
+         ZWa(5,2)=0.9_JPRB
+         ZWa(6,2)=1.0_JPRB
       ENDIF
    ELSE IF (IFF1.LT.0 .AND. IFF3.GT.0) THEN
       IF (NFORC.EQ.2) THEN
-         ZWa(1,2)=1.0
-         ZWa(2,2)=0.4
-         ZWa(2,3)=0.6
+         ZWa(1,2)=1.0_JPRB
+         ZWa(2,2)=0.4_JPRB
+         ZWa(2,3)=0.6_JPRB
       ELSE IF (NFORC.EQ.3) THEN
-         ZWa(1,2)=1.0
-         ZWa(2,2)=0.8
-         ZWa(2,3)=0.2
-         ZWa(3,2)=0.4
-         ZWa(3,3)=0.6
+         ZWa(1,2)=1.0_JPRB
+         ZWa(2,2)=0.8_JPRB
+         ZWa(2,3)=0.2_JPRB
+         ZWa(3,2)=0.4_JPRB
+         ZWa(3,3)=0.6_JPRB
       ELSE IF (NFORC.EQ.6) THEN
-         ZWa(1,2)=1.0
-         ZWa(2,2)=0.9
-         ZWa(2,3)=0.1
-         ZWa(3,2)=0.8
-         ZWa(3,3)=0.2
-         ZWa(4,2)=0.6
-         ZWa(4,3)=0.4
-         ZWa(5,2)=0.4
-         ZWa(5,3)=0.6
-         ZWa(6,2)=0.2
-         ZWa(6,3)=0.8
+         ZWa(1,2)=1.0_JPRB
+         ZWa(2,2)=0.9_JPRB
+         ZWa(2,3)=0.1_JPRB
+         ZWa(3,2)=0.8_JPRB
+         ZWa(3,3)=0.2_JPRB
+         ZWa(4,2)=0.6_JPRB
+         ZWa(4,3)=0.4_JPRB
+         ZWa(5,2)=0.4_JPRB
+         ZWa(5,3)=0.6_JPRB
+         ZWa(6,2)=0.2_JPRB
+         ZWa(6,3)=0.8_JPRB
       ENDIF
    ELSE IF (IFF1.GT.0 .AND. IFF3.GT.0) THEN
       IF (NFORC.EQ.2) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,2)=0.4
-         ZWa(2,3)=0.6
+         ZWa(1,1)=0.6_JPRB
+         ZWa(1,2)=0.4_JPRB
+         ZWa(2,2)=0.4_JPRB
+         ZWa(2,3)=0.6_JPRB
       ELSE IF (NFORC.EQ.3) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,2)=1.0
-         ZWa(3,2)=0.4
-         ZWa(3,3)=0.6
+         ZWa(1,1)=0.6_JPRB
+         ZWa(1,2)=0.4_JPRB
+         ZWa(2,2)=1.0_JPRB
+         ZWa(3,2)=0.4_JPRB
+         ZWa(3,3)=0.6_JPRB
       ELSE IF (NFORC.EQ.6) THEN
-         ZWa(1,1)=0.8
-         ZWa(1,2)=0.2
-         ZWa(2,1)=0.5
-         ZWa(2,2)=0.5
-         ZWa(3,1)=0.2
-         ZWa(3,2)=0.8
-         ZWa(4,2)=0.8
-         ZWa(4,3)=0.2
-         ZWa(5,2)=0.5
-         ZWa(5,3)=0.5
-         ZWa(6,2)=0.2
-         ZWa(6,3)=0.8
+         ZWa(1,1)=0.8_JPRB
+         ZWa(1,2)=0.2_JPRB
+         ZWa(2,1)=0.5_JPRB
+         ZWa(2,2)=0.5_JPRB
+         ZWa(3,1)=0.2_JPRB
+         ZWa(3,2)=0.8_JPRB
+         ZWa(4,2)=0.8_JPRB
+         ZWa(4,3)=0.2_JPRB
+         ZWa(5,2)=0.5_JPRB
+         ZWa(5,3)=0.5_JPRB
+         ZWa(6,2)=0.2_JPRB
+         ZWa(6,3)=0.8_JPRB
       ENDIF
    ENDIF
 ENDIF 
@@ -414,14 +434,32 @@ ENDIF
 
 
 ! Parameters with default linear interpolation (instantaneous parameters)
-UNLEV0(:)=ZW*UFI(:,IF)+ZWP1*UFI(:,IFP1)
-VNLEV0(:)=ZW*VFI(:,IF)+ZWP1*VFI(:,IFP1)
-TNLEV0(:)=ZW*TFI(:,IF)+ZWP1*TFI(:,IFP1)
-QNLEV0(:)=ZW*QFI(:,IF)+ZWP1*QFI(:,IFP1)
-PNLP0(:)=ZW*PSFI(:,IF)+ZWP1*PSFI(:,IFP1)
+!$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+DO IST = 1, NPOI, NPROMA
+  IEND = MIN(IST+NPROMA-1,NPOI)
+  IBL = (IST-1)/NPROMA + 1
+  IPROMA = IEND-IST+1
+
+  UNLEV0(1:IPROMA,IBL)=ZW*UFI(IST:IEND,IF)+ZWP1*UFI(IST:IEND,IFP1)
+  VNLEV0(1:IPROMA,IBL)=ZW*VFI(IST:IEND,IF)+ZWP1*VFI(IST:IEND,IFP1)
+  TNLEV0(1:IPROMA,IBL)=ZW*TFI(IST:IEND,IF)+ZWP1*TFI(IST:IEND,IFP1)
+  QNLEV0(1:IPROMA,IBL)=ZW*QFI(IST:IEND,IF)+ZWP1*QFI(IST:IEND,IFP1)
+
+  FSTRD(1:IPROMA,IBL)=ZWF*TRFFI(IST:IEND,IFF)+ZWFP1*TRFFI(IST:IEND,IFFP1)
+  IF(LSWINT)THEN
+    FSSRD(1:IPROMA,IBL)=(DTIMFC/TSTEP)*ZWS(IST:IEND)*SRFFI(IST:IEND,IFFF+1)
+  ELSE
+    FSSRD(1:IPROMA,IBL)=ZWF*SRFFI(IST:IEND,IFF)+ZWFP1*SRFFI(IST:IEND,IFFP1)
+  ENDIF
+  WHERE (FSSRD(:,IBL) .LT. 0._JPRB)
+      FSSRD(:,IBL)=0._JPRB
+  ENDWHERE
+
+  PNLP0(1:IPROMA,IBL)=ZW*PSFI(IST:IEND,IF)+ZWP1*PSFI(IST:IEND,IFP1)
+ENDDO
+!$OMP END PARALLEL DO
 
 ! FLUXES INTERPLOATION 
-FSTRD(:)=ZWf*TRFFI(:,IFF)+ZWfP1*TRFFI(:,IFFP1)
 ! SW radiation Interpolated based on Solar zenith angle
 IF ( LSWINT ) THEN
     IFSOLAR=IFFF+1
@@ -433,15 +471,7 @@ IF ( LSWINT ) THEN
         WRITE(NULOUT,*) " IFSOLAR > NSTPFC+1"
         STOP
     ENDIF
-    FSSRD(:)=(DTIMFC/TSTEP)*ZWS(:)*SRFFI(:,IFSOLAR)
-ELSE
-    FSSRD(:)=ZWf*SRFFI(:,IFF)+ZWfP1*SRFFI(:,IFFP1)
 ENDIF
-WHERE (FSSRD(:) < 0._JPRB)
-    FSSRD(:)=0._JPRB
-ENDWHERE
-
-
 
 !PV
 IF (LDBGS1) THEN
@@ -465,7 +495,7 @@ IF (LDBGS1) THEN
   WRITE(NULOUT,*) ' R30FI(JL,IFFP1)= ',R30FI(JL,IFFP1)
   WRITE(NULOUT,*) ' S30FI(JL,IFF)= ',S30FI(JL,IFF)
   WRITE(NULOUT,*) ' S30FI(JL,IFFP1)= ',S30FI(JL,IFFP1)
-  WRITE(NULOUT,*) ' FSSRD(JL): ',FSSRD(JL)
+  WRITE(NULOUT,*) ' FSSRD(JL): ',FSSRD(JL,1)
 ENDIF
 
 
@@ -477,7 +507,7 @@ ENDIF
 !##########
 IF (NACCTYPE.eq.0) THEN
    ! Fluxed assumed centred on the timestamp |---X---|
-   IF(ZWf > 0.5)THEN
+   IF(ZWf > 0.5_JPRB)THEN
       IFPREC=IFF
    ELSE
       IFPREC=IFFP1
@@ -501,11 +531,18 @@ ELSEIF (IFPREC > NSTPFC+1) THEN
     STOP
 ENDIF
 
-FLSRF(:)=R30FI(:,IFPREC)
-FLSSF(:)=S30FI(:,IFPREC)
-FCRF(:)=R30FI_C(:,IFPREC)
-FCSF(:)=S30FI_C(:,IFPREC)
+!$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+DO IST = 1, NPOI, NPROMA
+  IEND = MIN(IST+NPROMA-1,NPOI)
+  IBL = (IST-1)/NPROMA + 1
+  IPROMA = IEND-IST+1
 
+  FLSRF(1:IPROMA,IBL)=R30FI(IST:IEND,IFPREC)
+  FLSSF(1:IPROMA,IBL)=S30FI(IST:IEND,IFPREC)
+  FCRF(1:IPROMA,IBL)=R30FI_C(IST:IEND,IFPREC)
+  FCSF(1:IPROMA,IBL)=S30FI_C(IST:IEND,IFPREC)
+ENDDO
+!$OMP END PARALLEL DO
 
 !# (3rd option) MORE REALISTIC LOOKING DISTRIBUTION IS APPLIED (WEIGHTING BY THE NEIGHBURING STEPS)
 !# Applied ONLY for backward accumulation and ONLY IF we devide the forcing period into 2, 3 or 6 parts
@@ -519,8 +556,8 @@ IF (LPREINT .AND. NACCTYPE.eq.2 .and. (NFORC.eq.2 .or. NFORC.eq.3 .or. NFORC.eq.
    DO JJ=1,NPOI
       DO JK=1,NFORC
          TP2=DTIMFC*(R30FI(JJ,IFF2)+S30FI(JJ,IFF2))
-         IF (TP2.LE.0.001) THEN
-            ZWTMP(JJ,JK)=0.
+         IF (TP2.LE.0.001_JPRB) THEN
+            ZWTMP(JJ,JK)=0._JPRB
          ELSE
             IF (IFF1.LT.0) THEN
                TP3=DTIMFC*(R30FI(JJ,IFF3)+S30FI(JJ,IFF3))
@@ -537,20 +574,28 @@ IF (LPREINT .AND. NACCTYPE.eq.2 .and. (NFORC.eq.2 .or. NFORC.eq.3 .or. NFORC.eq.
       END DO
    END DO
 
-   ZWSUM(:)=0.
+   ZWSUM(:)=0._JPRB
    DO JK=1,NFORC
       ZWSUM(:)=ZWSUM(:)+ZWTMP(:,JK)
    ENDDO
 
-   DO JJ=1,NPOI
-      IF (ZWSUM(JJ).GT.0.001) THEN
-         FLSRF(JJ)=NFORC*R30FI(JJ,IFF2)*(ZWTMP(JJ,STACT)/ZWSUM(JJ))
-         FLSSF(JJ)=NFORC*S30FI(JJ,IFF2)*(ZWTMP(JJ,STACT)/ZWSUM(JJ))
-      ELSE
-         FLSRF(JJ)=0.
-         FLSSF(JJ)=0.
-      END IF
+   !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA,II,JJ)
+   DO IST = 1, NPOI, NPROMA
+     IEND = MIN(IST+NPROMA-1,NPOI)
+     IBL = (IST-1)/NPROMA + 1
+     IPROMA = IEND-IST+1
+     DO JJ=IST,IEND
+        II = JJ-IST+1
+        IF (ZWSUM(JJ).GT.0.001_JPRB) THEN
+           FLSRF(II,IBL)=NFORC*R30FI(JJ,IFF2)*(ZWTMP(JJ,STACT)/ZWSUM(JJ))
+           FLSSF(II,IBL)=NFORC*S30FI(JJ,IFF2)*(ZWTMP(JJ,STACT)/ZWSUM(JJ))
+        ELSE
+           FLSRF(II,IBL)=0._JPRB
+           FLSSF(II,IBL)=0._JPRB
+        END IF
+     ENDDO
    ENDDO
+   !$OMP END PARALLEL DO
 ENDIF
 
 
@@ -584,13 +629,6 @@ IF (LDBGS1) THEN
    &,PSFI(JL,IFPP1)
 ENDIF
 
-UNLEV1(:)=ZWP*UFI(:,IFP)+ZWPP1*UFI(:,IFPP1)
-VNLEV1(:)=ZWP*VFI(:,IFP)+ZWPP1*VFI(:,IFPP1)
-TNLEV1(:)=ZWP*TFI(:,IFP)+ZWPP1*TFI(:,IFPP1)
-QNLEV1(:)=ZWP*QFI(:,IFP)+ZWPP1*QFI(:,IFPP1)
-PNLP1(:) =ZWP*PSFI(:,IFP)+ZWPP1*PSFI(:,IFPP1)
-
-
 IF ( IDBGS1 > 1 ) THEN
   WRITE(NULOUT,"('dtfor:UVTQ(t)   =Z1*U(t1)+Z2*U(t2),Z1=',F5.2,' Z2=',F5.2,' t1=',I6,' t2=',I6)") ZW,ZWP1,IF,IFP1
   WRITE(NULOUT,"('dtfor:RAD(t/t+1)=Z1*U(t1)+Z2*U(t2),Z1=',F5.2,' Z2=',F5.2,' t1=',I6,' t2=',I6)") ZWf,ZWfP1,IFF,IFFP1
@@ -600,18 +638,43 @@ IF ( IDBGS1 > 1 ) THEN
   WRITE(NULOUT,"('dtfor:PRE(t/t+1)=Rainf(t1),t1=',I6,' NSTPFC=',I6)") IFPREC,NSTPFC
   WRITE(NULOUT,"('dtfor:UVTQ(t+1) =Z1*U(t1)+Z2*U(t2),Z1=',F5.2,' Z2=',F5.2,' t1=',I6,' t2=',I6)") ZWP,ZWPP1,IFP,IFPP1
 ENDIF
-UNLEV0(:)=ZW*UFI(:,IF)+ZWP1*UFI(:,IFP1)
-VNLEV0(:)=ZW*VFI(:,IF)+ZWP1*VFI(:,IFP1)
-TNLEV0(:)=ZW*TFI(:,IF)+ZWP1*TFI(:,IFP1)
-QNLEV0(:)=ZW*QFI(:,IF)+ZWP1*QFI(:,IFP1)
-PNLP0(:)=ZW*PSFI(:,IF)+ZWP1*PSFI(:,IFP1)
+
+!$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+DO IST = 1, NPOI, NPROMA
+  IEND = MIN(IST+NPROMA-1,NPOI)
+  IBL = (IST-1)/NPROMA + 1
+  IPROMA = IEND-IST+1
+
+  UNLEV1(1:IPROMA,IBL)=ZWP*UFI(IST:IEND,IFP)+ZWPP1*UFI(IST:IEND,IFPP1)
+  VNLEV1(1:IPROMA,IBL)=ZWP*VFI(IST:IEND,IFP)+ZWPP1*VFI(IST:IEND,IFPP1)
+  TNLEV1(1:IPROMA,IBL)=ZWP*TFI(IST:IEND,IFP)+ZWPP1*TFI(IST:IEND,IFPP1)
+  QNLEV1(1:IPROMA,IBL)=ZWP*QFI(IST:IEND,IFP)+ZWPP1*QFI(IST:IEND,IFPP1)
+  PNLP1(1:IPROMA,IBL) =ZWP*PSFI(IST:IEND,IFP)+ZWPP1*PSFI(IST:IEND,IFPP1)
+
+  UNLEV0(1:IPROMA,IBL)=ZW*UFI(IST:IEND,IF)+ZWP1*UFI(IST:IEND,IFP1)
+  VNLEV0(1:IPROMA,IBL)=ZW*VFI(IST:IEND,IF)+ZWP1*VFI(IST:IEND,IFP1)
+  TNLEV0(1:IPROMA,IBL)=ZW*TFI(IST:IEND,IF)+ZWP1*TFI(IST:IEND,IFP1)
+  QNLEV0(1:IPROMA,IBL)=ZW*QFI(IST:IEND,IF)+ZWP1*QFI(IST:IEND,IFP1)
+
+  PNLP0(1:IPROMA,IBL)=ZW*PSFI(IST:IEND,IF)+ZWP1*PSFI(IST:IEND,IFP1)
+ENDDO
+!$OMP END PARALLEL DO
+
 
 ! Use variable atmospheric CO2 from the forcing fields
 
 IF (LEAIRCO2COUP) THEN
 
-  CNLEV0(:,1)=ZW*CO2FI(:,IF)+ZWP1*CO2FI(:,IFP1)
-  CNLEV1(:,1)=ZWP*CO2FI(:,IFP)+ZWPP1*CO2FI(:,IFPP1)
+  !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
+  DO IST = 1, NPOI, NPROMA
+    IEND = MIN(IST+NPROMA-1,NPOI)
+    IBL = (IST-1)/NPROMA + 1
+    IPROMA = IEND-IST+1
+
+    CNLEV0(1:IPROMA,1,IBL)= ZW*CO2FI(IST:IEND,IF )+ ZWP1*CO2FI(IST:IEND,IFP1)
+    CNLEV1(1:IPROMA,1,IBL)=ZWP*CO2FI(IST:IEND,IFP)+ZWPP1*CO2FI(IST:IEND,IFPP1)
+  ENDDO
+  !$OMP END PARALLEL DO
 
 ELSE
 
@@ -625,8 +688,8 @@ ELSE
   ZCO2=RANCO2(IYYYY)
   WRITE(NULOUT,*) ' ***** ATMOSPHERIC CO2:',ZCO2
 
-  CNLEV0(:,:)=ZCO2*RMCO2/(RMD*1000000._JPRB)
-  CNLEV1(:,:)=ZCO2*RMCO2/(RMD*1000000._JPRB)
+  CNLEV0(:,:,:)=ZCO2*RMCO2/(RMD*1000000._JPRB)
+  CNLEV1(:,:,:)=ZCO2*RMCO2/(RMD*1000000._JPRB)
 
 ENDIF
 IF (LHOOK) CALL DR_HOOK('DTFORC',1,ZHOOK_HANDLE)
