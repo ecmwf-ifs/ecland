@@ -344,10 +344,10 @@ IF ( NACCTYPE .eq.2 .AND. LPREINT ) THEN
    IFF2=IFF1+1
    IFF3=IFF2+1
    IF (IFF1.LE.1) THEN
-      IFF1=-99
+      IFF1=-99_JPRB
    ENDIF
    IF (IFF2.EQ.NSTPFC) THEN
-      IFF3=-99
+      IFF3=-99_JPRB
    ENDIF
    IF (IFF1.LT.0 .AND. IFF3.LT.0) then
       WRITE(*,*) "ERROR - The precip values in the 1st and 3rd time steps are both empty"
@@ -355,78 +355,78 @@ IF ( NACCTYPE .eq.2 .AND. LPREINT ) THEN
       STOP 2
    ELSE IF (IFF1.GT.0 .AND. IFF3.LT.0) THEN
       IF (NFORC.EQ.2) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,1)=0.2
-         ZWa(2,2)=0.8
+         ZWa(1,1)=0.6_JPRB
+         ZWa(1,2)=0.4_JPRB
+         ZWa(2,1)=0.2_JPRB
+         ZWa(2,2)=0.8_JPRB
       ELSE IF (NFORC.EQ.3) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,1)=0.2
-         ZWa(2,2)=0.8
-         ZWa(3,2)=1.0
+         ZWa(1,1)=0.6_JPRB
+         ZWa(1,2)=0.4_JPRB
+         ZWa(2,1)=0.2_JPRB
+         ZWa(2,2)=0.8_JPRB
+         ZWa(3,2)=1.0_JPRB
       ELSE IF (NFORC.EQ.6) THEN
-         ZWa(1,1)=0.8
-         ZWa(1,2)=0.2
-         ZWa(2,1)=0.6
-         ZWa(2,2)=0.4
-         ZWa(3,1)=0.4
-         ZWa(3,2)=0.6
-         ZWa(4,1)=0.2
-         ZWa(4,2)=0.8
-         ZWa(5,1)=0.1
-         ZWa(5,2)=0.9
-         ZWa(6,2)=1.0
+         ZWa(1,1)=0.8_JPRB
+         ZWa(1,2)=0.2_JPRB
+         ZWa(2,1)=0.6_JPRB
+         ZWa(2,2)=0.4_JPRB
+         ZWa(3,1)=0.4_JPRB
+         ZWa(3,2)=0.6_JPRB
+         ZWa(4,1)=0.2_JPRB
+         ZWa(4,2)=0.8_JPRB
+         ZWa(5,1)=0.1_JPRB
+         ZWa(5,2)=0.9_JPRB
+         ZWa(6,2)=1.0_JPRB
       ENDIF
    ELSE IF (IFF1.LT.0 .AND. IFF3.GT.0) THEN
       IF (NFORC.EQ.2) THEN
-         ZWa(1,2)=1.0
-         ZWa(2,2)=0.4
-         ZWa(2,3)=0.6
+         ZWa(1,2)=1.0_JPRB
+         ZWa(2,2)=0.4_JPRB
+         ZWa(2,3)=0.6_JPRB
       ELSE IF (NFORC.EQ.3) THEN
-         ZWa(1,2)=1.0
-         ZWa(2,2)=0.8
-         ZWa(2,3)=0.2
-         ZWa(3,2)=0.4
-         ZWa(3,3)=0.6
+         ZWa(1,2)=1.0_JPRB
+         ZWa(2,2)=0.8_JPRB
+         ZWa(2,3)=0.2_JPRB
+         ZWa(3,2)=0.4_JPRB
+         ZWa(3,3)=0.6_JPRB
       ELSE IF (NFORC.EQ.6) THEN
-         ZWa(1,2)=1.0
-         ZWa(2,2)=0.9
-         ZWa(2,3)=0.1
-         ZWa(3,2)=0.8
-         ZWa(3,3)=0.2
-         ZWa(4,2)=0.6
-         ZWa(4,3)=0.4
-         ZWa(5,2)=0.4
-         ZWa(5,3)=0.6
-         ZWa(6,2)=0.2
-         ZWa(6,3)=0.8
+         ZWa(1,2)=1.0_JPRB
+         ZWa(2,2)=0.9_JPRB
+         ZWa(2,3)=0.1_JPRB
+         ZWa(3,2)=0.8_JPRB
+         ZWa(3,3)=0.2_JPRB
+         ZWa(4,2)=0.6_JPRB
+         ZWa(4,3)=0.4_JPRB
+         ZWa(5,2)=0.4_JPRB
+         ZWa(5,3)=0.6_JPRB
+         ZWa(6,2)=0.2_JPRB
+         ZWa(6,3)=0.8_JPRB
       ENDIF
    ELSE IF (IFF1.GT.0 .AND. IFF3.GT.0) THEN
       IF (NFORC.EQ.2) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,2)=0.4
-         ZWa(2,3)=0.6
+         ZWa(1,1)=0.6_JPRB
+         ZWa(1,2)=0.4_JPRB
+         ZWa(2,2)=0.4_JPRB
+         ZWa(2,3)=0.6_JPRB
       ELSE IF (NFORC.EQ.3) THEN
-         ZWa(1,1)=0.6
-         ZWa(1,2)=0.4
-         ZWa(2,2)=1.0
-         ZWa(3,2)=0.4
-         ZWa(3,3)=0.6
+         ZWa(1,1)=0.6_JPRB
+         ZWa(1,2)=0.4_JPRB
+         ZWa(2,2)=1.0_JPRB
+         ZWa(3,2)=0.4_JPRB
+         ZWa(3,3)=0.6_JPRB
       ELSE IF (NFORC.EQ.6) THEN
-         ZWa(1,1)=0.8
-         ZWa(1,2)=0.2
-         ZWa(2,1)=0.5
-         ZWa(2,2)=0.5
-         ZWa(3,1)=0.2
-         ZWa(3,2)=0.8
-         ZWa(4,2)=0.8
-         ZWa(4,3)=0.2
-         ZWa(5,2)=0.5
-         ZWa(5,3)=0.5
-         ZWa(6,2)=0.2
-         ZWa(6,3)=0.8
+         ZWa(1,1)=0.8_JPRB
+         ZWa(1,2)=0.2_JPRB
+         ZWa(2,1)=0.5_JPRB
+         ZWa(2,2)=0.5_JPRB
+         ZWa(3,1)=0.2_JPRB
+         ZWa(3,2)=0.8_JPRB
+         ZWa(4,2)=0.8_JPRB
+         ZWa(4,3)=0.2_JPRB
+         ZWa(5,2)=0.5_JPRB
+         ZWa(5,3)=0.5_JPRB
+         ZWa(6,2)=0.2_JPRB
+         ZWa(6,3)=0.8_JPRB
       ENDIF
    ENDIF
 ENDIF 
@@ -440,10 +440,10 @@ DO IST = 1, NPOI, NPROMA
   IBL = (IST-1)/NPROMA + 1
   IPROMA = IEND-IST+1
 
-  UNLEV0(1:IPROMA,NLEV,IBL)=ZW*UFI(IST:IEND,IF)+ZWP1*UFI(IST:IEND,IFP1)
-  VNLEV0(1:IPROMA,NLEV,IBL)=ZW*VFI(IST:IEND,IF)+ZWP1*VFI(IST:IEND,IFP1)
-  TNLEV0(1:IPROMA,NLEV,IBL)=ZW*TFI(IST:IEND,IF)+ZWP1*TFI(IST:IEND,IFP1)
-  QNLEV0(1:IPROMA,NLEV,IBL)=ZW*QFI(IST:IEND,IF)+ZWP1*QFI(IST:IEND,IFP1)
+  UNLEV0(1:IPROMA,IBL)=ZW*UFI(IST:IEND,IF)+ZWP1*UFI(IST:IEND,IFP1)
+  VNLEV0(1:IPROMA,IBL)=ZW*VFI(IST:IEND,IF)+ZWP1*VFI(IST:IEND,IFP1)
+  TNLEV0(1:IPROMA,IBL)=ZW*TFI(IST:IEND,IF)+ZWP1*TFI(IST:IEND,IFP1)
+  QNLEV0(1:IPROMA,IBL)=ZW*QFI(IST:IEND,IF)+ZWP1*QFI(IST:IEND,IFP1)
 
   FSTRD(1:IPROMA,IBL)=ZWF*TRFFI(IST:IEND,IFF)+ZWFP1*TRFFI(IST:IEND,IFFP1)
   IF(LSWINT)THEN
@@ -507,7 +507,7 @@ ENDIF
 !##########
 IF (NACCTYPE.eq.0) THEN
    ! Fluxed assumed centred on the timestamp |---X---|
-   IF(ZWf > 0.5)THEN
+   IF(ZWf > 0.5_JPRB)THEN
       IFPREC=IFF
    ELSE
       IFPREC=IFFP1
@@ -556,8 +556,8 @@ IF (LPREINT .AND. NACCTYPE.eq.2 .and. (NFORC.eq.2 .or. NFORC.eq.3 .or. NFORC.eq.
    DO JJ=1,NPOI
       DO JK=1,NFORC
          TP2=DTIMFC*(R30FI(JJ,IFF2)+S30FI(JJ,IFF2))
-         IF (TP2.LE.0.001) THEN
-            ZWTMP(JJ,JK)=0.
+         IF (TP2.LE.0.001_JPRB) THEN
+            ZWTMP(JJ,JK)=0._JPRB
          ELSE
             IF (IFF1.LT.0) THEN
                TP3=DTIMFC*(R30FI(JJ,IFF3)+S30FI(JJ,IFF3))
@@ -574,7 +574,7 @@ IF (LPREINT .AND. NACCTYPE.eq.2 .and. (NFORC.eq.2 .or. NFORC.eq.3 .or. NFORC.eq.
       END DO
    END DO
 
-   ZWSUM(:)=0.
+   ZWSUM(:)=0._JPRB
    DO JK=1,NFORC
       ZWSUM(:)=ZWSUM(:)+ZWTMP(:,JK)
    ENDDO
@@ -586,12 +586,12 @@ IF (LPREINT .AND. NACCTYPE.eq.2 .and. (NFORC.eq.2 .or. NFORC.eq.3 .or. NFORC.eq.
      IPROMA = IEND-IST+1
      DO JJ=IST,IEND
         II = JJ-IST+1
-        IF (ZWSUM(JJ).GT.0.001) THEN
+        IF (ZWSUM(JJ).GT.0.001_JPRB) THEN
            FLSRF(II,IBL)=NFORC*R30FI(JJ,IFF2)*(ZWTMP(JJ,STACT)/ZWSUM(JJ))
            FLSSF(II,IBL)=NFORC*S30FI(JJ,IFF2)*(ZWTMP(JJ,STACT)/ZWSUM(JJ))
         ELSE
-           FLSRF(II,IBL)=0.
-           FLSSF(II,IBL)=0.
+           FLSRF(II,IBL)=0._JPRB
+           FLSSF(II,IBL)=0._JPRB
         END IF
      ENDDO
    ENDDO
@@ -645,16 +645,16 @@ DO IST = 1, NPOI, NPROMA
   IBL = (IST-1)/NPROMA + 1
   IPROMA = IEND-IST+1
 
-  UNLEV1(1:IPROMA,NLEV,IBL)=ZWP*UFI(IST:IEND,IFP)+ZWPP1*UFI(IST:IEND,IFPP1)
-  VNLEV1(1:IPROMA,NLEV,IBL)=ZWP*VFI(IST:IEND,IFP)+ZWPP1*VFI(IST:IEND,IFPP1)
-  TNLEV1(1:IPROMA,NLEV,IBL)=ZWP*TFI(IST:IEND,IFP)+ZWPP1*TFI(IST:IEND,IFPP1)
-  QNLEV1(1:IPROMA,NLEV,IBL)=ZWP*QFI(IST:IEND,IFP)+ZWPP1*QFI(IST:IEND,IFPP1)
+  UNLEV1(1:IPROMA,IBL)=ZWP*UFI(IST:IEND,IFP)+ZWPP1*UFI(IST:IEND,IFPP1)
+  VNLEV1(1:IPROMA,IBL)=ZWP*VFI(IST:IEND,IFP)+ZWPP1*VFI(IST:IEND,IFPP1)
+  TNLEV1(1:IPROMA,IBL)=ZWP*TFI(IST:IEND,IFP)+ZWPP1*TFI(IST:IEND,IFPP1)
+  QNLEV1(1:IPROMA,IBL)=ZWP*QFI(IST:IEND,IFP)+ZWPP1*QFI(IST:IEND,IFPP1)
   PNLP1(1:IPROMA,IBL) =ZWP*PSFI(IST:IEND,IFP)+ZWPP1*PSFI(IST:IEND,IFPP1)
 
-  UNLEV0(1:IPROMA,NLEV,IBL)=ZW*UFI(IST:IEND,IF)+ZWP1*UFI(IST:IEND,IFP1)
-  VNLEV0(1:IPROMA,NLEV,IBL)=ZW*VFI(IST:IEND,IF)+ZWP1*VFI(IST:IEND,IFP1)
-  TNLEV0(1:IPROMA,NLEV,IBL)=ZW*TFI(IST:IEND,IF)+ZWP1*TFI(IST:IEND,IFP1)
-  QNLEV0(1:IPROMA,NLEV,IBL)=ZW*QFI(IST:IEND,IF)+ZWP1*QFI(IST:IEND,IFP1)
+  UNLEV0(1:IPROMA,IBL)=ZW*UFI(IST:IEND,IF)+ZWP1*UFI(IST:IEND,IFP1)
+  VNLEV0(1:IPROMA,IBL)=ZW*VFI(IST:IEND,IF)+ZWP1*VFI(IST:IEND,IFP1)
+  TNLEV0(1:IPROMA,IBL)=ZW*TFI(IST:IEND,IF)+ZWP1*TFI(IST:IEND,IFP1)
+  QNLEV0(1:IPROMA,IBL)=ZW*QFI(IST:IEND,IF)+ZWP1*QFI(IST:IEND,IFP1)
 
   PNLP0(1:IPROMA,IBL)=ZW*PSFI(IST:IEND,IF)+ZWP1*PSFI(IST:IEND,IFP1)
 ENDDO
@@ -671,7 +671,7 @@ IF (LEAIRCO2COUP) THEN
     IBL = (IST-1)/NPROMA + 1
     IPROMA = IEND-IST+1
 
-    CNLEV0(1:IPROMA,1,IBL)=ZW*CO2FI(IST:IEND,IF)+ZWP1*CO2FI(IST:IEND,IFP1)
+    CNLEV0(1:IPROMA,1,IBL)= ZW*CO2FI(IST:IEND,IF )+ ZWP1*CO2FI(IST:IEND,IFP1)
     CNLEV1(1:IPROMA,1,IBL)=ZWP*CO2FI(IST:IEND,IFP)+ZWPP1*CO2FI(IST:IEND,IFPP1)
   ENDDO
   !$OMP END PARALLEL DO
