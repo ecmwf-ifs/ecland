@@ -331,7 +331,7 @@ DO IST = 1, NPOI, NPROMA
 ! - INPUT .
      & , GPD_SDP2(IST:IEND,:), GPD_SDP3(IST:IEND,:,:) &
      & , ZAPHIF(:,:,IBL) , ZAPRS(:,:,IBL) &
-     & , UNLEV0(:,:,IBL) , VNLEV0(:,:,IBL) , TNLEV0(:,:,IBL) , QNLEV0(:,:,IBL), CNLEV0(:,:,IBL) &
+     & , UNLEV0(:,IBL) , VNLEV0(:,IBL) , TNLEV0(:,IBL) , QNLEV0(:,IBL), CNLEV0(:,:,IBL) &
      & , FSNNU0(:,:,IBL) &
      & , ASNNU0(:,IBL) , RSNNU0(:,:,IBL) , TSNNU0(:,:,IBL),WSNNU0(:,:,IBL) &
      & , TSLNU0(:,:,IBL) , WRENU0(:,IBL) , TRENU0(:,IBL) , QLINU0(:,:,IBL) &
@@ -358,7 +358,7 @@ DO IST = 1, NPOI, NPROMA
 !     & , UONUC    ,VONUC    ,USTRCNU   ,VSTRNUC               &!KPP
      & , UONU0(:,:,IBL)    ,VONU0(:,:,IBL)    ,TONU0(:,:,IBL)     ,SONU0(:,:,IBL)                 &!KPP
 ! - INPUT AT T+1, AND/OR ATMOSPHERIC FORCING
-     & , UNLEV1(:,:,IBL) , VNLEV1(:,:,IBL) , TNLEV1(:,:,IBL) , QNLEV1(:,:,IBL) , CNLEV1(:,:,IBL) &
+     & , UNLEV1(:,IBL) , VNLEV1(:,IBL) , TNLEV1(:,IBL) , QNLEV1(:,IBL) , CNLEV1(:,:,IBL) &
      & , FSSRD(:,IBL)  , FSTRD(:,IBL) &
      & , FCRF(:,IBL)   , FCSF(:,IBL)   , FLSRF(:,IBL)  , FLSSF(:,IBL) &
 ! - OUTPUT .
@@ -406,7 +406,7 @@ DO IST = 1, NPOI, NPROMA
    & ZEVAPTIU(:,:,IBL),&
    & ZAN(:,IBL),ZAG(:,IBL),ZRD(:,IBL),ZRSOIL_STR(:,IBL),ZRECO(:,IBL),ZCO2FLUX(:,IBL),ZCH4FLUX(:,IBL), ZBVOCFLUX(:,:,IBL), &
    & ZLAI(:,IBL),ZBIOM(:,IBL),ZBLOSS(:,IBL),ZBGAIN(:,IBL),ZBIOMSTR(:,IBL),ZBIOMSTR2(:,IBL), &
-   & TNLEV1(:,:,IBL),QNLEV1(:,:,IBL),UNLEV1(:,:,IBL),VNLEV1(:,:,IBL),PNLP1(:,IBL),&
+   & TNLEV1(:,IBL),QNLEV1(:,IBL),UNLEV1(:,IBL),VNLEV1(:,IBL),PNLP1(:,IBL),&
    & ZFRSO(:,:,IBL),FSSRD(:,IBL),ZFRTH(:,:,IBL),FSTRD(:,IBL),VDALB(:,IBL),ZFTLHEV(:,IBL),ZFTLHSB(:,IBL), &
    & ZDIFTQ(:,:,IBL),ZDIFTS(:,:,IBL),ZSTRTU(:,:,IBL),ZSTRTV(:,:,IBL),ZWSAE1(:,:,IBL),ZSNSE1(:,:,IBL), &
        & ZWLE1(:,IBL), &
