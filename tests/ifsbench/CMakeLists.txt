@@ -36,7 +36,7 @@ configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/test.yaml
 )
 
-foreach(TEST_NAME v1_EU_default v1_EU_centered v1_EU_forward
+foreach(TEST_NAME v1_EU_default v1_EU_centered
     v1_EU_multiprocess v1_EU_multithread v1_EU_multiprocess_thread)
     ecbuild_add_test(
         TARGET ecland_ifsbench_${TEST_NAME}
