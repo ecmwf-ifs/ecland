@@ -27,7 +27,7 @@ from ifsbench import (
     EnvHandler,
     error,
     Job,
-    PydanticConfigMixin,
+    SerialisationMixin,
     PydanticDataFrame,
     ScienceSetup,
     TechSetup
@@ -36,9 +36,9 @@ from ifsbench import (
 from ifsbench.data import FetchHandler, NamelistHandler, NamelistOverride, RenameHandler, RenameMode
 from ifsbench.validation import FrameCloseValidation
 
-class EclandResult(PydanticConfigMixin):
+class EclandResult(SerialisationMixin):
     """
-    Ecland result class that can be serialised using the PydanticConfigMixin approach.
+    Ecland result class that can be serialised using the ``SerialisationMixin`` approach.
     """
 
     #: Numerical results of the run, stored as DataFrames (with corresponding
@@ -105,7 +105,7 @@ class EclandResult(PydanticConfigMixin):
 
         return cls(**kwargs)
 
-class EclandScience(PydanticConfigMixin):
+class EclandScience(SerialisationMixin):
     """
     Science setup of the ecland benchmark.
     """
@@ -134,7 +134,7 @@ class EclandScience(PydanticConfigMixin):
     #: The default job setup.
     job: Job = None
 
-class EclandTech(PydanticConfigMixin):
+class EclandTech(SerialisationMixin):
     """
     Tech setup of the ecland benchmark.
     """
@@ -149,7 +149,7 @@ class EclandTech(PydanticConfigMixin):
     gpus_per_task: int = None
 
 
-class EclandConfig(PydanticConfigMixin):
+class EclandConfig(SerialisationMixin):
     """
     This object describes the format of the YAML/JSON file from which the
     data is read.
