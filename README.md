@@ -40,7 +40,7 @@ Requirements
 
 Some driver scripts to run tests and validate results rely on availability of:
 
-- Python 3
+- Python 3.8 or newer
 
 When any of the software dependencies "ecbuild", "fiat", "eccodes" are not found or not installed, they will
 be downloaded on demand and built as part of the usual build procedure. This is not recommended but is convenient.
@@ -53,11 +53,11 @@ Building ecLand
 
 Intel build:
 
-    module load prgenv/intel intel/2021.4 cmake/3.25 ninja/1.11.1 hpcx-openmpi/2.9 netcdf4/4.9.1 ecbuild/3.8.0 ecmwf-toolbox/new
+    module load prgenv/intel intel/2021.4 cmake/3.25 ninja/1.11.1 hpcx-openmpi/2.9 netcdf4/4.9.1 ecbuild/3.8.0 ecmwf-toolbox/new python3/3.11.8-01
 
 GNU build:
 
-    module load prgenv/gnu gcc/new cmake/3.25 ninja/1.11.1 hpcx-openmpi/2.9 netcdf4/new ecbuild/3.8.0 ecmwf-toolbox/new
+    module load prgenv/gnu gcc/new cmake/3.25 ninja/1.11.1 hpcx-openmpi/2.9 netcdf4/new ecbuild/3.8.0 ecmwf-toolbox/new python3/3.11.8-01
 
 Download from Github:
 
