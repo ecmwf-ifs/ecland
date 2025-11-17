@@ -4,12 +4,12 @@ arch:
   # Default architecture. Uses mpirun and no additional hardware information.
   default:
     launcher:
-      launcher_type: MpirunLauncher
+      class_name: MpirunLauncher
     cpu_config: {}
 
   atos:
     launcher:
-      launcher_type: SrunLauncher
+      class_name: SrunLauncher
     cpu_config:
       sockets_per_node: 2
       cores_per_socket: 64
@@ -20,7 +20,7 @@ arch:
   # and partition. Change this if necessary.
   lumi-c:
     launcher:
-      launcher_type: SrunLauncher
+      class_name: SrunLauncher
     cpu_config:
       sockets_per_node: 2
       cores_per_socket: 64
