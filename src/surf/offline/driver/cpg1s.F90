@@ -1,7 +1,7 @@
 SUBROUTINE CPG1S
 
 USE YOMDPHY  ,  ONLY : NCSS     ,NLEV     ,NGPP     ,NPOI     ,NTILES   ,&
-     &                 NTRAC   ,NVHILO    ,NCOM     ,YDSURF   ,NCSNEC
+     &                 NTRAC   ,NVHILO    ,NCOM     ,YSURF   ,NCSNEC
 USE YOMCDH1S  , ONLY : NLEVI  , &
      &  NDHVTLS,NDHFTLS,NDHVTSS,NDHFTSS, &
      &  NDHVTTS,NDHFTTS,NDHVTIS,NDHFTIS, &
@@ -201,8 +201,6 @@ INTEGER(KIND=JPIM) :: IST,IEND,IPROMA,IFLEV, IBL, IST1,IEND1,NTHREADS
 INTEGER(KIND=JPIM) :: JL,J
 ! INTEGER(KIND=JPIM) :: OMP_GET_MAX_THREADS
 
-TYPE(TSURF), POINTER :: YSURF
-
 REAL(KIND=JPHOOK)    :: ZHOOK_HANDLE
 
 #include "callpar1s.intfb.h"
@@ -213,7 +211,6 @@ IF (LHOOK) CALL DR_HOOK('CPG1S',0,ZHOOK_HANDLE)
 
 !     ------------------------------------------------------------------
 
-YSURF => GET_SURF(YDSURF)
 ASSOCIATE(LEOCML=>YSURF%YOCEAN_ML%LEOCML,RTT=>YSURF%YCST%RTT)
 
 ! Some initialisations
