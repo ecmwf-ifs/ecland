@@ -344,7 +344,9 @@ ENDDO
 ENDDO
 !$OMP END PARALLEL DO
 
-!* calculation of depth of frozen ground and thaw layer
+!* calculation of root zone soil moisture content: all liquid water
+!  above wilting point in layers where roots are found
+
 !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,IPROMA)
 DO IST = 1, NPOI, NPROMA
   IEND = MIN(IST+NPROMA-1,NPOI)
@@ -353,6 +355,7 @@ DO IST = 1, NPOI, NPROMA
 
   DO JL=IST,IEND
     IL = JL-IST+1
+
   ZFDEPT(JL)=0._JPRB
   ZBOT=0._JPRB
   DO JK=1,NCSS
@@ -1989,7 +1992,8 @@ IF(LWRCO2)THEN
 
 !* -- BVOC flux
   IF( MYPROC == 1 ) NVARID = NCVID(NPOS,'BVOCflux',IERR)
-  ZVALUE(:)=D1SBVOCFLUX2(:,IA)*ZWA
+  CALL PACK_BUFFER(D1SBVOCFLUX2(:,IA,:), ZVALUE)
+  ZVALUE = ZVALUE*ZWA
   CALL MPL_GATHERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZVALUE(:),KRECVCOUNTS=NPOIP(:),CDSTRING="WRTDCDF:")
   IF( MYPROC == 1 ) THEN
     ZOUTPUT(:,1)=UNPACK(ZBUF(:),LMASK(ISTP:IENP),RMISS)
@@ -2784,7 +2788,7 @@ IF(LWRVTY)THEN
   !* -- BVOC flux diagnostics type 1, specified per vegetation type
   IF( MYPROC == 1 ) NVARID = NCVID(NPOS,'BVOCflux1',IERR)
   DO JVT=1,NVHILO
-    ZVALUE(:)=D1SBVOCST1(:,JVT) ! *ZWA ! VH: Not accumulated ; no need to multiply..
+    CALL PACK_BUFFER(D1SBVOCST1(:,JVT,:), ZVALUE)
     CALL MPL_GATHERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZVALUE(:),KRECVCOUNTS=NPOIP(:),CDSTRING="WRTDCDF:")
     IF( MYPROC == 1 ) ZOUTPUT(:,JVT)=UNPACK(ZBUF(:),LMASK(ISTP:IENP),RMISS)
   ENDDO
@@ -2800,7 +2804,7 @@ IF(LWRVTY)THEN
   !* -- BVOC flux diagnostics type 2, specified per vegetation type
   IF( MYPROC == 1 ) NVARID = NCVID(NPOS,'BVOCflux2',IERR)
   DO JVT=1,NVHILO
-    ZVALUE(:)=D1SBVOCST2(:,JVT) ! *ZWA ! VH: Not accumulated ; no need to multiply..
+    CALL PACK_BUFFER(D1SBVOCST2(:,JVT,:), ZVALUE)
     CALL MPL_GATHERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZVALUE(:),KRECVCOUNTS=NPOIP(:),CDSTRING="WRTDCDF:")
     IF( MYPROC == 1 ) ZOUTPUT(:,JVT)=UNPACK(ZBUF(:),LMASK(ISTP:IENP),RMISS)
   ENDDO
