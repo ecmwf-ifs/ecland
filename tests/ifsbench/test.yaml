@@ -38,9 +38,9 @@ science:
 
     # Paths to the three standard input files. These should be given as URLs,
     # so either as https://something or file:///home/me/something.
-    forcing_url: https://get.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/met_2DHT_EU-001_20220101-20220102.nc
-    soil_url: https://get.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/surfinit_EU-001_20220101-20220102.nc
-    surfclim_url: https://get.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/surfclim_EU-001_20220101-20220102.nc
+    forcing_url: https://sites.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/met_2DHT_EU-001_20220101-20220102.nc
+    soil_url: https://sites.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/surfinit_EU-001_20220101-20220102.nc
+    surfclim_url: https://sites.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/surfclim_EU-001_20220101-20220102.nc
 
     # Path to the default namelist.
     namelist_url: file://@CMAKE_CURRENT_SOURCE_DIR@/namelist_v1_EU
