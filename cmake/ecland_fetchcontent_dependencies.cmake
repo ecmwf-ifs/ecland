@@ -16,6 +16,8 @@ FetchContent_Declare(
 )
 set( ECCODES_ENABLE_MEMFS ON )
 set( ECCODES_ENABLE_TESTS OFF )
+set( ECCODES_ENABLE_JPG OFF )
+set( ECCODES_ENABLE_PNG OFF )
 
 
 #### fiat
