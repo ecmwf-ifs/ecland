@@ -65,7 +65,7 @@ science:
   v1_EU_multiprocess:
     <<: *v1_EU
     job:
-      tasks: 4
+      tasks: 2
 
   v1_EU_multithread:
     <<: *v1_EU
@@ -76,8 +76,8 @@ science:
   v1_EU_multiprocess_thread:
     <<: *v1_EU
     job:
-      tasks: 4
-      threads: 4
+      tasks: 2
+      threads: 2
 
 tech:
   # Specify technical setups here.
