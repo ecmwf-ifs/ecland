@@ -1,0 +1,27 @@
+# Make sure we use setuptools and have all required dependencies for that
+[build-system]
+requires = [
+  "setuptools >= 61",
+  "wheel",
+  "setuptools_scm >= 6.2",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ifsbench_ecland"
+description = "ecland-specific functionality on top of ifsbench"
+requires-python = ">=3.8"
+readme = "README.md"
+dependencies = [
+  "ifsbench@git+https://github.com/ecmwf-ifs/ifsbench.git@0.2.0"
+]
+version = "0.1"
+
+[project.scripts]
+  "ifsbench_run.py" = "ifsbench_ecland.ifsbench_run:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "ifsbench_ecland",
+]
