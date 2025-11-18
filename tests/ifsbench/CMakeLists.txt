@@ -11,6 +11,12 @@ set( Python3_FIND_VIRTUALENV STANDARD )
 
 ecbuild_find_package( Python3 COMPONENTS Interpreter REQUIRED VERSION 3.8 )
 
+ecbuild_add_option( FEATURE IFSBENCH_EDITABLE
+                    DEFAULT OFF
+                    DESCRIPTION "Perform editable install for ifsbench packages"
+)
+
+# Name of the virtual environment
 set( VENV_NAME "ifsbench_venv" )
 set( VENV_PATH "${CMAKE_CURRENT_BINARY_DIR}/${VENV_NAME}" )
 
@@ -21,19 +27,29 @@ execute_process( COMMAND ${Python3_EXECUTABLE} -m venv ${VENV_PATH} )
 
 set( IFSBENCH_PYTHON "${VENV_PATH}/bin/python3")
 
-# Install the missing Python packages.
+if( ENABLE_IFSBENCH_EDITABLE )
+  set( PIP_INSTALL_FLAGS "-e")
+else()
+  set( PIP_INSTALL_FLAGS "")
+endif()
+
+# Install the ifsbench_ecland package. This will also install all necessary
+# Python dependencies.
 execute_process(
-    COMMAND ${IFSBENCH_PYTHON} -m pip install "ifsbench @ git+https://github.com/ecmwf-ifs/ifsbench.git"
+  COMMAND ${IFSBENCH_PYTHON} -m pip install ${PIP_INSTALL_FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+set( LAUNCH_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/ifsbench_run.py )
+
+# Link the main runscript into the binary directory.
+execute_process(
+  COMMAND ${CMAKE_COMMAND} -E create_symlink "${VENV_PATH}/bin/ifsbench_run.py" "${LAUNCH_COMMAND}"
+  COMMAND_ERROR_IS_FATAL ANY
 )
 
 configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ifsbench_run.py
-    ${CMAKE_CURRENT_BINARY_DIR}/ifsbench_run.py
-)
-
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml
-    ${CMAKE_CURRENT_BINARY_DIR}/test.yaml
+  ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/test.yaml
 )
 
 ## CI tests
@@ -50,9 +66,8 @@ foreach( TEST_NAME ${TEST_FILES} )
     ecbuild_add_test(
         TARGET ecland_ifsbench_${TEST_NAME}
         TYPE SCRIPT
-        COMMAND ${IFSBENCH_PYTHON}
-        ARGS ${CMAKE_CURRENT_BINARY_DIR}/ifsbench_run.py from_yaml
-            ${CMAKE_CURRENT_BINARY_DIR}/test.yaml ${TEST_NAME}
+        COMMAND ${LAUNCH_COMMAND}
+        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml ${TEST_NAME}
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_${TEST_NAME}
     )
 endforeach()
