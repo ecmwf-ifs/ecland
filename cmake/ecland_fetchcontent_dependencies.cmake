@@ -16,6 +16,8 @@ FetchContent_Declare(
 )
 set( ECCODES_ENABLE_MEMFS ON )
 set( ECCODES_ENABLE_TESTS OFF )
+set( ECCODES_ENABLE_JPG OFF )
+set( ECCODES_ENABLE_PNG OFF )
 
 
 #### fiat
@@ -25,6 +27,7 @@ FetchContent_Declare(
   FIND_PACKAGE_ARGS
 )
 set( FIAT_ENABLE_TESTS OFF )
+set( FIAT_ENABLE_DR_HOOK_NVTX OFF )
 
 FetchContent_MakeAvailable(eccodes fiat) # Internally calls find_package() first
 
