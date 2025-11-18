@@ -206,11 +206,7 @@ jobs:
         if [[ -f ${{ env.DEPS_DIR }}/hdf5/lib/libhdf5.settings ]]; then
           echo "::debug::HDF5 restored from cache"
         else
-         if [[ "${{ matrix.compiler }}" == intel-classic ]]; then
-            ${ECLAND_TOOLS}/install-hdf5.sh --use-configure ON --version 1.14.3 --prefix "${{ env.DEPS_DIR }}/hdf5"
-          else
-            ${ECLAND_TOOLS}/install-hdf5.sh --prefix "${{ env.DEPS_DIR }}/hdf5"
-          fi
+          ${ECLAND_TOOLS}/install-hdf5.sh --prefix ${{ env.DEPS_DIR }}/hdf5
         fi
         echo "HDF5_ROOT=${{ env.DEPS_DIR }}/hdf5" >> $GITHUB_ENV
 
