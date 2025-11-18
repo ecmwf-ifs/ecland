@@ -1,7 +1,7 @@
 # contents of .gitignore
 
 # specific ignores
-build
+build*
 install
 .vscode
 
