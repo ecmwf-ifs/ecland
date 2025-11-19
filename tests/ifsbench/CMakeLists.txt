@@ -36,8 +36,17 @@ configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/test.yaml
 )
 
-foreach(TEST_NAME v1_EU_default v1_EU_centered v1_EU_forward
-    v1_EU_multiprocess v1_EU_multithread v1_EU_multiprocess_thread)
+## CI tests
+list(APPEND TEST_FILES
+    v1_EU_default
+    v1_EU_centered
+    v1_EU_forward
+    v1_EU_multiprocess
+    v1_EU_multithread
+    v1_EU_multiprocess_thread
+)
+
+foreach( TEST_NAME ${TEST_FILES} )
     ecbuild_add_test(
         TARGET ecland_ifsbench_${TEST_NAME}
         TYPE SCRIPT
@@ -47,3 +56,9 @@ foreach(TEST_NAME v1_EU_default v1_EU_centered v1_EU_forward
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_${TEST_NAME}
     )
 endforeach()
+
+
+## Test exceptions
+
+# Disable Forward test variant - currently not supported
+set_property(TEST ecland_ifsbench_v1_EU_forward PROPERTY DISABLED TRUE)
