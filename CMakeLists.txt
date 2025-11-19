@@ -55,8 +55,10 @@ ecbuild_add_option( FEATURE SINGLE_PRECISION
 
 if( HAVE_SINGLE_PRECISION )
   add_library( parkind ALIAS parkind_sp )
+  set( prec "sp" )
 else()
   add_library( parkind ALIAS parkind_dp )
+  set( prec "dp" )
 endif()
 
 unset( OpenMP_Fortran_LIBRARIES )
