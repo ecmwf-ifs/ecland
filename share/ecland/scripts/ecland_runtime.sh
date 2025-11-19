@@ -31,3 +31,5 @@ export MBX_SIZE=${MBX_SIZE:-150000000}
 export MPL_MBX_SIZE=${MPL_MBX_SIZE:-${MBX_SIZE}}
 
 [[ ! (-d ${ecland_ROOT}/bin) ]] || export PATH=${ecland_ROOT}/bin:${ecland_ROOT}/share/${ECLAND_PROJECT_NAME}/scripts:${PATH}
+
+export prec=@prec@
