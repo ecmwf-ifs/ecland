@@ -113,6 +113,7 @@ Extra options can be added to the `cmake` command in step 1. to control the buil
 - `-DENABLE_SINGLE_PRECISION=<ON|**OFF**>` : Turn ON single precision build
 - `-DCMAKE_INSTALL_PREFIX=<install-prefix>` : Install location
 - `-DFETCHCONTENT_DEPENDENCIES=<ON|OFF>` : Turn on/off download/compilation of dependencies eccodes and/or fiat if not found
+- `-DENABLE_IFSBENCH_EDITABLE=<ON|OFF>` : Install ecland (ifsbench) testing modules as an editable install (for developing new tests).
 
 More options to control compilation flags, only when defaults are not sufficient
 
