@@ -33,11 +33,13 @@ set( destination share/${PROJECT_NAME} )
 ###############################################################################################
 
 file (GLOB files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} scripts/*.sh scripts/*.py scripts/ecland-*)
+list( REMOVE_ITEM files scripts/ecland_runtime.sh )
+set( install_permissions OWNER_READ GROUP_READ WORLD_READ OWNER_EXECUTE WORLD_EXECUTE OWNER_WRITE )
 
 install(
     FILES       ${files}
     DESTINATION ${destination}/scripts
-    PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_EXECUTE WORLD_EXECUTE OWNER_WRITE )
+    PERMISSIONS ${install_permissions} )
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/${destination}/scripts)
 
@@ -58,4 +60,11 @@ foreach( program test model experiment )
   )
   install(FILES ${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}-run-${program} DESTINATION bin)
 endforeach()
+
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/scripts/ecland_runtime.sh
+                ${CMAKE_BINARY_DIR}/${destination}/scripts/ecland_runtime.sh @ONLY )
+
+install(FILES       ${CMAKE_BINARY_DIR}/${destination}/scripts/ecland_runtime.sh
+        DESTINATION ${destination}/scripts
+        PERMISSIONS ${install_permissions} )
 
