@@ -43,7 +43,7 @@ ctlres=${CONTROL_DIR}/${SITE}
 #expres=${OUTPUT_DIR}/${SITE}/run_S${NLOOP}.log
 expres=${OUTPUT_DIR}/${SITE}/run.log
 
-echo "Validating SITE=${SITE}, NLOOP=${NLOOP}, VARS=[${vars_to_test}], CONTROL=${ctlres}"
+echo "Validating SITE=${SITE}, NLOOP=${NLOOP}, VARS=[${vars_to_test}], CONTROL=${ctlres}/${prec}"
 
 VDIR=${WORK_DIR}/validate/${SITE}/${NLOOP}
 mkdir -p ${VDIR}
@@ -56,7 +56,7 @@ for var in ${vars_to_test}; do
 done
 
 # Check now bit-identical values compared to control
-${SCRIPTS_DIR}/ecland_validate_stats.py -c ${ctlres} -e ${VDIR} -t ${REL_TOL} -v ${vars_to_test}
+${SCRIPTS_DIR}/ecland_validate_stats.py -c ${ctlres}/${prec} -e ${VDIR} -t ${REL_TOL} -v ${vars_to_test}
 
 # Cleaning
 rm -rf ${VDIR}
