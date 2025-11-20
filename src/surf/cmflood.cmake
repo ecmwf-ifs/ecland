@@ -37,15 +37,19 @@ list(APPEND cmflood_src
 )
 list(TRANSFORM cmflood_src PREPEND cmflood/)
 
-ecbuild_add_library( TARGET ${PROJECT_NAME}_cmflood
-    SOURCES ${cmflood_src}
-    PRIVATE_LIBS fiat parkind
-                 NetCDF::NetCDF_Fortran ${OpenMP_Fortran_LIBRARIES}
-    PRIVATE_DEFINITIONS UseCDF_CMF
-)
-
-ecbuild_target_fortran_module_directory(
-    TARGET ${PROJECT_NAME}_cmflood
-    MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/module/${PROJECT_NAME}
-    INSTALL_MODULE_DIRECTORY module/${PROJECT_NAME}
-)
+foreach( prec sp dp )
+  if( HAVE_${prec} )
+    ecbuild_add_library( TARGET ${PROJECT_NAME}_cmflood_${prec}
+        SOURCES ${cmflood_src}
+        PRIVATE_LIBS fiat parkind_${prec}
+                     NetCDF::NetCDF_Fortran ${OpenMP_Fortran_LIBRARIES}
+        PRIVATE_DEFINITIONS UseCDF_CMF
+    )
+    
+    ecbuild_target_fortran_module_directory(
+        TARGET ${PROJECT_NAME}_cmflood_${prec}
+        MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/module/${PROJECT_NAME}_${prec}
+        INSTALL_MODULE_DIRECTORY module/${PROJECT_NAME}_${prec}
+    )
+  endif()
+endforeach()
