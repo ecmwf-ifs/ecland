@@ -47,19 +47,26 @@ ecbuild_add_option( FEATURE OMP
                     DESCRIPTION "support for OpenMP shared memory parallelism"
                     REQUIRED_PACKAGES "OpenMP COMPONENTS Fortran" )
 
+ecbuild_add_option( FEATURE DOUBLE_PRECISION
+                    DEFAULT ON
+                    DESCRIPTION "Support for Double Precision" )
+
 ecbuild_add_option( FEATURE SINGLE_PRECISION
                     DEFAULT OFF
                     DESCRIPTION "Support for Single Precision" )
 
-### Set third party libraries
+### Define precisions
+set( HAVE_sp OFF )
+set( HAVE_dp OFF )
 
 if( HAVE_SINGLE_PRECISION )
-  add_library( parkind ALIAS parkind_sp )
-  set( prec "sp" )
-else()
-  add_library( parkind ALIAS parkind_dp )
-  set( prec "dp" )
+  set( HAVE_sp ON )
 endif()
+if( HAVE_DOUBLE_PRECISION )
+  set( HAVE_dp ON )
+endif()
+
+### Set third party libraries
 
 unset( OpenMP_Fortran_LIBRARIES )
 if( HAVE_OMP )
