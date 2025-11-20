@@ -29,6 +29,7 @@ if [[ ${ECLAND_CONTEXT:-unset} == "test" ]]; then
 fi
   echo "    --launch LAUNCH            Used as prefix to launch execution, e.g. \"mpirun -np <NTASKS>\", or \"ddt\""
   echo "                               This overrides defaults set by 'LAUNCH' environment variable"
+  echo "    --prec                     Precision for compiled binary. Defaults to dp."
   echo "    -np NTASKS                 Number of MPI tasks (ignored when LAUNCH is set, either via command line or environment)"
   echo "    -nt NTHREADS               Number of OpenMP threads per MPI task. This exports OMP_NUM_THREADS=<NTRHEADS>"
   echo ""
@@ -91,6 +92,10 @@ while test $# -gt 0; do
         rel_tol="${val}"
         [[ $without_equal_sign == true ]] && shift
         ;;
+      --prec)
+        prec="${val}"
+        [[ $without_equal_sign == true ]] && shift
+        ;;
       --launch)
         launch_cmd=${val}
         [[ $without_equal_sign == true ]] && shift
@@ -126,6 +131,12 @@ if [[ ${ECLAND_CONTEXT:-unset} == "test" ]]; then
   if [[ ${rel_tol} != "" ]]; then
     REL_TOL=${rel_tol}
   fi
+fi
+
+if [[ ${prec} != "" ]]; then
+  export PREC=${prec}
+else
+  export PREC=dp
 fi
 
 if [[ ${launch_cmd} != "" ]]; then
