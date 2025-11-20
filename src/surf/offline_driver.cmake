@@ -118,20 +118,24 @@ list(APPEND offline_driver_src
 )
 list(TRANSFORM offline_driver_src PREPEND offline/driver/)
 
-ecbuild_add_executable(TARGET ${PROJECT_NAME}-master
-  SOURCES offline/master1s.F90
-          ${offline_driver_src}
-  INCLUDES
-    offline/function
-    offline/namelist
-    interface
-  LIBS 
-    ${PROJECT_NAME}_offline_driver_intfb ${PROJECT_NAME}_surf ${PROJECT_NAME}_cmflood
-    fiat parkind
-    ${OpenMP_Fortran_LIBRARIES}
-    NetCDF::NetCDF_Fortran
-)
-ecbuild_target_fortran_module_directory(
-    TARGET ${PROJECT_NAME}-master
-    MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/module/offline_driver
-)
+foreach( prec sp dp )
+  if( HAVE_${prec} )
+    ecbuild_add_executable(TARGET ${PROJECT_NAME}-master-${prec}
+      SOURCES offline/master1s.F90
+              ${offline_driver_src}
+      INCLUDES
+        offline/function
+        offline/namelist
+        interface
+      LIBS 
+        ${PROJECT_NAME}_offline_driver_intfb ${PROJECT_NAME}_surf_${prec} ${PROJECT_NAME}_cmflood_${prec}
+        fiat parkind_${prec}
+        ${OpenMP_Fortran_LIBRARIES}
+        NetCDF::NetCDF_Fortran
+    )
+    ecbuild_target_fortran_module_directory(
+        TARGET ${PROJECT_NAME}-master-${prec}
+        MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/module/offline_driver_${prec}
+    )
+  endif()
+endforeach()
