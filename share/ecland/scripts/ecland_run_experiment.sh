@@ -72,6 +72,7 @@ function usage () {
   echo "  -i, INPUT_DIR           Specify clim/forcing directory of experiment"
   echo "  -o, OUTPUT_DIR          Specify output directory of experiment"
   echo "  -w, WORK_DIR            Specify working directory of experiment"
+  echo "  -p, PREC                Specify precision of compiled binary"
   echo "  -x, ECLAND_MASTER       Specify location of ECLAND master exe"
   echo "  -s, SITE (opt)          If present, specify the site to run from the GROUP (default = all sites in GROUP)"
   echo "  -l, NLOOP (opt)         If present, specify the number of loops to run (default = 1)"
@@ -93,9 +94,10 @@ LRESTART=false
 ECLAND_MASTER=ecland-master
 NAMELIST_DEFAULT="$(pwd)/namelists/namelist_ecland_48R1"
 NAMELIST_CMF_DEFAULT="$(pwd)/namelists/namelist_cmf_48R1"
+PREC=dp
 # Parse command-line arguments
 [ $# -eq 0 ] && usage
-while getopts ":hg:t:i:o:w:x:s:n:c:l:R:" opt; do
+while getopts ":hg:t:i:o:w:p:x:s:n:c:l:R:" opt; do
   case $opt in
     g)
       GROUP="$OPTARG"
@@ -111,6 +113,9 @@ while getopts ":hg:t:i:o:w:x:s:n:c:l:R:" opt; do
       ;;
     w)
       WORK_DIR="$OPTARG"
+      ;;
+    p)
+      PREC="$OPTARG"
       ;;
     x)
       ECLAND_MASTER="$OPTARG"
@@ -156,6 +161,10 @@ FORCING_DIR=${INPUT_DIR}/forcing/${GROUP}/
 INICLM_DIR=${INPUT_DIR}/clim/${GROUP}/
 NAMELIST_FILE=${NAMELIST_FILE:-${NAMELIST_DEFAULT}}
 NAMELIST_CMF=${NAMELIST_CMF:-${NAMELIST_CMF_DEFAULT}}
+
+if [[ ${ECLAND_MASTER} == "ecland-master" ]]; then
+  ECLAND_MASTER=${ECLAND_MASTER}-${PREC}
+fi
 
 mkdir -p ${WORK_DIR}
 
