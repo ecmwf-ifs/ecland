@@ -166,7 +166,7 @@ E.g., if using the default installation as described in previous steps:
 
 Command line executable script:
 
-    ecland-run-experiment -g ${GROUP} -t ${FORCING_TYPE} -i ${INPUT_DIR} -o ${OUTPUT_DIR} -w ${WORK_DIR} [-x ${ECLAND_EXE}] [-l ${NLOOP}]
+    ecland-run-experiment -g ${GROUP} -t ${FORCING_TYPE} -i ${INPUT_DIR} -o ${OUTPUT_DIR} -w ${WORK_DIR} [-p ${PREC}] [-x ${ECLAND_EXE}] [-l ${NLOOP}]
     [-R ${LRESTART}] [-n ${NAMELIST_ECLAND}] [-c ${NAMELIST_CMF}] [-s ${SITENAME}]
 
 Description of options:
@@ -183,6 +183,7 @@ Description of options:
    - `<INPUT_DIR>/forcing/<GROUP/` : forcing files for the sites or region under `GROUP` to be run
 - `-o <OUTPUT_DIR>` : path to the directory where output files of the simulations will be stored.
 - `-w <WORK_DIR>` : path to the working directory where simulations will be executed.
+- `-p <PREC>`: precision of the binary to be executed.
 
 Optional arguments:
 
