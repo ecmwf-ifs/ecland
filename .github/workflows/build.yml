@@ -30,7 +30,6 @@ jobs:
 
       matrix:
         build_type: [Bit, Debug] # Not passing tests with Release
-        prec: ['DP', 'SP'] # Standalone driver not 'SP' compatible yet
         name:
           - linux gnu-14
           - linux nvhpc-24.5
@@ -246,7 +245,7 @@ jobs:
         dependency_cmake_options: |
           ecmwf/eccodes: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF"
           ecmwf-ifs/fiat: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTS=OFF -DENABLE_DR_HOOK_NVTX=OFF -DENABLE_MPI=ON"
-        cmake_options: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.cmake_options }} -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' }}"
+        cmake_options: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.cmake_options }} -DENABLE_SINGLE_PRECISION=ON"
         self_build: true
         self_test: false 
 
