@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version=4.9.2
+version=4.9.3
 
 TEMPORARY_FILES="${TMPDIR:-/tmp}"
 export NETCDF_INSTALL_DIR=$(pwd)/netcdf-install
@@ -45,6 +45,6 @@ mkdir -p ${TEMPORARY_FILES}/build-${FOLDER} && cd ${TEMPORARY_FILES}/build-${FOL
 rm -rf ./*
 cmake -G Ninja ${TEMPORARY_FILES}/${FOLDER} \
     -DHDF5_DIR=${HDF5_ROOT}/cmake -DCMAKE_INSTALL_PREFIX="${NETCDF_INSTALL_DIR}" \
-    -DENABLE_TESTS=OFF
+    -DENABLE_TESTS=OFF -DNETCDF_ENABLE_HDF5=OFF -DNETCDF_DISABLE_FLOAT128=ON 
 cmake --build . --config Release
 cmake --install .

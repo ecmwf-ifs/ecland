@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-HDF5_VERSION=1.14.6
+HDF5_VERSION=2.0.0
 TEMPORARY_FILES="${TMPDIR:-/tmp}"
 USE_CONFIGURE_BUILD=false
 
@@ -56,7 +56,7 @@ if [ "$USE_CONFIGURE_BUILD" = true ]; then
    make -j
    make install
 else
-   cmake -G Ninja -S  ${TEMPORARY_FILES}/${FOLDER} -B "build-${FOLDER}" -DHDF5_BUILD_FORTRAN=ON -DHDF5_BUILD_HL_LIB=ON -DBUILD_TESTING=OFF 
+   cmake -G Ninja -S  ${TEMPORARY_FILES}/${FOLDER} -B "build-${FOLDER}" -DHDF5_BUILD_FORTRAN=ON -DHDF5_BUILD_HL_LIB=ON -DHDF5_ENABLE_ZLIB_SUPPORT=ON -DBUILD_TESTING=OFF 
    cmake --build  "build-${FOLDER}" --config Release
    cmake --install "build-${FOLDER}" --prefix ${HDF5_INSTALL_DIR}
 fi
