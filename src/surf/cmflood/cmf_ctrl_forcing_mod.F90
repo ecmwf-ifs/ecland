@@ -319,7 +319,7 @@ INTEGER(KIND=JPIM)              :: ISTATUS,VDIMIDS(1)
 ! SAVE for OpenMP
 INTEGER(KIND=JPIM),SAVE         :: IX,IY,ILEV
 REAL(KIND=JPRB),SAVE            :: ZTMP
-!$OMP THREADPRIVATE               (IY,ILEV,ZTMP)
+!$OMP THREADPRIVATE               (IY,ZTMP)
 !================================================
 !*** 1. allocate input matrix variables
 WRITE(LOGNAM,*) 'NX, NY, INPN =', NX, NY, INPN
@@ -389,7 +389,7 @@ IF(PRESENT(LECMF2LAKEC) .AND. (LECMF2LAKEC .NE. 0)) THEN
   
     !! We normalize INPAI here as it is used to interpolate flood fraction (Input Area Inversed)
     WRITE(LOGNAM,*) 'INPAI normalization'
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(ILEV)
     DO IX=1,NXIN
       DO IY=1,NYIN
         ZTMP=0._JPRB

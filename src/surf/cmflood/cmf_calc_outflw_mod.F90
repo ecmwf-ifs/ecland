@@ -391,7 +391,7 @@ IMPLICIT NONE
 ! SAVE for OpenMP
 REAL(KIND=JPRB),SAVE       :: DOUT, DSTO
 INTEGER(KIND=JPIM),SAVE    :: ISEQ, IPTH, JSEQ, ILEV, INUM, JPTH, ISEQP, JSEQP
-!$OMP THREADPRIVATE                      (JSEQ, ILEV, INUM, JPTH, ISEQP, JSEQP)
+!$OMP THREADPRIVATE                      (JSEQ, ILEV, JPTH, ISEQP, JSEQP)
 !================================================
   
 !*** 1. initialize & calculate P2STOOUT for normal cells
@@ -421,7 +421,7 @@ END DO
 
 !! for bifurcation channels ------------
 IF( LPTHOUT )THEN
-!$OMP PARALLEL DO  !! No OMP Atomic for bit-identical simulation (set in Mkinclude)
+!$OMP PARALLEL DO PRIVATE(INUM)  !! No OMP Atomic for bit-identical simulation (set in Mkinclude)
   DO ISEQ=1, NSEQALL
     IF( I1P_OUTN(ISEQ)>0 )THEN
       DO INUM=1, I1P_OUTN(ISEQ)
@@ -477,7 +477,7 @@ END DO
 !*** 3. Inflow calculation
 
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(INUM)
 DO ISEQ=1, NSEQALL ! for normal pixels
   IF( I1UPN(ISEQ)>0 )THEN
     DO INUM=1, I1UPN(ISEQ)
@@ -516,7 +516,7 @@ IF( LPTHOUT )THEN
   END DO
 !$OMP END PARALLEL DO
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(INUM)
   DO ISEQ=1, NSEQALL
     IF( I1P_OUTN(ISEQ)>0 )THEN
       DO INUM=1, I1P_OUTN(ISEQ)
