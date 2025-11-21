@@ -175,7 +175,7 @@ ENDIF
 !$OMP PARALLEL DO SIMD PRIVATE(RATE,DOUT)
 DO ISEQ=1, NSEQRIV
   !! Storage change limitter to prevent sudden increase of "upstream" water level when backwardd flow (v423)
-  DOUT = max( (-D2RIVOUT(ISEQ,1)-D2FLDOUT(ISEQ,1))*DT, 1.E-10 )
+  DOUT = max( (-D2RIVOUT(ISEQ,1)-D2FLDOUT(ISEQ,1))*DT, 1.E-10_JPRB )
   RATE = min( 0.05_JPRB*D2STORGE(ISEQ,1)/DOUT, 1._JPRB)
   D2RIVOUT(ISEQ,1)=D2RIVOUT(ISEQ,1)*RATE
   D2FLDOUT(ISEQ,1)=D2FLDOUT(ISEQ,1)*RATE
