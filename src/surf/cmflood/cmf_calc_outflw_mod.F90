@@ -63,7 +63,7 @@ DO ISEQ=1, NSEQRIV                                                !! for normal 
   DSLP = ( D2SFCELV(ISEQ,1)-D2DWNELV(ISEQ,1) ) * D2NXTDST(ISEQ,1)**(-1._JPRB)
 !=== River Flow ===
   DFLW = DSFC - D2RIVELV(ISEQ,1)                             !!  flow cross-section depth
-  DARE = MAX( D2RIVWTH(ISEQ,1)*DFLW, 10._JPRB**-10 )           !!  flow cross-section area
+  DARE = MAX( D2RIVWTH(ISEQ,1)*DFLW, 10._JPRB**(-10) )           !!  flow cross-section area
 
   DSFC_pr=MAX( D2SFCELV_PRE(ISEQ,1),D2DWNELV_PRE(ISEQ,1) )
   DFLW_pr=DSFC_pr - D2RIVELV(ISEQ,1)
