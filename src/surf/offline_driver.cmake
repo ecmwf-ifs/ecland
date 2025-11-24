@@ -126,7 +126,6 @@ foreach( prec sp dp )
       INCLUDES
         offline/function
         offline/namelist
-        interface
       LIBS 
         ${PROJECT_NAME}_offline_driver_intfb ${PROJECT_NAME}_surf_${prec} ${PROJECT_NAME}_cmflood_${prec}
         fiat parkind_${prec}
