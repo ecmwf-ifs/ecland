@@ -221,7 +221,13 @@ foreach( prec sp dp )
          PRIVATE_LIBS ${OpenMP_Fortran_LIBRARIES}
          PRIVATE_INCLUDES function
      )
-     
+
+     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/interface DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}_${prec}_includes)
+     target_include_directories( ${PROJECT_NAME}_surf_${prec}
+                                 INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/interface>
+                                 INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}_${prec}_includes/interface>
+                               )
+
      ecbuild_target_fortran_module_directory(
          TARGET ${PROJECT_NAME}_surf_${prec}
          MODULE_DIRECTORY         ${CMAKE_BINARY_DIR}/module/${PROJECT_NAME}_${prec}
