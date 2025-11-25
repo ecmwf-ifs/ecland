@@ -30,7 +30,7 @@ jobs:
 
       matrix:
         build_type: [Bit, Debug] # Not passing tests with Release
-        prec: ['DP'] # Standalone driver not 'SP' compatible yet
+        prec: ['DP', 'SP'] # Standalone driver not 'SP' compatible yet
         name:
           - linux gnu-14
           - linux nvhpc-24.5
