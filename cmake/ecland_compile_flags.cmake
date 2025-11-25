@@ -7,7 +7,10 @@
 # nor does it submit to any jurisdiction.
 
 
-#ecbuild_add_fortran_flags( "-ffree-line-length-none" NAME line_length )
+# Capture ecbuild flags set by a toolchain
+set( ${PNAME}_Fortran_FLAGS "${ECBUILD_Fortran_FLAGS} " )
+set( ${PNAME}_Fortran_FLAGS_BIT "${ECBUILD_Fortran_FLAGS_BIT} " )
+set( ${PNAME}_Fortran_FLAGS_DEBUG "${ECBUILD_Fortran_FLAGS_DEBUG} " )
 
 if(HAVE_SINGLE_PRECISION AND CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
   ecbuild_add_fortran_flags( "-fno-range-check" NAME no_range_check )

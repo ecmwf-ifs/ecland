@@ -19,6 +19,7 @@ if( NOT ECLAND_PROJECT_NAME )
   set( ECLAND_PROJECT_NAME ecland )
 endif()
 
+string( TOUPPER ${ECLAND_PROJECT_NAME} PNAME )
 project( ${ECLAND_PROJECT_NAME} LANGUAGES Fortran C CXX )
 
 include( ecland_macros )
@@ -78,7 +79,9 @@ endif()
 ### Sources
 ########################################################################
 
-include(ecland_compile_flags)
+# Trigger the use of per sourcefile overrideable compiler flags in ecbuild
+set(ECBUILD_COMPILE_FLAGS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ecland_compile_flags.cmake)
+ecbuild_override_compiler_flags(COMPILE_FLAGS ${ECBUILD_COMPILE_FLAGS})
 
 add_subdirectory(src)
 add_subdirectory(share)
