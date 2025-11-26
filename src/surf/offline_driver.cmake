@@ -131,6 +131,7 @@ foreach( prec sp dp )
         fiat parkind_${prec}
         ${OpenMP_Fortran_LIBRARIES}
         NetCDF::NetCDF_Fortran
+      DEFINITIONS UseMPI_CMF
     )
     ecbuild_target_fortran_module_directory(
         TARGET ${PROJECT_NAME}-master-${prec}
