@@ -39,9 +39,14 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
   set(checkbounds_flags   "-check bounds")
   set(initsnan_flags      "-init=snan")
   set(fpe_flags           "-fpe0")
+  set(vectorization_flags "-march=core-avx2 -no-fma")
+  if(NOT CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
+    set(transcendentals_flags "-fast-transcendentals -ftz")
+  endif()
+  set(optimization_flags  "-O2")
 
   # Needed to guarantee matching test results with Debug build
-  set(fpmodel_flags       "-fp-model=precise")
+  set(fpmodel_flags       "-fp-model precise -fp-speculation=safe")
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC")
   set(checkbounds_flags   "-Mbounds")
@@ -71,8 +76,25 @@ if( CMAKE_BUILD_TYPE MATCHES "Debug" )
   endif()
 endif()
 
+ecbuild_add_fortran_flags( "-g -O0"   NAME base_debug BUILD DEBUG)
 if(DEFINED fpmodel_flags)
   ecbuild_add_fortran_flags( "${fpmodel_flags}" NAME fpmodel )
+endif()
+if(DEFINED transcendentals_flags)
+  ecbuild_add_fortran_flags( "${transcendentals_flags}"   NAME transcendentals BUILD BIT)
+endif()
+
+# Only add optimisation flags if they're not already present in ECBUILD_Fortran_FLAGS
+if( DEFINED optimization_flags )
+  string(FIND "${ECBUILD_Fortran_FLAGS} ${ECBUILD_Fortran_FLAGS_BIT}" ${optimization_flags} _pos)
+  if( _pos EQUAL -1)
+    ecbuild_add_fortran_flags( "${optimization_flags}" NAME optimization BUILD BIT)
+  endif()
+endif()
+
+if(DEFINED vectorization_flags)
+  # vectorization flags must be per-sourcefile overrideable, so are set via ${PNAME}_Fortran_FLAGS
+  set( ${PNAME}_Fortran_FLAGS_BIT "${${PNAME}_Fortran_FLAGS_BIT} ${vectorization_flags}" )
 endif()
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
