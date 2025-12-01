@@ -49,9 +49,14 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
   set(fpmodel_flags       "-fp-model precise -fp-speculation=safe")
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC")
+  set(endian_flags        "-Mbyteswapio")
   set(checkbounds_flags   "-Mbounds")
   set(fpe_flags           "-Ktrap=fp")
   set(initsnan_flags      "-Minit-real=snan")
+  set(optimization_flags  "-g -O3 -fast")
+
+  # Remove fp trapping flags from optimised builds in case they are present in the toolchain
+  string(REPLACE "-Ktrap=fp" "" ${PNAME}_Fortran_FLAGS ${${PNAME}_Fortran_FLAGS})
 
   # Needed to guarantee matching test results with Debug build
   set(fpmodel_flags       "-Kieee")
@@ -80,15 +85,19 @@ ecbuild_add_fortran_flags( "-g -O0"   NAME base_debug BUILD DEBUG)
 if(DEFINED fpmodel_flags)
   ecbuild_add_fortran_flags( "${fpmodel_flags}" NAME fpmodel )
 endif()
+if(DEFINED endian_flags)
+  ecbuild_add_fortran_flags( "${endian_flags}" NAME endian )
+endif()
 if(DEFINED transcendentals_flags)
   ecbuild_add_fortran_flags( "${transcendentals_flags}"   NAME transcendentals BUILD BIT)
 endif()
 
-# Only add optimisation flags if they're not already present in ECBUILD_Fortran_FLAGS
+# Only add optimisation flags if they're not already present in ${PNAME}_Fortran_FLAGS
 if( DEFINED optimization_flags )
-  string(FIND "${ECBUILD_Fortran_FLAGS} ${ECBUILD_Fortran_FLAGS_BIT}" ${optimization_flags} _pos)
+  string(FIND "${${PNAME}_Fortran_FLAGS} ${${PNAME}_Fortran_FLAGS_BIT}" ${optimization_flags} _pos)
   if( _pos EQUAL -1)
-    ecbuild_add_fortran_flags( "${optimization_flags}" NAME optimization BUILD BIT)
+    # optimization flags must be per-sourcefile overrideable, so are set via ${PNAME}_Fortran_FLAGS
+    set( ${PNAME}_Fortran_FLAGS_BIT "${${PNAME}_Fortran_FLAGS_BIT} ${optimization_flags}" )
   endif()
 endif()
 
