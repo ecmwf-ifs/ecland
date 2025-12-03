@@ -632,16 +632,16 @@ ENDDO
 
 !* -- KPP!
 ! 2nd dimension is now NCOM instead of month
-VFZO(:,1:(NCOM+1),:)=0._JPRB
-VFHO(:,1:(NCOM+1),:)=0._JPRB
-VFHO_INV(:,1:(NCOM+1),:)=0._JPRB
-VFDO(:,1:(NCOM+1),:)=0._JPRB
+VFZO(:,:,:)=0._JPRB
+VFHO(:,:,:)=0._JPRB
+VFHO_INV(:,:,:)=0._JPRB
+VFDO(:,:,:)=0._JPRB
 VFOCDEPTH(:,:)=0._JPRB
-VFADVT(:,1:NCOM,:)=0._JPRB
-VFADVS(:,1:NCOM,:)=0._JPRB
-VFTRI0(:,1:(NCOM+1),:)=0._JPRB
-VFTRI1(:,1:(NCOM+1),:)=0._JPRB
-VFSWDK_SAVE(:,1:(NCOM+1),:)=0._JPRB
+VFADVT(:,:,:)=0._JPRB
+VFADVS(:,:,:)=0._JPRB
+VFTRI0(:,:,:)=0._JPRB
+VFTRI1(:,:,:)=0._JPRB
+VFSWDK_SAVE(:,:,:)=0._JPRB
 WRITE(NULOUT,*) 'RDCLIM CALLED, VFTRI, VFSWDK_SAVE, VFOCDEPTH... RESET'
 
 !* Check final values
