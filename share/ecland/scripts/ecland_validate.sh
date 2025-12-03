@@ -43,6 +43,12 @@ ctlres=${CONTROL_DIR}/${SITE}
 #expres=${OUTPUT_DIR}/${SITE}/run_S${NLOOP}.log
 expres=${OUTPUT_DIR}/${SITE}/run.log
 
+# check if precision is defined
+if [[ ${prec} == "@prec@" ]]; then
+  echo "precision is undefined, please use configured ecland_run_test.sh script in <build-dir>/share/ecland/scripts."
+  exit 1
+fi
+
 echo "Validating SITE=${SITE}, NLOOP=${NLOOP}, VARS=[${vars_to_test}], CONTROL=${ctlres}/${prec}"
 
 VDIR=${WORK_DIR}/validate/${SITE}/${NLOOP}
