@@ -115,6 +115,35 @@ class ConfigRegional:
     self.nlat_ll = None
     self.nlon_ll = None
 
+
+class ConfigGaussian:
+  """
+  Class representing Gaussian grid configuration settings for 2D_GG runs.
+
+  Attributes:
+    grid_type (str): "N" for TL (linear), "O" for TCO (cubic octahedral)
+    truncation (int): Truncation number (e.g., 32 for N32, 64 for N64)
+    target_grid (str): Combined grid specification (e.g., "N32", "O96")
+    clatn, clats, clone, clonw (float): Optional regional clipping bounds
+    lprepare_inicond_2D_GG (bool): Prepare initial conditions on Gaussian grid
+    lprepare_forcing_2D_GG (bool): Prepare forcing on Gaussian grid
+  """
+
+  def __init__(self, config_data):
+    self.grid_type   = config_data['gaussian'].get('grid_type', 'N')
+    self.truncation  = config_data['gaussian'].get('truncation', 32)
+    self.target_grid = f"{self.grid_type}{self.truncation}"
+    # Optional regional clipping
+    self.clatn = config_data['gaussian'].get('clatn', "")
+    self.clats = config_data['gaussian'].get('clats', "")
+    self.clone = config_data['gaussian'].get('clone', "")
+    self.clonw = config_data['gaussian'].get('clonw', "")
+    # Actions
+    actions = config_data['gaussian'].get('actions', [{}])
+    self.lprepare_inicond_2D_GG = actions[0].get('prepare_initialconditions_2D_GG', False) if len(actions) > 0 else False
+    self.lprepare_forcing_2D_GG = actions[1].get('prepare_forcing_2D_GG', False) if len(actions) > 1 else False
+
+
 class ConfigInit:
   """
   A class that initializes the configuration data for creating forcing files.
@@ -193,6 +222,12 @@ def process_config_data(config_data):
   else:
     config_regional = None
 
+  # Gaussian grid configuration (for 2D_GG type)
+  if 'gaussian' in config_data:
+    config_gaussian = ConfigGaussian(config_data)
+  else:
+    config_gaussian = None
+
   # setup var for init data:
   config_init = ConfigInit(config_data)
 
@@ -200,7 +235,7 @@ def process_config_data(config_data):
   config_forcing = ConfigForcing(config_data)
 
   # Return the processed configuration data
-  return (config_common, config_point, config_regional, config_init, config_forcing)
+  return (config_common, config_point, config_regional, config_init, config_forcing, config_gaussian)
 
 
 
@@ -384,6 +419,45 @@ def prepare_inicond_2D(config_common, config_init, config_regional):
   prepare_inicond_2D_script=f'{config_common.scriptsdir}/extract_create_inicond_2D.bash {out_clim_dir}'
   try:
       subprocess.run(prepare_inicond_2D_script, shell=True, check=True)
+  except subprocess.CalledProcessError as e:
+      print(f"Error running the shell script: {e}")
+      raise Exception(f"Error running the shell script: {e}")
+
+
+def prepare_inicond_2D_GG(config_common, config_init, config_gaussian):
+  """
+  Prepare ECLand surface model initial and boundary conditions for 2D Gaussian grid case.
+
+  Args:
+    config_common (object): The common configuration object.
+    config_init (object): The initialization configuration object.
+    config_gaussian (object): The Gaussian grid configuration object.
+
+  Raises:
+    Exception: If there is an error running the shell script.
+
+  """
+  # Export variables:
+  os.environ['inidir']        = config_common.inidir
+  os.environ['RETRIEVE_WITH'] = config_common.retrieve_with
+  os.environ['INISTREAM']     = config_init.inistream
+  os.environ['INIEXPVER']     = config_init.iniexpver
+  os.environ['INIHOUR']       = f'{config_init.inihour}'
+  os.environ['RESOL']         = f'{config_init.resol}'
+  os.environ['GTYPE']         = f'{config_init.gtype}'
+  os.environ['XDATA_DIR']     = config_init.xdata_dir
+  os.environ['INICLASS']      = config_init.iniclass
+  os.environ['scriptsdir']    = f'{config_common.scriptsdir}'
+  os.environ['TARGET_GAUSSIAN_GRID'] = config_gaussian.target_grid
+  if config_common.METVIEW_PYTHON_START_TIMEOUT is not None:
+     os.environ['METVIEW_PYTHON_START_TIMEOUT'] = f'{config_common.METVIEW_PYTHON_START_TIMEOUT}'
+  else:
+     os.environ['METVIEW_PYTHON_START_TIMEOUT'] = str(3000)
+
+  out_clim_dir=config_common.sodir
+  prepare_inicond_2D_GG_script=f'{config_common.scriptsdir}/extract_create_inicond_2D_GG.bash {out_clim_dir}'
+  try:
+      subprocess.run(prepare_inicond_2D_GG_script, shell=True, check=True)
   except subprocess.CalledProcessError as e:
       print(f"Error running the shell script: {e}")
       raise Exception(f"Error running the shell script: {e}")

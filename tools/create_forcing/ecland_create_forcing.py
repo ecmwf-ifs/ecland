@@ -42,7 +42,7 @@ def main():
       except:
         exit(1)
       print("Current working directory:", os.getcwd())
-      config_common, config_point, config_regional, config_init, config_forcing = utils.process_config_data(config_data)
+      config_common, config_point, config_regional, config_init, config_forcing, config_gaussian = utils.process_config_data(config_data)
 
       print("Settings for initial conditions and forcing extraction.")
       if config_common.ftype == '1D':
@@ -58,6 +58,11 @@ def main():
         print("Run create ini cond script:", config_regional.lprepare_inicond_2D)
         print("Run create cmf basin script:", config_regional.lprepare_cmf_basin)
         print("Run create forcing  script:", config_regional.lprepare_forcing_2D)
+      elif config_common.ftype == '2D_GG':
+        print('Gaussian Grid details:')
+        print(f'Region: {config_common.sitelist}, target grid: {config_gaussian.target_grid}')
+        print("Run create ini cond script (Gaussian):", config_gaussian.lprepare_inicond_2D_GG)
+        print("Run create forcing script (Gaussian):", config_gaussian.lprepare_forcing_2D_GG)
 
       print("")
       print("forcing working dir:", config_common.fdir)
@@ -173,8 +178,18 @@ def main():
             concat_forcing_2D_script = f'{config_common.scriptsdir}/concat_forcing.bash {config_common.fdir} {config_common.fodir} {config_common.ftype}'
             subprocess.run(concat_forcing_2D_script, shell=True, check=True)
 
+      elif config_common.ftype == '2D_GG':
+
+          if config_gaussian.lprepare_inicond_2D_GG:
+             # Run Gaussian grid script
+             utils.prepare_inicond_2D_GG(config_common, config_init, config_gaussian)
+
+          # Forcing for Gaussian grid (not yet implemented)
+          if config_gaussian.lprepare_forcing_2D_GG:
+             print("WARNING: Forcing preparation for Gaussian grid not yet implemented")
+
       else:
-          raise Exception("ecland_create_forcing works only with ftype=1D or 2D, please change your configuration file.")
+          raise Exception("ecland_create_forcing works only with ftype=1D, 2D, or 2D_GG, please change your configuration file.")
 
       # Clean temporary files
       if args.clean:
