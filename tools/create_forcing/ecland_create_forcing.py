@@ -184,9 +184,36 @@ def main():
              # Run Gaussian grid script
              utils.prepare_inicond_2D_GG(config_common, config_init, config_gaussian)
 
-          # Forcing for Gaussian grid (not yet implemented)
+          # Forcing for Gaussian grid
           if config_gaussian.lprepare_forcing_2D_GG:
-             print("WARNING: Forcing preparation for Gaussian grid not yet implemented")
+            # Parallelise extraction forcing over num_processes processes
+            config_common.iniDates_sliced, config_common.endDates_sliced = utils.define_timeSlices(
+                str(first_initial_date), str(last_end_date), config_forcing.num_processes)
+
+            try:
+                with Pool(processes=config_forcing.num_processes) as pool:
+                     pool.starmap(utils.prepare_forcing_2D_GG, [(nn,
+                                                                 config_common,
+                                                                 config_init,
+                                                                 config_gaussian,
+                                                                 config_forcing,
+                                                                )
+                                                                for nn in
+                                                                range(config_forcing.num_processes)])
+                     pool.close()
+                     pool.join()
+            except subprocess.CalledProcessError as e:
+                print("Subprocess failed:", e)
+                pool.terminate()
+                raise Exception(f"Error running the shell script: {e}")
+
+            # Remove temp log files
+            for file in glob.glob("prep_forcing_2D_GG_*"):
+              os.remove(file)
+
+            # Concatenate forcing
+            concat_forcing_2D_GG_script = f'{config_common.scriptsdir}/concat_forcing.bash {config_common.fdir} {config_common.fodir} 2D_GG'
+            subprocess.run(concat_forcing_2D_GG_script, shell=True, check=True)
 
       else:
           raise Exception("ecland_create_forcing works only with ftype=1D, 2D, or 2D_GG, please change your configuration file.")

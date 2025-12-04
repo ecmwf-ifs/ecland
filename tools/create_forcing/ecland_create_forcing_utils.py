@@ -463,6 +463,49 @@ def prepare_inicond_2D_GG(config_common, config_init, config_gaussian):
       raise Exception(f"Error running the shell script: {e}")
 
 
+def prepare_forcing_2D_GG(nn, config_common, config_init, config_gaussian, config_forcing):
+  """
+  Prepare forcing data for 2D Gaussian grid processing.
+
+  Args:
+    nn (int): The process number.
+    config_common (object): An object containing common configuration parameters.
+    config_init (object): An object containing initialization configuration parameters.
+    config_gaussian (object): An object containing Gaussian grid configuration parameters.
+    config_forcing (object): An object containing forcing configuration parameters.
+
+  Returns:
+    None
+  """
+  # Export variables:
+  os.environ['inidir']        = config_common.inidir
+  os.environ['scriptsdir']    = f'{config_common.scriptsdir}'
+  os.environ['RETRIEVE_WITH'] = f'{config_common.retrieve_with}'
+  os.environ['FORCINGCLASS']  = f'{config_forcing.forcingClass}'
+  os.environ['TARGET_GAUSSIAN_GRID'] = config_gaussian.target_grid
+  if config_common.METVIEW_PYTHON_START_TIMEOUT is not None:
+     os.environ['METVIEW_PYTHON_START_TIMEOUT'] = f'{config_common.METVIEW_PYTHON_START_TIMEOUT}'
+  else:
+     os.environ['METVIEW_PYTHON_START_TIMEOUT'] = str(3000)
+
+  initial_date = config_common.iniDates_sliced[nn]
+  end_date = config_common.endDates_sliced[nn]
+
+  print(f'Running Gaussian grid forcing process: {nn}, dates: {initial_date}-{end_date}')
+  prepare_forcing_2D_GG_script = f'{config_common.scriptsdir}/prepare_forcing_2D_GG.bash {config_common.fdir} {initial_date} {end_date} {config_common.sodir}'
+  logfile_name = f'{config_common.fdir}/prep_forcing_2D_GG_{nn}.log'
+  subprocess.run(f'rm -f {logfile_name}', shell=True, check=True)
+  try:
+    with open(logfile_name, 'w') as logfile:
+      subprocess.run(prepare_forcing_2D_GG_script, shell=True, check=True,
+               stdout=logfile, stderr=subprocess.STDOUT)
+    subprocess.run(f'rm -f {logfile_name}', shell=True, check=True)
+  except subprocess.CalledProcessError as e:
+    print(f"Error running the shell script: {e}, num_process={nn}, extraction dates {initial_date}-{end_date}")
+    subprocess.run(f'cat {logfile_name} | tail -n20', shell=True)
+    raise Exception(f"Error running the shell script: {e}")
+
+
 # Function to run preparation of cama-flood initial and boundary conditions.
 def prepare_cmf_basin(config_common, config_init, config_regional):
   """
