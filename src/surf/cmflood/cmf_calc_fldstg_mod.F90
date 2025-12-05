@@ -207,7 +207,7 @@ END DO
 !$OMP PARALLEL DO SIMD
 DO ISEQ=1, NSEQALL
 !  IF( D2FLDDPH(ISEQ,1)>0 )THEN !! bugfix v4.04
-  IF( D2FLDDPH(ISEQ,1) > (10._JPRB**-5) )THEN !! bugfix v4.04, to avoid false positive FLDDPH due to rounding error.
+  IF( D2FLDDPH(ISEQ,1) > (10._JPRB**(-5)) )THEN !! bugfix v4.04, to avoid false positive FLDDPH due to rounding error.
     PSTOALL = P2RIVSTO(ISEQ,1) + P2FLDSTO(ISEQ,1)
 
     D2RIVDPH(ISEQ,1) = D2RIVHGT(ISEQ,1) + D2FLDDPH(ISEQ,1)

@@ -39,6 +39,7 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
   set(checkbounds_flags   "-check bounds")
   set(initsnan_flags      "-init=snan")
   set(fpe_flags           "-fpe0")
+  ecbuild_add_fortran_flags( "-diag-disable=7713" NAME unused_statement_function_remark )
 
   # Needed to guarantee matching test results with Debug build
   set(fpmodel_flags       "-fp-model=precise")

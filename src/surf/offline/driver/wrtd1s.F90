@@ -212,7 +212,7 @@
           endif
         ENDIF
 
-        WRITE(IPOS(JTI),'(f10.3,1X,I8,1X,I4,1X,I8,12(1X,E13.6E3))')&
+        WRITE(IPOS(JTI),'(f10.3,1X,I8,1X,I4,1X,I8,12(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1STIFR(JL,JTI,1),D1STITK(JL,JTI,1)&
      &     ,D1STIALB(JL,JTI,1),D1STIEVAP2(JL,JTI,IA,1)*ZMM&
