@@ -1,0 +1,18 @@
+[project]
+name = "ifsbench_ecland"
+description = "ecland-specific functionality on top of ifsbench"
+requires-python = ">=3.8"
+readme = "README.md"
+dependencies = [
+  "ifsbench@git+https://github.com/ecmwf-ifs/ifsbench.git@0.2.0"
+]
+version = "2.0.0"
+
+[project.scripts]
+  "ifsbench_run.py" = "ifsbench_ecland.ifsbench_run:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "ifsbench_ecland",
+]
