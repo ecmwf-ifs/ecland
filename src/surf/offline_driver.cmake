@@ -116,6 +116,7 @@ list(APPEND offline_driver_src
     yomlog1s.F90
     yomlun1s.F90
     yomrip.F90
+    callpar1s_layer.F90
 )
 list(TRANSFORM offline_driver_src PREPEND offline/driver/)
 
