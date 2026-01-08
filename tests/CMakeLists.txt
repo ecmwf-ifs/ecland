@@ -50,4 +50,6 @@ foreach( test ${tests} )
     )
 endforeach()
 
-add_subdirectory( ifsbench )
+if(${HAVE_ECLAND_IFSBENCH_TESTS})
+  add_subdirectory( ifsbench )
+endif()

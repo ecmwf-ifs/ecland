@@ -76,6 +76,10 @@ add_subdirectory(share)
 
 ### Tests
 
+ecbuild_add_option( FEATURE ECLAND_IFSBENCH_TESTS
+                    DEFAULT ON
+                    DESCRIPTION "Use ifsbench-based tests for ecland" )
+
 add_subdirectory(tests)
 
 ### Documentation
