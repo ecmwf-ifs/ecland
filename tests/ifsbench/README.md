@@ -64,6 +64,29 @@ export IFSBENCH_ARCH=atos
 ctest -j 10
 ```
 
+## Validation
+
+Every ifsbench-based run will create a `result.yaml` file in the run directory
+which contains the reference data as well as additional information like the
+walltime and the text output.
+These result files can be moved/renamed and serve as reference input for later
+runs by passing them as the `validate` flag. An example
+
+```
+# Create reference data.
+ifsbench-run.py from_yaml test.yaml my_science --run-dir=my_run_dir
+
+# Copy result and store it for later use.
+cp my_run_dir/result.yaml my_ref_dir/result.yaml
+
+# Do whatever you want (update the code, use a different tech setup, ...).
+
+# Rerun the test again and validate against the previously created reference
+# result.
+ifsbench-run.py from_yaml test.yaml my_science --run-dir=my_run_dir --validate=my_ref_dir/result.yaml
+``` 
+
+
 # Technical setup
 
 ## Runner script
