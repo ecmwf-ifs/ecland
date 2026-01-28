@@ -69,6 +69,7 @@ foreach( TEST_NAME ${TEST_FILES} )
         COMMAND ${LAUNCH_COMMAND}
         ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml ${TEST_NAME}
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_${TEST_NAME}
+	    --validate=${CMAKE_CURRENT_SOURCE_DIR}/reference.yaml
     )
 endforeach()
 
