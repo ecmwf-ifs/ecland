@@ -6,15 +6,19 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-# Detect only the system installed Python3 interpreter.
-set( Python3_FIND_VIRTUALENV STANDARD )
+# Change the context of the search to only find the venv
+set( Python3_FIND_VIRTUALENV ONLY )
+set( Python3_EXECUTABLE_CACHE ${Python3_EXECUTABLE} )
 
-ecbuild_find_package( Python3 COMPONENTS Interpreter REQUIRED VERSION 3.8 )
+# Unset Python3_EXECUTABLE because it is also an input variable
+# (see documentation, Artifacts Specification section)
+unset( Python3_EXECUTABLE )
+# To allow cmake to discover the newly created venv if Python3_ROOT_DIR
+# was passed as an argument at build-time
+set( Python3_ROOT_DIR "${VENV_PATH}" )
 
-ecbuild_add_option( FEATURE IFSBENCH_EDITABLE
-                    DEFAULT OFF
-                    DESCRIPTION "Perform editable install for ifsbench packages"
-)
+# Find newly created python venv
+find_package( Python3 COMPONENTS Interpreter REQUIRED )
 
 # Name of the virtual environment
 set( VENV_NAME "ifsbench_venv" )
@@ -23,14 +27,18 @@ set( VENV_PATH "${CMAKE_CURRENT_BINARY_DIR}/${VENV_NAME}" )
 # Create a Python virtual environment in the current binary directory.
 ecbuild_info( "Create ifsbench virtual environment ${VENV_NAME}" )
 
-execute_process( COMMAND ${Python3_EXECUTABLE} -m venv ${VENV_PATH} )
+execute_process( COMMAND ${Python3_EXECUTABLE} -m venv --copies ${VENV_PATH} )
 
 set( IFSBENCH_PYTHON "${VENV_PATH}/bin/python3")
 
-if( ENABLE_IFSBENCH_EDITABLE )
-  set( PIP_INSTALL_FLAGS "-e")
-else()
-  set( PIP_INSTALL_FLAGS "")
+set( PIP_INSTALL_FLAGS "--disable-pip-version-check")
+
+# Make sure the Python installation has (sufficiently recent) pip
+execute_process( COMMAND ${Python3_EXECUTABLE} -m ensurepip -U OUTPUT_QUIET )
+
+if( Python3_VERSION VERSION_EQUAL 3.8 )
+    execute_process( COMMAND ${Python3_EXECUTABLE} -m pip --disable-pip-version-check
+                     install --upgrade pip OUTPUT_QUIET ERROR_QUIET )
 endif()
 
 # Install the ifsbench_ecland package. This will also install all necessary
@@ -47,10 +55,7 @@ execute_process(
   COMMAND_ERROR_IS_FATAL ANY
 )
 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml
-  ${CMAKE_CURRENT_BINARY_DIR}/test.yaml
-)
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml @ONLY )
 
 ## CI tests
 list(APPEND TEST_FILES
