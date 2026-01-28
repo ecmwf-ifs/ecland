@@ -85,3 +85,6 @@ The `ifsbench_run.py` script defines an `EclandConfig` class that describes a 1-
 To add new tests, you have to add a new scientific setup (or technical setup or architecture) to the YAML configuration file. Please edit the YAML file in the `tests/ifsbench` *source* directory, not in the *build* directory (as this will be overwritten when CMake runs).
 The parameters that you have to provide are specified in the `EclandScience` class in `ifsbench_run.py`. The most important ones should be documented in the YAML file itself. Just create a new entry in the `science` section of the YAML file, choose the right input data files and (optionally) add some namelist modifications.
 Once you have adapted the YAML file, you should most likely also add it to CTest (see CTest section above).
+
+# Adding or updating reference results
+Any test run invoked via the `from_yaml` option will automatically create a `results.yaml` file in the path specific under `--rundir`. Renaming and copying this file to a new location will create a new reference result that can then be passed to `--validate=<path_to_reference>`.
