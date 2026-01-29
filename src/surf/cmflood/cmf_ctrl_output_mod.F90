@@ -197,6 +197,7 @@ DO JF=1,NVARSOUT
       VAROUT(JF)%CVLNAME='river velocity'
       VAROUT(JF)%CVUNITS='m/s'
       VAROUT(JF)%AGGREGATE=2
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('fldout')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='floodplain discharge'
@@ -228,6 +229,7 @@ DO JF=1,NVARSOUT
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='water surface elevation'
       VAROUT(JF)%CVUNITS='m'
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('totout')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='discharge (river+floodplain)'
@@ -243,6 +245,7 @@ DO JF=1,NVARSOUT
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='total storage (river+floodplain)'
       VAROUT(JF)%CVUNITS='m3'
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('storge')                   !! comparability for previous output name
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='total storage (river+floodplain)'
@@ -258,6 +261,7 @@ DO JF=1,NVARSOUT
       VAROUT(JF)%CVLNAME='net bifurcation discharge'
       VAROUT(JF)%CVUNITS='m3/s'
       VAROUT(JF)%AGGREGATE=2
+      VAROUT(JF)%GRIB=.TRUE.
 
     CASE ('maxsto')
       VAROUT(JF)%CVNAME=CVNAMES(JF)
@@ -318,6 +322,7 @@ DO JF=1,NVARSOUT
       VAROUT(JF)%CVLNAME='ground water discharge'
       VAROUT(JF)%CVUNITS='m3/s'
       VAROUT(JF)%AGGREGATE=2
+      VAROUT(JF)%GRIB=.TRUE.
     CASE ('gwout')  !! old name. same as gdwrtn
       VAROUT(JF)%CVNAME=CVNAMES(JF)
       VAROUT(JF)%CVLNAME='ground water discharge'
