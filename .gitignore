@@ -20,3 +20,4 @@ ecland_run.sh
 tools/create_forcing/scripts/osm_pyutils/cython_ext.c
 tools/create_forcing/scripts/osm_pyutils/cython_ext.cpython-311-x86_64-linux-gnu.so
 
+**/*.patch
