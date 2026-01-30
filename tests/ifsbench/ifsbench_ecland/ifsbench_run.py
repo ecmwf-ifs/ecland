@@ -11,6 +11,7 @@
 from contextlib import nullcontext
 from pathlib import Path
 import re
+import sys
 from tempfile import TemporaryDirectory
 from typing import List, Dict
 
@@ -314,6 +315,13 @@ def from_yaml(yaml_path, science, tech, binary_path, run_dir, tasks, threads,
             with Path(validate_path).open('r', encoding='utf-8') as f:
                 reference = EclandResult.from_config(yaml.safe_load(f))
 
+
+            # Temporary workaround. We reload the result, as serialisation at
+            # the moment causes some datetime objects in pandas dataframes to
+            # be converted to strings, which causes issues when comparing.
+            with (run_dir/'result.yaml').open('r', encoding='utf-8') as f:
+                result = EclandResult.from_config(yaml.safe_load(f))
+
             if set(result.frames.keys()) != set(reference.frames.keys()):
                 raise RuntimeError("Results do not hold the same frames!")
 
@@ -330,6 +338,10 @@ def from_yaml(yaml_path, science, tech, binary_path, run_dir, tasks, threads,
                     for idx, col in mismatch:
                         debug(f"Mismatch at ({idx}, {col}): {frame.loc[idx,col]} != {frame_ref.loc[idx,col]}.")
 
+                    sys.exit(1)
+                elif not equal:
+                    error(f"Shape of the frames mismatches! {frame.index}, {frame_ref.index}")
+                    sys.exit(1)
 
 @cli.command('validate', context_settings={"auto_envvar_prefix": "IFSBENCH"})
 @click.argument('result', type=click.Path(exists=True))
@@ -361,6 +373,11 @@ def validate(result, reference):
 
             for idx, col in mismatch:
                 debug(f"Mismatch at ({idx}, {col}): {frame.loc[idx,col]} != {frame_ref.loc[idx,col]}.")
+
+            sys.exit(1)
+        elif not equal:
+            error(f"Shape of the frames mismatches! {frame.index}, {frame_ref.index}")
+            sys.exit(1)
 
 if __name__ == "__main__":
     cli(auto_envvar_prefix='IFSBENCH')
