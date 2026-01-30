@@ -180,6 +180,12 @@ list( APPEND module_src
     yos_thf.F90
     yos_urb.F90
     yos_veg.F90
+    ecphys_state_type_mod.F90
+    ecphys_flux_type_mod.F90
+    ecphys_surface_type_mod.F90
+    ecphys_aux_diag_type_mod.F90
+    ecphys_aux_type_mod.F90
+    yomphyder.F90
 )
 list(TRANSFORM module_src PREPEND module/)
 
