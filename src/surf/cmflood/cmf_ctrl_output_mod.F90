@@ -37,6 +37,7 @@ CHARACTER(LEN=256)              ::  COUTTAG           ! Output Tag Name for each
 LOGICAL                         ::  LOUTVEC           ! TRUE FOR VECTORIAL OUTPUT, FALSE FOR NX,NY OUTPUT
 LOGICAL                         ::  LOUTCDF           ! true for netcdf outptu false for binary
 LOGICAL                         ::  LOUTGRB = .FALSE. ! true for GRIB2 output, requires IFS_CMF preprocessor flag and MultIO
+CHARACTER(LEN=256)              ::  GRBCONFIG = "./cmf-multio-conf.yaml"  ! MultIO GRIB2 configuration file path
 #ifdef IFS_CMF
 TYPE(MULTIO_HANDLE)             :: MIO_HANDLE
 #endif
@@ -45,7 +46,8 @@ INTEGER(KIND=JPIM)              ::  NDLEVEL           ! NETCDF DEFLATION LEVEL
 LOGICAL                         ::  LOUTTXT           ! TRUE FOR Text output for some gauges
 CHARACTER(LEN=256)              ::  CGAUTXT           ! List of Gauges (ID, IX, IY)
 !
-NAMELIST/NOUTPUT/ COUTDIR,CVARSOUT,COUTTAG,LOUTCDF,NDLEVEL,LOUTVEC,IFRQ_OUT,LOUTTXT,CGAUTXT,LOUTGRB
+NAMELIST/NOUTPUT/ COUTDIR, CVARSOUT, COUTTAG, LOUTCDF, NDLEVEL, LOUTVEC, IFRQ_OUT, &
+  & LOUTTXT, CGAUTXT, LOUTGRB, GRBCONFIG
 !
 !*** local variables
 INTEGER(KIND=JPIM), PARAMETER   :: NVARS=100          ! temporal output var number
@@ -498,7 +500,7 @@ SUBROUTINE CMF_MULTIO_INITIALISE
 
   ! Initialise MultIO, create a configuration context and a handle
   ERR = MULTIO_INITIALISE()
-  ERR = CONF_CTX%NEW()
+  ERR = CONF_CTX%NEW(GRBCONFIG)
   ERR = MIO_HANDLE%NEW(CONF_CTX)
   PF => MULTIO_CUSTOM_ERROR_HANDLER
   ERR = MIO_HANDLE%SET_FAILURE_HANDLER(PF, MIO_CONT)
