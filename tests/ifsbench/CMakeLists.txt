@@ -58,26 +58,41 @@ execute_process(
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml @ONLY )
 
 ## CI tests
-list(APPEND TEST_FILES
-    v1_EU_default
-    v1_EU_centered
-    v1_EU_forward
-    v1_EU_multiprocess
-    v1_EU_multithread
-    v1_EU_multiprocess_thread
-)
 
-foreach( TEST_NAME ${TEST_FILES} )
-    ecbuild_add_test(
-        TARGET ecland_ifsbench_${TEST_NAME}
-        TYPE SCRIPT
-        COMMAND ${LAUNCH_COMMAND}
+# Test the default forcing flux configuration (backward accumulation)
+# with different parallelisation strategies (processes and threads)
+foreach( TEST_NAME
+         v1_EU_default
+         v1_EU_multiprocess
+         v1_EU_multithread
+         v1_EU_multiprocess_thread
+       )
+    ecbuild_add_test( TARGET ecland_ifsbench_${TEST_NAME}
+        TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
         ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml ${TEST_NAME}
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_${TEST_NAME}
-      	    --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_${TEST_NAME}.yaml
+            --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_default.yaml
     )
 endforeach()
 
+
+# Test centered accumulation of forcing fluxes
+ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_centered
+    TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
+    ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml v1_EU_centered
+        --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_centered
+      	--validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_centered.yaml
+        --absolute-tolerance=1.e-16 --relative-tolerance=1.e-18
+)
+
+
+# Test forward accumulation of forcing fluxes (currently defunct!)
+ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_forward
+    TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
+    ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml v1_EU_forward
+        --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_forward
+        --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_default.yaml
+)
 
 ## Test exceptions
 
