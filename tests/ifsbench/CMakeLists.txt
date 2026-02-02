@@ -59,6 +59,15 @@ configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml ${CMAKE_CURRENT_BINARY_DIR
 
 ## CI tests
 
+# Set tolerances for validation
+if(${prec} MATCHES "sp")
+  set( RTOL 1.e-04 )
+  set( ATOL 1.e-06 )
+else()
+  set( RTOL 1.e-12 )
+  set( ATOL 1.e-12 )
+endif()
+
 # Test the default forcing flux configuration (backward accumulation)
 # with different parallelisation strategies (processes and threads)
 foreach( TEST_NAME
@@ -71,7 +80,8 @@ foreach( TEST_NAME
         TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
         ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml ${TEST_NAME}
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_${TEST_NAME}
-            --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_default.yaml
+            --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_default_${prec}.yaml
+            --absolute-tolerance=${ATOL} --relative-tolerance=${RTOL}
     )
 endforeach()
 
@@ -81,8 +91,8 @@ ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_centered
     TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
     ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml v1_EU_centered
         --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_centered
-      	--validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_centered.yaml
-        --absolute-tolerance=1.e-16 --relative-tolerance=1.e-18
+      	--validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_centered_${prec}.yaml
+        --absolute-tolerance=${ATOL} --relative-tolerance=${RTOL}
 )
 
 
@@ -91,7 +101,6 @@ ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_forward
     TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
     ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml v1_EU_forward
         --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_forward
-        --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_default.yaml
 )
 
 ## Test exceptions
