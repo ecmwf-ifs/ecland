@@ -298,7 +298,7 @@ CALL NCERROR ( NF90_GET_VAR(NCID,VARID,D1LON),'reading data' )
 
 CALL NCERROR( NF90_CLOSE(NCID))
 
-! reassing lonlat extend
+! reassigning lonlat extend here to make sure it's inline with netcdf input
 WEST = D1LON(1)
 EAST = D1LON(SIZE(D1LON))
 NORTH = D1LAT(1)
