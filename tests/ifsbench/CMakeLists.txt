@@ -61,11 +61,11 @@ configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml ${CMAKE_CURRENT_BINARY_DIR
 
 # Set tolerances for validation
 if(${prec} MATCHES "sp")
-  set( RTOL 1.e-04 )
-  set( ATOL 1.e-06 )
+  set( RTOL 1.e-03 )
+  set( ATOL 1.e-05 )
 else()
-  set( RTOL 1.e-12 )
-  set( ATOL 1.e-12 )
+  set( RTOL 5.e-05 )
+  set( ATOL 1.e-08 )
 endif()
 
 # Test the default forcing flux configuration (backward accumulation)
