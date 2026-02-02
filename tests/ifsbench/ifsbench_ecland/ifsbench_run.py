@@ -246,8 +246,14 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech) -> Benchmar
               help='Additional flags that are passed to the launcher')
 @click.option('--validate', 'validate_path', type=click.Path(exists=True),
               help='Validate results against given result file.')
-def from_yaml(yaml_path, science, tech, binary_path, run_dir, tasks, threads,
-    arch, launcher_flags, validate_path):
+@click.option('--rtol', '--relative-tolerance', default=0.0, type=float,
+              help='Maximum relative tolerance used for validation.')
+@click.option('--atol', '--absolute-tolerance', default=1.e-18, type=float,
+              help='Maximum absloute tolerance used for validation.')
+def from_yaml(
+        yaml_path, science, tech, binary_path, run_dir, tasks, threads,
+        arch, launcher_flags, validate_path, rtol, atol
+):
     """
     Run ecland benchmark using a YAML configuration file.
 
@@ -311,7 +317,7 @@ def from_yaml(yaml_path, science, tech, binary_path, run_dir, tasks, threads,
             yaml.dump(result.dump_config(), f)
 
         if validate_path:
-            validator = FrameCloseValidation(atol=0, rtol=0)
+            validator = FrameCloseValidation(atol=atol, rtol=rtol)
             with Path(validate_path).open('r', encoding='utf-8') as f:
                 reference = EclandResult.from_config(yaml.safe_load(f))
 
