@@ -158,7 +158,9 @@ KFILLING  = 1._JPIM
 !       Looking for value which minimizes the error in mass:
 DO JL=KIDIA, KFDIA
   IF (PDSNTOT(JL) >= ZTHRESWS .and. LDLAND(JL)) THEN
-    ZRSNWSTST(JL,1:KLEVSN)=PRSNWS(JL,1:KLEVSN)
+    DO JK=1,KLEVSN
+      ZRSNWSTST(JL,JK)=PRSNWS(JL,JK)
+    ENDDO
     ZERRORTST = 0._JPRB
     ZRBOTTOMTST=PRSNWS(JL, KLEVSNA(JL))
     ZRBOTTOMSTORE=PRSNWS(JL, KLEVSNA(JL))
@@ -188,12 +190,16 @@ DO JL=KIDIA, KFDIA
         IF (ZRSNWSTST(JL, JK) > PRSNMAX(JL) ) ZRSNWSTST(JL, JK) = PRSNMAX(JL)
       ENDDO
       IF (KLEVSNA(JL) < KLEVSN) THEN
-        ZRSNWSTST(JL, KLEVSNA(JL)+1:KLEVSN)=100._JPRB
+        DO JK=KLEVSNA(JL)+1,KLEVSN
+          ZRSNWSTST(JL, JK)=100._JPRB
+        ENDDO
       ENDIF
-! 
+!
       ZERRORTST=( SUM( ( ZRSNWSTST(JL, 1:KLEVSNA(JL)) * PDSNREAL(JL, 1:KLEVSNA(JL)) ), DIM=1 ) - PSSN(JL) ) / PSSN(JL)
       IF (ABS(ZERRORTST) < ABS(ZERROR)) THEN
-        PRSNWS(JL,1:KLEVSNA(JL))=ZRSNWSTST(JL,1:KLEVSNA(JL))
+        DO JK=1,KLEVSNA(JL)
+          PRSNWS(JL,JK)=ZRSNWSTST(JL,JK)
+        ENDDO
         ZERROR=ZERRORTST
         ZRBOTTOMSTORE=ZRBOTTOMTST
       ENDIF
@@ -204,7 +210,9 @@ DO JL=KIDIA, KFDIA
 ! 2.3.2 snow density: recompute profiles spanning top snow density value:
 !       Looking for value which minimizes the error in mass:
     IF ( PSSN(JL) < ZSNPERT .AND. LDLAND(JL) ) THEN
-      ZRSNWSTST(JL,:) = PRSNWS(JL,:)
+      DO JK=1,KLEVSN
+        ZRSNWSTST(JL,JK) = PRSNWS(JL,JK)
+      ENDDO
       ZRSNTOPSTORE    = PRSNTOP(JL)
       ZRSNTOPTST      = PRSNTOP(JL)
       ZDELTAC         = 0._JPRB
@@ -234,11 +242,15 @@ DO JL=KIDIA, KFDIA
           ENDIF
         ENDDO
         IF (KLEVSNA(JL) < KLEVSN) THEN
-          ZRSNWSTST(JL, KLEVSNA(JL)+1:KLEVSN)=100._JPRB
+          DO JK=KLEVSNA(JL)+1,KLEVSN
+            ZRSNWSTST(JL, JK)=100._JPRB
+          ENDDO
         ENDIF
         ZERRORTST=( SUM( ( ZRSNWSTST(JL, 1:KLEVSNA(JL)) * PDSNREAL(JL, 1:KLEVSNA(JL)) ), DIM=1 ) - PSSN(JL) ) / PSSN(JL)
         IF (ABS(ZERRORTST) < ABS(ZERROR)) THEN
-          PRSNWS(JL,:)=ZRSNWSTST(JL,:)
+          DO JK=1,KLEVSN
+            PRSNWS(JL,JK)=ZRSNWSTST(JL,JK)
+          ENDDO
           ZERROR=ZERRORTST
           ZRSNTOPSTORE=ZRSNTOPTST
         ENDIF
@@ -259,21 +271,31 @@ DO JL=KIDIA, KFDIA
         ENDIF
         IF ( ZERROR < 0._JPRB ) THEN ! LESS MASS
           IF (KFILLING > 1) THEN
-            PRSNWS(JL, KFILLING:KLEVSNA(JL)) = PRSNWS(JL, KFILLING:KLEVSNA(JL)) + 0.1_JPRB
+            DO JK=KFILLING,KLEVSNA(JL)
+              PRSNWS(JL, JK) = PRSNWS(JL, JK) + 0.1_JPRB
+            ENDDO
             IF (KFILLING > 2) THEN
-              PRSNWS(JL, 2:KFILLING-1)         = PRSNWS(JL, 2:KFILLING-1) + 0.005_JPRB
+              DO JK=2,KFILLING-1
+                PRSNWS(JL, JK)         = PRSNWS(JL, JK) + 0.005_JPRB
+              ENDDO
             ENDIF
           ELSE
             PRSNWS(JL, KFILLING)             = PRSNWS(JL, KFILLING) + 0.1_JPRB
           ENDIF
-  
+
         ELSEIF ( ZERROR > 0._JPRB ) THEN
           IF (KFILLING > 1) THEN
             IF (PRSNWS(JL, KFILLING) > PRSNWS(JL, KFILLING-1) ) THEN
-              PRSNWS(JL, KFILLING:KLEVSNA(JL) ) = PRSNWS(JL, KFILLING:KLEVSNA(JL)) - 0.1_JPRB
-              PRSNWS(JL, 1:KFILLING-1)   = PRSNWS(JL, 1:KFILLING-1) - 0.01_JPRB
+              DO JK=KFILLING,KLEVSNA(JL)
+                PRSNWS(JL, JK) = PRSNWS(JL, JK) - 0.1_JPRB
+              ENDDO
+              DO JK=1,KFILLING-1
+                PRSNWS(JL, JK)   = PRSNWS(JL, JK) - 0.01_JPRB
+              ENDDO
             ELSE
-              PRSNWS(JL, 1:KLEVSNA(JL) ) = PRSNWS(JL, 1:KLEVSNA(JL)) - 0.01_JPRB
+              DO JK=1,KLEVSNA(JL)
+                PRSNWS(JL, JK) = PRSNWS(JL, JK) - 0.01_JPRB
+              ENDDO
             ENDIF
           ELSE
               PRSNWS(JL, KFILLING ) = PRSNWS(JL, KFILLING) - 0.1_JPRB
@@ -294,9 +316,13 @@ DO JL=KIDIA, KFDIA
       DO WHILE ( (ABS(ZERROR) > ZEPSILON) .AND. (ICOUNT < ICOUNTMAX) )
         KFILLING=1
         IF ( ZERROR < 0._JPRB ) THEN ! LESS MASS
-          PRSNWS(JL, 1:KLEVSNA(JL)-2)   = PRSNWS(JL, 1:KLEVSNA(JL)-2) + 0.01_JPRB
-        ELSEIF ( ZERROR > 0._JPRB ) THEN    
-          PRSNWS(JL, 1:KLEVSNA(JL)-2)   = PRSNWS(JL, 1:KLEVSNA(JL)-2) - 0.01_JPRB
+          DO JK=1,KLEVSNA(JL)-2
+            PRSNWS(JL, JK)   = PRSNWS(JL, JK) + 0.01_JPRB
+          ENDDO
+        ELSEIF ( ZERROR > 0._JPRB ) THEN
+          DO JK=1,KLEVSNA(JL)-2
+            PRSNWS(JL, JK)   = PRSNWS(JL, JK) - 0.01_JPRB
+          ENDDO
         ENDIF
         ZERROR   = ( SUM( ( PRSNWS(JL, 1:KLEVSNA(JL)) * PDSNREAL(JL, 1:KLEVSNA(JL))), DIM=1 ) - PSSN(JL) ) / PSSN(JL)
         ICOUNT = ICOUNT + 1_JPIM
@@ -352,8 +378,10 @@ DO JL=KIDIA, KFDIA
         PWSNWS(JL, JK)  = ZFUNC*ZLWC
       ! PWSNWS(JL, JK)  = ZLWC
       ENDDO
-    ELSE 
-      PWSNWS(JL, :)  = 0._JPRB
+    ELSE
+      DO JK=1,KLEVSN
+        PWSNWS(JL, JK)  = 0._JPRB
+      ENDDO
     ENDIF
 
   ENDIF ! END IF WARM START THR
