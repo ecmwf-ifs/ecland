@@ -1,5 +1,3 @@
-#! @IFSBENCH_PYTHON@
-
 # (C) Copyright 2024- ECMWF.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0

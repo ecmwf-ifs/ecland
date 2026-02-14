@@ -6,6 +6,15 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
+# Name of the virtual environment
+set( VENV_NAME "ifsbench_venv" )
+set( VENV_PATH "${CMAKE_CURRENT_BINARY_DIR}/${VENV_NAME}" )
+
+# Create a Python virtual environment in the current binary directory.
+ecbuild_info( "Create ifsbench virtual environment ${VENV_NAME}" )
+
+execute_process( COMMAND ${Python3_EXECUTABLE} -m venv --copies ${VENV_PATH} )
+
 # Change the context of the search to only find the venv
 set( Python3_FIND_VIRTUALENV ONLY )
 set( Python3_EXECUTABLE_CACHE ${Python3_EXECUTABLE} )
@@ -20,16 +29,7 @@ set( Python3_ROOT_DIR "${VENV_PATH}" )
 # Find newly created python venv
 find_package( Python3 COMPONENTS Interpreter REQUIRED )
 
-# Name of the virtual environment
-set( VENV_NAME "ifsbench_venv" )
-set( VENV_PATH "${CMAKE_CURRENT_BINARY_DIR}/${VENV_NAME}" )
-
-# Create a Python virtual environment in the current binary directory.
-ecbuild_info( "Create ifsbench virtual environment ${VENV_NAME}" )
-
-execute_process( COMMAND ${Python3_EXECUTABLE} -m venv --copies ${VENV_PATH} )
-
-set( IFSBENCH_PYTHON "${VENV_PATH}/bin/python3")
+set( IFSBENCH_PYTHON ${Python3_EXECUTABLE} )
 
 set( PIP_INSTALL_FLAGS "--disable-pip-version-check")
 
@@ -44,7 +44,7 @@ endif()
 # Install the ifsbench_ecland package. This will also install all necessary
 # Python dependencies.
 execute_process(
-  COMMAND ${IFSBENCH_PYTHON} -m pip install ${PIP_INSTALL_FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND ${IFSBENCH_PYTHON} -m pip install ${PIP_INSTALL_FLAGS} ${CMAKE_CURRENT_SOURCE_DIR} OUTPUT_QUIET
 )
 
 set( LAUNCH_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/ifsbench_run.py )
@@ -107,3 +107,7 @@ ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_forward
 
 # Disable Forward test variant - currently not supported
 set_property(TEST ecland_ifsbench_v1_EU_forward PROPERTY DISABLED TRUE)
+
+
+# Restore cached python interpreter
+set(Python3_EXECUTABLE ${Python3_EXECUTABLE_CACHE})
