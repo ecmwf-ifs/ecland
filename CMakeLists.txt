@@ -53,6 +53,7 @@ ecbuild_add_option( FEATURE SINGLE_PRECISION
 
 ecbuild_add_option( FEATURE IFSBENCH_TESTS
                     DEFAULT ON
+                    REQUIRED_PACKAGES "Python3 VERSION 3.8"
                     DESCRIPTION "Enable Python-based IFS-bench tests" )
 
 ### Set third party libraries
