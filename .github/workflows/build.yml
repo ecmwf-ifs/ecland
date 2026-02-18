@@ -240,7 +240,7 @@ jobs:
         recreate_cache: ${{ matrix.caching == false }}
         dependencies: |
           ecmwf/ecbuild
-          ecmwf-ifs/fiat
+          ecmwf-ifs/fiat@refs/tags/1.6.2
           ecmwf/eccodes@refs/tags/2.44.0
         dependency_branch: develop
         dependency_cmake_options: |
