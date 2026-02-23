@@ -298,7 +298,7 @@ real(kind=jprb) :: help2(13),help3(13)
 !* ==============================================================
 
 ZEPS=1.E-5
-ZEPSILON=EPSILON(ZEPSILON)
+ZEPSILON=EPSILON(ZEPS)
 !* calculations on JL 
 DO JL=KIDIA,KFDIA
   D1SWDS(JL,IBL)=PTSPHY*RHOH2O*DOT_PRODUCT(PWSAE1(JL,:),RDAW(:))

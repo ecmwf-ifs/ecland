@@ -235,7 +235,7 @@ GPD_SDP3(IST:IEND,:,:) = PSURF%GSD%PSSDP3(1:IPROMA,:,:,IBL)
 !* ==============================================================
 
 ZEPS=1.E-5_JPRB
-ZEPSILON=EPSILON(ZEPSILON)
+ZEPSILON=EPSILON(ZEPS)
 !* calculations on JL 
 DO JL=1,IPROMA
   D1SWDS(JL,IBL)=PTSPHY*RHOH2O*DOT_PRODUCT(PSURF%PWSAE1(JL,:,IBL),RDAW(:))
