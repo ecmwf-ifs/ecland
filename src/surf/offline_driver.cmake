@@ -28,6 +28,7 @@ list(APPEND offline_driver_src
     cntend.F90
 #    cpg1s.F90
     ecland_fc_mod.F90
+    ecland_fc_unsplit_mod.F90
     dattim.F90
     dtforc.F90
     ecland_drv.F90
