@@ -539,7 +539,7 @@ REAL(KIND=JPRB)            :: D2RATE(NSEQALL)                        !! outflow 
 
 ! SAVE for OpenMP
 INTEGER(KIND=JPIM),SAVE    :: ISEQ, IPTH, JSEQ, INUM, JPTH, ISEQP, JSEQP
-!$OMP THREADPRIVATE                      (JSEQ, INUM, JPTH, ISEQP, JSEQP)
+!$OMP THREADPRIVATE                      (JSEQ, JPTH, ISEQP, JSEQP)
 !============================
 
 ! ****** 1. calculate flux
@@ -585,7 +585,7 @@ DO ITRACE=1, NTRACE
 ! ****** 2. calculate total outflow from each catchment
 !! flux adjustment for mass balance
   !! for normal cells ---------
-  !$OMP PARALLEL DO
+  !$OMP PARALLEL DO PRIVATE(INUM)
   DO ISEQ=1, NSEQALL
     P2STOOUT(ISEQ) = max( D2TRCOUT(ISEQ,ITRACE),0._JPRB ) 
     IF( I1UPN(ISEQ)>0 )THEN
@@ -600,7 +600,7 @@ DO ITRACE=1, NTRACE
 
   !! for bifurcation channels ------------
   IF( LTRCBIF )THEN
-  !$OMP PARALLEL DO  !! No OMP Atomic for bit-identical simulation (set in Mkinclude)
+  !$OMP PARALLEL DO PRIVATE (INUM) !! No OMP Atomic for bit-identical simulation (set in Mkinclude)
     DO ISEQ=1, NSEQALL
       IF( I1P_OUTN(ISEQ)>0 )THEN
         DO INUM=1, I1P_OUTN(ISEQ)
@@ -650,7 +650,7 @@ DO ITRACE=1, NTRACE
   END DO
   !$OMP END PARALLEL DO SIMD
 
-  !$OMP PARALLEL DO
+  !$OMP PARALLEL DO PRIVATE (INUM)
   DO ISEQ=1, NSEQALL ! for normal pixels
     IF( I1UPN(ISEQ)>0 )THEN
       DO INUM=1, I1UPN(ISEQ)
@@ -679,7 +679,7 @@ DO ITRACE=1, NTRACE
     END DO
     !$OMP END PARALLEL DO
 
-    !$OMP PARALLEL DO
+    !$OMP PARALLEL DO PRIVATE(INUM)
     DO ISEQ=1, NSEQALL
       IF( I1P_OUTN(ISEQ)>0 )THEN
         DO INUM=1, I1P_OUTN(ISEQ)
