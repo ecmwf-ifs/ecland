@@ -94,7 +94,11 @@ SUBROUTINE CMF_MPI_END
 IMPLICIT NONE
 INTEGER(KIND=JPIM)              :: ierr
 !================================================
+#ifdef IFS_CMF
+CALL MPL_END()
+#else
 CALL MPI_Finalize(ierr)
+#endif
 END SUBROUTINE CMF_MPI_END
 !####################################################################
 
