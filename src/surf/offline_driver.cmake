@@ -120,6 +120,13 @@ list(APPEND offline_driver_src
     yomlog1s.F90
     yomlun1s.F90
     yomrip.F90
+ #   yomphyder.F90
+    ecland_state_type_mod.F90
+    ecland_flux_type_mod.F90
+    ecland_surface_type_mod.F90
+    ecland_aux_diag_type_mod.F90
+    ecland_aux_type_mod.F90
+    ecland_gems_type_mod.F90
 )
 list(TRANSFORM offline_driver_src PREPEND offline/driver/)
 
