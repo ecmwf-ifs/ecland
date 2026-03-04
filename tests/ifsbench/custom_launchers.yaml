@@ -1,0 +1,41 @@
+# A set of launchers in YAML representation. You can uncomment the launcher
+# that you'd like to use, set custom flags and use it in the ecLand tests
+# by passing --launcher-config=custom_launchers.yaml or by setting the
+# IFBENCH_LAUNCHER_CONFIG=custom_launchers.yaml flag.
+
+# Use the srun-based launcher. Add additional flags if necessary.
+#class_name: SrunLauncher
+#flags: []
+
+# Use the mpirun-based launcher. Add additional flags if necessary.
+#class_name: MpirunLauncher
+#flags: []
+
+# Launch into a DDT session, using srun under the hood.
+#class_name: CompositeLauncher
+#flags: []
+#base_launcher:
+#  class_name: SrunLauncher
+#  flags: []
+#wrappers:
+#- class_name: DDTLauncher
+#  flags: []
+
+# Fully custom launcher where you have to specify the launch executable as well
+# as all flags as none are set automatically.
+#class_name: DirectLauncher
+#executable: time
+#flags: []
+
+# Use srun to launch but put the whole launch invocation (launch command and
+# enivronment) into a bash script in `run_dir/bash_scripts` and then launch
+# the bash script.
+
+#class_name: CompositeLauncher
+#flags: []
+#base_launcher:
+#  class_name: SrunLauncher
+#  flags: []
+#wrappers:
+#- class_name: BashLauncher
+#  flags: []
