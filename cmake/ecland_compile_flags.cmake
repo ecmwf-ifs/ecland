@@ -12,15 +12,6 @@ set( ${PNAME}_Fortran_FLAGS "${ECBUILD_Fortran_FLAGS} " )
 set( ${PNAME}_Fortran_FLAGS_BIT "${ECBUILD_Fortran_FLAGS_BIT} " )
 set( ${PNAME}_Fortran_FLAGS_DEBUG "${ECBUILD_Fortran_FLAGS_DEBUG} " )
 
-if(HAVE_SINGLE_PRECISION AND CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
-  ecbuild_add_fortran_flags( "-fno-range-check" NAME no_range_check )
-      #   sppcflstl_mod.F90:444:17:
-      #
-      #   444 |         Z4EXP5 = EXP(200.0_JPRD)
-      #       |                 1
-      # Error: Arithmetic overflow converting REAL(8) to REAL(4) at (1). This check can be disabled with the option '-fno-range-check'
-endif()
-
 if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
   set(checkbounds_flags   "-Rb")
   set(fpe_flags           "-Ktrap=fp")
@@ -31,8 +22,11 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
   set(checkbounds_flags   "-fcheck=bounds")
   set(fpe_flags           "-ffpe-trap=invalid,zero,overflow")
   set(initsnan_flags      "-finit-real=snan")
+  set(vectorization_flags "-march=native")
 
-  # Needed to guarantee matching test results with Debug build
+  ecbuild_add_fortran_flags( "-fno-range-check" NAME no_range_check )
+
+  # Needed to guarantee matching test results with Debug build
   set(fpmodel_flags       "-ffp-contract=off")
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
