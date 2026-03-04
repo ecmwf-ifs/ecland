@@ -46,6 +46,11 @@ Several options can be added to alter the run
 * `--tech <tech_name>` Use the given technical setup when running the tests. Available setups and their names can be looked up in the YAML file.
 * `--arch <arch_name>` Use the given architecture when running the tests. Available architectures and their names can be looked up in the YAML file.
 * `--validate <ref_path>` Check the results against for bit-identicality compared to some reference results stored in the specified file.
+* `--launcher-flags` Can be passed several times and adds a custom flag to the
+  launch command.
+* `--launcher-config` When you need a complicated custom launcher invocation,
+  for example involving debuggers, you can specify your custom launcher in a YAML file (see
+`custom_launchers.yaml`) and pass this YAML file here.
 
 Instead of passing these flags, it is also possible to set  the corresponding`IFSBENCH_<FLAG_NAME>` environment variable:
 ```

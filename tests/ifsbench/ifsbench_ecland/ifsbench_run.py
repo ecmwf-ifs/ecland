@@ -32,6 +32,7 @@ from ifsbench import (
     TechSetup
 )
 
+from ifsbench.command_line import launcher_options
 from ifsbench.data import FetchHandler, NamelistHandler, NamelistOverride, RenameHandler, RenameMode
 from ifsbench.validation import FrameCloseValidation
 
@@ -240,17 +241,16 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech) -> Benchmar
               help='Number of threads to use')
 @click.option('--arch', default=None, type=str,
               help='The architecture to use.')
-@click.option('--launcher-flags', default=[], multiple=True, type=str,
-              help='Additional flags that are passed to the launcher')
 @click.option('--validate', 'validate_path', type=click.Path(exists=True),
               help='Validate results against given result file.')
 @click.option('--rtol', '--relative-tolerance', default=0.0, type=float,
               help='Maximum relative tolerance used for validation.')
 @click.option('--atol', '--absolute-tolerance', default=1.e-18, type=float,
               help='Maximum absloute tolerance used for validation.')
+@launcher_options
 def from_yaml(
         yaml_path, science, tech, binary_path, run_dir, tasks, threads,
-        arch, launcher_flags, validate_path, rtol, atol
+        arch, validate_path, rtol, atol, launcher_builder
 ):
     """
     Run ecland benchmark using a YAML configuration file.
@@ -298,11 +298,13 @@ def from_yaml(
         run_dir = Path(run_dir)
         benchmark.setup_rundir(run_dir)
 
+        launcher = launcher_builder.build_from_arch(arch)
+
         bench_result = benchmark.run(
             run_dir=run_dir,
             job=job,
             arch=arch,
-            launcher_flags=launcher_flags
+            launcher=launcher
         )
 
         result = EclandResult.from_rundir(
