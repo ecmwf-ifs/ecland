@@ -4,7 +4,7 @@ description = "ecland-specific functionality on top of ifsbench"
 requires-python = ">=3.8"
 readme = "README.md"
 dependencies = [
-  "ifsbench@git+https://github.com/ecmwf-ifs/ifsbench.git@0.2.0"
+  "ifsbench@git+https://github.com/ecmwf-ifs/ifsbench.git@0.2.1"
 ]
 version = "2.0.0"
 
