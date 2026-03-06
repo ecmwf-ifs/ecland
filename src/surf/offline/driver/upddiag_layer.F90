@@ -201,7 +201,7 @@ TYPE(AUX_DIAG_TYPE)              :: PDIAG
 TYPE(AUX_DIAG_LOCAL_TYPE)        :: PAUXL
 TYPE(AUX_TYPE)                   :: PAUX
 TYPE(FLUX_TYPE)                  :: PFLUX
-TYPE(ATMO_TYPE)                  :: STATE,TENDENCY_LOC 
+TYPE(ATMO_TYPE)                  :: STATE
 TYPE(GEMS_LOCAL_TYPE)            :: GEMSL 
 TYPE(KEYS_LOCAL_TYPE)            :: LLKEYS  
 TYPE(DDH_SURF_TYPE)              :: PDDHS
@@ -209,12 +209,11 @@ TYPE(DDH_SURF_TYPE)              :: PDDHS
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PPSURF(KLON,NBLOCKS)
 INTEGER(KIND=JPIM),INTENT(IN)    :: IST,IEND,IBL,IPROMA
 
-INTEGER(KIND=JPIM) :: JTILE,JL,JK,JLK
+INTEGER(KIND=JPIM) :: JTILE,JL,JK
 REAL(KIND=JPRB) :: ZEPS
 REAL(KIND=JPRB) :: ZEPSILON
 
 ! balans sluitingen
-INTEGER(KIND=JPIM)   :: I1
 
 
 !* ==============================================================
