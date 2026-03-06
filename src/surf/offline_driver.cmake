@@ -19,14 +19,14 @@ ecbuild_generate_fortran_interfaces(
 
 list(APPEND offline_driver_src
     buffer_utils.F90
-    callpar1s_layer.F90
+    callpar1s.F90
     cnt01s.F90
     cnt21s.F90
     cnt31s.F90
     cnt41s.F90
     cntend.F90
 #    cpg1s.F90
-    ecland_fc_unsplit_mod.F90
+    ecland_drv.F90
     dattim.F90
     dtforc.F90
 #    ibm.F90 # Already included in surf
@@ -72,7 +72,7 @@ list(APPEND offline_driver_src
     suvdf.F90
     suvdfs.F90
     updcal.F90
-    upddiag_layer.F90
+    upddiag.F90
     updtim1s.F90
     vdfdifc.F90
     vdfdifh1s.F90
