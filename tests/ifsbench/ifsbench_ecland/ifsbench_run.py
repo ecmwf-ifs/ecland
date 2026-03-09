@@ -18,6 +18,7 @@ import yaml
 
 from ifsbench import (
     Benchmark,
+    BenchmarkSetup,
     cli,
     debug,
     DataFileStats,
@@ -145,7 +146,7 @@ class EclandConfig(SerialisationMixin):
     tech: Dict[str, EclandTech]
     arch: Dict[str, DefaultArch]
 
-def build_ecland_benchmark(science: EclandScience, tech: EclandTech) -> Benchmark:
+def build_ecland_benchmark(science: EclandScience, tech: EclandTech, job: Job) -> Benchmark:
     """
     Build an ifsbench Benchmark object from the ecland science and tech
     objects.
@@ -210,7 +211,13 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech) -> Benchmar
         env_handlers = env_handlers
     )
 
-    return Benchmark(science = science_setup, tech=tech_setup)
+    benchmark_setup = BenchmarkSetup(
+        science=science_setup,
+        tech=tech_setup,
+        job=job
+    )
+        
+    return Benchmark(setup=benchmark_setup)
 
 
 @cli.command('from_yaml', context_settings={"auto_envvar_prefix": "IFSBENCH"})
@@ -265,14 +272,18 @@ def from_yaml(
     if binary_path:
         science_input.binary_path = Path(binary_path).resolve()
 
-    benchmark = build_ecland_benchmark(science=science_input, tech=tech_input)
-
     job = science_input.job
     if tasks:
         job.tasks = tasks
     if threads:
         job.cpus_per_task = threads
 
+    benchmark = build_ecland_benchmark(
+        science=science_input,
+        tech=tech_input,
+        job=job
+    )
+ 
     arch = ecland_config.arch.get(arch, ecland_config.arch['default'])
 
     if run_dir:
@@ -283,13 +294,11 @@ def from_yaml(
 
     with context as run_dir:
         run_dir = Path(run_dir)
-        benchmark.setup_rundir(run_dir)
 
         launcher = launcher_builder.build_from_arch(arch)
 
         bench_result = benchmark.run(
             run_dir=run_dir,
-            job=job,
             arch=arch,
             launcher=launcher
         )
