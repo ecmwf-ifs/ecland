@@ -11,14 +11,17 @@ if (HAVE_FETCHCONTENT_DEPENDENCIES)
 #### eccodes
 FetchContent_Declare(
   eccodes
-  URL https://github.com/ecmwf/eccodes/archive/refs/tags/2.44.0.tar.gz
+  URL https://github.com/ecmwf/eccodes/archive/refs/tags/2.46.0.tar.gz
   FIND_PACKAGE_ARGS
 )
 set( ECCODES_ENABLE_MEMFS ON )
 set( ECCODES_ENABLE_TESTS OFF )
 set( ECCODES_ENABLE_JPG OFF )
 set( ECCODES_ENABLE_PNG OFF )
-
+set( ECCODES_ENABLE_NETCDF OFF )
+set( ECCODES_ENABLE_JPG_LIBJASPER OFF )
+set( ECCODES_ENABLE_JPG_LIBOPENJPEG OFF )
+set( ECCODES_ENABLE_PRODUCT_GRIB OFF )
 
 #### fiat
 FetchContent_Declare(
