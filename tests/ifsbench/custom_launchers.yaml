@@ -31,11 +31,11 @@
 # enivronment) into a bash script in `run_dir/bash_scripts` and then launch
 # the bash script.
 
-#class_name: CompositeLauncher
-#flags: []
-#base_launcher:
-#  class_name: SrunLauncher
-#  flags: []
-#wrappers:
-#- class_name: BashLauncher
-#  flags: []
+class_name: CompositeLauncher
+flags: []
+base_launcher:
+  class_name: SrunLauncher
+  flags: []
+wrappers:
+- class_name: BashLauncher
+  flags: []
