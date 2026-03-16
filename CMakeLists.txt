@@ -40,6 +40,9 @@ endif()
 ecbuild_find_package(fiat REQUIRED)
 set( HAVE_MPI ${fiat_HAVE_MPI} )
 
+#### field api
+ecbuild_find_package(field_api REQUIRED)
+
 ### Options
 ########################################################################
 
