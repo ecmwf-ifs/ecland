@@ -292,8 +292,8 @@ TYPE, PUBLIC :: SURF_AND_MORE_TYPE
   CLASS(FIELD_2RB), POINTER :: F_ZLAILP  => NULL()
   REAL(KIND=JPRB), DIMENSION(:),        POINTER :: ZLAIHP   => NULL()!PLAILP, PLAIHP   ! to store variable LAI previous time
   CLASS(FIELD_2RB), POINTER :: F_ZLAIHP  => NULL()
-  REAL(KIND=JPRB), DIMENSION(:),        POINTER :: ZLAIL    => NULL()  ! to store variable LAI
-  REAL(KIND=JPRB), DIMENSION(:),        POINTER :: ZLAIH    => NULL()   ! to store variable LAI
+  REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: ZLAIL    => NULL()  ! to store variable LAI
+  REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: ZLAIH    => NULL()   ! to store variable LAI
   REAL(KIND=JPRB), DIMENSION(:),        POINTER :: ZCHAR    => NULL()
   CLASS(FIELD_2RB), POINTER :: F_ZCHAR   => NULL()
   REAL(KIND=JPRB), DIMENSION(:),        POINTER :: ZCHARHQ  => NULL()
