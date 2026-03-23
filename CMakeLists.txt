@@ -63,9 +63,11 @@ ecbuild_add_option( FEATURE IFSBENCH_TESTS
 
 if( HAVE_SINGLE_PRECISION )
   add_library( parkind ALIAS parkind_sp )
+  add_library( field_api ALIAS field_api_sp)
   set( prec "sp" )
 else()
   add_library( parkind ALIAS parkind_dp )
+  add_library( field_api ALIAS field_api_dp)
   set( prec "dp" )
 endif()
 
