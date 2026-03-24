@@ -79,7 +79,7 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 #include "wrtdcdf.intfb.h"
 #include "wrtres.intfb.h"
 #include "wrtd1s.intfb.h"
-#include "cpg1s.intfb.h"
+#include "ecland_drv.intfb.h"
 #include "wrtd2cdf.intfb.h"
 
 IF (LHOOK) CALL DR_HOOK('STEPO1S',0,ZHOOK_HANDLE)
@@ -216,7 +216,7 @@ ENDIF
 !*       4.    GRID POINT COMPUTATIONS.
 !              ------------------------
 
-CALL CPG1S
+CALL ECLAND_DRV
 
 !     ------------------------------------------------------------------
 

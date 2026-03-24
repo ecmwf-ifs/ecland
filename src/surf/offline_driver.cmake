@@ -25,7 +25,8 @@ list(APPEND offline_driver_src
     cnt31s.F90
     cnt41s.F90
     cntend.F90
-    cpg1s.F90
+#    cpg1s.F90
+    ecland_drv.F90
     dattim.F90
     dtforc.F90
 #    ibm.F90 # Already included in surf
@@ -116,6 +117,13 @@ list(APPEND offline_driver_src
     yomlog1s.F90
     yomlun1s.F90
     yomrip.F90
+    ecland_atmo_type_mod.F90
+    ecland_internal_type_mod.F90
+    ecland_flux_type_mod.F90
+    ecland_surface_type_mod.F90
+    ecland_aux_diag_type_mod.F90
+    ecland_aux_type_mod.F90
+    ecland_gems_type_mod.F90
 )
 list(TRANSFORM offline_driver_src PREPEND offline/driver/)
 
@@ -129,6 +137,7 @@ ecbuild_add_executable(TARGET ${PROJECT_NAME}-master
   LIBS 
     ${PROJECT_NAME}_offline_driver_intfb ${PROJECT_NAME}_surf ${PROJECT_NAME}_cmflood
     fiat parkind
+    field_api
     ${OpenMP_Fortran_LIBRARIES}
     NetCDF::NetCDF_Fortran
 )

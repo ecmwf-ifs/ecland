@@ -1,6 +1,6 @@
 SUBROUTINE RDSSDP(NCID)
 
-USE YOMDPHY   ,ONLY : NPOI
+USE YOMDPHY   ,ONLY : NPOI, NPOIALL, NPOIPALL
 USE PARKIND1  ,ONLY : JPIM     ,JPRB
 USE YOMDIM1S  ,ONLY : NPROMA
 USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
@@ -66,6 +66,7 @@ USE YOMLOG1S , ONLY : NDIMCDF
 USE YOMGC1S  , ONLY : LMASK
 USE NETCDF
 USE NETCDF_UTILS, ONLY: NCERROR
+USE BUFFER_UTILS, ONLY: UNPACK_BUFFER
 
 USE MPL_MODULE
 
@@ -80,7 +81,7 @@ INTEGER                     :: ISTART2(2),ICOUNT2(2)
 INTEGER                     :: ISTART3(3),ICOUNT3(3)
 REAL(KIND=JPRB),ALLOCATABLE :: ZREAL2D(:)
 REAL(KIND=JPRB),ALLOCATABLE :: ZREAL3D(:,:)
-REAL(KIND=JPRB),ALLOCATABLE :: ZBUF(:)
+REAL(KIND=JPRB),ALLOCATABLE :: ZBUF(:), RECV_BUF(:)
 INTEGER                     :: NILON,NILAT,IERR,NVARID,NILEV
 INTEGER                     :: NDIM, NVARS
 CHARACTER*100               :: CNAME
@@ -160,7 +161,8 @@ ENDIF
 
 ALLOCATE (ZREAL2D(NLALO))
 ALLOCATE (ZREAL3D(NLALO,NILEV))
-ALLOCATE (ZBUF(NPOI))
+ALLOCATE (ZBUF(NPOIALL))
+ALLOCATE (RECV_BUF(NPOI))
 
 CALL MPL_BARRIER()  
 
@@ -189,434 +191,495 @@ DO IVAR=1,NVARS2D
    ENDIF
 
    CALL MPL_BROADCAST(STATUS,KROOT=1,KTAG=100,CDSTRING='STATUS')
-   CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL2D(:),KSENDCOUNTS=NPOIP(:),CDSTRING='RDSSDP2D: '//CVAR)
+   CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL2D(:),KSENDCOUNTS=NPOIPALL(:),CDSTRING='RDSSDP2D: '//CVAR)
 
    SELECT CASE(CVAR)
      CASE('hvegcov ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVCOVH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVCOVH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lvegcov ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVCOVL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVCOVL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hvegstr ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVHSTRH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVHSTRH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lvegstr ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVHSTRL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVHSTRL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hlamsk ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVLAMSKH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVLAMSKH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('llamsk ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVLAMSKL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVLAMSKL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hlamsks ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVLAMSKSH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVLAMSKSH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('llamsks ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVLAMSKSL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVLAMSKSL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hvegrsm ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVRSMINH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVRSMINH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lvegrsm ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVRSMINL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVRSMINL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hrvz0h ')
        IF ( STATUS /= 0 ) THEN
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVZ0HH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVZ0HH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lrvz0h ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVZ0HL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVZ0HL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hrvz0m ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVZ0MH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVZ0MH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lrvz0m ')
        IF ( STATUS /= 0 ) THEN
           WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVZ0ML2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVZ0ML2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF 
      CASE('lah ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVAHL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVAHL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hammax ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVAMMAXH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVAMMAXH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lammax ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVAMMAXL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVAMMAXL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lbh ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVBHL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVBHL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hvce ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVCEH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVCEH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lvce ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVCEL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVCEL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hvcf ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVCFH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVCFH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lvcf ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVCFL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVCFL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hvcnal ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVCNAH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVCNAH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lvcnal ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVCNAL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVCNAL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hvdmax ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVDMAXH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVDMAXH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lvdmax ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVDMAXL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVDMAXL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hepso ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVEPSOH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVEPSOH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lepso ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVEPSOL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVEPSOL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hvf2i ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVF2IH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVF2IH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lvf2i ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVF2IL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVF2IL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hfzrost ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVFZEROSTH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVFZEROSTH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lfzrost ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVFZEROSTL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVFZEROSTL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hgamm ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVGAMMH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVGAMMH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lgamm ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVGAMML2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVGAMML2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hvgc ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVGCH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVGCH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lvgc ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVGCL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVGCL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hvgmes ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVGMESH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVGMESH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lvgmes ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVGMESL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVGMESL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hminlai ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVLAIMINH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVLAIMINH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lminlai ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVLAIMINL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVLAIMINL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hqammax ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVQDAMMAXH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVQDAMMAXH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lqammax ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVQDAMMAXL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVQDAMMAXL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hqdgamm ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVQDGAMMH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVQDGAMMH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lqdgamm ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVQDGAMML2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVQDGAMML2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hqdgmes ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVQDGMESH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVQDGMESH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lqdgmes ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVQDGMESL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVQDGMESL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hsefold ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVSEFOLDH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVSEFOLDH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lsefold ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVSEFOLDL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVSEFOLDL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('ht1amax ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVT1AMMAXH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVT1AMMAXH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lt1amax ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVT1AMMAXL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVT1AMMAXL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('ht1gmes ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVT1GMESH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVT1GMESH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lt1gmes ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVT1GMESL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVT1GMESL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('ht2amax ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVT2AMMAXH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVT2AMMAXH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lt2amax ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVT2AMMAXL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVT2AMMAXL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('ht2gmes ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVT2GMESH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVT2GMESH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lt2gmes ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVT2GMESL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVT2GMESL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('htopt ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVTOPTH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVTOPTH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('ltopt ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVTOPTL2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVTOPTL2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('hxomega ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRXBOMEGAMH2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRXBOMEGAMH2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('lxomega ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRXBOMEGAML2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRXBOMEGAML2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE('bvegrsm ')
        IF ( STATUS /= 0 ) THEN 
          WRITE(NULOUT,*) CVAR, 'Not calibrated'
        ELSE
-         GPD_SDP2(1:NPOI, SSDP2D_ID%NRVRSMINB2D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+         CALL UNPACK_BUFFER(GPD_SDP2(:, SSDP2D_ID%NRVRSMINB2D,:), RECV_BUF)
          WRITE(NULOUT,*) CVAR, 'Calibrated value from surf_param.nc'
        ENDIF
      CASE DEFAULT
@@ -643,70 +706,79 @@ DO IVAR=1,NVARS3D
       CALL MINMAX(CVAR,ZREAL3D(:,JVT),NMX,NMY,LMASK,NULOUT)
     ENDIF
     CALL MPL_BROADCAST(STATUS,KROOT=1,KTAG=100,CDSTRING='STATUS')
-    CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL3D(:,JVT),KSENDCOUNTS=NPOIP(:),CDSTRING='RDSSDP3D: '//CVAR)
+    CALL MPL_SCATTERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZREAL3D(:,JVT),KSENDCOUNTS=NPOIPALL(:),CDSTRING='RDSSDP3D: '//CVAR)
  
     SELECT CASE(CVAR)
       CASE('gdry ')
         IF ( STATUS /= 0 ) THEN
           WRITE(NULOUT,*) CVAR, JVT, 'Not calibrated'
         ELSE
-          GPD_SDP3(1:NPOI, JVT, SSDP3D_ID%NRCGDRYM3D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+          CALL UNPACK_BUFFER(GPD_SDP3(:, JVT, SSDP3D_ID%NRCGDRYM3D,:), RECV_BUF)
           WRITE(NULOUT,*) CVAR, JVT, 'Calibrated value from surf_param.nc'
         ENDIF
       CASE('lambdam ')
         IF ( STATUS /= 0 ) THEN
           WRITE(NULOUT,*) CVAR, JVT, 'Not calibrated'
         ELSE
-          GPD_SDP3(1:NPOI, JVT, SSDP3D_ID%NRLAMBDAM3D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+          CALL UNPACK_BUFFER(GPD_SDP3(:, JVT, SSDP3D_ID%NRLAMBDAM3D,:), RECV_BUF)
           WRITE(NULOUT,*) CVAR, JVT, 'Calibrated value from surf_param.nc'
         ENDIF
       CASE('vgalpha ')
         IF ( STATUS /= 0 ) THEN
           WRITE(NULOUT,*) CVAR, JVT, 'Not calibrated'
         ELSE
-          GPD_SDP3(1:NPOI, JVT, SSDP3D_ID%NRMVGALPHA3D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+          CALL UNPACK_BUFFER(GPD_SDP3(:, JVT, SSDP3D_ID%NRMVGALPHA3D,:), RECV_BUF)
           WRITE(NULOUT,*) CVAR, JVT, 'Calibrated value from surf_param.nc'
         ENDIF
       CASE('nfac ')
         IF ( STATUS /= 0 ) THEN
           WRITE(NULOUT,*) CVAR, JVT, 'Not calibrated'
         ELSE
-          GPD_SDP3(1:NPOI, JVT, SSDP3D_ID%NRNFACM3D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+          CALL UNPACK_BUFFER(GPD_SDP3(:, JVT, SSDP3D_ID%NRNFACM3D,:), RECV_BUF)
           WRITE(NULOUT,*) CVAR, JVT, 'Calibrated value from surf_param.nc'
         ENDIF
       CASE('wcons ')
         IF ( STATUS /= 0 ) THEN
           WRITE(NULOUT,*) CVAR, JVT, 'Not calibrated'
         ELSE
-          GPD_SDP3(1:NPOI, JVT, SSDP3D_ID%NRWCONSM3D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+          CALL UNPACK_BUFFER(GPD_SDP3(:, JVT, SSDP3D_ID%NRWCONSM3D,:), RECV_BUF)
           WRITE(NULOUT,*) CVAR, JVT, 'Calibrated value from surf_param.nc'
         ENDIF
       CASE('rwrst ')
         IF ( STATUS /= 0 ) THEN
           WRITE(NULOUT,*) CVAR, JVT, 'Not calibrated'
         ELSE
-          GPD_SDP3(1:NPOI, JVT, SSDP3D_ID%NRWRESTM3D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+          CALL UNPACK_BUFFER(GPD_SDP3(:, JVT, SSDP3D_ID%NRWRESTM3D,:), RECV_BUF)
           WRITE(NULOUT,*) CVAR, JVT, 'Calibrated value from surf_param.nc'
         ENDIF
       CASE('wsatm ')
         IF ( STATUS /= 0 ) THEN
           WRITE(NULOUT,*) CVAR, JVT, 'Not calibrated'
         ELSE
-          GPD_SDP3(1:NPOI, JVT, SSDP3D_ID%NRWSATM3D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+          CALL UNPACK_BUFFER(GPD_SDP3(:, JVT, SSDP3D_ID%NRWSATM3D,:), RECV_BUF)
           WRITE(NULOUT,*) CVAR, JVT, 'Calibrated value from surf_param.nc'
         ENDIF
       CASE('hrootfr ')
         IF ( STATUS /= 0 ) THEN
           WRITE(NULOUT,*) CVAR, JVT, 'Not calibrated'
         ELSE
-          GPD_SDP3(1:NPOI, JVT, SSDP3D_ID%NRVROOTSAH3D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+          CALL UNPACK_BUFFER(GPD_SDP3(:, JVT, SSDP3D_ID%NRVROOTSAH3D,:), RECV_BUF)
           WRITE(NULOUT,*) CVAR, JVT, 'Calibrated value from surf_param.nc'
         ENDIF
       CASE('lrootfr ')
         IF ( STATUS /= 0 ) THEN
           WRITE(NULOUT,*) CVAR, JVT, 'Not calibrated'
         ELSE
-          GPD_SDP3(1:NPOI, JVT, SSDP3D_ID%NRVROOTSAL3D)=PACK(ZBUF,LMASK(ISTP:IENP))
+          RECV_BUF =PACK(ZBUF,LMASK(ISTP:IENP))
+          CALL UNPACK_BUFFER(GPD_SDP3(:, JVT, SSDP3D_ID%NRVROOTSAL3D,:), RECV_BUF)
           WRITE(NULOUT,*) CVAR, JVT, 'Calibrated value from surf_param.nc'
         ENDIF
       CASE DEFAULT

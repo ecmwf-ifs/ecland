@@ -110,6 +110,7 @@ jobs:
           brew install libaec
           brew install coreutils
           brew install netcdf-fortran
+          pip install fypp
         else
           sudo apt-get update
           sudo apt-get install libaec-dev
