@@ -137,6 +137,7 @@ ecbuild_add_executable(TARGET ${PROJECT_NAME}-master
   LIBS 
     ${PROJECT_NAME}_offline_driver_intfb ${PROJECT_NAME}_surf ${PROJECT_NAME}_cmflood
     fiat parkind
+    field_api
     ${OpenMP_Fortran_LIBRARIES}
     NetCDF::NetCDF_Fortran
 )

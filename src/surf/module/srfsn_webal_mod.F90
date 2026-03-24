@@ -233,6 +233,7 @@ DO JL=KIDIA,KFDIA
   ELSE
 
 !! Preparation
+    KLACT=0
     DO JK=1,KLEVSN
       IF (PSSNM1M(JL,JK) > ZEPSILON ) KLACT=JK
     ENDDO
