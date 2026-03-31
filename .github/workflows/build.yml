@@ -37,6 +37,7 @@ jobs:
           - linux intel-classic
           - linux intel-modern
           - macos
+          - linux flang-20
 
         include:
 
@@ -83,6 +84,15 @@ jobs:
             compiler_cxx: ~
             compiler_fc: gfortran-15
             caching: true
+
+          - name: linux flang-20
+            os: ubuntu-24.04
+            compiler: flang-20
+            compiler_cc: clang-20
+            compiler_cxx: clang++-20
+            compiler_fc: flang-20
+            caching: true
+            openmpi_version: 5.0.7
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -187,11 +197,17 @@ jobs:
         printenv >> $GITHUB_ENV
         echo "CACHE_SUFFIX=$CC-$($CC -dumpversion)" >> $GITHUB_ENV
 
+    - name: Install flang compiler
+      if: contains( matrix.compiler, 'flang' )
+      run: |
+        sudo apt-get install -y flang-20 clang-20 libomp-20-dev
+
     - name: Install MPI
       if: ${{ !contains(matrix.name, 'gnu') }}
       shell: bash -eux {0}
       run: |
-        FCFLAGS=-fPIC CFLAGS=-fPIC FFLAGS=-fPIC ${ECLAND_TOOLS}/install-mpi.sh --mpi openmpi --prefix ${DEPS_DIR}/openmpi
+        MPI_VERSION_FLAG="${{ matrix.openmpi_version && format('--version {0}', matrix.openmpi_version) || '' }}"
+        FCFLAGS=-fPIC CFLAGS=-fPIC FFLAGS=-fPIC ${ECLAND_TOOLS}/install-mpi.sh --mpi openmpi --prefix ${DEPS_DIR}/openmpi ${MPI_VERSION_FLAG}
         [ -f ${DEPS_DIR}/openmpi/env.sh ] && source ${DEPS_DIR}/openmpi/env.sh
         [ -z ${MPI_HOME+x} ] || echo "MPI_HOME=${MPI_HOME}" >> $GITHUB_ENV
 
@@ -202,7 +218,7 @@ jobs:
         [ -z ${MPI_HOME+x} ] || echo "${MPI_HOME}/bin" >> $GITHUB_PATH
 
     - name: Install HDF5
-      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc')
+      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc') || contains(matrix.compiler, 'flang')
       run: |
         if [[ -f ${{ env.DEPS_DIR }}/hdf5/lib/libhdf5.settings ]]; then
           echo "::debug::HDF5 restored from cache"
@@ -212,7 +228,7 @@ jobs:
         echo "HDF5_ROOT=${{ env.DEPS_DIR }}/hdf5" >> $GITHUB_ENV
 
     - name: Install NetCDF C
-      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc')
+      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc') || contains(matrix.compiler, 'flang')
       run: |
         if [[ -f ${{ env.DEPS_DIR }}/netcdf/bin/nc-config ]]; then
           echo "::debug::NetCDF C restored from cache"
@@ -222,7 +238,7 @@ jobs:
         echo "NETCDF_ROOT=${{ env.DEPS_DIR }}/netcdf" >> $GITHUB_ENV
 
     - name: Install NetCDF Fortran
-      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc')
+      if: contains( matrix.compiler, 'intel' ) || contains(matrix.compiler, 'nvhpc') || contains(matrix.compiler, 'flang')
       run: |
         if [[ -f ${NETCDF_ROOT}/bin/nf-config ]]; then
           echo "::debug::NetCDF Fortran restored from cache"

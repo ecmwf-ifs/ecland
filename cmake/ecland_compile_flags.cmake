@@ -11,11 +11,11 @@
 
 if(HAVE_SINGLE_PRECISION AND CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
   ecbuild_add_fortran_flags( "-fno-range-check" NAME no_range_check )
-      #   sppcflstl_mod.F90:444:17:
-      #
-      #   444 |         Z4EXP5 = EXP(200.0_JPRD)
-      #       |                 1
-      # Error: Arithmetic overflow converting REAL(8) to REAL(4) at (1). This check can be disabled with the option '-fno-range-check'
+  #   sppcflstl_mod.F90:444:17:
+  #
+  #   444 |         Z4EXP5 = EXP(200.0_JPRD)
+  #       |                 1
+  # Error: Arithmetic overflow converting REAL(8) to REAL(4) at (1). This check can be disabled with the option '-fno-range-check'
 endif()
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
@@ -53,9 +53,13 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC")
   # Needed to guarantee matching test results with Debug build
   set(fpmodel_flags       "-Kieee")
 
-elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Flang")
+elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Flang")
   set(autopromote_flags   "-fdefault-real-8")
   set(fpe_flags           "-ffp-exception-behavior=strict")
+
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
+  # Needed to guarantee matching test results with Debug build
+  set(fpmodel_flags       "-ffp-contract=off")
 
 endif()
 
@@ -84,7 +88,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
   endif()
 endif()
 
-if(CMAKE_Fortran_COMPILER_ID MATCHES "Flang")
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "Flang")
   # Linker complains of unknown arguments:
   #    warning: argument unused during compilation: '-fdefault-real-8' [-Wunused-command-line-argument]
   foreach( LINKER_FLAGS CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS CMAKE_STATIC_LINKER_FLAGS )
