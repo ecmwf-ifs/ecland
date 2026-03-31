@@ -34,7 +34,7 @@ science:
 
   v1_EU_default: &v1_EU
     # Path to the actual ecland executable. 
-    binary_path: @CMAKE_BINARY_DIR@/bin/ecland-master
+    binary_path: @CMAKE_BINARY_DIR@/bin/ecland-master-@ECLAND_PREC@
 
     # Paths to the three standard input files. These should be given as URLs,
     # so either as https://something or file:///home/me/something.
