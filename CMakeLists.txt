@@ -10,10 +10,7 @@ cmake_minimum_required( VERSION 3.24 FATAL_ERROR )
 
 include(FetchContent)
 
-find_package( ecbuild 3.11 QUIET HINTS ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild )
-if( NOT ecbuild_FOUND )
-  include(cmake/ecland_fetchcontent_ecbuild.cmake)
-endif()
+find_package( ecbuild 3.11 QUIET HINTS ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild REQUIRED )
 
 if( NOT ECLAND_PROJECT_NAME )
   set( ECLAND_PROJECT_NAME ecland )
@@ -26,8 +23,6 @@ ecbuild_enable_fortran( REQUIRED NO_MODULE_DIRECTORY )
 
 ### Dependencies
 ########################################################################
-ecland_fetchcontent_dependencies()
-
 ecbuild_find_package( NetCDF COMPONENTS Fortran REQUIRED )
 
 #### eccodes
