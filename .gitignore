@@ -4,6 +4,9 @@
 build*
 install
 .vscode
+source/*
+ecbundle
+/env.sh
 
 # definition file related
 documents/
