@@ -17,5 +17,3 @@ if( NOT ${PROJECT_NAME}_GIT_SHA1 )
         set( ${PROJECT_NAME}_GIT_SHA1       "${PARENT_REPOSITORY_NAME}/${${PROJECT_NAME}_GIT_SHA1}" )
     endif()
 endif()
-
-include(ecland_fetchcontent_dependencies)
