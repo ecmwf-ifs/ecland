@@ -131,6 +131,25 @@ In the build folder (e.g. `ecland-build`), run:
 
     ctest -R ecland [-VV]
 
+## Build using ecLand bundle
+
+An alternative way of building ecLand is to use the bundle definition included in the repository root:
+
+    ./ecland-bundle create   # Downloads dependency packages (ecbuild, eccodes, fiat)
+    ./ecland-bundle build [-j <nthreads>] [--build-type=<build-type>] [--arch=<path-to-arch>] [--option]
+
+The following options can be configured during the bundle build step:
+
+| Option | Description |
+|--------|-------------|
+| `--without-mpi` | Disable MPI |
+| `--without-omp` | Disable OpenMP |
+| `--with-single-precision` | Enable single precision build |
+
+Additional CMake options can be set via:
+
+    ./ecland-bundle build --cmake="OPTION=<arg>"
+
 Running ecLand
 =============
 
