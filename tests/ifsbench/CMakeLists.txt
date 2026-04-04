@@ -57,6 +57,9 @@ execute_process(
 
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml @ONLY )
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/custom_launchers.yaml
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 ## CI tests
 
 # Set tolerances for validation

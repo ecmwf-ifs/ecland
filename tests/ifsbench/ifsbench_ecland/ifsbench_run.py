@@ -18,6 +18,7 @@ import yaml
 
 from ifsbench import (
     Benchmark,
+    BenchmarkSetup,
     cli,
     debug,
     DataFileStats,
@@ -32,27 +33,15 @@ from ifsbench import (
     TechSetup
 )
 
+from ifsbench.command_line import launcher_options
 from ifsbench.data import FetchHandler, NamelistHandler, NamelistOverride, RenameHandler, RenameMode
-from ifsbench.validation import FrameCloseValidation
+from ifsbench.results import ResultInfo
+from ifsbench.validation import validate_result_identical
 
-class EclandResult(SerialisationMixin):
+class EclandResult(ResultInfo):
     """
     Ecland result class that can be serialised using the ``SerialisationMixin`` approach.
     """
-
-    #: Numerical results of the run, stored as DataFrames (with corresponding
-    #: file name).
-    frames: Dict[str, PydanticDataFrame]
-
-    #: Standard out of the run.
-    stdout: str = None
-
-    #: Standard error of the run.
-    stderr: str = None
-
-    #: Walltime of the run in seconds.
-    walltime: float = None
-
     @classmethod
     def from_rundir(cls, run_dir: Path, **kwargs):
         """
@@ -157,7 +146,7 @@ class EclandConfig(SerialisationMixin):
     tech: Dict[str, EclandTech]
     arch: Dict[str, DefaultArch]
 
-def build_ecland_benchmark(science: EclandScience, tech: EclandTech) -> Benchmark:
+def build_ecland_benchmark(science: EclandScience, tech: EclandTech, job: Job) -> Benchmark:
     """
     Build an ifsbench Benchmark object from the ecland science and tech
     objects.
@@ -222,7 +211,13 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech) -> Benchmar
         env_handlers = env_handlers
     )
 
-    return Benchmark(science = science_setup, tech=tech_setup)
+    benchmark_setup = BenchmarkSetup(
+        science=science_setup,
+        tech=tech_setup,
+        job=job
+    )
+        
+    return Benchmark(setup=benchmark_setup)
 
 
 @cli.command('from_yaml', context_settings={"auto_envvar_prefix": "IFSBENCH"})
@@ -240,17 +235,16 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech) -> Benchmar
               help='Number of threads to use')
 @click.option('--arch', default=None, type=str,
               help='The architecture to use.')
-@click.option('--launcher-flags', default=[], multiple=True, type=str,
-              help='Additional flags that are passed to the launcher')
 @click.option('--validate', 'validate_path', type=click.Path(exists=True),
               help='Validate results against given result file.')
 @click.option('--rtol', '--relative-tolerance', default=0.0, type=float,
               help='Maximum relative tolerance used for validation.')
 @click.option('--atol', '--absolute-tolerance', default=1.e-18, type=float,
               help='Maximum absloute tolerance used for validation.')
+@launcher_options
 def from_yaml(
         yaml_path, science, tech, binary_path, run_dir, tasks, threads,
-        arch, launcher_flags, validate_path, rtol, atol
+        arch, validate_path, rtol, atol, launcher_builder
 ):
     """
     Run ecland benchmark using a YAML configuration file.
@@ -278,14 +272,18 @@ def from_yaml(
     if binary_path:
         science_input.binary_path = Path(binary_path).resolve()
 
-    benchmark = build_ecland_benchmark(science=science_input, tech=tech_input)
-
     job = science_input.job
     if tasks:
         job.tasks = tasks
     if threads:
         job.cpus_per_task = threads
 
+    benchmark = build_ecland_benchmark(
+        science=science_input,
+        tech=tech_input,
+        job=job
+    )
+ 
     arch = ecland_config.arch.get(arch, ecland_config.arch['default'])
 
     if run_dir:
@@ -296,13 +294,13 @@ def from_yaml(
 
     with context as run_dir:
         run_dir = Path(run_dir)
-        benchmark.setup_rundir(run_dir)
+
+        launcher = launcher_builder.build_from_arch(arch)
 
         bench_result = benchmark.run(
             run_dir=run_dir,
-            job=job,
             arch=arch,
-            launcher_flags=launcher_flags
+            launcher=launcher
         )
 
         result = EclandResult.from_rundir(
@@ -315,73 +313,38 @@ def from_yaml(
             yaml.dump(result.dump_config(), f)
 
         if validate_path:
-            validator = FrameCloseValidation(atol=atol, rtol=rtol)
-            with Path(validate_path).open('r', encoding='utf-8') as f:
-                reference = EclandResult.from_config(yaml.safe_load(f))
+            equal = validate_result_identical(
+                result=result,
+                reference_path=Path(validate_path),
+                result_type=EclandResult,
+                atol=atol,
+                rtol=rtol
+            )
 
-
-            # Temporary workaround. We reload the result, as serialisation at
-            # the moment causes some datetime objects in pandas dataframes to
-            # be converted to strings, which causes issues when comparing.
-            with (run_dir/'result.yaml').open('r', encoding='utf-8') as f:
-                result = EclandResult.from_config(yaml.safe_load(f))
-
-            if set(result.frames.keys()) != set(reference.frames.keys()):
-                raise RuntimeError("Results do not hold the same frames!")
-
-            for key in result.frames.keys():
-                frame = result.frames[key]
-                frame_ref = reference.frames[key]
-
-                equal, mismatch = validator.compare(frame, frame_ref)
-
-                if not equal and mismatch:
-                    idx, col = mismatch[0]
-                    error(f"First mismatch at ({idx}, {col}): {frame.loc[idx,col]} != {frame_ref.loc[idx,col]}.")
-
-                    for idx, col in mismatch:
-                        debug(f"Mismatch at ({idx}, {col}): {frame.loc[idx,col]} != {frame_ref.loc[idx,col]}.")
-
-                    sys.exit(1)
-                elif not equal:
-                    error(f"Shape of the frames mismatches! {frame.index}, {frame_ref.index}")
-                    sys.exit(1)
+            if not equal:
+                sys.exit(1)
 
 @cli.command('validate', context_settings={"auto_envvar_prefix": "IFSBENCH"})
 @click.argument('result', type=click.Path(exists=True))
 @click.argument('reference', type=click.Path(exists=True))
-def validate(result, reference):
+@click.option('--rtol', '--relative-tolerance', default=0.0, type=float,
+              help='Maximum relative tolerance used for validation.')
+@click.option('--atol', '--absolute-tolerance', default=1.e-18, type=float,
+              help='Maximum absloute tolerance used for validation.')
+def validate(result, reference, atol, rtol):
     """
     Compare two ecland result files and check for bit-identicality.
     """
-    validator = FrameCloseValidation(atol=0, rtol=0)
+    equal = validate_result_identical(
+        result=Path(result),
+        reference_path=Path(reference),
+        result_type=EclandResult,
+        atol=atol,
+        rtol=rtol
+    )
 
-    with Path(result).open('r', encoding='utf-8') as f:
-        result = EclandResult.from_config(yaml.safe_load(f))
-
-    with Path(reference).open('r', encoding='utf-8') as f:
-        reference = EclandResult.from_config(yaml.safe_load(f))
-
-    if set(result.frames.keys()) != set(reference.frames.keys()):
-        raise RuntimeError("Results do not hold the same frames!")
-
-    for key in result.frames.keys():
-        frame = result.frames[key]
-        frame_ref = reference.frames[key]
-
-        equal, mismatch = validator.compare(frame, frame_ref)
-
-        if not equal and mismatch:
-            idx, col = mismatch[0]
-            error(f"First mismatch at ({idx}, {col}): {frame.loc[idx,col]} != {frame_ref.loc[idx,col]}.")
-
-            for idx, col in mismatch:
-                debug(f"Mismatch at ({idx}, {col}): {frame.loc[idx,col]} != {frame_ref.loc[idx,col]}.")
-
-            sys.exit(1)
-        elif not equal:
-            error(f"Shape of the frames mismatches! {frame.index}, {frame_ref.index}")
-            sys.exit(1)
+    if not equal:
+        sys.exit(1)
 
 if __name__ == "__main__":
     cli(auto_envvar_prefix='IFSBENCH')
