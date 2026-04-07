@@ -26,13 +26,21 @@ set( ECCODES_ENABLE_PRODUCT_GRIB OFF )
 #### fiat
 FetchContent_Declare(
   fiat
-  URL https://github.com/ecmwf-ifs/fiat/archive/refs/tags/1.6.1.tar.gz
+  URL https://github.com/ecmwf-ifs/fiat/archive/refs/tags/2.0.0.tar.gz
   FIND_PACKAGE_ARGS
 )
 set( FIAT_ENABLE_TESTS OFF )
 set( FIAT_ENABLE_DR_HOOK_NVTX OFF )
 
-FetchContent_MakeAvailable(eccodes fiat) # Internally calls find_package() first
+#### field api
+FetchContent_Declare(
+    field_api 
+    URL            https://github.com/ecmwf-ifs/field_api/archive/refs/tags/v0.3.9.tar.gz 
+    FIND_PACKAGE_ARGS
+)
+set( FIELD_API_ENABLE_TESTS OFF )
+
+FetchContent_MakeAvailable(eccodes fiat field_api) # Internally calls find_package() first
 
 endif()
 
