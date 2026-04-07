@@ -35,7 +35,7 @@ set( FIAT_ENABLE_DR_HOOK_NVTX OFF )
 #### field api
 FetchContent_Declare(
     field_api 
-    URL            https://github.com/ecmwf-ifs/field_api/archive/refs/tags/v0.3.7.tar.gz 
+    URL            https://github.com/ecmwf-ifs/field_api/archive/refs/tags/v0.3.9.tar.gz 
     FIND_PACKAGE_ARGS
 )
 set( FIELD_API_ENABLE_TESTS OFF )
