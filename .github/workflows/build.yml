@@ -37,7 +37,7 @@ jobs:
           - linux intel-classic
           - linux intel-modern
           - macos
-          - linux flang-20
+#         - linux flang-22
 
         include:
 
@@ -85,14 +85,14 @@ jobs:
             compiler_fc: gfortran-15
             caching: true
 
-          - name: linux flang-20
-            os: ubuntu-24.04
-            compiler: flang-20
-            compiler_cc: clang-20
-            compiler_cxx: clang++-20
-            compiler_fc: flang-20
-            caching: true
-            openmpi_version: 5.0.7
+#         - name: linux flang-22
+#           os: ubuntu-24.04
+#           compiler: flang-22
+#           compiler_cc: clang-22
+#           compiler_cxx: clang++-22
+#           compiler_fc: flang-22
+#           caching: true
+#           openmpi_version: 5.0.7
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -142,7 +142,7 @@ jobs:
       uses: pat-s/always-upload-cache@v2.1.5
       with:
         path: ${{ env.DEPS_DIR }}
-        key: deps-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ env.CACHE_SUFFIX }}
+        key: deps-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.prec }}-${{ env.CACHE_SUFFIX }}
 
     # Free up disk space for nvhpc
     - name: Free Disk Space (Ubuntu)
@@ -197,10 +197,10 @@ jobs:
         printenv >> $GITHUB_ENV
         echo "CACHE_SUFFIX=$CC-$($CC -dumpversion)" >> $GITHUB_ENV
 
-    - name: Install flang compiler
-      if: contains( matrix.compiler, 'flang' )
-      run: |
-        sudo apt-get install -y flang-20 clang-20 libomp-20-dev
+#   - name: Install flang compiler
+#     if: contains( matrix.compiler, 'flang' )
+#     run: |
+#       sudo apt-get install -y flang-20 clang-20 libomp-20-dev
 
     - name: Install MPI
       if: ${{ !contains(matrix.name, 'gnu') }}
@@ -262,7 +262,7 @@ jobs:
         dependency_branch: develop
         dependency_cmake_options: |
           ecmwf/eccodes: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF"
-          ecmwf-ifs/fiat: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTS=OFF -DENABLE_DR_HOOK_NVTX=OFF -DENABLE_MPI=ON"
+          ecmwf-ifs/fiat: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTS=OFF -DENABLE_DR_HOOK_NVTX=OFF -DENABLE_MPI=ON -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' }} -DENABLE_DOUBLE_PRECISION=${{ matrix.prec == 'DP' }}"
         cmake_options: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.cmake_options }} -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' }}"
         self_build: true
         self_test: false 
