@@ -67,10 +67,9 @@ TYPE, PUBLIC :: SURFACE_DIAGNOSTIC
   REAL(KIND=JPRB), DIMENSION(:,:,:), POINTER :: PHO      => NULL()
   REAL(KIND=JPRB), DIMENSION(:,:),   POINTER :: POCDEPTH => NULL() 
   REAL(KIND=JPRB), DIMENSION(:,:,:), POINTER :: PHO_INV  => NULL() 
-  REAL(KIND=JPRB), DIMENSION(:,:,:), POINTER :: PEVAPTIU => NULL() 
+  REAL(KIND=JPRB), DIMENSION(:,:,:), POINTER :: PEVAPTIU => NULL()
   REAL(KIND=JPRB), DIMENSION(:,:),   POINTER :: PU10M    => NULL()
   REAL(KIND=JPRB), DIMENSION(:,:),   POINTER :: PV10M    => NULL()
-  REAL(KIND=JPRB), DIMENSION(:,:),   POINTER :: PTVH     => NULL()
   REAL(KIND=JPRB), DIMENSION(:,:),   POINTER :: PT2M     => NULL()
   REAL(KIND=JPRB), DIMENSION(:,:),   POINTER :: PD2M     => NULL()
   REAL(KIND=JPRB), DIMENSION(:,:),   POINTER :: PQ2M     => NULL()
@@ -157,7 +156,6 @@ TYPE, PUBLIC :: SURF_AND_MORE_TYPE
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PAN      => NULL()
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PAG      => NULL()
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PRD      => NULL()
-  REAL(KIND=JPRB), DIMENSION(:),        POINTER :: PCO2TYP  => NULL()         ! to store co2 photosynthesis type for low vegetation cover
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PLAIL    => NULL()    ! to store variable LAI
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PLAIH    => NULL()    ! to store variable LAI
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PLAI     => NULL()
@@ -182,7 +180,6 @@ TYPE, PUBLIC :: SURF_AND_MORE_TYPE
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: ZAVGPAR  => NULL() !PAVGPAR          ! Average PAR for BVOC emis module
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PISOP_EP => NULL()        ! Isoprene emission potential
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PFWET    => NULL()        ! to store wetland fraction
-  REAL(KIND=JPRB), DIMENSION(:)  ,      POINTER :: PEVAPMU  => NULL()  ! potential evaporation
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PTLICEE1 => NULL()      ! tendency of lake ice temperature
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PTLMNWE1 => NULL()      ! tendency of lake totat layer temperature
   REAL(KIND=JPRB), DIMENSION(:,:),      POINTER :: PTLWMLE1 => NULL()      ! tendency of lake mixed layer temperature
@@ -240,7 +237,6 @@ CONTAINS
     SELF%GSP%PVO0=>VONU0
     SELF%GSP%PTO0=>TONU0
     SELF%GSP%PSO0=>SONU0
-    SELF%GSD%PTVH=>VFTVH
     SELF%GSD%PHO=>VFHO
     SELF%GSD%PDO=>VFDO
     SELF%GSD%PLAILC=>VFLAIL
