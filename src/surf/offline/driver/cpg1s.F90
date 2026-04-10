@@ -1,5 +1,11 @@
 SUBROUTINE CPG1S 
-
+! (C) Copyright 2025- ECMWF.
+!
+! This software is licensed under the terms of the Apache Licence Version 2.0
+! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+! In applying this licence, ECMWF does not waive the privileges and immunities
+! granted to it by virtue of its status as an intergovernmental organisation
+! nor does it submit to any jurisdiction.
 USE YOMDPHY  ,  ONLY : YSURF, NCOM, NCSNEC, NCSS, NTILES, NTRAC, &
       &                NVHILO, NGPP, NPOI, NLEV, NBLOCKS  
 USE YOMCDH1S ,  ONLY : NLEVI, NDHFCO2S , &
