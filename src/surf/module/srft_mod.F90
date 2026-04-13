@@ -1,4 +1,5 @@
 MODULE SRFT_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFT(KIDIA  , KFDIA , KLON   , KTILES, KLEVS ,&
  & PTMST  , PTSAM1M, PWSAM1M  ,&
@@ -109,7 +110,6 @@ USE YOMSURF_SSDP_MOD, ONLY : SSDP3D_ID, NSSDP3D
 !     G. Arduini           Sept 2024 Snow over land-ice
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -437,6 +437,5 @@ ENDIF
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SRFT_MOD:SRFT',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFT
 END MODULE SRFT_MOD

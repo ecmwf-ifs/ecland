@@ -1,4 +1,5 @@
 MODULE SRFIS_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFIS(KIDIA , KFDIA  , KLON  , KLEVS ,&
  & PTMST  ,PFRTI , PTIAM1M   , PAHFSTI, PEVAPTI, PGSN,  &
@@ -80,7 +81,6 @@ USE SRFWDIFS_MOD
 !     ------------------------------------------------------------------
 #endif
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -295,9 +295,7 @@ ENDIF
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SRFIS_MOD:SRFIS',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFIS
 END MODULE SRFIS_MOD
-
 
 

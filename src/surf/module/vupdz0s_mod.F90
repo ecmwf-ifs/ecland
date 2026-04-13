@@ -120,7 +120,6 @@ USE FCZ0WN_MOD, ONLY : PZ0WN  ! Function to compute Z0M for neutral wind conditi
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 

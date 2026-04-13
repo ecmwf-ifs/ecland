@@ -1,4 +1,5 @@
 MODULE SUSSOIL_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SUSSOIL(PTHRFRTI,LD_LEVGEN,LD_LESSRO,LD_LESN09,LD_LESNML,LD_LESNICE,PNSNMLWS,&
  & YDDIM,YDCST,YDSOIL,PRALFMINPSN,PRCIMIN)
@@ -67,7 +68,6 @@ USE CPTAVE_MOD
 !     ------------------------------------------------------------------
 
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -477,6 +477,5 @@ END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SUSSOIL_MOD:SUSSOIL',1,ZHOOK_HANDLE)
 
 !     ------------------------------------------------------------------
-
 END SUBROUTINE SUSSOIL
 END MODULE SUSSOIL_MOD

@@ -1,4 +1,5 @@
 MODULE SRFRCG_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFRCG(KIDIA  , KFDIA  , KLON , KTILES, KLEVS ,&
  & LDLAND , LDSICE ,&
@@ -80,7 +81,6 @@ USE YOMSURF_SSDP_MOD
 !     Modified    I. Ayan-Miguez (BSC)  Sep 2023  Added PSSDP3 object for spatially distributed parameters
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -204,6 +204,5 @@ DO JL=KIDIA,KFDIA
 ENDDO
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SRFRCG_MOD:SRFRCG',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFRCG
 END MODULE SRFRCG_MOD

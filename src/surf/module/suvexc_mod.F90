@@ -1,4 +1,5 @@
 MODULE SUVEXC_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SUVEXC(LD_LEOCWA,LD_LEOCCO,LD_LEOCSA,LD_LEOCLA,&
           & LD_LWCOU, LD_LWCOU2W, LD_LWCOUHMF,&
@@ -67,7 +68,6 @@ USE YOS_EXC  , ONLY : TEXC
 !     M. Kelbling and S. Thober (UFZ) 11/6/2020 use of parameter values defined in namelist
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 LOGICAL           ,INTENT(IN)    :: LD_LEOCWA
 LOGICAL           ,INTENT(IN)    :: LD_LEOCCO
@@ -150,4 +150,3 @@ END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SUVEXC_MOD:SUVEXC',1,ZHOOK_HANDLE)
 END SUBROUTINE SUVEXC
 END MODULE SUVEXC_MOD
-

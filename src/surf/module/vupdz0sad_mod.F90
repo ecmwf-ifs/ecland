@@ -2,7 +2,8 @@ MODULE VUPDZ0SAD_MOD
 
 USE PARKIND1  , ONLY : JPIM, JPRB
 
-PRIVATE PZ0WN
+IMPLICIT NONE
+
 PUBLIC  VUPDZ0SAD
 
 CONTAINS
@@ -134,7 +135,6 @@ USE FCZ0WN_MOD, ONLY : PZ0WN  ! Function to compute Z0M for neutral wind conditi
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 

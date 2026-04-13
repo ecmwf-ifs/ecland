@@ -1,4 +1,5 @@
 MODULE ABORT_SURF_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE ABORT_SURF(CDTEXT)
  
@@ -15,7 +16,6 @@ USE MPL_MODULE
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
 
-IMPLICIT NONE
 
 CHARACTER(LEN=*) :: CDTEXT
 

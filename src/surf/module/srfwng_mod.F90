@@ -1,4 +1,5 @@
 MODULE SRFWNG_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFWNG(KIDIA,KFDIA,KLON,KLEVS,KCWS,PTMST,KSOTY,&
  & PWL,PWLMX,PWSA,&
@@ -88,7 +89,6 @@ USE YOMSURF_SSDP_MOD
 !     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -208,6 +208,5 @@ DO JL=KIDIA,KFDIA
 ENDDO
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SRFWNG_MOD:SRFWNG',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFWNG
 END MODULE SRFWNG_MOD

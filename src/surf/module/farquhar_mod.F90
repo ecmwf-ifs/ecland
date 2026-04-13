@@ -22,7 +22,6 @@ MODULE FARQUHAR_MOD
      MODULE PROCEDURE  ARRHENIUS_FN, ARRHENIUS_MODIFIED_FN
   END INTERFACE
 
-
 CONTAINS
 
 !     --------------------------------------------------------------------------
@@ -30,7 +29,6 @@ CONTAINS
 !     --------------------------------------------------------------------------
 FUNCTION ARRHENIUS_FN (PTEMP,PREF_TEMP,PENERGY_ACT,YDAGF,YDCST) RESULT(ARRHENIUS_VAL)
 
-IMPLICIT NONE
 REAL(KIND=JPRB), INTENT(IN) :: PTEMP             ! temperature (K)
 REAL(KIND=JPRB), INTENT(IN) :: PREF_TEMP         ! temperature of reference (K)
 REAL(KIND=JPRB), INTENT(IN) :: PENERGY_ACT       ! Activation Energy (J mol-1)

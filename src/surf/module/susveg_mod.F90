@@ -1,4 +1,5 @@
 MODULE SUSVEG_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SUSVEG(LD_LELAIV,LD_LECTESSEL,LD_LEAGS,LD_LEFARQUHAR,&
                & LD_LEAIRCO2COUP,PRLAIINT, &
@@ -65,7 +66,6 @@ USE SRFROOTFR_MOD
 !     ------------------------------------------------------------------
 
 
-IMPLICIT NONE
 
 LOGICAL,         INTENT(IN)    :: LD_LELAIV
 LOGICAL,         INTENT(IN)    :: LD_LECTESSEL
@@ -467,6 +467,5 @@ END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SUSVEG_MOD:SUSVEG',1,ZHOOK_HANDLE)
 
 !     ------------------------------------------------------------------
-
 END SUBROUTINE SUSVEG
 END MODULE SUSVEG_MOD

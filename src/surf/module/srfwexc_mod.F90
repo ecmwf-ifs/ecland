@@ -1,4 +1,5 @@
 MODULE SRFWEXC_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFWEXC(KIDIA,KFDIA,KLON,KLEVS,KTILES,&
  & PTMST,KTVL,KTVH,PFRTI,PEVAPTI,&
@@ -127,7 +128,6 @@ USE YOMSURF_SSDP_MOD
 !     I. Ayan-Miguez (BSC) Sep 2023 Added PSSDP3 object for spatially distributed parameters
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -516,7 +516,5 @@ ENDIF
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SRFWEXC_MOD:SRFWEXC',1,ZHOOK_HANDLE)
-
-
 END SUBROUTINE SRFWEXC
 END MODULE SRFWEXC_MOD

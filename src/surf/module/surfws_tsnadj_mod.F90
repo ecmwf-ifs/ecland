@@ -1,4 +1,5 @@
 MODULE SURFWS_TSNADJ_MOD
+IMPLICIT NONE
 CONTAINS
 
 SUBROUTINE SURFWS_TSNADJ(KIDIA, KFDIA,KLON,KLEVSN,                  &
@@ -79,7 +80,6 @@ USE ABORT_SURF_MOD
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Input variables:
 INTEGER(KIND=JPIM), INTENT(IN)  :: KIDIA, KFDIA,KLON
@@ -317,6 +317,5 @@ END ASSOCIATE
 
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SURFWS_TSN_ADJ_MOD:SURFWS_TSNADJ',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SURFWS_TSNADJ
 END MODULE SURFWS_TSNADJ_MOD

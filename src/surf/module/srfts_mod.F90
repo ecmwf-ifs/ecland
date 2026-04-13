@@ -1,4 +1,5 @@
 MODULE SRFTS_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFTS(KIDIA  , KFDIA  , KLON   , KLEVS ,&
  & PTMST  , PTSAM1M, PWSAM1M,&
@@ -98,7 +99,6 @@ USE YOMSURF_SSDP_MOD
 !     ------------------------------------------------------------------
 #endif
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -330,6 +330,5 @@ ENDDO
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SRFTS_MOD:SRFTS',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFTS
 END MODULE SRFTS_MOD

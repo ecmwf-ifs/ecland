@@ -1,4 +1,5 @@
 MODULE SRFSN_WEBAL_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFSN_WEBAL(KIDIA,KFDIA,KLON,KLEVSN,LDLAND,&
  & PTMST,LLNOSNOW,PFRSN,&
@@ -103,7 +104,6 @@ USE ABORT_SURF_MOD
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments 
 INTEGER(KIND=JPIM), INTENT(IN)   :: KIDIA

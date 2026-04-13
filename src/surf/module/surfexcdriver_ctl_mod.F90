@@ -1,4 +1,5 @@
 MODULE SURFEXCDRIVER_CTL_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SURFEXCDRIVER_CTL(&
  &   KIDIA, KFDIA, KLON, KLEVS, KTILES, KVTYPES, KDIAG, KSTEP &
@@ -304,7 +305,6 @@ USE EC_LUN       , ONLY : NULERR
 
 !------------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -508,6 +508,9 @@ REAL(KIND=JPRB) :: ZLAIVT(KLON,2+1),& ! number vegetation tiles
                    ZLAIVT_WET(KLON,2+1),& ! LAI, including wet skin tile
                    ZLAIVTP_WET(KLON,2+1),& ! LAI at previous time step, including wet skin tile
                    ZCVT(KLON,2+1)
+ ! number vegetation tiles
+ ! LAI, including wet skin tile
+ ! LAI at previous time step, including wet skin tile
 INTEGER(KIND=JPIM) :: KVEG(KLON,KTILES)
 INTEGER(KIND=JPIM) :: KVEG_WET(KLON) ! dominant vegetation on wet skin tile (3)
 INTEGER(KIND=JPIM)  :: KVTTL(KTILES) !link tile number/veg type
@@ -1142,7 +1145,6 @@ ENDDO
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SURFEXCDRIVER_CTL_MOD:SURFEXCDRIVER_CTL',1,ZHOOK_HANDLE)
-
 CONTAINS
 
 SUBROUTINE COMPUTE_DDH

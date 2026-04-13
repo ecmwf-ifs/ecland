@@ -1,4 +1,5 @@
 MODULE SURFWS_INIT_SL_MOD
+IMPLICIT NONE
 CONTAINS
 
 SUBROUTINE SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN, PMU0, PSDOR,         &  ! Input
@@ -142,7 +143,6 @@ USE ABORT_SURF_MOD
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments 
 INTEGER(KIND=JPIM), INTENT(IN) :: KIDIA
@@ -899,8 +899,6 @@ END ASSOCIATE
 
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SURFWS_INIT_SL_MOD:SURFWS_INIT_SL',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SURFWS_INIT_SL
 END MODULE SURFWS_INIT_SL_MOD
-
 

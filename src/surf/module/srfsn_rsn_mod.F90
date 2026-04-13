@@ -1,4 +1,5 @@
 MODULE SRFSN_RSN_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFSN_RSN(KIDIA,KFDIA,KLON,KLEVSN,PTMST,LLNOSNOW,PCIL,LDLAND,&
                     &PFRSN,PRSNM1M,PSSNM1M,PTSNM1M,PWSNM1M,PWSN,&
@@ -78,7 +79,6 @@ USE YOS_CST  , ONLY : TCST
 !     Modified   G. Arduini    ECMWF     Sept 2024    snow over land-ice
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments 
 INTEGER(KIND=JPIM), INTENT(IN)   :: KIDIA
@@ -227,6 +227,5 @@ ENDDO
 END ASSOCIATE
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SRFSN_RSNL_MOD:SRFSN_RSN',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFSN_RSN
 END MODULE SRFSN_RSN_MOD

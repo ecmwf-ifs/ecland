@@ -1,4 +1,5 @@
 MODULE SURFBC_CTL_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SURFBC_CTL(KIDIA, KFDIA, KLON, KTILES,KLEVSN, &
  & PTVL, PCO2TYP, PTVH, PSOTY, PSDOR, PCVLC, PCVHC, PCURC, &
@@ -131,7 +132,6 @@ USE YOMSURF_SSDP_MOD
 !     G. Arduini             2024 general land/sea ice tile
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -456,6 +456,5 @@ ENDIF
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SURFBC_CTL_MOD:SURFBC_CTL',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SURFBC_CTL
 END MODULE SURFBC_CTL_MOD
