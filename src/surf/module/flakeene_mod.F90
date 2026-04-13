@@ -1,4 +1,5 @@
 MODULE FLAKEENE_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE FLAKEENE                                                      &
   &  (KIDIA           , KFDIA             , KLON                  ,      &
@@ -73,7 +74,6 @@ USE YOS_FLAKE, ONLY : TFLAKE
 
 !==============================================================================
 
-IMPLICIT NONE
 
 !==============================================================================
 !
@@ -780,6 +780,5 @@ ENDDO MAIN_LOOP
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('FLAKEENE_MOD:FLAKEENE',1,ZHOOK_HANDLE)
-
 END SUBROUTINE FLAKEENE
 END MODULE FLAKEENE_MOD

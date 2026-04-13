@@ -1,4 +1,5 @@
 MODULE SURFWS_FGPROF_MOD
+IMPLICIT NONE
 CONTAINS
 
 SUBROUTINE SURFWS_FGPROF(KIDIA, KFDIA, KLON, KLEVSN,               &
@@ -102,7 +103,6 @@ USE ABORT_SURF_MOD
 !     ------------------------------------------------------------------
 
 
-IMPLICIT NONE
 
 ! Input variables:
 INTEGER(KIND=JPIM), INTENT(IN) :: KIDIA, KFDIA
@@ -263,6 +263,5 @@ END DO ! END DO IN JL
 END ASSOCIATE
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SURFWS_FGPROF_MOD:SURFWS_FGPROF',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SURFWS_FGPROF
 END MODULE SURFWS_FGPROF_MOD

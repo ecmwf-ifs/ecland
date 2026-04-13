@@ -1,4 +1,5 @@
 MODULE SUSURF_CTL_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SUSURF_CTL(KSW,KCSS,KCWS,KCSNEC,KSIL,KCOM,KTILES,KTSW,KLWEMISS,&
  & KBVOC_EMIS,KBVOC_DELTA_DAY_LAI,&
@@ -203,7 +204,6 @@ USE SUSSURF_PARAMS_MOD
 !     ------------------------------------------------------------------
 
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -388,6 +388,5 @@ END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SUSURF_CTL_MOD:SUSURF_CTL',1,ZHOOK_HANDLE)
 
 !     ------------------------------------------------------------------
-
 END SUBROUTINE SUSURF_CTL
 END MODULE SUSURF_CTL_MOD

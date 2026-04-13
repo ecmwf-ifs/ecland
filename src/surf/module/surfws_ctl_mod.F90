@@ -1,4 +1,5 @@
 MODULE SURFWS_CTL_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SURFWS_CTL( KIDIA, KFDIA, KLON, KLEVSN,  &
                      & PSDOR,LDSICE,                &
@@ -90,7 +91,6 @@ USE ABORT_SURF_MOD
 !     Original   G. Arduini      ECMWF     28/07/2017
 
 
-IMPLICIT NONE
 
 
 ! Input variables:
@@ -410,6 +410,5 @@ END ASSOCIATE
 
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SURFWS_CTL_MOD:SURFWS_CTL',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SURFWS_CTL
 END MODULE SURFWS_CTL_MOD

@@ -1,4 +1,5 @@
 MODULE SRFSN_SSRABSS_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFSN_SSRABSS(KIDIA,KFDIA,KLON,KLEVSN,&
  & LLNOSNOW,PFRTI,PSSRFLTI,&
@@ -75,7 +76,6 @@ USE ABORT_SURF_MOD
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments 
 INTEGER(KIND=JPIM), INTENT(IN)   :: KIDIA
@@ -190,7 +190,6 @@ END DO
 END ASSOCIATE
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SRFSN_SSRABSS_MOD:SRFSN_SSRABSS',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFSN_SSRABSS
 
 END MODULE SRFSN_SSRABSS_MOD

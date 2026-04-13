@@ -1,4 +1,5 @@
 MODULE SUSCST_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SUSCST(PRCORIOI,PRPLRG,YDCST)
 
@@ -37,7 +38,6 @@ USE YOS_CST  , ONLY : TCST
 !         P. Bechtold 26-03-2012: Add PRCORIO PRPLRG factor for small planet
 !      F. Vana  05-Mar-2015  Support for single precision
 
-IMPLICIT NONE
 REAL(KIND=JPRB),INTENT(IN)    :: PRCORIOI, PRPLRG
 TYPE(TCST)     ,INTENT(INOUT) :: YDCST
 
@@ -108,6 +108,5 @@ END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SUSCST_MOD:SUSCST',1,ZHOOK_HANDLE)
 
 !     ------------------------------------------------------------------
-
 END SUBROUTINE SUSCST
 END MODULE SUSCST_MOD

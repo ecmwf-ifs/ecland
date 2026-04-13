@@ -1,4 +1,5 @@
 MODULE SURFPP_CTL_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SURFPP_CTL( KIDIA,KFDIA,KLON,KTILES, KDHVTLS, KDHFTLS &
  & , PTSTEP, LPERT_COLDSKIN &
@@ -151,7 +152,6 @@ USE VOSKIN_MOD , ONLY: VOSKIN
 
 !------------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 

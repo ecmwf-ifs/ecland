@@ -1,5 +1,5 @@
 MODULE TRIDAG_MOD
-
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE TRIDAG(A,B,C,R,U,N,KIDIA,KFDIA,KLON,LLINCR)
 
@@ -13,7 +13,6 @@ USE PARKIND1 ,ONLY : JPIM     ,JPRB
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
 
-IMPLICIT NONE
 
 INTEGER(KIND=JPIM), INTENT(IN) :: N, KIDIA, KFDIA, KLON
 REAL(KIND=JPRB), DIMENSION(KLON,N), INTENT(IN) :: A, B, C, R
@@ -65,7 +64,6 @@ DO J=1,N
     U(JL,J) = U0(JL,J) + U(JL,J)
   ENDDO
 ENDDO
-
 
 END SUBROUTINE TRIDAG
 

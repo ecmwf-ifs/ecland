@@ -3,7 +3,7 @@
 !------------------------------------------------------------------------------
 
 MODULE SUSFLAKE_MOD
-
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SUSFLAKE(LD_LEFLAKE,KFLAKEV,YDFLAKE)
 
@@ -54,7 +54,6 @@ USE ABORT_SURF_MOD
 
 !==============================================================================
 
-IMPLICIT NONE
 
 LOGICAL,            INTENT(IN) :: LD_LEFLAKE 
 INTEGER(KIND=JPIM), INTENT(IN) :: KFLAKEV
@@ -199,7 +198,5 @@ ROPTICPAR_ICE_OPAQUE = ROPTICPAR_MEDIUM(1,                         & ! Opaque ic
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SUSFLAKE_MOD:SUSFLAKE',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SUSFLAKE
 END MODULE SUSFLAKE_MOD
-

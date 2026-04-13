@@ -1,4 +1,5 @@
 MODULE SRFSN_VGRID_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFSN_VGRID(KIDIA, KFDIA, KLON, KLEVSN,LLNOSNOW,PSDOR,&
                        PCIL,LDLAND,&
@@ -77,7 +78,6 @@ USE ABORT_SURF_MOD
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments 
 INTEGER(KIND=JPIM), INTENT(IN)   :: KIDIA
@@ -249,6 +249,5 @@ ENDDO ! END LOOP IN JL
                             
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SRFSN_VGRID_MOD:SRFSN_VGRID',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFSN_VGRID
 END MODULE SRFSN_VGRID_MOD

@@ -1,4 +1,5 @@
 MODULE SRFSN_ASN_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFSN_ASN(KIDIA,KFDIA,KLON,PTMST,LLNOSNOW,PASNM1M,&
   & PCIL,LDNH,&
@@ -75,7 +76,6 @@ USE YOS_CST  , ONLY : TCST
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments 
 INTEGER(KIND=JPIM), INTENT(IN)   :: KIDIA
@@ -182,6 +182,5 @@ ENDDO
 
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SRFSN_ASN_MOD:SRFSN_ASN',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFSN_ASN
 END MODULE SRFSN_ASN_MOD

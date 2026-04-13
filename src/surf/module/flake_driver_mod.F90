@@ -2,6 +2,7 @@
 ! Version %I% from %G% extracted: %H%
 !------------------------------------------------------------------------------
 MODULE FLAKE_DRIVER_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE FLAKE_DRIVER( KIDIA, KFDIA, KLON,         &
                   & LDLAKEPOINT,                     &
@@ -74,7 +75,6 @@ USE FLAKEENE_MOD, ONLY: FLAKEENE
  
 !==============================================================================
 
-IMPLICIT NONE
 
 !==============================================================================
 !
@@ -291,6 +291,5 @@ ASSOCIATE(RDAY=>YDCST%RDAY, RPI=>YDCST%RPI, &
 !==============================================================================
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('FLAKE_DRIVER_MOD:FLAKE_DRIVER',1,ZHOOK_HANDLE)
-
 END SUBROUTINE FLAKE_DRIVER
 END MODULE FLAKE_DRIVER_MOD

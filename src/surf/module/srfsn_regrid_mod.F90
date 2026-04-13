@@ -1,4 +1,5 @@
 MODULE SRFSN_REGRID_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFSN_REGRID(KIDIA,KFDIA,KLON,KLEVSN,LLNOSNOW,&
                     PSSN,PRSN,PWSN,PTSN,PDSNNEW,&
@@ -69,7 +70,6 @@ USE ABORT_SURF_MOD
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments 
 INTEGER(KIND=JPIM), INTENT(IN)   :: KIDIA
@@ -302,6 +302,5 @@ ENDDO
 
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SRFSN_REGRID_MOD:SRFSN_REGRID',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFSN_REGRID
 END MODULE SRFSN_REGRID_MOD

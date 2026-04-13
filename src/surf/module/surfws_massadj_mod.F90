@@ -1,4 +1,5 @@
 MODULE SURFWS_MASSADJ_MOD
+IMPLICIT NONE
 CONTAINS
 
 SUBROUTINE SURFWS_MASSADJ(KIDIA, KFDIA, KLON, KLEVSN,     &
@@ -94,7 +95,6 @@ USE ABORT_SURF_MOD
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Input variables:
 INTEGER(KIND=JPIM), INTENT(IN)  :: KLON, KIDIA, KFDIA
@@ -392,8 +392,6 @@ END ASSOCIATE
 
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SURFWS_MASSADJ_MOD:SURFWS_MASSADJ',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SURFWS_MASSADJ
 END MODULE SURFWS_MASSADJ_MOD
-
 
