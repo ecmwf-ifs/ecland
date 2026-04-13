@@ -54,7 +54,7 @@ foreach( test ${tests} )
     ecbuild_add_test(
         TARGET ecland_test_${test}
         TYPE SCRIPT
-        COMMAND ${PROJECT_BINARY_DIR}/share/ecland/scripts/ecland_run_test.sh
+        COMMAND ${CMAKE_BINARY_DIR}/share/ecland/scripts/ecland_run_test.sh
         ARGS ${TEST_ARGS}
         ENVIRONMENT
             ECLAND_MASTER=${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}-master
