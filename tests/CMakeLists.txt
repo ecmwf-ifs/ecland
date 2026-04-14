@@ -58,6 +58,7 @@ foreach( test ${tests} )
         ARGS ${TEST_ARGS}
         ENVIRONMENT
             ECLAND_MASTER=${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}-master
+            ECLAND_CI=1
             WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}/work
             OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}/output
             INPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}/input

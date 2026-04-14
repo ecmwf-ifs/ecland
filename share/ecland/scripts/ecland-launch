@@ -54,7 +54,10 @@ if command_exists srun ; then
 
   if [[ ${ECPLATFORM:-unset} == "hpc2020" ]]; then
     if [ -z "${SLURM_JOB_QOS}" ]; then
-      ECLAND_LAUNCH_ARGS="${ECLAND_LAUNCH_ARGS} -q np"
+      qos=${ECLAND_LAUNCH_QOS:-np}
+      [[ -n "${ECLAND_CI}" ]] && qos=nf
+      ECLAND_LAUNCH_ARGS="${ECLAND_LAUNCH_ARGS} -q ${qos}"
+      [[ ${qos} == "nf" ]] && ECLAND_LAUNCH_ARGS="${ECLAND_LAUNCH_ARGS} --gres=ssdtmp:40G"
     fi
   fi
 
