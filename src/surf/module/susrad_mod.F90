@@ -13,7 +13,7 @@ USE YOS_RAD   , ONLY : TRAD
 USE YOS_RDI   , ONLY : TRDI
 USE YOS_LW    , ONLY : TLW
 USE YOS_SW    , ONLY : TSW
-USE ABORT_SURF_MOD
+USE ABORT_SURF_MOD, ONLY : ABORT_SURF
 
 ! (C) Copyright 2005- ECMWF.
 !
@@ -45,7 +45,7 @@ USE ABORT_SURF_MOD
 !     -------------
 !     R. Hogan        23-01-2019  Longwave spectral emissivity in six intervals
 
-USE SURWN_MOD
+USE SURWN_MOD, ONLY : SURWN
 
 
 INTEGER(KIND=JPIM), INTENT(IN)    :: KSW ! Number of shortwave spectral albedo intervals

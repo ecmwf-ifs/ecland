@@ -7,7 +7,6 @@ MODULE FARQUHAR_MOD
   USE YOS_AGF,  ONLY : TAGF
   USE YOS_CST,  ONLY : TCST
 
-  USE SUFARQUHAR_MOD
 ! (C) Copyright 2005- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
