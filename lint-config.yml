@@ -1,0 +1,21 @@
+basedir: src
+include:
+  - surf/module/**/*.F90
+exclude:
+  - surf/module/abort_surf_mod.F90  # Missing interfaces
+  - surf/module/yos_excs.F90        # Global non-parameter variables
+  - surf/module/yos_thf.F90         # Global non-parameter variables
+  - surf/module/yos_surf.F90        # Global non-parameter variables
+  - surf/module/vexcs_mod.F90       # IBM VMASS calls without interfaces
+  - surf/module/farquhar_mod.F90    # Wrong interface style...
+
+# All rules: https://sites.ecmwf.int/docs/ifs-arpege-coding-standards/fortran/index.html
+rules:
+  - MissingImplicitNoneRule         # L1
+  - QualifiedModuleImportsRule      # L2
+  - OnlyParameterGlobalVarRule      # L3
+  - MissingIntfbRule                # L9
+
+junitxml_file: linter.xml
+
+max_workers: 8
