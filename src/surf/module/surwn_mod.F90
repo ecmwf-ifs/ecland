@@ -9,7 +9,7 @@ USE YOS_DIM   , ONLY : TDIM
 USE YOS_RAD   , ONLY : TRAD
 USE YOS_LW    , ONLY : TLW
 USE YOS_SW    , ONLY : TSW
-USE ABORT_SURF_MOD
+USE ABORT_SURF_MOD, ONLY : ABORT_SURF
 ! (C) Copyright 1988- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
