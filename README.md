@@ -51,35 +51,66 @@ Building ecLand
 
 #### Quick instructions for ECMWF HPC
 
-Intel build:
-
-    module load prgenv/intel intel/2021.4 cmake/3.25 ninja/1.11.1 hpcx-openmpi/2.9 netcdf4/4.9.1 ecbuild/3.8.0 ecmwf-toolbox/new
-
-GNU build:
-
-    module load prgenv/gnu gcc/new cmake/3.25 ninja/1.11.1 hpcx-openmpi/2.9 netcdf4/new ecbuild/3.8.0 ecmwf-toolbox/new
-
 Download from Github:
 
 	git clone git@github.com:ecmwf-ifs/ecland --branch main
 
-Common:
+Create the bundle, i.e. download all ecLand dependencies as defined in `bundle.yml`:
+
+    ./ecland-bundle create   # Downloads dependency packages (ecbuild, eccodes, fiat)
+
+Build the bundle:
     
-    cmake -S ecland -B ecland-build -G Ninja
-    srun -c 64 --mem 40g cmake --build ecland-build --parallel 64
+    srun -c 64 --mem 40g ./ecland-bundle build [-j <nthreads>] [--ninja] [--build-type=<build-type>] [--arch=<path-to-arch>] [--option]
 
 #### Quick instructions for MacOS
 
 Relies on already having installed correct versions of cmake, ninja, open-mpi, netcdf, ecbuild, ...
 
-    unzip ecland.zip # if downloaded from the repository
-    cmake -S ecland -B ecland-build -G Ninja
-    cmake --build ecland-build --parallel 16
+Download ecLand and create the bundle as above, and then build the bundle:
+
+    ./ecland-bundle build [-j <nthreads>] [--ninja] [--build-type=<build-type>] [--arch=<path-to-arch>] [--option]
 
 #### General instructions
 
-The ecLand build system is based on CMake. If CMake has issues detecting required software dependencies,
-following environment variables may be defined:
+The supported way of building ecLand is to use the [ecbundle](https://github.com/ecmwf/ecbundle) package manager as illustrated above. The definition of the bundle
+is contained within `bundle.yml`, which lists all the projects, and their versions, that ecLand relies upon. These
+are downloaded in `source/` during the bundle create step. A second build step is then needed to perform the actual build.
+
+The following options can be configured directly during the bundle build step:
+
+| Option | Description |
+|--------|-------------|
+| `--without-mpi` | Disable MPI |
+| `--without-omp` | Disable OpenMP |
+| `--with-single-precision` | Enable single precision build |
+| `--without-test` | Disable tests |
+| `--build-type=<arg>` | `<Debug\|RelWithDebInfo\|Release\|Bit>` |
+| `--install-dir=<install-prefix>` | Install location |
+
+Additional CMake options can be set via:
+
+    ./ecland-bundle build --cmake="OPTION=<arg>"
+
+ecLand exposes the following additional CMake options:
+
+| Option | Description |
+|--------|-------------|
+| `ENABLE_IFSBENCH_EDITABLE=<ON\|OFF>` | Install ecland (ifsbench) testing modules as an editable install (for developing new tests) |
+| `OpenMP_Fortran_FLAGS=<flags>` | Additional OpenMP related compiler flags to be used in the build |
+| `ECBUILD_Fortran_FLAGS=<fortran-flags>` | Additional Fortran compiler flags to be used in the build |
+
+Installing the bundle is triggered via adding the `--install` flag to the bundle build step.
+
+Optionally, tests can be run to check succesful compilation, when the feature TESTS is enabled.
+In the build folder (e.g. `<build-dir>/ecland`), run:
+
+    ctest -R ecland [-VV]
+
+#### Standalone builds
+
+ecLand can also be built in a standalone fashion without the bundle, but here the responsibility falls on the user to ensure the
+paths to ecLand's dependencies are properly configured. This can be achieved by defining the following environment variables:
 
     export ecbuild_ROOT=<path-to-ecbuild>
     export MPI_HOME=<path-to-MPI>
@@ -90,7 +121,7 @@ following environment variables may be defined:
     export FC=<path-to-Fortran-compiler>
     export CXX=<path-to-C++-compiler>
 
-The procedure is as follows:
+Once the environment is properly configured, a standalone build can be performed as follows:
 
 1. Configure ecland:
 
@@ -104,32 +135,6 @@ The procedure is as follows:
 
     cmake --install `<path-to-build>` --parallel `<nthreads>`
 
-Extra options can be added to the `cmake` command in step 1. to control the build (default in bold)
-
-- `-DCMAKE_BUILD_TYPE=<Debug|**RelWithDebInfo**|Release|Bit>` default=RelWithDebInfo (typically `-O2 -g`)
-- `-DENABLE_TESTS=<**ON**|OFF>` : Turn on/off tests
-- `-DENABLE_MPI=<**ON**|OFF>` : Turn on/off MPI distributed memory parallelism
-- `-DENABLE_OMP=<**ON**|OFF>` : Turn on/off OpenMP threaded parallelism
-- `-DENABLE_SINGLE_PRECISION=<ON|**OFF**>` : Turn ON single precision build
-- `-DCMAKE_INSTALL_PREFIX=<install-prefix>` : Install location
-- `-DFETCHCONTENT_DEPENDENCIES=<ON|OFF>` : Turn on/off download/compilation of dependencies eccodes and/or fiat if not found
-- `-DENABLE_IFSBENCH_EDITABLE=<ON|OFF>` : Install ecland (ifsbench) testing modules as an editable install (for developing new tests).
-
-More options to control compilation flags, only when defaults are not sufficient
-
-- `-DOpenMP_Fortran_FLAGS=<flags>`
-- `-DCMAKE_Fortran_FLAGS=<fortran-flags>`
-- `-DCMAKE_C_FLAGS=<c-flags>`
-
-Once this has finished successfully, run `make` and `make install`.
-
-An informational tool `ecland [--help] [--info] [--version] [--git]` is available upon compilation
-and can be used the to verify compilation options and version information of ecLand.
-
-Optionally, tests can be run to check succesful compilation, when the feature TESTS is enabled (`-DENABLE_TESTS=ON`, default ON).
-In the build folder (e.g. `ecland-build`), run:
-
-    ctest -R ecland [-VV]
 
 Running ecLand
 =============
