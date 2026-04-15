@@ -268,7 +268,7 @@ jobs:
           ecmwf-ifs/field_api@refs/tags/v0.3.9
           ecmwf/eccodes@refs/tags/2.44.0
         dependency_cmake_options: |
-          ecmwf/eccodes: -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF ${{ matrix.dep_eccodes_extra_options }}
+          ecmwf/eccodes: -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF -DENABLE_NETCDF=OFF -DENABLE_JPG_LIBJASPER=OFF -DENABLE_JPG_LIBOPENJPEG=OFF -DENABLE_PRODUCT_GRIB=OFF ${{ matrix.dep_eccodes_extra_options }}
           ecmwf-ifs/fiat: -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTS=OFF -DENABLE_DR_HOOK_NVTX=OFF -DENABLE_MPI=ON -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' }} -DENABLE_DOUBLE_PRECISION=${{ matrix.prec == 'DP' }}
           ecmwf-ifs/field_api: -G Ninja -Dfiat_ROOT=${{ env.DEPS_DIR }}/fiat  -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTS=OFF -DENABLE_MPI=ON -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' }} -DENABLE_DOUBLE_PRECISION=${{ matrix.prec == 'DP' }}
         cmake_options: -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.cmake_options }} -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' }}
