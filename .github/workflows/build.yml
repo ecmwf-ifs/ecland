@@ -260,6 +260,8 @@ jobs:
 
     - name: Build with CMake
       id: buildcmake
+      env:
+        VERBOSE: 1
       uses: ecmwf-actions/build-package@v2
       with:
         save_cache: false

@@ -12,7 +12,7 @@ projects :
 
     - ecbuild :
         git     : https://github.com/ecmwf/ecbuild
-        version : 3.11.0
+        version : develop
         bundle  : false
 
     - eccodes :
@@ -26,13 +26,11 @@ projects :
             ENABLE_JPG_LIBJASPER=OFF
             ENABLE_JPG_LIBOPENJPEG=OFF
             ENABLE_PRODUCT_GRIB=OFF
-#           ENABLE_TESTS OFF
 
     - fiat :
         git     : https://github.com/ecmwf-ifs/fiat
         version : 1.6.2
         cmake   : ENABLE_DR_HOOK_NVTX=OFF
-#                 ENABLE_TESTS OFF
 
 
     - field_api :
@@ -42,7 +40,6 @@ projects :
 
     - ecland :
         dir     : $PWD
-#       cmake   : ENABLE_TESTS OFF
 
 options :
 
