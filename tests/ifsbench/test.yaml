@@ -48,7 +48,7 @@ science:
     # Default parallel setup. May be overwritten at runtime by command line flags.
     job:
       tasks: 1
-      threads: 1
+      cpus_per_task: 1
 
   v1_EU_centered:
     # Use YAML anchor/alias here to essentially copy the content of v1_EU_default
@@ -79,13 +79,13 @@ science:
     <<: *v1_EU
     job:
       tasks: 1
-      threads: 4
+      cpus_per_task: 4
 
   v1_EU_multiprocess_thread:
     <<: *v1_EU
     job:
       tasks: 2
-      threads: 2
+      cpus_per_task: 2
 
 tech:
   # Specify technical setups here.
