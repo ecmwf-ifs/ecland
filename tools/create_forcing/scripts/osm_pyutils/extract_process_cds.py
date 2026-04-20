@@ -18,20 +18,20 @@ from datetime import timedelta
 
 def download_from_cds(DATE, STREAM, TIME, STEPS_VAR, dataName, type_data, dataFormat, grbVars, grbLevType, grbLev,outFile):
     c = cdsapi.Client()
-    c.retrieve(dataName,
-    {
-    'date'    : DATE,
-    'time'    : TIME,
-    'param'   : grbVars,
-    'levtype' : grbLevType,
-    'levelist': grbLev,
-    'stream'  : STREAM,
-    'step'    : STEPS_VAR,
-    'type'    : type_data,
-    'format'  : dataFormat,
-    },
-    outFile
-)
+    request = {
+        'date'    : DATE,
+        'time'    : TIME,
+        'param'   : grbVars,
+        'levtype' : grbLevType,
+        'stream'  : STREAM,
+        'step'    : STEPS_VAR,
+        'type'    : type_data,
+        'data_format'  : dataFormat,
+    }
+    # Only include levelist if it's not None (surface fields don't have levelist)
+    if grbLev is not None:
+        request['levelist'] = grbLev
+    c.retrieve(dataName, request, outFile)
 
 # Function to deaccumulate flux variables, derive total precipitation and convert units
 def deacc_variable(data, pp, FREQ):
