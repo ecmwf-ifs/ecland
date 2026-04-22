@@ -84,7 +84,7 @@ The following options can be configured directly during the bundle build step:
 | `--without-mpi` | Disable MPI |
 | `--without-omp` | Disable OpenMP |
 | `--with-single-precision` | Enable single precision build |
-| `--without-test` | Disable tests |
+| `--without-tests` | Disable tests |
 | `--build-type=<arg>` | `<Debug\|RelWithDebInfo\|Release\|Bit>` |
 | `--install-dir=<install-prefix>` | Install location |
 
