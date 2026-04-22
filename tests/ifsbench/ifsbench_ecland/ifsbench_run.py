@@ -204,7 +204,7 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech, job: Job) -
     env_handlers = []
 
     if tech.env:
-        env_handlers += science.env
+        env_handlers += tech.env
 
     tech_setup = TechSetup(
         data_handlers_runtime = data_handlers_runtime,
