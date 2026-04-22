@@ -1,0 +1,100 @@
+name: build-hpc
+
+on:
+  # Trigger the workflow on all pull requests
+  pull_request: ~
+
+  # Allow workflow to be dispatched on demand
+  workflow_dispatch: ~
+
+  # Trigger after public PR approved for CI
+  pull_request_target:
+    types: [labeled]
+
+env:
+  ECLAND_TOOLS: ${{ github.workspace }}/.github/tools
+  CTEST_PARALLEL_LEVEL: 1
+
+jobs:
+  ci-hpc:
+    name: ci-hpc
+    if: ${{ !github.event.pull_request.head.repo.fork && github.event.action != 'labeled' || github.event.label.name == 'approved-for-ci' }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        name:
+          - ac-cpu intel
+          - ac-cpu nvhpc
+
+        include:
+          - name: ac-cpu intel
+            site: ac-batch
+            sbatch_options: |
+              #SBATCH --time=00:20:00
+              #SBATCH --nodes=1
+              #SBATCH --ntasks=4
+              #SBATCH --cpus-per-task=32
+              #SBATCH --hint=nomultithread
+              #SBATCH --mem=60GB
+              #SBATCH --qos=np
+            arch: ecmwf/hpc2020/intel/2023.2.0/hpcx-openmpi/2.9.0
+            build_options: ~
+
+          - name: ac-cpu nvhpc
+            site: ac-batch
+            sbatch_options: |
+              #SBATCH --time=00:20:00
+              #SBATCH --nodes=1
+              #SBATCH --ntasks=4
+              #SBATCH --cpus-per-task=32
+              #SBATCH --hint=nomultithread
+              #SBATCH --mem=60GB
+              #SBATCH --qos=np
+            arch: ecmwf/hpc2020/nvhpc/24.5/hpcx-openmpi/2.17.1
+            build_options: ~
+
+    runs-on: [self-hosted, linux, hpc]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: ecmwf-actions/reusable-workflows/ci-hpc-generic@v2
+        with:
+          site: ${{ matrix.site }}
+          troika_user: ${{ secrets.HPC_CI_SSH_USER }}
+          sbatch_options: ${{ matrix.sbatch_options }}
+          template: |
+            REPO=${{ github.event.pull_request.head.repo.full_name || github.repository }}
+            SHA=${{ github.event.pull_request.head.sha || github.sha }}
+            { set +x; } 2>/dev/null # trace off
+
+            echo "::group::Checkout $(basename $REPO)"
+            { set -x; } 2>/dev/null # trace on
+            mkdir -p $REPO
+            pushd $REPO
+            git init
+            git remote add origin ${{ github.server_url }}/$REPO
+            git fetch origin $SHA
+            git reset --hard FETCH_HEAD
+            { set +x; } 2>/dev/null # trace off
+            echo "::endgroup::"
+
+            echo "::group::ecland-bundle create"
+            { set -x; } 2>/dev/null # trace on
+            ./ecland-bundle create
+            { set +x; } 2>/dev/null # trace off
+            echo "::endgroup::"
+
+            echo "::group::ecland-bundle build"
+            { set -x; } 2>/dev/null # trace on
+            ./ecland-bundle build --arch arch/${{ matrix.arch }} --ninja --keep-going --retry-verbose ${{ matrix.build_options }}
+            { set +x; } 2>/dev/null # trace off
+            echo "::endgroup::"
+
+            echo "::group::ecLand test"
+            { set -x; } 2>/dev/null # trace on
+            export IFSBENCH_ARCH=atos
+            ctest --test-dir build/ecland -VV --output-on-failure
+            { set +x; } 2>/dev/null # trace off
+            echo "::endgroup::"
