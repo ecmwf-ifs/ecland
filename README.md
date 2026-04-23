@@ -107,6 +107,10 @@ In the build folder (e.g. `<build-dir>/ecland`), run:
 
     ctest -R ecland [-VV]
 
+Please note that if tests are run simply by invoking `ctest` in the root build directory, i.e. `<build-dir>` rather than `<build-dir>/ecland`, then
+the tests for ecLand's dependencies will also be run. Failures in these is not necessarily a concern, as ecLand only uses a subset of the functionality
+of its dependencies. One can be sure that ecLand was built correctly if ecLand's own tests pass.
+
 #### Standalone builds
 
 ecLand can also be built in a standalone fashion without the bundle, but here the responsibility falls on the user to ensure the
