@@ -6,10 +6,10 @@ The ECMWF surface model ecLand
 Introduction
 ============
 
-The ECMWF land surface model (ecLand) is the land-surface model developed at ECMWF. 
-ecLand is a physically-based land-surface model, describing the energy and water movement into the soil column 
-and the exchange of fluxes (energy, water, momentum, carbon) with the atmosphere. 
-The model can be used fully coupled to the atmospheric model or in stand-alone mode, 
+The ECMWF land surface model (ecLand) is the land-surface model developed at ECMWF.
+ecLand is a physically-based land-surface model, describing the energy and water movement into the soil column
+and the exchange of fluxes (energy, water, momentum, carbon) with the atmosphere.
+The model can be used fully coupled to the atmospheric model or in stand-alone mode,
 forced at the interface with external atmospheric variables without accounting for feedbacks.
 The model includes a number of physical sub-modules aiming at representing the main features of the land-surface.
 A full scientific and technical description of ecLand, CY48R1, can be found in
@@ -60,7 +60,7 @@ Create the bundle, i.e. download all ecLand dependencies as defined in `bundle.y
     ./ecland-bundle create   # Downloads dependency packages (ecbuild, eccodes, fiat)
 
 Build the bundle:
-    
+
     srun -c 64 --mem 40g ./ecland-bundle build [-j <nthreads>] [--ninja] [--build-type=<build-type>] [--arch=<path-to-arch>] [--option]
 
 #### Quick instructions for MacOS
@@ -158,13 +158,13 @@ Users are encouraged to look at the [ERA5 documentation page](https://confluence
 from the CDS. Additional information can also be found on the [ERA5-Land documentation page](https://confluence.ecmwf.int/display/CKB/ERA5-Land%3A+data+documentation).
 
 #### Run ecLand
-Required libraries: python3/3.10.10-01 or newer, netCDF4, openmpi, 
+Required libraries: python3/3.10.10-01 or newer, netCDF4, openmpi
 
 The following are environment variables that might be required to set for running ecLand on external machines: \
 `export NETCDF_DIR=` \
 `export NETCDF_LIB=` \
 `export NETCDF_INCLUDE=` \
-`export LD_LIBRARY_PATH=` 
+`export LD_LIBRARY_PATH=`
 
 Include path to ecland executable to the list of `PATH`:
 
@@ -187,7 +187,7 @@ Description of options:
     - era5 : point simulation (site), using forcing and initial conditions from a reanalysis, e.g. ERA5 and prepared with create forcing tool, or another meteorological model. Example provided for a site of [TERENO network](https://www.tereno.net/joomla/index.php/observatories) on [get.ecmwf.int](https://get.ecmwf.int/#browse/browse:ecland).
     - 2D : regional simulations (2D), using forcing and initial conditions from reanalysis, e.g. ERA5 and prepared with create forcing tool, or another meteorological model.
 
-- `-i <INPUT_DIR>` : path to the directory containing the input files (initial conditions, static and forcing). 
+- `-i <INPUT_DIR>` : path to the directory containing the input files (initial conditions, static and forcing).
 `INPUT_DIR` must follow the following tree structure:
    - `<INPUT_DIR>/clim/<GROUP>/` :  initial conditions, static fields for the sites or region under <GROUP> to be run
    - `<INPUT_DIR>/forcing/<GROUP/` : forcing files for the sites or region under `GROUP` to be run
@@ -203,7 +203,7 @@ Optional arguments:
 note that cama-flood activation is controlled by ecLand namelist parameter: `LECMF1WAY=.T.`
 - `-l <NLOOP>` : (optional) Number of "loops" to do for spinup: the entire period for each site will be run NLOOP times;
 the last step of each loop is used as initial conditions for the following loop (default is 1)
-- `-R <LRESTART>` : (optional) true for a restart run. Path to the (restart) initial conditions should be provided setting 
+- `-R <LRESTART>` : (optional) true for a restart run. Path to the (restart) initial conditions should be provided setting
 the following environment variables:
     - `export RESTARTECLAND=/path/to/restart_files_for_ecLand`
     - (if Cama-flood is active)  `export RESTARTCMF=/path/to/restart_files_for_cmf`
@@ -283,12 +283,12 @@ It runs 2 loops and uses 2 MPI tasks and 8 openMP threads. It uses the default n
     INPUT_DIR=/perm/${USER}/ecland_input/
     OUTPUT_DIR=/scratch/${USER}/${GROUP}
     WORK_DIR=/scratch/paga/work/
-    NAMELIST_FILE="./namelists/namelist_ecland_48R1" 
+    NAMELIST_FILE="./namelists/namelist_ecland_48R1"
     NLOOP=2
     export PATH=${ecland_ROOT:-../ecland-build}/bin:$PATH
     export NPROC=2
     export NTHREADS=8
-    
+
     ecland-run-experiment -g ${GROUP}\
                           -t ${FORCING_TYPE}\
                           -i ${INPUT_DIR}\
@@ -309,8 +309,8 @@ These parameters can be identified by looking at the parameters between curly br
 The physics options, the output of more variables in netCDF and other settings can be accessed by modifying the namelist file provided.
 
 #### Running with Cama-Flood river routing
-By default the routing of runoff using Cama-Flood is turned off. 
-This requires input data that can be accessed from the Cama-flood developers' page at this 
+By default the routing of runoff using Cama-Flood is turned off.
+This requires input data that can be accessed from the Cama-flood developers' page at this
 [website](http://hydro.iis.u-tokyo.ac.jp/~yamadai/cama-flood/).
 This data can be processed on a regional domain and in the right formats using the tools in `tools/create_forcing`.
 
@@ -318,7 +318,7 @@ This data can be processed on a regional domain and in the right formats using t
 Tutorial
 ============
 
-A Jupyter notebook is provided in `tutorials/` to give a simple example on running ecLand and working with 
+A Jupyter notebook is provided in `tutorials/` to give a simple example on running ecLand and working with
 the input and forcing files. To run the examples in the jupyter notebook `ecland_practicals.ipynb`, it is assumed
 that ecLand has been already correctly installed and tests successfully passed (see previous steps).
 
@@ -332,11 +332,11 @@ Initial conditions and forcing data
 
 Initial conditions, static fields and forcing must be contained in folders following a structure.  Assuming `INPUT_DIR` is the parent folder:
 
-- `<INPUT_DIR>/clim/<GROUP>/` :  initial conditions, static fields for the sites or region for a specific `GROUP`. 
+- `<INPUT_DIR>/clim/<GROUP>/` :  initial conditions, static fields for the sites or region for a specific `GROUP`.
 - `<INPUT_DIR>/forcing/<GROUP/` : forcing files for the sites or region for a specific `GROUP`.
 
 For site simulations, the netCDF file containing the static "climate" fields (land-sea mask, lake mask etc.) should follow the following naming convention:
-    
+
     surfclim_<SITENAME>.nc
 
 with `SITENAME` having the following structure: `<XY>-<ABC>_<iniYear>-<endYear>.nc` (even if simulation is shorter than 1 year). In this convention:
@@ -362,43 +362,43 @@ with <FORCING_TYPE> being:
 The list of variables contained in each of these files to run ecLand can be accessed by inspecting the test data provided (see below) using tools like `ncdump -h <filename>`.
 
 
-Creation of initial conditions and forcing from ERA5 
+Creation of initial conditions and forcing from ERA5
 ============
 
 A tool is provided, in `tools/create_forcing`, to create input and forcing files for ecLand both in "site" (points) and "2D" (regional) configuration.
 
 A separated `Readme` file with a description of the tool and instructions to use it can be found in `tools/create_forcing`.
 
-Insitu data and test data 
+Insitu data and test data
 ============
 
 "In-situ" forcing are forcing data that uses meteorological measurements from insitu stations. This type of data are widely used for forcing land surface
 models, as it reduces the impact of biases in the meteorological forcing on the land component under study (e.g. soil moisture, latent heat, snow depth etc.). This allows
 to evaluate the response of the land surface parametrizations under "perfect" conditions.
 
-Popular in-situ forcing dataset include "ESM-SnowMIP" for snow processes and "FLUXNET2015" for fluxes and warm processes. 
+Popular in-situ forcing dataset include "ESM-SnowMIP" for snow processes and "FLUXNET2015" for fluxes and warm processes.
 Further information on FLUXNET2015 data is reported in [Pastorello et al. 2020](https://www.nature.com/articles/s41597-020-0534-3) and data can be accessed from this [website](https://geonetwork.nci.org.au/geonetwork/srv/eng/catalog.search#/metadata/f7075_4625_2374_0846).
 Further information on ESM-SnowMIP data is reported in [Menard et al. 2019](https://essd.copernicus.org/articles/11/865/2019/) and data can be accessed from this [website](https://catalogue.ceda.ac.uk/uuid/b6b6266415634a6ab242702d7ee6be05).
 
 A script to download initial condition and forcing data for the ESM-SnowMIP sites is provided:
   -  `GROUP=ESM-SnowMIP` , with `FORCING_TYPE=insitu`
-  
+
 An example of forcing data created with the `create_forcing` tool is also provided:
-  - `GROUP=TERENO` , with `FORCING_TYPE=era5`    
+  - `GROUP=TERENO` , with `FORCING_TYPE=era5`
 
 To download the data, navigate to `tools/retrieve_data` folder, and use the following command:
 
     ./retrieve_sites.bash -g <GROUP> -i <OUT_DIR> [-p <path_to_scripts>]
 
-The test data used to perform the `ctest` can be used as a template for custom forcing/initial conditions. Assuming the ctests have been run successfully under `ecland-build`, 
-for a specific test the data can be found in: 
+The test data used to perform the `ctest` can be used as a template for custom forcing/initial conditions. Assuming the ctests have been run successfully under `ecland-build`,
+for a specific test the data can be found in:
 
     ecland-build/tests/<specific_test>/input
 
 Known issues
 ============
 
-If the following error message is reported: 
+If the following error message is reported:
     `perl: warning: Falling back to a fallback locale ("en_US.UTF-8")"`
 
 Export the following environment variables in the running terminal:
@@ -419,11 +419,11 @@ LICENCE
 
 This software is licensed under the terms of the Apache Licence Version 2.0 which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
 
-In applying this licence, ECMWF does not waive the privileges and immunities granted to it by virtue of its status as an intergovernmental organisation nor does it submit to any jurisdiction. 
+In applying this licence, ECMWF does not waive the privileges and immunities granted to it by virtue of its status as an intergovernmental organisation nor does it submit to any jurisdiction.
 
 The ESM-SnowMIP data distributed were based on [Menard, C.; Essery, R. (2020): ESM-SnowMIP meteorological and evaluation datasets at ten reference sites (in situ and bias corrected reanalysis data). Centre for Environmental Data Analysis, 2024-03-20](https://catalogue.ceda.ac.uk/uuid/b6b6266415634a6ab242702d7ee6be05); data were further processed to enable the usage in ecLand.
 
-All data products are distributed under a Creative Commons Attribution 4.0 International (CC BY 4.0). 
+All data products are distributed under a Creative Commons Attribution 4.0 International (CC BY 4.0).
 To view a copy of this licence, visit https://creativecommons.org/licenses/by/4.0/
 
 See the `LICENSE` file for details on the license and attribution requirements.
