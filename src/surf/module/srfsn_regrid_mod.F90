@@ -191,7 +191,6 @@ DO JL=KIDIA,KFDIA
          write(*,*)JL,JK,'snowValOld',PSSN(JL,JK) , PRSN(JL,JK),ZDSN(JL,JK),PTSN(JL,JK),PWSN(JL,JK)
          write(*,*)JL,JK,'snowValNew',PDSNNEW(JL,JK),ZDSNNEWG(JL,JK)
          write(*,*)' ' 
-         call flush(6)
       ENDDO
       CALL ABORT_SURF("SRFSN_REGRID_MOD:SRFSN_REGRID: REMAP MATRIX NOT CORRECT")
     ENDIF
