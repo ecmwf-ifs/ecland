@@ -192,7 +192,8 @@ jobs:
       run: |
         sudo apt update
         sudo apt install intel-hpckit
-        source /opt/intel/oneapi/setvars.sh
+        source /opt/intel/oneapi/2025.3/oneapi-vars.sh
+        source /opt/intel/oneapi/setvars.sh --force
         printenv >> $GITHUB_ENV
         echo "CACHE_SUFFIX=$CC-$($CC -dumpversion)" >> $GITHUB_ENV
 
