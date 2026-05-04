@@ -3,7 +3,7 @@
 # BOOTSTRAP ecbundle-build or ecbundle-create,
 # and pass arguments to it.
 
-ecbundle_VERSION=develop
+ecbundle_VERSION=2.4.0
 
 BUNDLE_DIR="$( cd $( dirname "${BASH_SOURCE[0]}" ) && pwd -P )"
 
