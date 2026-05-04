@@ -261,10 +261,9 @@ jobs:
         cache_suffix: "${{ matrix.build_type }}-${{ env.CACHE_SUFFIX }}"
         recreate_cache: ${{ matrix.caching == false }}
         dependencies: |
-          ecmwf/ecbuild
+          ecmwf/ecbuild@develop
           ecmwf-ifs/fiat@refs/tags/1.6.2
           ecmwf/eccodes@refs/tags/2.44.0
-        dependency_branch: develop
         dependency_cmake_options: |
           ecmwf/eccodes: "-DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_MEMFS=ON -DENABLE_JPG=OFF -DENABLE_PNG=OFF ${{ matrix.dep_eccodes_extra_options }}"
           ecmwf-ifs/fiat: "-G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTS=OFF -DENABLE_DR_HOOK_NVTX=OFF -DENABLE_MPI=ON"
