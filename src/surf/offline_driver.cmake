@@ -121,6 +121,7 @@ list(APPEND offline_driver_src
     ecland_aux_diag_type_mod.F90
     ecland_climate_type_mod.F90
     ecland_flux_type_mod.F90
+    ecland_ddh_type_mod.F90
     ecland_gems_type_mod.F90
     ecland_internal_type_mod.F90
     ecland_surface_type_mod.F90
@@ -135,9 +136,10 @@ ecbuild_add_executable(TARGET ${PROJECT_NAME}-master
     offline/function
     offline/namelist
     interface
-  LIBS 
+  LIBS
     ${PROJECT_NAME}_offline_driver_intfb ${PROJECT_NAME}_surf ${PROJECT_NAME}_cmflood
     fiat parkind
+    field_api
     ${OpenMP_Fortran_LIBRARIES}
     NetCDF::NetCDF_Fortran
 )
