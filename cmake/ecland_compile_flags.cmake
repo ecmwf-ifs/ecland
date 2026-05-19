@@ -7,11 +7,6 @@
 # nor does it submit to any jurisdiction.
 
 
-# Capture ecbuild flags set by a toolchain
-set( ${PNAME}_Fortran_FLAGS "${ECBUILD_Fortran_FLAGS} " )
-set( ${PNAME}_Fortran_FLAGS_BIT "${ECBUILD_Fortran_FLAGS_BIT} " )
-set( ${PNAME}_Fortran_FLAGS_DEBUG "${ECBUILD_Fortran_FLAGS_DEBUG} " )
-
 if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
   set(checkbounds_flags   "-Rb")
   set(fpe_flags           "-Ktrap=fp")
@@ -52,7 +47,9 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC")
   set(optimization_flags  "-g -O3 -fast")
 
   # Remove fp trapping flags from optimised builds in case they are present in the toolchain
-  string(REPLACE "-Ktrap=fp" "" ${PNAME}_Fortran_FLAGS ${${PNAME}_Fortran_FLAGS})
+  if(DEFINED ${PNAME}_Fortran_FLAGS)
+    string(REPLACE "-Ktrap=fp" "" ${PNAME}_Fortran_FLAGS ${${PNAME}_Fortran_FLAGS})
+  endif()
 
   # Needed to guarantee matching test results with Debug build
   set(fpmodel_flags       "-Kieee")
