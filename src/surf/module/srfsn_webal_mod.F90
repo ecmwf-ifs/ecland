@@ -391,7 +391,7 @@ DO JL=KIDIA,KFDIA
 
       !* CALL ABORT_SURF('Very snow cold temperature')
     ENDIF 
-    !$loki end remove·
+    !$loki end remove
 
     DO JK=1,KLEVSN
       PTSN(JL,JK) = MAX(100.0_JPRB, PTSN(JL,JK))
