@@ -5,7 +5,6 @@
 ! In applying this licence, ECMWF does not waive the privileges and immunities
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
-
 PROGRAM MASTER1S
 USE PARKIND1  ,ONLY : JPRD, JPIM, JPRB
 USE YOMLUN1S , ONLY : NULOUT
