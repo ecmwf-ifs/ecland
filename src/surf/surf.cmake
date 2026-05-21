@@ -74,6 +74,7 @@ list( APPEND module_src
     srfsn_ssrabss_mod.F90
     srfsn_ssrabssad_mod.F90
     srfsn_ssrabsstl_mod.F90
+    srfsn_trisolver_mod.F90
     srfsn_vgrid_mod.F90
     srfsn_webal_mod.F90
     srfsn_webals_mod.F90
