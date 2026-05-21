@@ -1,8 +1,9 @@
 MODULE VUPDZ0STL_MOD
 
 USE PARKIND1  , ONLY : JPIM, JPRB
+USE PZ0WN_MOD, ONLY: PZ0WN
 
-PRIVATE PZ0WN
+!PRIVATE PZ0WN
 PUBLIC  VUPDZ0STL
 
 CONTAINS
@@ -226,7 +227,7 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 #include "fcz0.h"
 
 ! Function to compute Z0M for neutral wind conditions
-#include "fcz0wn.intfb.h"
+!#include "fcz0wn.intfb.h"
 
 !     ------------------------------------------------------------------
 

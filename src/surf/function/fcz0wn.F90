@@ -15,7 +15,8 @@
 !     I. AYAN-MIGUEZ    BSC     Oct 2023: Added refactorization of Global parameters
 
 !     ------------------------------------------------------------------
-
+MODULE PZ0WN_MOD
+CONTAINS
 FUNCTION PZ0WN(PWIND, PGEO, PCHAR, PG, PNUM, PKAP, NITER, ACD, &
                & BCD, XEPS, USTMIN, PCHARMAX, Z0FG)
 USE PARKIND1  , ONLY : JPIM, JPRB, JPRD
@@ -95,3 +96,4 @@ ELSE
 ENDIF
  
 END FUNCTION PZ0WN
+END MODULE PZ0WN_MOD
