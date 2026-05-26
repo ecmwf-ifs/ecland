@@ -86,7 +86,7 @@ The following options can be configured directly during the bundle build step:
 | `--with-single-precision` | Enable single precision build |
 | `--without-tests` | Disable tests |
 | `--build-type=<arg>` | `<Debug\|RelWithDebInfo\|Release\|Bit>` |
-| `--install-dir=<install-prefix>` | Install location |
+| `--install-dir=<install-prefix>` | Install location (Important: to prevent breaking incremental builds, avoid specifying a directory inside your build folder) |
 
 Additional CMake options can be set via:
 
@@ -138,6 +138,8 @@ Once the environment is properly configured, a standalone build can be performed
 3. Install ecland:
 
     cmake --install `<path-to-build>` --parallel `<nthreads>`
+
+*Note: If setting `CMAKE_INSTALL_PREFIX` during configuration, avoid setting it to a directory inside the build folder `<path-to-build>` to prevent breaking incremental builds.*
 
 
 Running ecLand
