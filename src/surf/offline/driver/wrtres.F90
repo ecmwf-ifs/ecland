@@ -58,8 +58,8 @@ USE YOMGP1S0 , ONLY : TSLNU0   ,QLINU0   ,TILNU0   ,FSNNU0   ,&
             &LAINU0,BSTRNU0, BSTR2NU0,WSNNU0
 
 USE YOMGPD1S , ONLY : VFZ0F    ,VFZ0H     ,VFITM    ,VFCVL &
-                     &,VFCVH   ,VFCUR     ,VFTVL  ,VFCO2TYP  ,VFISOP_EP, VFTVH    ,VFSST &
-                     &,VFCI     ,VFCIL, VFSOTY    ,VFSDOR  ,VFGEO &
+                     &,VFCVH   ,VFCUR     ,VFTVL    ,VFCO2TYP  ,VFISOP_EP, VFTVH    ,VFSST &
+                     &,VFCI    ,VFCIL     ,VFSOTY   ,VFSDOR  ,VFGEO &
                      &,VDIEWSSTL ,VDINSSSTL,VDISSHFTL &
                      &,VDIETL   ,VDTSKTL,VFLDEPTH,VFCLAKE,VFCLAKEF &
                      &,VFR0VT   ,VDANDAYVT,VDANFMVT &

@@ -197,5 +197,94 @@ REAL(KIND=JPRB) :: RN_VERT_ATT                      ! N vertical attenuation fac
 REAL(KIND=JPRB) :: RRVEG_PFT                        ! Potentiometer to set vegetation resistance (unitless)
 REAL(KIND=JPRB) :: RTAU_TEMP_AIR_MONTH              ! Relaxation constant for computing monthly temperature average (s)
 
+CONTAINS 
+
+PROCEDURE :: UPDATE_DEVICE => TAGF_UPDATE_DEVICE
+PROCEDURE :: WIPE_DEVICE => TAGF_WIPE_DEVICE
+
 END TYPE TAGF
+
+CONTAINS
+
+SUBROUTINE TAGF_UPDATE_DEVICE(SELF, LCREATED)
+  CLASS(TAGF) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LCREATED
+  LOGICAL :: LLCREATED
+
+  LLCREATED = .FALSE.
+  IF(PRESENT(LCREATED)) LLCREATED = LCREATED
+  IF(.NOT. LLCREATED)THEN
+    !$acc enter data create(SELF)
+    !$acc update device(SELF)
+  ENDIF
+
+  !$acc enter data create(SELF%RVCMAX25)
+  !$acc enter data create(SELF%RHUMREL)
+  !$acc enter data create(SELF%RA1)
+  !$acc enter data create(SELF%RB1)
+  !$acc enter data create(SELF%RG0)
+  !$acc enter data create(SELF%RGM25)
+  !$acc enter data create(SELF%RE_VCMAX)
+  !$acc enter data create(SELF%RE_JMAX)
+  !$acc enter data create(SELF%RDOWNREGULATION_CO2_COEF)
+  !$acc enter data create(SELF%RSTRUCT_CONST)
+
+  !$acc update device(SELF%RVCMAX25)
+  !$acc update device(SELF%RHUMREL)
+  !$acc update device(SELF%RA1)
+  !$acc update device(SELF%RB1)
+  !$acc update device(SELF%RG0)
+  !$acc update device(SELF%RGM25)
+  !$acc update device(SELF%RE_VCMAX)
+  !$acc update device(SELF%RE_JMAX)
+  !$acc update device(SELF%RDOWNREGULATION_CO2_COEF)
+  !$acc update device(SELF%RSTRUCT_CONST)
+
+  !$acc enter data attach(SELF%RVCMAX25)
+  !$acc enter data attach(SELF%RHUMREL)
+  !$acc enter data attach(SELF%RA1)
+  !$acc enter data attach(SELF%RB1)
+  !$acc enter data attach(SELF%RG0)
+  !$acc enter data attach(SELF%RGM25)
+  !$acc enter data attach(SELF%RE_VCMAX)
+  !$acc enter data attach(SELF%RE_JMAX)
+  !$acc enter data attach(SELF%RDOWNREGULATION_CO2_COEF)
+  !$acc enter data attach(SELF%RSTRUCT_CONST)
+END SUBROUTINE TAGF_UPDATE_DEVICE
+
+SUBROUTINE TAGF_WIPE_DEVICE(SELF, LDELETED)
+  CLASS(TAGF) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LDELETED
+  LOGICAL :: LLDELETED
+
+  LLDELETED = .FALSE.
+  IF(PRESENT(LDELETED)) LLDELETED = LDELETED
+
+  !$acc exit data detach(SELF%RVCMAX25) finalize
+  !$acc exit data detach(SELF%RHUMREL) finalize
+  !$acc exit data detach(SELF%RA1) finalize
+  !$acc exit data detach(SELF%RB1) finalize
+  !$acc exit data detach(SELF%RG0) finalize
+  !$acc exit data detach(SELF%RGM25) finalize
+  !$acc exit data detach(SELF%RE_VCMAX) finalize
+  !$acc exit data detach(SELF%RE_JMAX) finalize
+  !$acc exit data detach(SELF%RDOWNREGULATION_CO2_COEF) finalize
+  !$acc exit data detach(SELF%RSTRUCT_CONST) finalize
+
+  !$acc exit data delete(SELF%RVCMAX25) finalize
+  !$acc exit data delete(SELF%RHUMREL) finalize
+  !$acc exit data delete(SELF%RA1) finalize
+  !$acc exit data delete(SELF%RB1) finalize
+  !$acc exit data delete(SELF%RG0) finalize
+  !$acc exit data delete(SELF%RGM25) finalize
+  !$acc exit data delete(SELF%RE_VCMAX) finalize
+  !$acc exit data delete(SELF%RE_JMAX) finalize
+  !$acc exit data delete(SELF%RDOWNREGULATION_CO2_COEF) finalize
+  !$acc exit data delete(SELF%RSTRUCT_CONST) finalize
+
+  IF(.NOT. LLDELETED)THEN
+    !$acc exit data delete (SELF) finalize
+  ENDIF
+END SUBROUTINE TAGF_WIPE_DEVICE
+
 END MODULE YOS_AGF

@@ -1,9 +1,8 @@
 MODULE VUPDZ0S_MOD
 USE PARKIND1  , ONLY : JPIM, JPRB, JPRD
-
+USE PZ0WN_MOD, ONLY: PZ0WN
 IMPLICIT NONE
 
-PRIVATE PZ0WN
 PUBLIC VUPDZ0S
 
 CONTAINS
@@ -189,11 +188,14 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 !             INCLUDE STABILITY FUNCTIONS
 !             ------- --------- ---------
 
-!#include "fcsvdfs.h"
+#include "fcsvdfs.h"
 
 !             INCLUDE ROUGNESS LENGTH FUNCTIONS
 !             ------- -------- ------ ---------
 #include "fcz0.h"
+
+! Function to compute Z0M for neutral wind conditions
+!#include "fcz0wn.intfb.h"
 
 !     ------------------------------------------------------------------
 
@@ -504,8 +506,5 @@ ENDDO
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('VUPDZ0S_MOD:VUPDZ0S',1,ZHOOK_HANDLE)
 END SUBROUTINE VUPDZ0S
-
-! Function to compute Z0M for neutral wind conditions
-#include "fcz0wn.h"
 
 END MODULE VUPDZ0S_MOD

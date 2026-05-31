@@ -184,8 +184,9 @@ REAL(KIND=JPRB),    INTENT(OUT)  :: PDHSSS(:,:,:)
 
 LOGICAL            :: LLNOSNOW(KLON)  
 
-REAL(KIND=JPRB),DIMENSION(KLON)   :: ZFRSN,ZSSFC,ZSSFL,ZLWC,ZLW,ZPMSNINT,ZDSNR,ZTSFC,ZTSFL,&
-                                     ZHFLUXPP,ZLICE
+REAL(KIND=JPRB) :: ZFRSN(KLON),ZSSFC(KLON),ZSSFL(KLON),ZLWC(KLON),ZLW(KLON),ZPMSNINT(KLON),&
+                   ZDSNR(KLON),ZTSFC(KLON),ZTSFL(KLON),ZHFLUXPP(KLON),ZLICE(KLON)
+
 REAL(KIND=JPRB) :: ZFUNC,ZDFUNC,ZDSNRSTAR,ZRHOMINSN,ZDSN,ZDTH,ZDTM,&
                    ZEXPF,ZGSN,ZHFLUX,ZLINA,ZMSN,ZRS,ZRSTAR,ZSNRES,ZSOILRES,ZSSTAR,ZSSTAR1,& 
                    ZT0,ZTSTAR,ZHOICE,ZTMST,ZCONSA,ZCONSAMAX,ZCONSB,ZCONS2,ZCONSLWC,& 
@@ -259,7 +260,7 @@ DO JL=KIDIA,KFDIA
 !   ZFRSN(JL)=MAX(ZFRSNGP/ZFRLDGP,RFRTINY)
     ! if there is snow over ice points and we want to 
     ! account for its thermodynamic effect, then use snowSL only over ocean points (LDLAND=false).
-    ZFRSN(JL)=MAX(ZFRSNGP,RFRTINY)  ! to be replaced by the line above in 42r cycles
+     ZFRSN(JL)=MAX(ZFRSNGP,RFRTINY)  ! to be replaced by the line above in 42r cycles
   ELSE
     GRIDFRAC=0._JPRB
     ZFRSN(JL)=MAX(ZFRSNGP,RFRTINY)  ! it should be zero!

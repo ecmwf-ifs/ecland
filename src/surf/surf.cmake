@@ -73,6 +73,7 @@ list( APPEND module_src
     srfsn_ssrabss_mod.F90
     srfsn_ssrabssad_mod.F90
     srfsn_ssrabsstl_mod.F90
+    srfsn_trisolver_mod.F90
     srfsn_vgrid_mod.F90
     srfsn_webal_mod.F90
     srfsn_webals_mod.F90
@@ -211,10 +212,16 @@ list(APPEND external_src
 )
 list(TRANSFORM external_src PREPEND external/)
 
+list(APPEND function_src
+    fcz0wn.F90
+)
+list(TRANSFORM function_src PREPEND function/)
+
 ecbuild_add_library( TARGET ${PROJECT_NAME}_surf 
     SOURCES ${module_src}
             offline/driver/ibm.F90 # dummies for IBM vmass library
             ${external_src}
+            ${function_src}
     PUBLIC_LIBS fiat parkind
     PRIVATE_LIBS ${OpenMP_Fortran_LIBRARIES}
     PRIVATE_INCLUDES function

@@ -5,7 +5,6 @@
 ! In applying this licence, ECMWF does not waive the privileges and immunities
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
-
 PROGRAM MASTER1S
 USE PARKIND1  ,ONLY : JPRD, JPIM, JPRB
 USE YOMLUN1S , ONLY : NULOUT
@@ -52,7 +51,7 @@ ELSE
   ICOL_CMF=-1
 ENDIF
 
-CALL MPL_COMM_SPLIT(MPI_COMM_WORLD, ICOL_CMF, INT(MYPROC), ICOMM_CMF, IERR_CMF)
+CALL MPL_COMM_SPLIT(MPI_COMM_WORLD%MPI_VAL, ICOL_CMF, INT(MYPROC), ICOMM_CMF, IERR_CMF)
 
 IF (INT(MYPROC) <= MIN(INT(NPROC),NPROC_CMF)) THEN
   CALL CMF_MPI_INIT(ICOMM_CMF)

@@ -43,7 +43,7 @@ REAL(KIND=JPRB),ALLOCATABLE     :: ZBUFF(:,:,:)       ! Buffer to store forcing 
 #ifdef UseMPI_CMF
 #ifdef IFS_CMF
 CALL MPL_INIT()
-CALL CMF_MPI_INIT(MPI_COMM_WORLD)
+CALL CMF_MPI_INIT(MPI_COMM_WORLD%MPI_VAL)
 #else
 CALL CMF_MPI_INIT()
 #endif

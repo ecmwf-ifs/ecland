@@ -33,4 +33,7 @@ REAL(KIND=JPRB) :: RATM    !
 REAL(KIND=JPRB) :: ROMEGA
 END TYPE TCST 
 
+! Number of cluster used in k-means clustering
+INTEGER(KIND=JPIM), PARAMETER :: JPNCL = 27_JPIM
+
 END MODULE YOS_CST

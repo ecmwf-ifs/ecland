@@ -15,9 +15,11 @@
 !     I. AYAN-MIGUEZ    BSC     Oct 2023: Added refactorization of Global parameters
 
 !     ------------------------------------------------------------------
-
+MODULE PZ0WN_MOD
+CONTAINS
 FUNCTION PZ0WN(PWIND, PGEO, PCHAR, PG, PNUM, PKAP, NITER, ACD, &
                & BCD, XEPS, USTMIN, PCHARMAX, Z0FG)
+USE PARKIND1  , ONLY : JPIM, JPRB, JPRD
 
 IMPLICIT NONE
 
@@ -58,6 +60,8 @@ INTEGER(KIND=JPIM) :: ITER
 REAL(KIND=JPRB) :: ZLEV, XZLEV, PCHAROG, XKPWIND, XOLOGZ0
 REAL(KIND=JPRB) :: UST, USTOLD, Z0, Z0CH, Z0VIS, F, DELF
 
+!$loki routine seq
+
 ! ------------------------------------------------------------------
 
 ZLEV=PGEO/PG
@@ -92,3 +96,4 @@ ELSE
 ENDIF
  
 END FUNCTION PZ0WN
+END MODULE PZ0WN_MOD
