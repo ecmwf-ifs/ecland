@@ -682,7 +682,8 @@ IF(LWREFL)THEN
   !* -- BVOC flux diagnostics type 1, specified per vegetation type
   IF( MYPROC == 1 ) NVARID = NCVID(NPOS,'BVOCflux1',IERR)
   DO JVT=1,NVHILO
-    ZVALUE(:)=D1SBVOCST1(:,JVT) ! *ZWA ! VH: Not accumulated ; no need to multiply..
+    CALL PACK_BUFFER(D1SBVOCST1(:,JVT,:), ZVALUE)
+    ! *ZWA ! VH: Not accumulated ; no need to multiply..
     CALL MPL_GATHERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZVALUE(:),KRECVCOUNTS=NPOIP(:),CDSTRING="WRTDCDF:")
     IF( MYPROC == 1 ) ZOUTPUT(:,JVT)=UNPACK(ZBUF(:),LMASK(ISTP:IENP),RMISS)
   ENDDO
@@ -698,7 +699,8 @@ IF(LWREFL)THEN
   !* -- BVOC flux diagnostics type 2, specified per vegetation type
   IF( MYPROC == 1 ) NVARID = NCVID(NPOS,'BVOCflux2',IERR)
   DO JVT=1,NVHILO
-    ZVALUE(:)=D1SBVOCST2(:,JVT) ! *ZWA ! VH: Not accumulated ; no need to multiply..
+    CALL PACK_BUFFER(D1SBVOCST2(:,JVT,:), ZVALUE)
+    ! *ZWA ! VH: Not accumulated ; no need to multiply..
     CALL MPL_GATHERV(PRECVBUF=ZBUF(:),KROOT=1,PSENDBUF=ZVALUE(:),KRECVCOUNTS=NPOIP(:),CDSTRING="WRTDCDF:")
     IF( MYPROC == 1 ) ZOUTPUT(:,JVT)=UNPACK(ZBUF(:),LMASK(ISTP:IENP),RMISS)
   ENDDO
