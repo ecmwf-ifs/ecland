@@ -17,6 +17,7 @@ list( APPEND module_src
     cotworestress_mod.F90
     cptave_mod.F90
     farquhar_mod.F90
+    fcz0wn_mod.F90
     flake_driver_mod.F90
     flakeene_mod.F90
     flakerad_mod.F90
