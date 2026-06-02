@@ -6,6 +6,14 @@
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
 
+MODULE FCZ0WN_MOD
+
+USE PARKIND1  , ONLY : JPIM, JPRB, JPRD
+
+IMPLICIT NONE
+
+CONTAINS
+
 !     ------------------------------------------------------------------
 
 !     *FCZ0WN** CONTAINS STATEMENT FUNCTIONS DESCRIBING ROUGNESS LENGTH
@@ -18,9 +26,6 @@
 
 FUNCTION PZ0WN(PWIND, PGEO, PCHAR, PG, PNUM, PKAP, NITER, ACD, &
                & BCD, XEPS, USTMIN, PCHARMAX, Z0FG)
-USE PARKIND1  , ONLY : JPIM, JPRB, JPRD
-
-IMPLICIT NONE
 
 REAL(KIND=JPRB) :: PZ0WN
 ! *PZ0WN*  AERODYNAMIC ROUGHNESS LENGTH FOR NEUTRAL WIND PROFILE WITH
@@ -95,3 +100,5 @@ ELSE
 ENDIF
  
 END FUNCTION PZ0WN
+
+END MODULE FCZ0WN_MOD

@@ -32,6 +32,8 @@ USE YOS_FLAKE , ONLY : TFLAKE
 USE YOS_URB   , ONLY : TURB
 USE YOMSURF_SSDP_MOD
 
+USE FCZ0WN_MOD, ONLY : PZ0WN  ! Function to compute Z0M for neutral wind conditions
+
 ! (C) Copyright 2005- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
@@ -224,9 +226,6 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 !             INCLUDE ROUGNESS LENGTH FUNCTIONS
 !             ------- -------- ------ ---------
 #include "fcz0.h"
-
-! Function to compute Z0M for neutral wind conditions
-#include "fcz0wn.intfb.h"
 
 !     ------------------------------------------------------------------
 

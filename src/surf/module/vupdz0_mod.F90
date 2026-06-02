@@ -4,7 +4,6 @@ USE PARKIND1  , ONLY : JPIM, JPRB, JPRD
 
 IMPLICIT NONE
 
-PRIVATE PZ0WN
 PRIVATE PZ0SICE
 PUBLIC VUPDZ0
 
@@ -27,6 +26,8 @@ USE YOS_VEG   , ONLY : TVEG
 USE YOS_FLAKE , ONLY : TFLAKE
 USE YOS_URB   , ONLY : TURB
 USE YOMSURF_SSDP_MOD
+
+USE FCZ0WN_MOD, ONLY : PZ0WN  ! Function to compute Z0M for neutral wind conditions
 
 ! (C) Copyright 1990- ECMWF.
 !
@@ -212,8 +213,6 @@ LOGICAL :: LLCURR,LLINIT
 !             INCLUDE ROUGNESS LENGTH FUNCTIONS
 !             ------- -------- ------ ---------
 #include "fcz0.h"
-
-#include "fcz0wn.intfb.h"
 
 !     ------------------------------------------------------------------
 
