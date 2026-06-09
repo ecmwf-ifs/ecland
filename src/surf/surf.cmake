@@ -236,4 +236,5 @@ foreach( prec sp dp )
          INSTALL_MODULE_DIRECTORY module/${PROJECT_NAME}_${prec}
      )
   endif()
+
 endforeach()
