@@ -38,6 +38,15 @@ projects :
         version : v0.3.9
         require : ecbuild
 
+    - loki :
+        git     : https://github.com/ecmwf-ifs/loki
+        version : 0.3.2
+        optional: true
+        require : ecbuild
+        cmake   : >
+            LOKI_ENABLE_TESTS=OFF
+            LOKI_ENABLE_NO_INSTALL=ON
+
     - ecland :
         dir     : $PWD
 
@@ -54,3 +63,19 @@ options :
     - without-omp :
         help  : Disable OpenMP
         cmake : ENABLE_OMP=OFF
+
+    - with-loki :
+        help  : Enable Loki source-to-source transformations for ecland physics
+        cmake : >
+            ENABLE_LOKI=ON
+            LOKI_ENABLE_NO_INSTALL=OFF
+
+    - without-loki-install :
+        help  : Skip installation of Loki (Requires Loki to be on the PATH)
+        cmake : >
+            LOKI_ENABLE_NO_INSTALL=ON
+            LOKI_ENABLE_CLAW=OFF
+
+    - loki-mode :
+        help  : Choose Loki transformation mode
+        cmake : LOKI_MODE={{value}}

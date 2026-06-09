@@ -18,6 +18,8 @@ endif()
 
 project( ${ECLAND_PROJECT_NAME} LANGUAGES Fortran C CXX )
 
+string( TOUPPER ${ECLAND_PROJECT_NAME} PNAME )
+
 include( ecland_macros )
 ecbuild_enable_fortran( REQUIRED NO_MODULE_DIRECTORY )
 
@@ -53,6 +55,15 @@ ecbuild_add_option( FEATURE IFSBENCH_TESTS
                     DEFAULT ON
                     REQUIRED_PACKAGES "Python3 VERSION 3.8"
                     DESCRIPTION "Enable Python-based IFS-bench tests" )
+
+### Apply Loki source-to-source transformations to ecland physics
+ecbuild_add_option( FEATURE LOKI
+                    DEFAULT OFF
+                    DESCRIPTION "Apply Loki transformations to ecland physics"
+                    REQUIRED_PACKAGES "loki" )
+
+# Set default Loki transformation mode
+set( LOKI_MODE "idem" CACHE STRING "Transformation mode for Loki source transformations" )
 
 ### Set third party libraries
 
@@ -94,4 +105,3 @@ add_subdirectory(tests)
 ecbuild_install_project( NAME ${PROJECT_NAME} )
 
 ecbuild_print_summary()
-
