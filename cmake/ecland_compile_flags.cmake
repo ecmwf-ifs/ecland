@@ -46,11 +46,6 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC")
   set(initsnan_flags      "-Minit-real=snan")
   set(optimization_flags  "-g -O3 -fast")
 
-  # Remove fp trapping flags from optimised builds in case they are present in the toolchain
-  if(DEFINED ${PNAME}_Fortran_FLAGS)
-    string(REPLACE "-Ktrap=fp" "" ${PNAME}_Fortran_FLAGS ${${PNAME}_Fortran_FLAGS})
-  endif()
-
   # Needed to guarantee matching test results with Debug build
   set(fpmodel_flags       "-Kieee")
 
@@ -64,12 +59,19 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
 
 endif()
 
+# The IFS enables fpe trapping even for optimised builds, we do the same here for consistency
+if(DEFINED fpe_flags)
+  if(NOT "${${PNAME}_Fortran_FLAGS}" MATCHES ${fpe_flags})
+    set( ${PNAME}_Fortran_FLAGS "${${PNAME}_Fortran_FLAGS} ${fpe_flags}" )
+  endif()
+endif()
+
 if(linelength_flags)
   ecbuild_add_fortran_flags( "${linelength_flags}" NAME linelength )
 endif()
 
 if( CMAKE_BUILD_TYPE MATCHES "Debug" )
-  foreach( debug_flag    fpe initsnan checkbounds )
+  foreach( debug_flag    initsnan checkbounds )
     if( ${debug_flag}_flags )
       ecbuild_add_fortran_flags( "${${debug_flag}_flags}" NAME ${debug_flag} )
     endif()
