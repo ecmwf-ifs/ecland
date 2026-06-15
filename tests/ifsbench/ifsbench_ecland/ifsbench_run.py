@@ -30,13 +30,15 @@ from ifsbench import (
     SerialisationMixin,
     PydanticDataFrame,
     ScienceSetup,
-    TechSetup
+    TechSetup,
+    read_yaml
 )
 
 from ifsbench.command_line import launcher_options
 from ifsbench.data import FetchHandler, NamelistHandler, NamelistOverride, RenameHandler, RenameMode
 from ifsbench.results import ResultInfo
 from ifsbench.validation import validate_result_identical
+
 
 class EclandResult(ResultInfo):
     """
@@ -259,8 +261,7 @@ def from_yaml(
     """
     yaml_path = Path(yaml_path).resolve()
 
-    with yaml_path.open('r', encoding='utf-8') as f:
-        yaml_data = yaml.safe_load(f)
+    yaml_data = read_yaml(yaml_path)
 
     # Load the full configuration from the YAML file.
     ecland_config = EclandConfig.from_config(yaml_data)
