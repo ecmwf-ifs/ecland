@@ -8,14 +8,23 @@ science:
     # Path to the actual ecland executable. 
     binary_path: @CMAKE_BINARY_DIR@/bin/ecland-master-@ECLAND_PREC@
 
-    # Paths to the three standard input files. These should be given as URLs,
-    # so either as https://something or file:///home/me/something.
-    forcing_url: https://sites.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/met_2DHT_EU-001_20220101-20220102.nc
-    soil_url: https://sites.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/surfinit_EU-001_20220101-20220102.nc
-    surfclim_url: https://sites.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/surfclim_EU-001_20220101-20220102.nc
-
     # Path to the default namelist.
     namelist_url: file://@CMAKE_CURRENT_SOURCE_DIR@/namelist_v1_EU
+
+    # Input data for the standard input files. These can be given as URLs,
+    # so either as https://something or file:///home/me/something.
+    data_init:
+      - class_name: FetchHandler
+        target_path: 'forcing'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/met_2DHT_EU-001_20220101-20220102.nc
+
+      - class_name: FetchHandler
+        target_path: 'soilinit'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/surfinit_EU-001_20220101-20220102.nc
+
+      - class_name: FetchHandler
+        target_path: 'surfclim'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/v1/2D_EU-001_20220101-20220102/surfclim_EU-001_20220101-20220102.nc
 
     # Default parallel setup. May be overwritten at runtime by command line flags.
     job:

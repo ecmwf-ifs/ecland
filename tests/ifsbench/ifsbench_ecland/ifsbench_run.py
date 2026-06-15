@@ -35,7 +35,9 @@ from ifsbench import (
 )
 
 from ifsbench.command_line import launcher_options
-from ifsbench.data import FetchHandler, NamelistHandler, NamelistOverride, RenameHandler, RenameMode
+from ifsbench.data import (
+    DataHandler, FetchHandler, NamelistHandler, NamelistOverride, RenameHandler, RenameMode
+)
 from ifsbench.results import ResultInfo
 from ifsbench.validation import validate_result_identical
 
@@ -100,15 +102,6 @@ class EclandScience(SerialisationMixin):
     Science setup of the ecland benchmark.
     """
 
-    #: URL to the forcing file.
-    forcing_url: str
-
-    #: URL to the soil file.
-    soil_url: str
-
-    #: URL to the surfclim file.
-    surfclim_url: str
-
     #: Path to the default namelist.
     namelist_url: str
 
@@ -117,6 +110,9 @@ class EclandScience(SerialisationMixin):
 
     #: List of namelist overrides.
     namelists: List[NamelistOverride] = None
+
+    #: List of input data handlers.
+    data_init: List[DataHandler] = None
 
     #: List of custom environment overrides.
     env: List[EnvHandler] = None
@@ -154,15 +150,13 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech, job: Job) -
     objects.
     """
 
-    # Initial step is to
-    #  * download the binary input files (forcing, soil + surfclim).
-    #  * Fetch the default namelist.
-    data_handlers_init = [
-        FetchHandler(source_url=science.forcing_url, target_path='forcing'),
-        FetchHandler(source_url=science.soil_url, target_path='soilinit'),
-        FetchHandler(source_url=science.surfclim_url, target_path='surfclim'),
+    # Set up initial input data handlers from science definition
+    data_handlers_init = science.data_init if science.data_init else []
+
+    # Add the initial namelist template fetch to the input data handlers
+    data_handlers_init.append(
         FetchHandler(source_url=science.namelist_url, target_path='namelist_template')
-    ]
+    )
 
     # At runtime, copy the original namelist back to `input`.
     data_handlers_runtime = [
