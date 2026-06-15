@@ -65,7 +65,7 @@ foreach( prec sp dp )
 
     # Generate precision-specific test.yaml with correct binary path
     set( ECLAND_PREC ${prec} )
-    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml @ONLY )
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test_v1_EU.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml @ONLY )
 
     # Set tolerances for validation
     if(${prec} MATCHES "sp")
@@ -86,7 +86,7 @@ foreach( prec sp dp )
            )
         ecbuild_add_test( TARGET ecland_ifsbench_${TEST_NAME}_${prec}
             TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
-            ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml ${TEST_NAME}
+            ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml ${TEST_NAME}
                 --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_${TEST_NAME}_${prec}
                 --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_default_${prec}.yaml
                 --absolute-tolerance=${ATOL} --relative-tolerance=${RTOL}
@@ -96,7 +96,7 @@ foreach( prec sp dp )
     # Test centered accumulation of forcing fluxes
     ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_centered_${prec}
         TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
-        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml v1_EU_centered
+        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml v1_EU_centered
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_centered_${prec}
             --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_centered_${prec}.yaml
             --absolute-tolerance=${ATOL} --relative-tolerance=${RTOL}
@@ -105,7 +105,7 @@ foreach( prec sp dp )
     # Test forward accumulation of forcing fluxes (currently defunct!)
     ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_forward_${prec}
         TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
-        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml v1_EU_forward
+        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml v1_EU_forward
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_forward_${prec}
     )
 
