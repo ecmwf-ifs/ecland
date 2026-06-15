@@ -1,0 +1,50 @@
+arch: !include arch.yaml
+
+
+science:
+  # Surface-only test with coupling to CaMaFlood (CMF) enabled
+
+  2d_gl_t21_cmf: &2d_gl_t21
+    # Path to the actual ecland executable.
+    binary_path: @CMAKE_BINARY_DIR@/bin/ecland-master-@ECLAND_PREC@
+
+    # Path to the default namelist.
+    namelist_url: file://@CMAKE_CURRENT_SOURCE_DIR@/namelist_2d_gl_t21
+
+    # Input data for the standard input files. These can be given as URLs,
+    # so either as https://something or file:///home/me/something.
+    data_init:
+
+      - class_name: ExtractHandler
+        target_path: 'forcing'
+        archive_path: /perm/naml/ecland_data/forcing.tar.gz
+
+      - class_name: FetchHandler
+        target_path: 'soilinit'
+        source_url: file:///perm/naml/ecland_data/soilinit
+
+      - class_name: FetchHandler
+        target_path: 'surfclim'
+        source_url: file:///perm/naml/ecland_data/surfclim
+
+    # Default parallel setup. May be overwritten at runtime by command line flags.
+    job:
+      tasks: 1
+      cpus_per_task: 1
+
+
+  2d_gl_t21_nocmf:
+    # Testing setup that still suppresses CaMaFlood usage
+    <<: *2d_gl_t21
+
+    namelists:
+      # Switch CMF-coupling off
+      - mode: set
+        namelist: NAMPHY
+        entry: LECMF1WAY
+        value: false
+
+
+tech:
+  # Specify technical setups here.
+  default: {}
