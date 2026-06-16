@@ -60,7 +60,9 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
 endif()
 
 # The IFS enables fpe trapping even for optimised builds, we do the same here for consistency
-if(DEFINED fpe_flags)
+# Except for NVHPC SP builds. This can be revisited for 26.1 and newer, which has fixes
+# for the spurious fpe false positives we suffer from here.
+if(DEFINED fpe_flags AND NOT (CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC" AND HAVE_sp) )
   if(NOT "${${PNAME}_Fortran_FLAGS}" MATCHES ${fpe_flags})
     set( ${PNAME}_Fortran_FLAGS "${${PNAME}_Fortran_FLAGS} ${fpe_flags}" )
   endif()
