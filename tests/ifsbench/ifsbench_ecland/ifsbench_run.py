@@ -79,7 +79,7 @@ class EclandResult(ResultInfo):
         for path in paths:
             stats = DataFileStats(
                 input_path=path,
-                stat_dims=['lat', 'lon'],
+                stat_dims=['lat', 'lon', 'x'],
                 stat_names=['min', 'max', 'mean']
             )
 
