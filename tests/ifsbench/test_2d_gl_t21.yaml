@@ -27,6 +27,30 @@ science:
         target_path: 'surfclim'
         source_url: file:///perm/naml/ecland_data/surfclim
 
+      - class_name: FetchHandler
+        target_path: 'input_cmf.nam'
+        source_url: file:///perm/naml/ecland_data/input_cmf.nam
+
+      - class_name: FetchHandler
+        target_path: 'diminfo.txt'
+        source_url: file:///perm/naml/ecland_data/diminfo.txt
+
+      - class_name: FetchHandler
+        target_path: 'rivpar.nc'
+        source_url: file:///perm/naml/ecland_data/rivpar.nc
+
+      - class_name: FetchHandler
+        target_path: 'rivclim.nc'
+        source_url: file:///perm/naml/ecland_data/rivclim.nc
+
+      - class_name: FetchHandler
+        target_path: 'bifprm.txt'
+        source_url: file:///perm/naml/ecland_data/bifprm.txt
+
+      - class_name: FetchHandler
+        target_path: 'inpmat.nc'
+        source_url: file:///perm/naml/ecland_data/inpmat.nc
+
     # Default parallel setup. May be overwritten at runtime by command line flags.
     job:
       tasks: 1

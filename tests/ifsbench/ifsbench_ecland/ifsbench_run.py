@@ -292,6 +292,12 @@ def from_yaml(
 
         launcher = launcher_builder.build_from_arch(arch)
 
+        # Force run_dir creation and then create the CMF output directory.
+        # Note, that we need to do this explicitly, as creating this
+        # apriori otherwise triggers the short-circuit mechanism.
+        benchmark.setup_rundir(run_dir=run_dir, force=True)
+        (run_dir/'cmf_output').mkdir(parents=True, exist_ok=True)
+
         bench_result = benchmark.run(
             run_dir=run_dir,
             arch=arch,
