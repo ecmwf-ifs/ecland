@@ -105,6 +105,9 @@ class EclandScience(SerialisationMixin):
     #: Path to the default namelist.
     namelist_url: str
 
+    #: Path to the CaMaFlood (CMF) namelist.
+    namelist_cmf_url: str = None
+
     #: Path to the ecland binary.
     binary_path: Path
 
@@ -162,6 +165,12 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech, job: Job) -
     data_handlers_runtime = [
         RenameHandler(pattern='namelist_template', repl='input', mode=RenameMode.COPY)
     ]
+
+    # If a CaMaFlood (CMF) namelist is specified, copy it to run_dir
+    if science.namelist_cmf_url:
+        data_handlers_init.append(
+            FetchHandler(source_url=science.namelist_cmf_url, target_path='input_cmf.nam')
+        )
 
     # If namelist overrides are specified, also run them at runtime.
     if science.namelists:

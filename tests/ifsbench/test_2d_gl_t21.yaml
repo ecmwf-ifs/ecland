@@ -11,6 +11,9 @@ science:
     # Path to the default namelist.
     namelist_url: file://@CMAKE_CURRENT_SOURCE_DIR@/namelist_2d_gl_t21
 
+    # Path to the default namelist.
+    namelist_cmf_url: file://@CMAKE_CURRENT_SOURCE_DIR@/namelist_cmf_2d_gl_t21
+
     # Input data for the standard input files. These can be given as URLs,
     # so either as https://something or file:///home/me/something.
     data_init:
@@ -28,12 +31,8 @@ science:
         source_url: file:///perm/naml/ecland_data/surfclim
 
       - class_name: FetchHandler
-        target_path: 'input_cmf.nam'
-        source_url: file:///perm/naml/ecland_data/input_cmf.nam
-
-      - class_name: FetchHandler
         target_path: 'diminfo.txt'
-        source_url: file:///perm/naml/ecland_data/diminfo.txt
+        source_url: file://@CMAKE_CURRENT_SOURCE_DIR@/cmf_diminfo.txt
 
       - class_name: FetchHandler
         target_path: 'rivpar.nc'
