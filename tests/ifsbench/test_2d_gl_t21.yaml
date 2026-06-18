@@ -18,17 +18,21 @@ science:
     # so either as https://something or file:///home/me/something.
     data_init:
 
+      - class_name: FetchHandler
+        target_path: 'forcing.tar.gz'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/forcing.tar.gz
+
       - class_name: ExtractHandler
         target_path: 'forcing'
-        archive_path: /perm/naml/ecland_data/forcing.tar.gz
+        archive_path: forcing.tar.gz
 
       - class_name: FetchHandler
         target_path: 'soilinit'
-        source_url: file:///perm/naml/ecland_data/soilinit
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/soilinit
 
       - class_name: FetchHandler
         target_path: 'surfclim'
-        source_url: file:///perm/naml/ecland_data/surfclim
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/surfclim
 
       - class_name: FetchHandler
         target_path: 'diminfo.txt'
@@ -36,19 +40,23 @@ science:
 
       - class_name: FetchHandler
         target_path: 'rivpar.nc'
-        source_url: file:///perm/naml/ecland_data/rivpar.nc
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/rivpar.nc
 
       - class_name: FetchHandler
         target_path: 'rivclim.nc'
-        source_url: file:///perm/naml/ecland_data/rivclim.nc
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/rivclim.nc
 
       - class_name: FetchHandler
         target_path: 'bifprm.txt'
-        source_url: file:///perm/naml/ecland_data/bifprm.txt
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/bifprm.txt
 
       - class_name: FetchHandler
         target_path: 'inpmat.nc'
-        source_url: file:///perm/naml/ecland_data/inpmat.nc
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/inpmat.nc
+
+      - class_name: FetchHandler
+        target_path: 'mpireg-2.nc'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/mpireg-2.nc
 
     # Default parallel setup. May be overwritten at runtime by command line flags.
     job:
