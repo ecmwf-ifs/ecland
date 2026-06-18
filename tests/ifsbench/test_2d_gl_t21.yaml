@@ -60,8 +60,8 @@ science:
 
     # Default parallel setup. May be overwritten at runtime by command line flags.
     job:
-      tasks: 1
-      cpus_per_task: 1
+      tasks: 2
+      cpus_per_task: 2
 
 
   2d_gl_t21_nocmf:
