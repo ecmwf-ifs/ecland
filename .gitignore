@@ -25,3 +25,4 @@ tools/create_forcing/scripts/osm_pyutils/cython_ext.cpython-311-x86_64-linux-gnu
 
 #test temporaries
 tests/ifsbench/ifsbench_ecland.egg-info
+**/*.patch

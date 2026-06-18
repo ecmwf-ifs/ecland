@@ -22,7 +22,8 @@ USE CMF_CTRL_FORCING_MOD,    ONLY: CMF_FORCING_GET, CMF_FORCING_PUT
 !** parallelization options**
 !$ USE OMP_LIB
 #ifdef UseMPI_CMF
-USE MPL_MODULE
+USE MPL_MPIF,                ONLY: MPI_COMM_WORLD
+USE MPL_MODULE,              ONLY: MPL_INIT
 USE CMF_CTRL_MPI_MOD,        ONLY: CMF_MPI_INIT, CMF_MPI_END
 #endif
 !** sediment options**

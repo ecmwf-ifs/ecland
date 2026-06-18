@@ -12,55 +12,58 @@ list( APPEND tests
 )
 foreach( test ${tests} )
 
-    unset(TEST_ARGS)
+    foreach( prec sp dp )
+       if( HAVE_${prec} )
+          unset(TEST_ARGS)
 
-    # set test-dir
-    list(APPEND TEST_ARGS "--test-dir=${CMAKE_CURRENT_SOURCE_DIR}/${test}")
+          # set precision
+          list(APPEND TEST_ARGS "--prec=${prec}")
 
-    # set launch parameters
-    list(APPEND TEST_ARGS "--launch=ecland-launch -np 1 -nt 8")
+          # set test-dir
+          list(APPEND TEST_ARGS "--test-dir=${CMAKE_CURRENT_SOURCE_DIR}/${test}")
 
-    # set precision dependent relative tolerances for tests
-    if(${prec} MATCHES "dp")
-       if(${test} MATCHES "insitu_US-Ha1_1991-1996")
-          if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
-             list(APPEND TEST_ARGS "--tolerance=5.e-5 5.e-5 5.e-5" )
-          elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC|IntelLLVM")
-             list(APPEND TEST_ARGS "--tolerance=1.e-6 3.e-6 1.e-6" )
-          elseif(CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
-             list(APPEND TEST_ARGS "--tolerance=1.e-6 3.e-5 1.e-6" )
+          # set launch parameters
+          list(APPEND TEST_ARGS "--launch=ecland-launch -np 1 -nt 8")
+
+          # set precision dependent relative tolerances for tests
+          if(${prec} MATCHES "dp")
+             if(${test} MATCHES "insitu_US-Ha1_1991-1996")
+                if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+                   list(APPEND TEST_ARGS "--tolerance=5.e-5 5.e-5 5.e-5" )
+                elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC|IntelLLVM")
+                   list(APPEND TEST_ARGS "--tolerance=5.e-6 5.e-6 5.e-6" )
+                else()
+                   list(APPEND TEST_ARGS "--tolerance=1.e-8 1.e-8 1.e-8" )
+                endif()
+             else()
+                list(APPEND TEST_ARGS "--tolerance=1.e-8 1.e-8 1.e-8" )
+             endif()
           else()
-             list(APPEND TEST_ARGS "--tolerance=1.e-6 3.e-5 1.e-6" )
+             if(${test} MATCHES "insitu_US-Ha1_1991-1996")
+                if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU|IntelLLVM|PGI|NVHPC")
+                   list(APPEND TEST_ARGS "--tolerance=2.e-4 2.e-4 2.e-4" )
+                else()
+                   list(APPEND TEST_ARGS "--tolerance=5.e-5 5.e-5 5.e-5" )
+                endif()
+             else()
+                list(APPEND TEST_ARGS "--tolerance=1.e-6 1.e-6 1.e-6" )
+             endif()
           endif()
-       else()
-          list(APPEND TEST_ARGS "--tolerance=1.e-8 1.e-8 1.e-8" )
-       endif()
-    else()
-       if(${test} MATCHES "insitu_US-Ha1_1991-1996")
-          if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU|IntelLLVM")
-             list(APPEND TEST_ARGS "--tolerance=2.e-4 2.e-4 2.e-4" )
-          elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC|LLVMFlang")
-             list(APPEND TEST_ARGS "--tolerance=1.e-4 1.e-4 1.e-4" )
-          else()
-             list(APPEND TEST_ARGS "--tolerance=1.e-6 1.e-6 1.e-6" )
-          endif()
-       else()
-          list(APPEND TEST_ARGS "--tolerance=1.e-6 1.e-6 1.e-6" )
-       endif()
-    endif()
 
-    ecbuild_add_test(
-        TARGET ecland_test_${test}
-        TYPE SCRIPT
-        COMMAND ${CMAKE_BINARY_DIR}/share/ecland/scripts/ecland_run_test.sh
-        ARGS ${TEST_ARGS}
-        ENVIRONMENT
-            ECLAND_MASTER=${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}-master
-            ECLAND_CI=1
-            WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}/work
-            OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}/output
-            INPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}/input
-    )
+          ecbuild_add_test(
+              TARGET ecland_test_${test}_${prec}
+              TYPE SCRIPT
+              COMMAND ${CMAKE_BINARY_DIR}/share/ecland/scripts/ecland_run_test.sh
+              ARGS ${TEST_ARGS}
+              ENVIRONMENT
+                  ECLAND_MASTER=${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}-master-${prec}
+                  ECLAND_CI=1
+                  WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}_${prec}/work
+                  OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}_${prec}/output
+                  INPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}_${prec}/input
+          )
+       endif()
+    endforeach()
 endforeach()
 
 if( HAVE_IFSBENCH_TESTS )

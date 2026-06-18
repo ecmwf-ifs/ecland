@@ -30,7 +30,6 @@ jobs:
 
       matrix:
         build_type: [Bit, Debug] # Not passing tests with Release
-        prec: ['DP', 'SP'] # Standalone driver not 'SP' compatible yet
         name:
           - linux gnu-14
           - linux nvhpc-25.9
@@ -288,22 +287,23 @@ jobs:
           -DENABLE_TESTS=OFF
           -DENABLE_DR_HOOK_NVTX=OFF
           -DENABLE_MPI=ON
-          -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' && 'ON' || 'OFF' }}
-          -DENABLE_DOUBLE_PRECISION=${{ matrix.prec == 'DP' && 'ON' || 'OFF' }}
+          -DENABLE_SINGLE_PRECISION=${{ matrix.compiler == 'flang-20' && 'OFF' || 'ON' }}
+          -DENABLE_DOUBLE_PRECISION=ON
 
           ecmwf-ifs/field_api:
           -Dfiat_ROOT=${{ env.DEPS_DIR }}/fiat
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DENABLE_TESTS=OFF
           -DENABLE_MPI=ON
-          -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' && 'ON' || 'OFF' }}
-          -DENABLE_DOUBLE_PRECISION=${{ matrix.prec == 'DP' && 'ON' || 'OFF' }}
+          -DENABLE_SINGLE_PRECISION=${{ matrix.compiler == 'flang-20' && 'OFF' || 'ON' }}
+          -DENABLE_DOUBLE_PRECISION=ON
           ${{ env.FC_FLAGS_CMAKE }}
 
         cmake_options: >-
           -G Ninja
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DENABLE_SINGLE_PRECISION=${{ matrix.prec == 'SP' && 'ON' || 'OFF' }}
+          -DENABLE_SINGLE_PRECISION=${{ matrix.compiler == 'flang-20' && 'OFF' || 'ON' }}
+          -DENABLE_DOUBLE_PRECISION=ON
           ${{ matrix.cmake_options }}
           ${{ env.FC_FLAGS_CMAKE }}
 

@@ -16,6 +16,7 @@ if( NOT ECLAND_PROJECT_NAME )
   set( ECLAND_PROJECT_NAME ecland )
 endif()
 
+string( TOUPPER ${ECLAND_PROJECT_NAME} PNAME )
 project( ${ECLAND_PROJECT_NAME} LANGUAGES Fortran C CXX )
 
 include( ecland_macros )
@@ -45,6 +46,10 @@ ecbuild_add_option( FEATURE OMP
                     DESCRIPTION "support for OpenMP shared memory parallelism"
                     REQUIRED_PACKAGES "OpenMP COMPONENTS Fortran" )
 
+ecbuild_add_option( FEATURE DOUBLE_PRECISION
+                    DEFAULT ON
+                    DESCRIPTION "Support for Double Precision" )
+
 ecbuild_add_option( FEATURE SINGLE_PRECISION
                     DEFAULT OFF
                     DESCRIPTION "Support for Single Precision" )
@@ -54,17 +59,18 @@ ecbuild_add_option( FEATURE IFSBENCH_TESTS
                     REQUIRED_PACKAGES "Python3 VERSION 3.8"
                     DESCRIPTION "Enable Python-based IFS-bench tests" )
 
-### Set third party libraries
+### Define precisions
+set( HAVE_sp OFF )
+set( HAVE_dp OFF )
 
 if( HAVE_SINGLE_PRECISION )
-  add_library( parkind ALIAS parkind_sp )
-  add_library( field_api ALIAS field_api_sp )
-  set( prec "sp" )
-else()
-  add_library( parkind ALIAS parkind_dp )
-  add_library( field_api ALIAS field_api_dp )
-  set( prec "dp" )
+  set( HAVE_sp ON )
 endif()
+if( HAVE_DOUBLE_PRECISION )
+  set( HAVE_dp ON )
+endif()
+
+### Set third party libraries
 
 unset( OpenMP_Fortran_LIBRARIES )
 if( HAVE_OMP )
@@ -76,7 +82,9 @@ endif()
 ### Sources
 ########################################################################
 
-include(ecland_compile_flags)
+# Trigger the use of per sourcefile overrideable compiler flags in ecbuild
+set(ECBUILD_COMPILE_FLAGS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ecland_compile_flags.cmake)
+ecbuild_override_compiler_flags(COMPILE_FLAGS ${ECBUILD_COMPILE_FLAGS})
 
 add_subdirectory(src)
 add_subdirectory(share)
