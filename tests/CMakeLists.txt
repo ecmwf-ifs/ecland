@@ -59,6 +59,7 @@ foreach( test ${tests} )
                   WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}_${prec}/work
                   OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}_${prec}/output
                   INPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}_${prec}/input
+                  DOWNLOAD_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}_${prec}/input
           )
        endif()
     endforeach()
