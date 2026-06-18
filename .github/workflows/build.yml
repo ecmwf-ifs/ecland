@@ -297,6 +297,7 @@ jobs:
           -DENABLE_MPI=ON
           -DENABLE_SINGLE_PRECISION=${{ matrix.compiler == 'flang-20' && 'OFF' || 'ON' }}
           -DENABLE_DOUBLE_PRECISION=ON
+          -DENABLE_ACC=OFF
           ${{ env.FC_FLAGS_CMAKE }}
 
         cmake_options: >-
