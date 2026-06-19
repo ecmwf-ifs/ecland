@@ -52,11 +52,26 @@ fi
 if [ "$USE_CONFIGURE_BUILD" = true ]; then
    cd ${TEMPORARY_FILES}/hdf*
    mkdir -p "${HDF5_INSTALL_DIR}"
-   ./configure --prefix="${HDF5_INSTALL_DIR}" --enable-shared --enable-fortran --enable-hl
+   ./configure --prefix="${HDF5_INSTALL_DIR}"  \
+   --enable-shared \
+   --disable-fortran \
+   --disable-tools \
+   --disable-szip-support \
+   --disable-tests \
+   --disable-static \
+   -disable-dependency-tracking
    make -j
    make install
 else
-   cmake -G Ninja -S  ${TEMPORARY_FILES}/${FOLDER} -B "build-${FOLDER}" -DHDF5_BUILD_FORTRAN=ON -DHDF5_BUILD_HL_LIB=ON -DBUILD_TESTING=OFF 
+   cmake -G Ninja -S  ${TEMPORARY_FILES}/${FOLDER} -B "build-${FOLDER}"\
+   -DHDF5_BUILD_FORTRAN=OFF \
+   -DHDF5_BUILD_HL_LIB=ON  \
+   -DHDF5_BUILD_TOOLS=OFF \
+   -DHDF5_BUILD_EXAMPLES=OFF \
+   -DHDF5_ONLY_SHARED_LIBS=ON \
+   -DHDF5_ENABLE_SZIP_SUPPORT=OFF \
+   -DBUILD_TESTING=OFF 
+
    cmake --build  "build-${FOLDER}" --config Release
    cmake --install "build-${FOLDER}" --prefix ${HDF5_INSTALL_DIR}
 fi

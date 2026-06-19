@@ -45,6 +45,13 @@ mkdir -p ${TEMPORARY_FILES}/build-${FOLDER} && cd ${TEMPORARY_FILES}/build-${FOL
 rm -rf ./*
 cmake -G Ninja ${TEMPORARY_FILES}/${FOLDER} \
     -DHDF5_DIR=${HDF5_ROOT}/cmake -DCMAKE_INSTALL_PREFIX="${NETCDF_INSTALL_DIR}" \
-    -DENABLE_TESTS=OFF
+    -DENABLE_DAP=OFF \
+    -DENABLE_BYTERANGE=OFF \
+    -DENABLE_NCZARR=OFF \
+    -DBUILD_UTILITIES=OFF \
+    -DENABLE_EXAMPLES=OFF \
+    -DENABLE_TESTS=OFF \
+    -DENABLE_PLUGINS=OFF \
+    -DENABLE_CDF5=OFF 
 cmake --build . --config Release
 cmake --install .
