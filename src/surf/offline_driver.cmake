@@ -26,6 +26,7 @@ list(APPEND offline_driver_src
     cnt41s.F90
     cntend.F90
     cpg1s.F90
+    cpg1s_parallel.F90
     dattim.F90
     dtforc.F90
 #    ibm.F90 # Already included in surf
