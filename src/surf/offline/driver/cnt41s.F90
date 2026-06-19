@@ -209,7 +209,7 @@ DO NSTEP=NSTART,NSTOP
   
   IF (LECMF1WAY) THEN
     !* Accumulate runoff fields and potential water evaporation
-    !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
+    !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,JL,IL)
     DO IST = 1, NPOI, NPROMA
       IEND = MIN(IST+NPROMA-1,NPOI)
       IBL = (IST-1)/NPROMA + 1
@@ -283,7 +283,7 @@ DO NSTEP=NSTART,NSTOP
 
       IF (NCMF2LAKEC==0) THEN
         ! no coupling 
-        !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
+        !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,JL,IL)
         DO IST = 1, NPOI, NPROMA
           IEND = MIN(IST+NPROMA-1,NPOI)
           IBL = (IST-1)/NPROMA + 1
