@@ -220,7 +220,7 @@ foreach( prec sp dp )
                  offline/driver/ibm.F90 # dummies for IBM vmass library
                  ${external_src}
          PUBLIC_LIBS fiat parkind_${prec}
-         PRIVATE_LIBS ${OpenMP_Fortran_LIBRARIES}
+         PRIVATE_LIBS ${OpenMP_Fortran_LIBRARIES} ${ECLAND_ACC_Fortran_LIBRARIES}
          PRIVATE_INCLUDES function
      )
 
