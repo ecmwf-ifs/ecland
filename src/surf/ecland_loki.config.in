@@ -18,7 +18,7 @@ disable = [
   'emis_bvoc', 'bvoc_emis',
   'ocean_ml_driver', 'ocean_ml_driver_v2',
   'dattim', 'updcal',
-  '*%update_view*'
+  '*%update_view*', '*#sget_host_data*', '*#sget_device_data*'
 ]
 
 block = [
@@ -73,7 +73,7 @@ block = [
 ##  Define source routine entry points                             ##
 #####################################################################
 
-[routines.surftstp_layer_openmp]
+[routines.surftstp_layer_loki]
   role = "driver"
   expand = true
   replicate = false
@@ -85,7 +85,7 @@ block = [
   replicate = true
   lib = 'ecland_surf_@prec@'
 
-[routines.surfbc_layer_openmp]
+[routines.surfbc_layer_loki]
   role = "driver"
   expand = true
   replicate = false
@@ -97,7 +97,7 @@ block = [
   replicate = true
   lib = 'ecland_surf_@prec@'
 
-[routines.surfrad_layer_openmp]
+[routines.surfrad_layer_loki]
   role = "driver"
   expand = true
   replicate = false
@@ -115,7 +115,7 @@ block = [
   replicate = true
   lib = 'ecland_surf_@prec@'
 
-[routines.vdfmain1s_layer_openmp]
+[routines.vdfmain1s_layer_loki]
   role = "driver"
   expand = true
   replicate = false
