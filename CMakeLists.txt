@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-cmake_minimum_required( VERSION 3.24 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.25 FATAL_ERROR )
 
 include(FetchContent)
 
@@ -45,6 +45,11 @@ ecbuild_find_package(field_api REQUIRED)
 ecbuild_add_option( FEATURE OMP
                     DESCRIPTION "support for OpenMP shared memory parallelism"
                     REQUIRED_PACKAGES "OpenMP COMPONENTS Fortran" )
+
+ecbuild_add_option( FEATURE ACC
+                    DEFAULT OFF
+                    DESCRIPTION "Support for using GPUs with OpenACC"
+                    REQUIRED_PACKAGES "OpenACC COMPONENTS Fortran" )
 
 ecbuild_add_option( FEATURE DOUBLE_PRECISION
                     DEFAULT ON
@@ -86,6 +91,10 @@ if( HAVE_OMP )
   set( OpenMP_Fortran_LIBRARIES OpenMP::OpenMP_Fortran )
 else()
   ecbuild_critical( "Currently OpenMP is non-optional, but only for offline file cpg1s.F90" )
+endif()
+
+if( HAVE_ACC AND TARGET OpenACC::OpenACC_Fortran )
+  set( ECLAND_ACC_Fortran_LIBRARIES OpenACC::OpenACC_Fortran )
 endif()
 
 ### Sources
