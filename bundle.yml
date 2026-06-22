@@ -64,6 +64,12 @@ options :
         help  : Disable OpenMP
         cmake : ENABLE_OMP=OFF
 
+    - with-acc :
+        help  : Enable OpenACC support
+        cmake : >
+            ENABLE_ACC=ON
+            FIELD_API_ENABLE_ACC=ON
+
     - with-loki :
         help  : Enable Loki source-to-source transformations for ecland physics
         cmake : >

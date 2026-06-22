@@ -146,6 +146,7 @@ ecbuild_add_executable(TARGET ${PROJECT_NAME}-master
     fiat parkind
     field_api
     ${OpenMP_Fortran_LIBRARIES}
+    ${ECLAND_ACC_Fortran_LIBRARIES}
     NetCDF::NetCDF_Fortran
 )
 ecbuild_target_fortran_module_directory(

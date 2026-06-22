@@ -219,6 +219,7 @@ ecbuild_add_library( TARGET ${PROJECT_NAME}_surf
             ${external_src}
     PUBLIC_LIBS fiat parkind
     PRIVATE_LIBS ${OpenMP_Fortran_LIBRARIES}
+                 ${ECLAND_ACC_Fortran_LIBRARIES}
     PRIVATE_INCLUDES function
 )
 
