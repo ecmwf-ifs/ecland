@@ -2,8 +2,8 @@ if( HAVE_LOKI )
   set( LOKI_FRONTEND "fp" CACHE STRING "Frontend parser for Loki source transformations" )
   set( LOKI_CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ecland_loki.config )
 
-  if( NOT LOKI_MODE STREQUAL "idem" )
-    ecbuild_critical( "Only LOKI_MODE=idem is currently configured for ecland" )
+  if( NOT LOKI_MODE MATCHES "^(idem|scc|scc-stack)$" )
+    ecbuild_critical( "Only LOKI_MODE=idem, scc, or scc-stack is currently configured for ecland" )
   endif()
 
   loki_transform_target(
