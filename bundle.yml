@@ -58,6 +58,10 @@ options :
         help  : Enable single precision build
         cmake : ENABLE_SINGLE_PRECISION=ON
 
+    - with-static-linking :
+        help  : Build static libraries by default
+        cmake : BUILD_SHARED_LIBS=OFF
+
     - without-mpi :
         help  : Disable MPI
         cmake : ENABLE_MPI=OFF
