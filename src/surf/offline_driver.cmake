@@ -149,6 +149,7 @@ ecbuild_add_executable(TARGET ${PROJECT_NAME}-master
     ${ECLAND_ACC_Fortran_LIBRARIES}
     NetCDF::NetCDF_Fortran
 )
+set_target_properties(${PROJECT_NAME}-master PROPERTIES LINKER_LANGUAGE Fortran)
 ecbuild_target_fortran_module_directory(
     TARGET ${PROJECT_NAME}-master
     MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/module/offline_driver
