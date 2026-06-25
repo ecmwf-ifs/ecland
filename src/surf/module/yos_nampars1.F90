@@ -193,29 +193,23 @@ TYPE :: TESURF
     !  Dimensionless constants
     !  in the equations for the mixed-layer depth
     !  and for the shape factor with respect to the temperature profile in the thermocline
-    REAL(KIND=JPRD) :: RC_CBL_1
-    REAL(KIND=JPRD) :: RC_CBL_2
-    REAL(KIND=JPRD) :: RC_SBL_ZM_N
-    REAL(KIND=JPRD) :: RC_SBL_ZM_S
-    REAL(KIND=JPRD) :: RC_SBL_ZM_I
-    REAL(KIND=JPRD) :: RC_RELAX_H
-    REAL(KIND=JPRD) :: RC_RELAX_C
+    REAL(KIND=JPRB) :: RC_CBL_1
+    REAL(KIND=JPRB) :: RC_CBL_2
+    REAL(KIND=JPRB) :: RC_SBL_ZM_N
+    REAL(KIND=JPRB) :: RC_SBL_ZM_S
+    REAL(KIND=JPRB) :: RC_SBL_ZM_I
+    REAL(KIND=JPRB) :: RC_RELAX_H
+    REAL(KIND=JPRB) :: RC_RELAX_C
     !  Parameters of the shape functions
     REAL(KIND=JPRB) :: RC_T_MIN
     REAL(KIND=JPRB) :: RC_T_MAX
-    REAL(KIND=JPRD) :: RPHI_T_PR0_1
-    REAL(KIND=JPRD) :: RPHI_T_PR0_2
-    REAL(KIND=JPRD) :: RC_TT_1
-    REAL(KIND=JPRD) :: RC_TT_2
-    REAL(KIND=JPRD) :: RC_B1
-    REAL(KIND=JPRD) :: RC_B2
+    REAL(KIND=JPRB) :: RC_B1
+    REAL(KIND=JPRB) :: RC_B2
     REAL(KIND=JPRB) :: RC_S_LIN
     REAL(KIND=JPRB) :: RPHI_S_PR0_LIN
     REAL(KIND=JPRB) :: RC_I_LIN
     REAL(KIND=JPRB) :: RPHI_I_PR0_LIN
     REAL(KIND=JPRB) :: RPHI_I_PR1_LIN
-    REAL(KIND=JPRB) :: RPHI_I_AST_MR
-    REAL(KIND=JPRD) :: RC_I_MR
     REAL(KIND=JPRB) :: RH_ICE_MAX
     REAL(KIND=JPRB) :: RTPL_A_T
     REAL(KIND=JPRD) :: ROPT_WAT_EXTC1_REF

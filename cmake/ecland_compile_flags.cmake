@@ -7,48 +7,44 @@
 # nor does it submit to any jurisdiction.
 
 
-#ecbuild_add_fortran_flags( "-ffree-line-length-none" NAME line_length )
-
-if(HAVE_SINGLE_PRECISION AND CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
-  ecbuild_add_fortran_flags( "-fno-range-check" NAME no_range_check )
-  #   sppcflstl_mod.F90:444:17:
-  #
-  #   444 |         Z4EXP5 = EXP(200.0_JPRD)
-  #       |                 1
-  # Error: Arithmetic overflow converting REAL(8) to REAL(4) at (1). This check can be disabled with the option '-fno-range-check'
-endif()
-
 if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
-  set(autopromote_flags   "-sreal64")
   set(checkbounds_flags   "-Rb")
   set(fpe_flags           "-Ktrap=fp")
   set(initsnan_flags      "-ei")
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
   set(linelength_flags    "-ffree-line-length-none")
-  set(autopromote_flags   "-fdefault-real-8 -fdefault-double-8")
   set(checkbounds_flags   "-fcheck=bounds")
   set(fpe_flags           "-ffpe-trap=invalid,zero,overflow")
   set(initsnan_flags      "-finit-real=snan")
+  set(vectorization_flags "-march=native")
 
-  # Needed to guarantee matching test results with Debug build
+  ecbuild_add_fortran_flags( "-fno-range-check" NAME no_range_check )
+
+  # Needed to guarantee matching test results with Debug build
   set(fpmodel_flags       "-ffp-contract=off")
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-  set(autopromote_flags   "-real-size 64")
   set(checkbounds_flags   "-check bounds")
   set(initsnan_flags      "-init=snan")
   set(fpe_flags           "-fpe0")
-  ecbuild_add_fortran_flags( "-diag-disable=7713" NAME unused_statement_function_remark )
+  set(vectorization_flags "-march=core-avx2 -no-fma")
+  if(NOT CMAKE_Fortran_COMPILER_ID MATCHES "IntelLLVM")
+    set(transcendentals_flags "-fast-transcendentals -ftz")
+  endif()
+  set(optimization_flags  "-O2")
 
   # Needed to guarantee matching test results with Debug build
-  set(fpmodel_flags       "-fp-model=precise")
+  set(fpmodel_flags       "-fp-model precise -fp-speculation=safe")
+
+  ecbuild_add_fortran_flags( "-diag-disable=7713" NAME unused_statement_function_remark )
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC")
-  set(autopromote_flags   "-r8")
+  set(endian_flags        "-Mbyteswapio")
   set(checkbounds_flags   "-Mbounds")
   set(fpe_flags           "-Ktrap=fp")
   set(initsnan_flags      "-Minit-real=snan")
+  set(optimization_flags  "-g -O3 -fast")
 
   # Needed to guarantee matching test results with Debug build
   set(fpmodel_flags       "-Kieee")
@@ -63,23 +59,53 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
 
 endif()
 
-# if( NOT HAVE_SINGLE_PRECISION )
-#   ecbuild_add_fortran_flags( "${autopromote_flags}"   NAME autopromote )
-# endif()
+# The IFS enables fpe trapping even for optimised builds, we do the same here for consistency
+# Except for NVHPC SP builds. This can be revisited for 26.1 and newer, which has fixes
+# for the spurious fpe false positives we suffer from here.
+if(DEFINED fpe_flags AND NOT (CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC" AND HAVE_sp) )
+  if(NOT "${${PNAME}_Fortran_FLAGS}" MATCHES ${fpe_flags})
+    set( ${PNAME}_Fortran_FLAGS "${${PNAME}_Fortran_FLAGS} ${fpe_flags}" )
+  endif()
+endif()
+
 if(linelength_flags)
   ecbuild_add_fortran_flags( "${linelength_flags}" NAME linelength )
 endif()
 
 if( CMAKE_BUILD_TYPE MATCHES "Debug" )
-  foreach( debug_flag    fpe initsnan checkbounds )
+  foreach( debug_flag    initsnan checkbounds )
     if( ${debug_flag}_flags )
       ecbuild_add_fortran_flags( "${${debug_flag}_flags}" NAME ${debug_flag} )
     endif()
   endforeach()
+  if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    ecbuild_add_fortran_flags( "-check noarg_temp_created" NAME arg_temp_created )
+  endif()
 endif()
 
+ecbuild_add_fortran_flags( "-g -O0"   NAME base_debug BUILD DEBUG)
 if(DEFINED fpmodel_flags)
   ecbuild_add_fortran_flags( "${fpmodel_flags}" NAME fpmodel )
+endif()
+if(DEFINED endian_flags)
+  ecbuild_add_fortran_flags( "${endian_flags}" NAME endian )
+endif()
+if(DEFINED transcendentals_flags)
+  ecbuild_add_fortran_flags( "${transcendentals_flags}"   NAME transcendentals BUILD BIT)
+endif()
+
+# Only add optimisation flags if they're not already present in ${PNAME}_Fortran_FLAGS
+if( DEFINED optimization_flags )
+  string(FIND "${${PNAME}_Fortran_FLAGS} ${${PNAME}_Fortran_FLAGS_BIT}" ${optimization_flags} _pos)
+  if( _pos EQUAL -1)
+    # optimization flags must be per-sourcefile overrideable, so are set via ${PNAME}_Fortran_FLAGS
+    set( ${PNAME}_Fortran_FLAGS_BIT "${${PNAME}_Fortran_FLAGS_BIT} ${optimization_flags}" )
+  endif()
+endif()
+
+if(DEFINED vectorization_flags)
+  # vectorization flags must be per-sourcefile overrideable, so are set via ${PNAME}_Fortran_FLAGS
+  set( ${PNAME}_Fortran_FLAGS_BIT "${${PNAME}_Fortran_FLAGS_BIT} ${vectorization_flags}" )
 endif()
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")

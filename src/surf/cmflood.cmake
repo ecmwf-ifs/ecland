@@ -18,6 +18,7 @@ list(APPEND cmflood_src
     cmf_ctrl_forcing_mod.F90
     cmf_ctrl_levee_mod.F90
     cmf_ctrl_maps_mod.F90
+    cmf_ctrl_mpi_mod.F90
     cmf_ctrl_nmlist_mod.F90
     cmf_ctrl_output_mod.F90
     cmf_ctrl_physics_mod.F90
@@ -37,15 +38,37 @@ list(APPEND cmflood_src
 )
 list(TRANSFORM cmflood_src PREPEND cmflood/)
 
-ecbuild_add_library( TARGET ${PROJECT_NAME}_cmflood
-    SOURCES ${cmflood_src}
-    PRIVATE_LIBS fiat parkind
-                 NetCDF::NetCDF_Fortran ${OpenMP_Fortran_LIBRARIES}
-    PRIVATE_DEFINITIONS UseCDF_CMF
+list(APPEND CMF_DEFINITIONS
+  UseCDF_CMF
+  IFS_CMF
+  NoAtom_CMF
+  UseMPI_CMF
 )
 
-ecbuild_target_fortran_module_directory(
-    TARGET ${PROJECT_NAME}_cmflood
-    MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/module/${PROJECT_NAME}
-    INSTALL_MODULE_DIRECTORY module/${PROJECT_NAME}
-)
+foreach( prec sp dp )
+  if( HAVE_${prec} )
+    ecbuild_add_library( TARGET ${PROJECT_NAME}_cmflood_${prec}
+        SOURCES ${cmflood_src}
+        PRIVATE_LIBS fiat parkind_${prec}
+                     NetCDF::NetCDF_Fortran ${OpenMP_Fortran_LIBRARIES}
+        PRIVATE_DEFINITIONS ${CMF_DEFINITIONS}
+    )
+    
+    ecbuild_target_fortran_module_directory(
+        TARGET ${PROJECT_NAME}_cmflood_${prec}
+        MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/module/${PROJECT_NAME}_${prec}
+        INSTALL_MODULE_DIRECTORY module/${PROJECT_NAME}_${prec}
+    )
+
+    ecbuild_add_executable(TARGET ${PROJECT_NAME}-master-cmflood-${prec}
+      DEFINITIONS ${CMF_DEFINITIONS}
+      SOURCES offline/cmfld1s.F90
+      LIBS
+         ${PROJECT_NAME}_cmflood_${prec}
+         NetCDF::NetCDF_Fortran
+         fiat
+         parkind_${prec}
+      LINKER_LANGUAGE Fortran)
+
+  endif()
+endforeach()

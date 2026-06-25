@@ -55,61 +55,65 @@ execute_process(
   COMMAND_ERROR_IS_FATAL ANY
 )
 
-configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml @ONLY )
-
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/custom_launchers.yaml
      DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 ## CI tests
 
-# Set tolerances for validation
-if(${prec} MATCHES "sp")
-  set( RTOL 1.e-03 )
-  set( ATOL 1.e-05 )
-else()
-  set( RTOL 5.e-05 )
-  set( ATOL 1.e-08 )
-endif()
+foreach( prec sp dp )
+  if( HAVE_${prec} )
 
-# Test the default forcing flux configuration (backward accumulation)
-# with different parallelisation strategies (processes and threads)
-foreach( TEST_NAME
-         v1_EU_default
-         v1_EU_multiprocess
-         v1_EU_multithread
-         v1_EU_multiprocess_thread
-       )
-    ecbuild_add_test( TARGET ecland_ifsbench_${TEST_NAME}
+    # Generate precision-specific test.yaml with correct binary path
+    set( ECLAND_PREC ${prec} )
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml @ONLY )
+
+    # Set tolerances for validation
+    if(${prec} MATCHES "sp")
+      set( RTOL 1.e-03 )
+      set( ATOL 1.e-05 )
+    else()
+      set( RTOL 5.e-05 )
+      set( ATOL 1.e-08 )
+    endif()
+
+    # Test the default forcing flux configuration (backward accumulation)
+    # with different parallelisation strategies (processes and threads)
+    foreach( TEST_NAME
+             v1_EU_default
+             v1_EU_multiprocess
+             v1_EU_multithread
+             v1_EU_multiprocess_thread
+           )
+        ecbuild_add_test( TARGET ecland_ifsbench_${TEST_NAME}_${prec}
+            TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
+            ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml ${TEST_NAME}
+                --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_${TEST_NAME}_${prec}
+                --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_default_${prec}.yaml
+                --absolute-tolerance=${ATOL} --relative-tolerance=${RTOL}
+        )
+    endforeach()
+
+    # Test centered accumulation of forcing fluxes
+    ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_centered_${prec}
         TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
-        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml ${TEST_NAME}
-            --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_${TEST_NAME}
-            --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_default_${prec}.yaml
+        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml v1_EU_centered
+            --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_centered_${prec}
+            --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_centered_${prec}.yaml
             --absolute-tolerance=${ATOL} --relative-tolerance=${RTOL}
     )
+
+    # Test forward accumulation of forcing fluxes (currently defunct!)
+    ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_forward_${prec}
+        TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
+        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml v1_EU_forward
+            --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_forward_${prec}
+    )
+
+    # Disable Forward test variant - currently not supported
+    set_property(TEST ecland_ifsbench_v1_EU_forward_${prec} PROPERTY DISABLED TRUE)
+
+  endif()
 endforeach()
-
-
-# Test centered accumulation of forcing fluxes
-ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_centered
-    TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
-    ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml v1_EU_centered
-        --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_centered
-      	--validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_centered_${prec}.yaml
-        --absolute-tolerance=${ATOL} --relative-tolerance=${RTOL}
-)
-
-
-# Test forward accumulation of forcing fluxes (currently defunct!)
-ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_forward
-    TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
-    ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test.yaml v1_EU_forward
-        --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_forward
-)
-
-## Test exceptions
-
-# Disable Forward test variant - currently not supported
-set_property(TEST ecland_ifsbench_v1_EU_forward PROPERTY DISABLED TRUE)
 
 
 # Restore cached python interpreter
