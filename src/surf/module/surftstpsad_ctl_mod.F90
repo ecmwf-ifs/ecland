@@ -294,7 +294,7 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 !*         1.1   SET UP SOME CONSTANTS, INITIALISE ARRAYS.
 !                --- -- ---- -----------------------------
-IF (LHOOK) CALL DR_HOOK('SURFTSTPAD_CTL_MOD:SURFTSTPAD_CTL',0,ZHOOK_HANDLE)
+IF (LHOOK) CALL DR_HOOK('SURFTSTPSAD_CTL_MOD:SURFTSTPAD_CTL',0,ZHOOK_HANDLE)
 
 ZTSPHY=1.0_JPRB/PTSPHY
 
@@ -640,20 +640,20 @@ IF (YDSOIL%LESNML) THEN
 ! 2.2 Compute energy balance of the snowpack
   CALL SRFSN_WEBALSAD(KIDIA,KFDIA,KLON,KLEVSN,   &
    & PTSPHY, PFRTI,PCIL, LDLAND, LLNOSNOW,       &
-   & PSNM1M5,ZWSNM1M5,PRSNM1M,PTSNM1M5,         &
-   & PSLRFL5,PSSRFLTI5,PAHFSTI5 ,PEVAPTI5,      &
-   & ZSSFC5, ZSSFL5, PEVAPSNW5, ZTSFC5  ,ZTSFL5,&
-   & ZTSURF5,PTIAM1M5(KIDIA:KFDIA,1), ZSNOTRS5,         &
-   & PAPRS5, PWSAM1M5(KIDIA:KFDIA,1),           &
-   & PSSDP3, &
-   & YDSOIL,YDCST,                              &
-   & ZTSN5, ZGSN5,                              &
+   & PSNM1M5,ZWSNM1M5,PRSNM1M,PTSNM1M5,          &
+   & PSLRFL5,PSSRFLTI5,PAHFSTI5 ,PEVAPTI5,       &
+   & ZSSFC5, ZSSFL5, PEVAPSNW5, ZTSFC5  ,ZTSFL5, &
+   & ZTSURF5,PTIAM1M5(KIDIA:KFDIA,1), ZSNOTRS5,  &
+   & PAPRS5, PWSAM1M5(KIDIA:KFDIA,1),            &
+   & PSSDP3,                                     &
+   & YDSOIL,YDCST,                               &
+   & ZTSN5, ZGSN5,                               &
 !--- perturbations
-   & PSNM1M,ZWSNM1M,PTSNM1M,                &
-   & PSLRFL,PSSRFLTI,PAHFSTI, PEVAPTI,      &
-   & ZSSFC, ZSSFL, PEVAPSNW, ZTSFC  ,ZTSFL, &
-   & ZTSURF, PTIAM1M(KIDIA:KFDIA,1), ZSNOTRS,       &
-   & PAPRS, PWSAM1M(KIDIA:KFDIA,1),         &
+   & PSNM1M,ZWSNM1M,PTSNM1M,                     &
+   & PSLRFL,PSSRFLTI,PAHFSTI, PEVAPTI,           &
+   & ZSSFC, ZSSFL, PEVAPSNW, ZTSFC  ,ZTSFL,      &
+   & ZTSURF, PTIAM1M(KIDIA:KFDIA,1), ZSNOTRS,    &
+   & PAPRS, PWSAM1M(KIDIA:KFDIA,1),              &
    & ZTSN, ZGSN )
 
    DO JL=KIDIA,KFDIA

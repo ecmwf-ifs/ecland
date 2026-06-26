@@ -121,6 +121,11 @@ REAL(KIND=JPRB),ALLOCATABLE :: RVCH4QVT(:) !CH4 Q10 temperature dependency by ve
 
 !calculated:
 REAL(KIND=JPRB),ALLOCATABLE :: RVANMAX(:)      
+
+CONTAINS
+
+PROCEDURE :: UPDATE_DEVICE => TAGS_UPDATE_DEVICE
+PROCEDURE :: WIPE_DEVICE => TAGS_WIPE_DEVICE
 END TYPE TAGS
 
 ! NAME               TYPE     DESCRIPTION
@@ -225,4 +230,194 @@ END TYPE TAGS
 !  RVANMAX    REAL     maximum photosynthesis rate (kgCO2 kgAir-1 m s-1) 
 !  RVR0VT     REAL     Reference respiration tabulated by vegetation type and C4 type
 !     -----------------------------------------------------------------
+CONTAINS
+
+SUBROUTINE TAGS_UPDATE_DEVICE(SELF, LCREATED)
+  CLASS(TAGS) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LCREATED
+  LOGICAL :: LLCREATED
+
+  LLCREATED = .FALSE.
+  IF(PRESENT(LCREATED)) LLCREATED = LCREATED
+  IF(.NOT. LLCREATED)THEN
+    !$acc enter data create(SELF)
+    !$acc update device(SELF)
+  ENDIF
+
+  !$acc enter data create(SELF%RVTOPT)
+  !$acc enter data create(SELF%RVFZERO)
+  !$acc enter data create(SELF%RVFZEROST)
+  !$acc enter data create(SELF%RVEPSO)
+  !$acc enter data create(SELF%RVGAMM)
+  !$acc enter data create(SELF%RVQDGAMM)
+  !$acc enter data create(SELF%RVQDGMES)
+  !$acc enter data create(SELF%RVT1GMES)
+  !$acc enter data create(SELF%RVT2GMES)
+  !$acc enter data create(SELF%RVAMMAX)
+  !$acc enter data create(SELF%RVQDAMMAX)
+  !$acc enter data create(SELF%RVT1AMMAX)
+  !$acc enter data create(SELF%RVT2AMMAX)
+  !$acc enter data create(SELF%RVAH)
+  !$acc enter data create(SELF%RVBH)
+  !$acc enter data create(SELF%LVSTRESS)
+  !$acc enter data create(SELF%RVBSLAI)
+  !$acc enter data create(SELF%RVLAIMIN)
+  !$acc enter data create(SELF%RVSEFOLD)
+  !$acc enter data create(SELF%RVGMES)
+  !$acc enter data create(SELF%RVGC)
+  !$acc enter data create(SELF%RVDMAX)
+  !$acc enter data create(SELF%RVF2I)
+  !$acc enter data create(SELF%RVCE)
+  !$acc enter data create(SELF%RVCF)
+  !$acc enter data create(SELF%RVCNA)
+  !$acc enter data create(SELF%RVBSLAI_NITRO)
+  !$acc enter data create(SELF%RXBOMEGAM)
+  !$acc enter data create(SELF%RVR0VT)
+  !$acc enter data create(SELF%RVCH4QVT)
+  !$acc enter data create(SELF%RVANMAX)
+
+  !$acc update device(SELF%RVTOPT)
+  !$acc update device(SELF%RVFZERO)
+  !$acc update device(SELF%RVFZEROST)
+  !$acc update device(SELF%RVEPSO)
+  !$acc update device(SELF%RVGAMM)
+  !$acc update device(SELF%RVQDGAMM)
+  !$acc update device(SELF%RVQDGMES)
+  !$acc update device(SELF%RVT1GMES)
+  !$acc update device(SELF%RVT2GMES)
+  !$acc update device(SELF%RVAMMAX)
+  !$acc update device(SELF%RVQDAMMAX)
+  !$acc update device(SELF%RVT1AMMAX)
+  !$acc update device(SELF%RVT2AMMAX)
+  !$acc update device(SELF%RVAH)
+  !$acc update device(SELF%RVBH)
+  !$acc update device(SELF%LVSTRESS)
+  !$acc update device(SELF%RVBSLAI)
+  !$acc update device(SELF%RVLAIMIN)
+  !$acc update device(SELF%RVSEFOLD)
+  !$acc update device(SELF%RVGMES)
+  !$acc update device(SELF%RVGC)
+  !$acc update device(SELF%RVDMAX)
+  !$acc update device(SELF%RVF2I)
+  !$acc update device(SELF%RVCE)
+  !$acc update device(SELF%RVCF)
+  !$acc update device(SELF%RVCNA)
+  !$acc update device(SELF%RVBSLAI_NITRO)
+  !$acc update device(SELF%RXBOMEGAM)
+  !$acc update device(SELF%RVR0VT)
+  !$acc update device(SELF%RVCH4QVT)
+  !$acc update device(SELF%RVANMAX)
+
+  !$acc enter data attach(SELF%RVTOPT)
+  !$acc enter data attach(SELF%RVFZERO)
+  !$acc enter data attach(SELF%RVFZEROST)
+  !$acc enter data attach(SELF%RVEPSO)
+  !$acc enter data attach(SELF%RVGAMM)
+  !$acc enter data attach(SELF%RVQDGAMM)
+  !$acc enter data attach(SELF%RVQDGMES)
+  !$acc enter data attach(SELF%RVT1GMES)
+  !$acc enter data attach(SELF%RVT2GMES)
+  !$acc enter data attach(SELF%RVAMMAX)
+  !$acc enter data attach(SELF%RVQDAMMAX)
+  !$acc enter data attach(SELF%RVT1AMMAX)
+  !$acc enter data attach(SELF%RVT2AMMAX)
+  !$acc enter data attach(SELF%RVAH)
+  !$acc enter data attach(SELF%RVBH)
+  !$acc enter data attach(SELF%LVSTRESS)
+  !$acc enter data attach(SELF%RVBSLAI)
+  !$acc enter data attach(SELF%RVLAIMIN)
+  !$acc enter data attach(SELF%RVSEFOLD)
+  !$acc enter data attach(SELF%RVGMES)
+  !$acc enter data attach(SELF%RVGC)
+  !$acc enter data attach(SELF%RVDMAX)
+  !$acc enter data attach(SELF%RVF2I)
+  !$acc enter data attach(SELF%RVCE)
+  !$acc enter data attach(SELF%RVCF)
+  !$acc enter data attach(SELF%RVCNA)
+  !$acc enter data attach(SELF%RVBSLAI_NITRO)
+  !$acc enter data attach(SELF%RXBOMEGAM)
+  !$acc enter data attach(SELF%RVR0VT)
+  !$acc enter data attach(SELF%RVCH4QVT)
+  !$acc enter data attach(SELF%RVANMAX)
+
+END SUBROUTINE TAGS_UPDATE_DEVICE
+
+SUBROUTINE TAGS_WIPE_DEVICE(SELF, LDELETED)
+  CLASS(TAGS) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LDELETED
+  LOGICAL :: LLDELETED
+
+  LLDELETED = .FALSE.
+  IF(PRESENT(LDELETED)) LLDELETED = LDELETED
+
+  !$acc exit data detach(SELF%RVTOPT) finalize
+  !$acc exit data detach(SELF%RVFZERO) finalize
+  !$acc exit data detach(SELF%RVFZEROST) finalize
+  !$acc exit data detach(SELF%RVEPSO) finalize
+  !$acc exit data detach(SELF%RVGAMM) finalize
+  !$acc exit data detach(SELF%RVQDGAMM) finalize
+  !$acc exit data detach(SELF%RVQDGMES) finalize
+  !$acc exit data detach(SELF%RVT1GMES) finalize
+  !$acc exit data detach(SELF%RVT2GMES) finalize
+  !$acc exit data detach(SELF%RVAMMAX) finalize
+  !$acc exit data detach(SELF%RVQDAMMAX) finalize
+  !$acc exit data detach(SELF%RVT1AMMAX) finalize
+  !$acc exit data detach(SELF%RVT2AMMAX) finalize
+  !$acc exit data detach(SELF%RVAH) finalize
+  !$acc exit data detach(SELF%RVBH) finalize
+  !$acc exit data detach(SELF%LVSTRESS) finalize
+  !$acc exit data detach(SELF%RVBSLAI) finalize
+  !$acc exit data detach(SELF%RVLAIMIN) finalize
+  !$acc exit data detach(SELF%RVSEFOLD) finalize
+  !$acc exit data detach(SELF%RVGMES) finalize
+  !$acc exit data detach(SELF%RVGC) finalize
+  !$acc exit data detach(SELF%RVDMAX) finalize
+  !$acc exit data detach(SELF%RVF2I) finalize
+  !$acc exit data detach(SELF%RVCE) finalize
+  !$acc exit data detach(SELF%RVCF) finalize
+  !$acc exit data detach(SELF%RVCNA) finalize
+  !$acc exit data detach(SELF%RVBSLAI_NITRO) finalize
+  !$acc exit data detach(SELF%RXBOMEGAM) finalize
+  !$acc exit data detach(SELF%RVR0VT) finalize
+  !$acc exit data detach(SELF%RVCH4QVT) finalize
+  !$acc exit data detach(SELF%RVANMAX) finalize
+
+  !$acc exit data delete(SELF%RVTOPT) finalize
+  !$acc exit data delete(SELF%RVFZERO) finalize
+  !$acc exit data delete(SELF%RVFZEROST) finalize
+  !$acc exit data delete(SELF%RVEPSO) finalize
+  !$acc exit data delete(SELF%RVGAMM) finalize
+  !$acc exit data delete(SELF%RVQDGAMM) finalize
+  !$acc exit data delete(SELF%RVQDGMES) finalize
+  !$acc exit data delete(SELF%RVT1GMES) finalize
+  !$acc exit data delete(SELF%RVT2GMES) finalize
+  !$acc exit data delete(SELF%RVAMMAX) finalize
+  !$acc exit data delete(SELF%RVQDAMMAX) finalize
+  !$acc exit data delete(SELF%RVT1AMMAX) finalize
+  !$acc exit data delete(SELF%RVT2AMMAX) finalize
+  !$acc exit data delete(SELF%RVAH) finalize
+  !$acc exit data delete(SELF%RVBH) finalize
+  !$acc exit data delete(SELF%LVSTRESS) finalize
+  !$acc exit data delete(SELF%RVBSLAI) finalize
+  !$acc exit data delete(SELF%RVLAIMIN) finalize
+  !$acc exit data delete(SELF%RVSEFOLD) finalize
+  !$acc exit data delete(SELF%RVGMES) finalize
+  !$acc exit data delete(SELF%RVGC) finalize
+  !$acc exit data delete(SELF%RVDMAX) finalize
+  !$acc exit data delete(SELF%RVF2I) finalize
+  !$acc exit data delete(SELF%RVCE) finalize
+  !$acc exit data delete(SELF%RVCF) finalize
+  !$acc exit data delete(SELF%RVCNA) finalize
+  !$acc exit data delete(SELF%RVBSLAI_NITRO) finalize
+  !$acc exit data delete(SELF%RXBOMEGAM) finalize
+  !$acc exit data delete(SELF%RVR0VT) finalize
+  !$acc exit data delete(SELF%RVCH4QVT) finalize
+  !$acc exit data delete(SELF%RVANMAX) finalize
+
+  IF(.NOT. LLDELETED)THEN
+     !$acc exit data delete(SELF) finalize
+  ENDIF
+
+END SUBROUTINE TAGS_WIPE_DEVICE
+
 END MODULE YOS_AGS

@@ -119,8 +119,58 @@ REAL(KIND=JPRB) :: RCS_KPP  ! constants for vertical turbulent shear
 ! semi-implicit time integration
 REAL(KIND=JPRB) :: RLAMBDA_KPP
 REAL(KIND=JPRB) :: RTOLFAC_KPP
+
+CONTAINS
+
+PROCEDURE :: UPDATE_DEVICE => TOCEAN_ML_UPDATE_DEVICE
+PROCEDURE :: WIPE_DEVICE => TOCEAN_ML_WIPE_DEVICE
+
 END TYPE TOCEAN_ML
 
 !---------------------------------------------------------------------
+CONTAINS
+
+
+SUBROUTINE TOCEAN_ML_UPDATE_DEVICE(SELF, LCREATED)
+  CLASS(TOCEAN_ML) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LCREATED
+  LOGICAL :: LLCREATED
+
+  LLCREATED = .FALSE.
+  IF(PRESENT(LCREATED)) LLCREATED = LCREATED
+  IF(.NOT. LLCREATED)THEN
+    !$acc enter data create(SELF)
+    !$acc update device(SELF)
+  ENDIF
+
+  !$acc enter data create(SELF%RWMT)
+  !$acc enter data create(SELF%RWST)
+
+  !$acc update device(SELF%RWMT)
+  !$acc update device(SELF%RWST)
+
+  !$acc enter data attach(SELF%RWMT)
+  !$acc enter data attach(SELF%RWST)
+
+END SUBROUTINE TOCEAN_ML_UPDATE_DEVICE
+
+SUBROUTINE TOCEAN_ML_WIPE_DEVICE(SELF, LDELETED)
+  CLASS(TOCEAN_ML) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LDELETED
+  LOGICAL :: LLDELETED
+
+  LLDELETED = .FALSE.
+  IF(PRESENT(LDELETED)) LLDELETED = LDELETED
+
+  !$acc exit data detach(SELF%RWMT) finalize
+  !$acc exit data detach(SELF%RWST) finalize
+
+  !$acc exit data delete(SELF%RWMT) finalize
+  !$acc exit data delete(SELF%RWST) finalize
+
+  IF(.NOT. LLDELETED)THEN
+    !$acc exit data delete (SELF) finalize
+  ENDIF
+END SUBROUTINE TOCEAN_ML_WIPE_DEVICE
 
 END MODULE YOS_OCEAN_ML

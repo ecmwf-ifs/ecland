@@ -43,7 +43,7 @@ IMPLICIT NONE
 
 REAL(KIND=JPRB)   , INTENT(IN)   :: PMU0(:)  ! Cosine of solar zenith angle
 TYPE(TURB)        , INTENT(IN)   :: YDURB   
-REAL(KIND=JPRB)   , INTENT(OUT)  :: PCANALB(:) ! Canyon Albedo (Not urban albedo)
+REAL(KIND=JPRB)   , INTENT(INOUT)  :: PCANALB(:) ! Canyon Albedo (Not urban albedo)
 
 ! Local Arrays
 

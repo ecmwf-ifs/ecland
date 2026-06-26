@@ -92,16 +92,16 @@ SUBROUTINE COTWORESTRESS(KIDIA,KFDIA,KLON,KVTYPE,KTILE,KCO2TYP,PFRTI,&
 
   USE PARKIND1   ,ONLY : JPIM, JPRB
   USE YOMHOOK    ,ONLY : LHOOK, DR_HOOK, JPHOOK
-  USE YOS_CST	 ,ONLY : TCST
+  USE YOS_CST    ,ONLY : TCST
   USE YOS_AGS    ,ONLY : TAGS
   USE YOS_AGF    ,ONLY : TAGF
   USE YOS_VEG    ,ONLY : TVEG
   USE YOS_FLAKE  ,ONLY : TFLAKE
-  USE CCETR_MOD
-  USE COTWO_MOD
-  USE FARQUHAR_MOD
-  USE ABORT_SURF_MOD
-  USE YOMSURF_SSDP_MOD
+  USE CCETR_MOD  ,ONLY : CCETR
+  USE COTWO_MOD  ,ONLY : COTWO
+  USE FARQUHAR_MOD, ONLY : FARQUHAR
+  USE ABORT_SURF_MOD, ONLY : ABORT_SURF
+  USE YOMSURF_SSDP_MOD, ONLY: SSDP2D_ID, NSSDP2D
 
   IMPLICIT NONE
   INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA
@@ -442,7 +442,7 @@ PAVGPAR(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
     IF (PCM1(JL) > 0.0_JPRB) THEN
     ! Variable atmospheric CO2
        ZCO2(JL)=PCM1(JL)
-    ELSE 
+    ELSE
        CALL ABORT_SURF('COTWORESTRESS_MOD: ATM CO2 SHOULD BE POSITIVE ')
     ENDIF
 
@@ -464,6 +464,8 @@ PAVGPAR(:)=0.0_JPRB  ! To secure unconditioned use in CCETR
 
 IF (LEFARQUHAR) THEN 
 
+  !$loki remove
+
   ! Farquhar photosynthesis model
   !
   CALL FARQUHAR(KIDIA, KFDIA, KLON, LDLAND, KVTYPE, KCO2TYP, YDAGS, YDAGF, &
@@ -483,12 +485,15 @@ IF (LEFARQUHAR) THEN
      ENDIF
   ENDDO
 
+  !$loki end remove
+
 ELSE
 
   ! A-gs photosynthesis model
 
+  !$loki nodep
   DO JINT=1,SIZE(RABC)
-     ! jint=1 is the lowest part of the canopy, jint=size(rabc) is the highest part. 
+     ! jint=1 is the lowest part of the canopy, jint=size(rabc) is the highest part.
      !  Diffusion of incident radiation:
 
      CALL CCETR(KIDIA,KFDIA,KLON,KVTYPE,KTILE,LDLAND,PAVGPAR,ZMU0,RABC(JINT),PLAI,PSSDP2,YDAGS,ZXIA)

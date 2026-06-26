@@ -74,7 +74,63 @@ REAL(KIND=JPRB), ALLOCATABLE :: R(:)
 REAL(KIND=JPRB), ALLOCATABLE :: F(:)
 REAL(KIND=JPRB), ALLOCATABLE :: Z(:)
 REAL(KIND=JPRB), ALLOCATABLE :: DELZ(:)
+
+CONTAINS
+
+PROCEDURE :: UPDATE_DEVICE => TMLM_UPDATE_DEVICE
+PROCEDURE :: WIPE_DEVICE => TMLM_WIPE_DEVICE
 END TYPE TMLM
 
 !     ------------------------------------------------------------------
+CONTAINS
+SUBROUTINE TMLM_UPDATE_DEVICE(SELF, LCREATED)
+  CLASS(TMLM) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LCREATED
+  LOGICAL :: LLCREATED
+
+  LLCREATED = .FALSE.
+  IF(PRESENT(LCREATED)) LLCREATED = LCREATED
+  IF(.NOT. LLCREATED)THEN
+    !$acc enter data create(SELF)
+    !$acc update device(SELF)
+  ENDIF
+
+  !$acc enter data create(SELF%R)
+  !$acc enter data create(SELF%F)
+  !$acc enter data create(SELF%Z)
+  !$acc enter data create(SELF%DELZ)
+
+  !$acc update device(SELF%R)
+  !$acc update device(SELF%F)
+  !$acc update device(SELF%Z)
+  !$acc update device(SELF%DELZ)
+
+  !$acc enter data attach(SELF%R)
+  !$acc enter data attach(SELF%F)
+  !$acc enter data attach(SELF%Z)
+  !$acc enter data attach(SELF%DELZ)
+END SUBROUTINE TMLM_UPDATE_DEVICE
+
+SUBROUTINE TMLM_WIPE_DEVICE(SELF, LDELETED)
+  CLASS(TMLM) :: SELF
+  LOGICAL, OPTIONAL, INTENT(IN) :: LDELETED
+  LOGICAL :: LLDELETED
+
+  LLDELETED = .FALSE.
+  IF(PRESENT(LDELETED)) LLDELETED = LDELETED
+
+  !$acc exit data detach(SELF%R) finalize
+  !$acc exit data detach(SELF%F) finalize
+  !$acc exit data detach(SELF%Z) finalize
+  !$acc exit data detach(SELF%DELZ) finalize
+
+  !$acc exit data delete(SELF%R) finalize
+  !$acc exit data delete(SELF%F) finalize
+  !$acc exit data delete(SELF%Z) finalize
+  !$acc exit data delete(SELF%DELZ) finalize
+
+  IF(.NOT. LLDELETED)THEN
+    !$acc exit data delete (SELF) finalize
+  ENDIF
+END SUBROUTINE TMLM_WIPE_DEVICE
 END MODULE YOS_MLM

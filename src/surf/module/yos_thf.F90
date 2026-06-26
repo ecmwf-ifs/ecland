@@ -24,4 +24,6 @@ REAL(KIND=JPRB) :: R4IES     ! Constants for computation of esat
 REAL(KIND=JPRB) :: R5LES     ! Constants for computation of esat
 REAL(KIND=JPRB) :: R5IES     ! Constants for computation of esat
 
+!$acc declare create( RHOH2O, RVTMP2, R2ES, R3LES, R3IES, R4LES, R4IES, R5LES, R5IES )
+
 END MODULE YOS_THF

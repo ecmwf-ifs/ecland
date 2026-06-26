@@ -17,6 +17,7 @@ list( APPEND module_src
     cotworestress_mod.F90
     cptave_mod.F90
     farquhar_mod.F90
+    fcz0wn_mod.F90
     flake_driver_mod.F90
     flakeene_mod.F90
     flakerad_mod.F90
@@ -73,6 +74,7 @@ list( APPEND module_src
     srfsn_ssrabss_mod.F90
     srfsn_ssrabssad_mod.F90
     srfsn_ssrabsstl_mod.F90
+    srfsn_trisolver_mod.F90
     srfsn_vgrid_mod.F90
     srfsn_webal_mod.F90
     srfsn_webals_mod.F90
