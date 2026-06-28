@@ -54,13 +54,12 @@ jobs:
             compiler_cc: nvc
             compiler_cxx: nvc++
             compiler_fc: nvfortran
-            cmake_options: -DCMAKE_CXX_FLAGS=--diag_suppress177
+            cmake_options: -DCMAKE_CXX_FLAGS=--diag_suppress177 -DECBUILD_Fortran_FLAGS=-tp=haswell
             # nvc++ 25.9 has a codegen bug where an AVX-512 SCALEFS node is
             # emitted by an idiom-recognition pass even on non-AVX-512 targets,
             # causing llc to ICE on some GH runner CPUs. Pin -tp=haswell to
             # constrain the target features so the pass cannot emit it.
             dep_eccodes_extra_options: -DCMAKE_CXX_FLAGS=-tp=haswell
-            fortran_flags: ""
             caching: true
 
           - name : linux intel-classic
