@@ -302,11 +302,13 @@ IF ( MOD( INT(DTIN), INT(DT) )/=0 ) THEN
   STOP 9
 ENDIF
 
-IF ( LSEALEV .and. MOD( INT(DTSL), INT(DT) )/=0 ) THEN
-  WRITE(LOGNAM,*) "DTSL, DT= ", DTIN, DT
-  WRITE(LOGNAM,*) "DTSL should be multiple of DT"
-  WRITE(LOGNAM,*) "stop"
-  STOP 9
+IF ( LSEALEV ) THEN
+  IF ( MOD( INT(DTSL), INT(DT) )/=0 ) THEN
+    WRITE(LOGNAM,*) "DTSL, DT= ", DTIN, DT
+    WRITE(LOGNAM,*) "DTSL should be multiple of DT"
+    WRITE(LOGNAM,*) "stop"
+    STOP 9
+  ENDIF
 ENDIF
 
 !*** 2. check for physics options
