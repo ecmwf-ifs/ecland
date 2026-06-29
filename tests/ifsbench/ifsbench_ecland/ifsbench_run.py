@@ -115,7 +115,7 @@ class EclandScience(SerialisationMixin):
     namelists: List[NamelistOverride] = None
 
     #: List of input data handlers.
-    data_init: List[DataHandler] = None
+    input_data: List[DataHandler] = None
 
     #: List of custom environment overrides.
     env: List[EnvHandler] = None
@@ -154,7 +154,7 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech, job: Job) -
     """
 
     # Set up initial input data handlers from science definition
-    data_handlers_init = science.data_init if science.data_init else []
+    data_handlers_init = science.input_data if science.input_data else []
 
     # Add the initial namelist template fetch to the input data handlers
     data_handlers_init.append(
