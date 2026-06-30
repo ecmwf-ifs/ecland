@@ -55,17 +55,20 @@ execute_process(
   COMMAND_ERROR_IS_FATAL ANY
 )
 
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/custom_launchers.yaml
-     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/arch.yaml DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
+file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/custom_launchers.yaml DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
 
 ## CI tests
+
+set( REFDIR "${CMAKE_CURRENT_SOURCE_DIR}/references" )
 
 foreach( prec sp dp )
   if( HAVE_${prec} )
 
     # Generate precision-specific test.yaml with correct binary path
     set( ECLAND_PREC ${prec} )
-    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml @ONLY )
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test_v1_EU.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml @ONLY )
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test_2d_gl_t21.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_t21_${prec}.yaml @ONLY )
 
     # Set tolerances for validation
     if(${prec} MATCHES "sp")
@@ -86,9 +89,9 @@ foreach( prec sp dp )
            )
         ecbuild_add_test( TARGET ecland_ifsbench_${TEST_NAME}_${prec}
             TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
-            ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml ${TEST_NAME}
+            ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml ${TEST_NAME}
                 --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_${TEST_NAME}_${prec}
-                --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_default_${prec}.yaml
+                --validate=${REFDIR}/reference_v1_EU_default_${prec}.yaml
                 --absolute-tolerance=${ATOL} --relative-tolerance=${RTOL}
         )
     endforeach()
@@ -96,24 +99,40 @@ foreach( prec sp dp )
     # Test centered accumulation of forcing fluxes
     ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_centered_${prec}
         TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
-        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml v1_EU_centered
+        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml v1_EU_centered
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_centered_${prec}
-            --validate=${CMAKE_CURRENT_SOURCE_DIR}/references/reference_v1_EU_centered_${prec}.yaml
+            --validate=${REFDIR}/reference_v1_EU_centered_${prec}.yaml
             --absolute-tolerance=${ATOL} --relative-tolerance=${RTOL}
     )
 
     # Test forward accumulation of forcing fluxes (currently defunct!)
     ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_forward_${prec}
         TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
-        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_${prec}.yaml v1_EU_forward
+        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml v1_EU_forward
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_forward_${prec}
     )
 
     # Disable Forward test variant - currently not supported
     set_property(TEST ecland_ifsbench_v1_EU_forward_${prec} PROPERTY DISABLED TRUE)
 
+
+    # Test for a global T21 configuration with and without CMF enabled
+    ecbuild_add_test( TARGET ecland_ifsbench_2d_gl_t21_cmf_${prec}
+        TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
+        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_t21_${prec}.yaml 2d_gl_t21_cmf
+            --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_2d_gl_t21_cmf
+            --validate=${REFDIR}/reference_2d_gl_t21_cmf_${prec}.yaml --atol=${ATOL} --rtol=${RTOL}
+    )
+    ecbuild_add_test( TARGET ecland_ifsbench_2d_gl_t21_nocmf_${prec}
+        TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
+        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_t21_${prec}.yaml 2d_gl_t21_nocmf
+            --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_2d_gl_t21_nocmf
+            --validate=${REFDIR}/reference_2d_gl_t21_nocmf_${prec}.yaml --atol=${ATOL} --rtol=${RTOL}
+    )
+
   endif()
 endforeach()
+
 
 
 # Restore cached python interpreter

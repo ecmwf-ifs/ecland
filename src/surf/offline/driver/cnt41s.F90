@@ -134,7 +134,7 @@ DCMFCOM(:,:)=0._JPRB
 
 IF (LECMF1WAY) THEN
   CALL PACK_BUFFER(VFPGLOB, SEND_BUF)
-  CALL MPL_GATHERV(PRECVBUF=ZVFPGLOB(:),KROOT=1,PSENDBUF=SEND_BUF,KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:gaussianIndex")
+  CALL MPL_ALLGATHERV(PRECVBUF=ZVFPGLOB(:),PSENDBUF=SEND_BUF,KRECVCOUNTS=NPOIP(:),CDSTRING="CNT41S:gaussianIndex")
   IF( MYPROC == 1 ) THEN
 #ifdef UseMPI_CMF
     NPROC_CMF=REGIONALL
@@ -209,25 +209,23 @@ DO NSTEP=NSTART,NSTOP
   
   IF (LECMF1WAY) THEN
     !* Accumulate runoff fields and potential water evaporation
-        !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
-        DO IST = 1, NLALO, NPROMA
-          IEND = MIN(IST+NPROMA-1,NLALO)
-          IBL = (IST-1)/NPROMA + 1
-          DO JL=IST,IEND
-            IL = JL-IST+1
-            ZBUFFOAUX(IL,1,IBL)=ZBUFFOAUX(IL,1,IBL)+ D1STSRO2(IL,1,IBL)*TSTEP*0.001_JPRB   ! m of water
-            ZBUFFOAUX(IL,2,IBL)=ZBUFFOAUX(IL,2,IBL)+(D1STRO2(IL,1,IBL)-D1STSRO2(IL,1,IBL))*TSTEP*0.001_JPRB   ! m of water
-            ZBUFFOAUX(IL,3,IBL)=ZBUFFOAUX(IL,3,IBL)+(-D1STIEVAPU2(IL,9,1,IBL))*TSTEP*0.001_JPRB   ! m of water
-          ENDDO
-        ENDDO
-        !$OMP END PARALLEL DO
-    DO JL=1,NPOI
- 
-    ENDDO        
+    !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,JL,IL)
+    DO IST = 1, NPOI, NPROMA
+      IEND = MIN(IST+NPROMA-1,NPOI)
+      IBL = (IST-1)/NPROMA + 1
+      DO JL=IST,IEND
+        IL = JL-IST+1
+        ZBUFFOAUX(IL,1,IBL)=ZBUFFOAUX(IL,1,IBL)+ D1STSRO2(IL,1,IBL)*TSTEP*0.001_JPRB   ! m of water
+        ZBUFFOAUX(IL,2,IBL)=ZBUFFOAUX(IL,2,IBL)+(D1STRO2(IL,1,IBL)-D1STSRO2(IL,1,IBL))*TSTEP*0.001_JPRB   ! m of water
+        ZBUFFOAUX(IL,3,IBL)=ZBUFFOAUX(IL,3,IBL)+(-D1STIEVAPU2(IL,9,1,IBL))*TSTEP*0.001_JPRB   ! m of water
+      ENDDO
+    ENDDO
+    !$OMP END PARALLEL DO
+
     !* Coupling: 
-! Note that changed the condition to double precision as it is required for long NSTEPS and "small" TCOUPFREQ (e.g. equal to 1)
-   IF ( MOD((REAL(NSTEP,KIND=JPRD)*REAL(TSTEP,KIND=JPRD)),REAL(TCOUPFREQ*3600,KIND=JPRD)) == 0 &
-      & .AND. REAL(NSTEP,KIND=JPRD) /= REAL(NSTART,KIND=JPRD) ) THEN
+    !Note that changed the condition to double precision as it is required for long NSTEPS and "small" TCOUPFREQ (e.g. equal to 1)
+    IF ( MOD((REAL(NSTEP,KIND=JPRD)*REAL(TSTEP,KIND=JPRD)),REAL(TCOUPFREQ*3600,KIND=JPRD)) == 0 &
+       & .AND. REAL(NSTEP,KIND=JPRD) /= REAL(NSTART,KIND=JPRD) ) THEN
       ZTT1C = OMP_GET_WTIME()
       WRITE(NULOUT,*)' CMF_COUPLING: CALLING DRV_PUT & DRV_ADVANCE:',ISTEPADV
 
@@ -285,9 +283,9 @@ DO NSTEP=NSTART,NSTOP
 
       IF (NCMF2LAKEC==0) THEN
         ! no coupling 
-        !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
-        DO IST = 1, NLALO, NPROMA
-          IEND = MIN(IST+NPROMA-1,NLALO)
+        !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL,JL,IL)
+        DO IST = 1, NPOI, NPROMA
+          IEND = MIN(IST+NPROMA-1,NPOI)
           IBL = (IST-1)/NPROMA + 1
           DO JL=IST,IEND
             IL = JL-IST+1
@@ -315,8 +313,8 @@ DO NSTEP=NSTART,NSTOP
 
         ! replace lake cover by flood plain fraction over land 
         !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
-        DO IST = 1, NLALO, NPROMA
-          IEND = MIN(IST+NPROMA-1,NLALO)
+        DO IST = 1, NPOI, NPROMA
+          IEND = MIN(IST+NPROMA-1,NPOI)
           IBL = (IST-1)/NPROMA + 1
           DO JL=IST,IEND
             IL = JL-IST+1
@@ -332,8 +330,8 @@ DO NSTEP=NSTART,NSTOP
 
         ! add flooplain fraction to lake cover over land 
         !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
-        DO IST = 1, NLALO, NPROMA
-          IEND = MIN(IST+NPROMA-1,NLALO)
+        DO IST = 1, NPOI, NPROMA
+          IEND = MIN(IST+NPROMA-1,NPOI)
           IBL = (IST-1)/NPROMA + 1
           DO JL=IST,IEND
             IL = JL-IST+1

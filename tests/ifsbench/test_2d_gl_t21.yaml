@@ -1,0 +1,81 @@
+arch: !include arch.yaml
+
+
+science:
+  # Surface-only test with coupling to CaMaFlood (CMF) enabled
+
+  2d_gl_t21_cmf: &2d_gl_t21
+    # Path to the actual ecland executable.
+    binary_path: @CMAKE_BINARY_DIR@/bin/ecland-master-@ECLAND_PREC@
+
+    # Path to the default namelist.
+    namelist_url: file://@CMAKE_CURRENT_SOURCE_DIR@/namelist_2d_gl_t21
+
+    # Path to the default namelist.
+    namelist_cmf_url: file://@CMAKE_CURRENT_SOURCE_DIR@/namelist_cmf_2d_gl_t21
+
+    # Input data for the standard input files. These can be given as URLs,
+    # so either as https://something or file:///home/me/something.
+    input_data:
+
+      - class_name: FetchHandler
+        target_path: 'forcing.tar.gz'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/forcing.tar.gz
+
+      - class_name: ExtractHandler
+        target_path: 'forcing'
+        archive_path: forcing.tar.gz
+
+      - class_name: FetchHandler
+        target_path: 'soilinit'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/soilinit
+
+      - class_name: FetchHandler
+        target_path: 'surfclim'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/surfclim
+
+      - class_name: FetchHandler
+        target_path: 'diminfo.txt'
+        source_url: file://@CMAKE_CURRENT_SOURCE_DIR@/cmf_diminfo.txt
+
+      - class_name: FetchHandler
+        target_path: 'rivpar.nc'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/rivpar.nc
+
+      - class_name: FetchHandler
+        target_path: 'rivclim.nc'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/rivclim.nc
+
+      - class_name: FetchHandler
+        target_path: 'bifprm.txt'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/bifprm.txt
+
+      - class_name: FetchHandler
+        target_path: 'inpmat.nc'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/inpmat.nc
+
+      - class_name: FetchHandler
+        target_path: 'mpireg-2.nc'
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/mpireg-2.nc
+
+    # Default parallel setup. May be overwritten at runtime by command line flags.
+    job:
+      tasks: 2
+      cpus_per_task: 2
+
+
+  2d_gl_t21_nocmf:
+    # Testing setup that still suppresses CaMaFlood usage
+    <<: *2d_gl_t21
+
+    namelists:
+      # Switch CMF-coupling off
+      - mode: set
+        namelist: NAMPHY
+        entry: LECMF1WAY
+        value: false
+
+
+tech:
+  # Specify technical setups here.
+  default: {}

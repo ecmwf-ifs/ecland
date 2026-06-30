@@ -30,13 +30,17 @@ from ifsbench import (
     SerialisationMixin,
     PydanticDataFrame,
     ScienceSetup,
-    TechSetup
+    TechSetup,
+    read_yaml
 )
 
 from ifsbench.command_line import launcher_options
-from ifsbench.data import FetchHandler, NamelistHandler, NamelistOverride, RenameHandler, RenameMode
+from ifsbench.data import (
+    DataHandler, FetchHandler, NamelistHandler, NamelistOverride, RenameHandler, RenameMode
+)
 from ifsbench.results import ResultInfo
 from ifsbench.validation import validate_result_identical
+
 
 class EclandResult(ResultInfo):
     """
@@ -75,7 +79,7 @@ class EclandResult(ResultInfo):
         for path in paths:
             stats = DataFileStats(
                 input_path=path,
-                stat_dims=['lat', 'lon'],
+                stat_dims=['lat', 'lon', 'x'],
                 stat_names=['min', 'max', 'mean']
             )
 
@@ -98,23 +102,20 @@ class EclandScience(SerialisationMixin):
     Science setup of the ecland benchmark.
     """
 
-    #: URL to the forcing file.
-    forcing_url: str
-
-    #: URL to the soil file.
-    soil_url: str
-
-    #: URL to the surfclim file.
-    surfclim_url: str
-
     #: Path to the default namelist.
     namelist_url: str
+
+    #: Path to the CaMaFlood (CMF) namelist.
+    namelist_cmf_url: str = None
 
     #: Path to the ecland binary.
     binary_path: Path
 
     #: List of namelist overrides.
     namelists: List[NamelistOverride] = None
+
+    #: List of input data handlers.
+    input_data: List[DataHandler] = None
 
     #: List of custom environment overrides.
     env: List[EnvHandler] = None
@@ -152,20 +153,24 @@ def build_ecland_benchmark(science: EclandScience, tech: EclandTech, job: Job) -
     objects.
     """
 
-    # Initial step is to
-    #  * download the binary input files (forcing, soil + surfclim).
-    #  * Fetch the default namelist.
-    data_handlers_init = [
-        FetchHandler(source_url=science.forcing_url, target_path='forcing'),
-        FetchHandler(source_url=science.soil_url, target_path='soilinit'),
-        FetchHandler(source_url=science.surfclim_url, target_path='surfclim'),
+    # Set up initial input data handlers from science definition
+    data_handlers_init = science.input_data if science.input_data else []
+
+    # Add the initial namelist template fetch to the input data handlers
+    data_handlers_init.append(
         FetchHandler(source_url=science.namelist_url, target_path='namelist_template')
-    ]
+    )
 
     # At runtime, copy the original namelist back to `input`.
     data_handlers_runtime = [
         RenameHandler(pattern='namelist_template', repl='input', mode=RenameMode.COPY)
     ]
+
+    # If a CaMaFlood (CMF) namelist is specified, copy it to run_dir
+    if science.namelist_cmf_url:
+        data_handlers_init.append(
+            FetchHandler(source_url=science.namelist_cmf_url, target_path='input_cmf.nam')
+        )
 
     # If namelist overrides are specified, also run them at runtime.
     if science.namelists:
@@ -259,8 +264,7 @@ def from_yaml(
     """
     yaml_path = Path(yaml_path).resolve()
 
-    with yaml_path.open('r', encoding='utf-8') as f:
-        yaml_data = yaml.safe_load(f)
+    yaml_data = read_yaml(yaml_path)
 
     # Load the full configuration from the YAML file.
     ecland_config = EclandConfig.from_config(yaml_data)
@@ -296,6 +300,12 @@ def from_yaml(
         run_dir = Path(run_dir)
 
         launcher = launcher_builder.build_from_arch(arch)
+
+        # Force run_dir creation and then create the CMF output directory.
+        # Note, that we need to do this explicitly, as creating this
+        # apriori otherwise triggers the short-circuit mechanism.
+        benchmark.setup_rundir(run_dir=run_dir, force=True)
+        (run_dir/'cmf_output').mkdir(parents=True, exist_ok=True)
 
         bench_result = benchmark.run(
             run_dir=run_dir,
