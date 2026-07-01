@@ -40,7 +40,7 @@ projects :
 
     - loki :
         git     : https://github.com/ecmwf-ifs/loki
-        version : 0.3.2
+        version : 0.4.0
         optional: true
         require : ecbuild
         cmake   : >
