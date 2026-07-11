@@ -82,3 +82,10 @@ tech:
         namelist: NAM1S
         entry: IDBGS1
         value: 1
+
+  gpu:
+    namelists:
+      - mode: set
+        namelist: NAMCT01S
+        entry: LON_GPU
+        value: true
