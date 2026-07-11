@@ -5,7 +5,7 @@ USE YOMLUN1S , ONLY : NULNAM
 USE YOMDYN1S , ONLY : TSTEP
 USE YOMCT01S , ONLY : JPNPST   ,NPOSTS   ,NHISTS   ,&
             &CNMEXP   ,NFRPLT   ,NCYCLE   ,NSTART   ,NSTOP    ,&
-            &NFRPOS   ,NFRHIS   ,LNF      ,LMPLOT   ,NFRRES, LSCMEC
+            &NFRPOS   ,NFRHIS   ,LNF      ,LMPLOT   ,NFRRES, LSCMEC, LON_GPU
 
 
 #ifdef DOC
@@ -102,6 +102,8 @@ ENDDO
 ! ECMWF Single Column Model off by default
 LSCMEC=.FALSE.
 
+! GPU-offload disabled by default
+LON_GPU=.FALSE.
 
 
 !      ----------------------------------------------------------------
