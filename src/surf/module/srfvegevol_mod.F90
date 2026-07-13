@@ -198,10 +198,10 @@ DO JL=KIDIA,KFDIA
   DO JVT=1,NVTILES
      IF (JVT .EQ. 1_JPIM) THEN
         ! low vegetation
-        ZVBSLAI_NITRO = RVBSLAI_NITROL2D(JL)
+        ZVBSLAI_NITRO = PSSDP2(JL,SSDP2D_ID%NRVBSLAI_NITROL2D)
      ELSE IF (JVT .EQ. 2_JPIM) THEN
         ! low vegetation
-        ZVBSLAI_NITRO = RVBSLAI_NITROH2D(JL)
+        ZVBSLAI_NITRO = PSSDP2(JL,SSDP2D_ID%NRVBSLAI_NITROH2D)
      ELSE
         STOP 'Wrong number of vegitation types in nitro_decline_mod'
      END IF
@@ -255,12 +255,12 @@ IF (RLAIINT > 0._JPRB ) THEN
 
             IF (JVT .EQ. 1_JPIM) THEN
                ! low vegetation
-               ZLAIMIN = RVLAIMINL2D(JL)
-               ZVBSLAI_NITRO = RVBSLAI_NITROL2D(JL)
+               ZLAIMIN = PSSDP2(JL,SSDP2D_ID%NRVLAIMINL2D)
+               ZVBSLAI_NITRO = PSSDP2(JL,SSDP2D_ID%NRVBSLAI_NITROL2D)
             ELSE IF (JVT .EQ. 2_JPIM) THEN
                ! low vegetation
-               ZLAIMIN = RVLAIMINH2D(JL)
-               ZVBSLAI_NITRO = RVBSLAI_NITROH2D(JL)
+               ZLAIMIN = PSSDP2(JL,SSDP2D_ID%NRVLAIMINH2D)
+               ZVBSLAI_NITRO = PSSDP2(JL,SSDP2D_ID%NRVBSLAI_NITROH2D)
             ELSE
                STOP 'Wrong number of vegitation types in nitro_decline_mod'
             END IF
