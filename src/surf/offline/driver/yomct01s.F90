@@ -20,7 +20,7 @@ SAVE
 ! LNF     : .T. = start, .F. = restart
 ! LMPLOT  : .T. = plotting requested
 ! NFRPLT  : plotting frequency
-! NCYCLE  : number of the experiment
+! NOSMCYCLE: number of the experiment
 ! CNMEXP  : name of the experiment
 !           An experiment is identified by its name (16 characters)
 !           and its cycle (typically same experiment but without a bug)
@@ -63,7 +63,7 @@ INTEGER(KIND=JPIM) :: NHISTS(0:JPNPST)
 CHARACTER*16 CNMEXP
 
 INTEGER(KIND=JPIM) :: NFRPLT
-INTEGER(KIND=JPIM) :: NCYCLE
+INTEGER(KIND=JPIM) :: NOSMCYCLE
 INTEGER(KIND=JPIM) :: NSTART
 INTEGER(KIND=JPIM) :: NSTOP
 INTEGER(KIND=JPIM) :: NFRPOS
