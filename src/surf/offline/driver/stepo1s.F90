@@ -80,7 +80,6 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 #include "wrtdcdf.intfb.h"
 #include "wrtres.intfb.h"
 #include "wrtd1s.intfb.h"
-#include "cpg1s_parallel.intfb.h"
 #include "wrtd2cdf.intfb.h"
 
 IF (LHOOK) CALL DR_HOOK('STEPO1S',0,ZHOOK_HANDLE)
