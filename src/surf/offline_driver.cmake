@@ -19,7 +19,6 @@ ecbuild_generate_fortran_interfaces(
 
 list(APPEND offline_driver_src
     buffer_utils.F90
-    callpar1s.F90
     cnt01s.F90
     cnt21s.F90
     cnt31s.F90
@@ -66,7 +65,10 @@ list(APPEND offline_driver_src
     suphec.F90
     surdi.F90
     surdi1s.F90
+    surfbc_layer.F90
+    surfrad_layer.F90
     surip.F90
+    surftstp_layer.F90
     suswn.F90
     suvdf.F90
     suvdfs.F90
@@ -77,6 +79,7 @@ list(APPEND offline_driver_src
     vdfdifh1s.F90
     vdfdifm1s.F90
     vdfincr.F90
+    vdfmain1s_layer.F90
     vdfmain1s.F90
     wrtclim.F90
     wrtd1s.F90
