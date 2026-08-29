@@ -210,8 +210,8 @@ DO NSTEP=NSTART,NSTOP
   IF (LECMF1WAY) THEN
     !* Accumulate runoff fields and potential water evaporation
         !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
-        DO IST = 1, NLALO, NPROMA
-          IEND = MIN(IST+NPROMA-1,NLALO)
+        DO IST = 1, NPOI, NPROMA
+          IEND = MIN(IST+NPROMA-1,NPOI)
           IBL = (IST-1)/NPROMA + 1
           DO JL=IST,IEND
             IL = JL-IST+1
@@ -286,8 +286,8 @@ DO NSTEP=NSTART,NSTOP
       IF (NCMF2LAKEC==0) THEN
         ! no coupling 
         !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
-        DO IST = 1, NLALO, NPROMA
-          IEND = MIN(IST+NPROMA-1,NLALO)
+        DO IST = 1, NPOI, NPROMA
+          IEND = MIN(IST+NPROMA-1,NPOI)
           IBL = (IST-1)/NPROMA + 1
           DO JL=IST,IEND
             IL = JL-IST+1
@@ -315,8 +315,8 @@ DO NSTEP=NSTART,NSTOP
 
         ! replace lake cover by flood plain fraction over land 
         !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
-        DO IST = 1, NLALO, NPROMA
-          IEND = MIN(IST+NPROMA-1,NLALO)
+        DO IST = 1, NPOI, NPROMA
+          IEND = MIN(IST+NPROMA-1,NPOI)
           IBL = (IST-1)/NPROMA + 1
           DO JL=IST,IEND
             IL = JL-IST+1
@@ -332,8 +332,8 @@ DO NSTEP=NSTART,NSTOP
 
         ! add flooplain fraction to lake cover over land 
         !$OMP PARALLEL DO PRIVATE(IST,IEND,IBL)
-        DO IST = 1, NLALO, NPROMA
-          IEND = MIN(IST+NPROMA-1,NLALO)
+        DO IST = 1, NPOI, NPROMA
+          IEND = MIN(IST+NPROMA-1,NPOI)
           IBL = (IST-1)/NPROMA + 1
           DO JL=IST,IEND
             IL = JL-IST+1

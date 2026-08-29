@@ -339,10 +339,15 @@ def gen_inpmat_inp2riv_hres_reg(
         
           ix_ro = int( ( lon_hre[ix_hre] - (lon0_ro-0.5*dlon_ro) ) / dlon_ro + 1 )# +1 fortran index
           if ( ix_ro < 1 or ix_ro > nx_ro) :
-            print('dgb',lon_hre[ix_hre],ix_hre,lon0_ro,0.5*dlon_ro,dlon_ro,)
-            raise ValueError('**ERROR** ix_in out of bounds ix_ro=%i'%(ix_ro))
+            # This high-res pixel's parent river cell is in-domain (pmask==1),
+            # but the pixel itself falls outside the -igrid reference grid --
+            # e.g. a river cell whose basin was kept via sel_region.py -e
+            # (extend crossing basins) but extends beyond the input grid's own
+            # coverage. It has no corresponding input-grid runoff to
+            # contribute, so skip it rather than aborting the whole run.
+            continue
           if ( iy_ro < 1 or iy_ro > ny_ro) :
-            raise ValueError('**ERROR** iy_in out of bounds iy_ro=%i'%(iy_ro))
+            continue
           
           np_hre_ok=np_hre_ok+1
 
