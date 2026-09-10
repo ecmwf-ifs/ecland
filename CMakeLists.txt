@@ -10,7 +10,7 @@ cmake_minimum_required( VERSION 3.24 FATAL_ERROR )
 
 include(FetchContent)
 
-find_package( ecbuild 3.11 QUIET HINTS ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild REQUIRED )
+find_package( ecbuild 3.15.2 QUIET HINTS ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild REQUIRED )
 
 if( NOT ECLAND_PROJECT_NAME )
   set( ECLAND_PROJECT_NAME ecland )

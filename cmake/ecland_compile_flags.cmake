@@ -62,9 +62,13 @@ endif()
 # The IFS enables fpe trapping even for optimised builds, we do the same here for consistency
 # Except for NVHPC SP builds. This can be revisited for 26.1 and newer, which has fixes
 # for the spurious fpe false positives we suffer from here.
-if(DEFINED fpe_flags AND NOT (CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC" AND HAVE_sp) )
-  if(NOT "${${PNAME}_Fortran_FLAGS}" MATCHES ${fpe_flags})
-    set( ${PNAME}_Fortran_FLAGS "${${PNAME}_Fortran_FLAGS} ${fpe_flags}" )
+if(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC" AND HAVE_sp)
+  ecbuild_remove_fortran_flags("-Ktrap=fp" NAME fpe PROJECT)
+else()
+  if(DEFINED fpe_flags)
+    if(NOT "${${PNAME}_Fortran_FLAGS}" MATCHES ${fpe_flags})
+      ecbuild_add_fortran_flags("${fpe_flags}" NAME fpe PROJECT)
+    endif()
   endif()
 endif()
 
