@@ -19,5 +19,6 @@ ecbuild_info( "${${lang}_flags_str}                 : [${flags}]" )
     endforeach()
 ecbuild_info( "OpenMP (following variable can be overwritten by user)" )
 ecbuild_info( "    OpenMP_Fortran_FLAGS      : [${OpenMP_Fortran_FLAGS}]" )
+ecbuild_info( "OpenACC" )
+ecbuild_info( "    OpenACC_Fortran_FLAGS     : [${OpenACC_Fortran_FLAGS}]" )
 ecbuild_info( "---------------------------------------------------------" )
-

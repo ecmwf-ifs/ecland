@@ -1,0 +1,7 @@
+class_name: SrunLauncher
+flags:
+  - -q
+  - dg
+  - --nodes=1
+  - --gpus=1
+  - --mem=0
