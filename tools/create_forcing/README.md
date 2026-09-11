@@ -191,7 +191,7 @@ to the MARS database, you should get a cds api access token first (more informat
         sodir:      ./ecland_input/clim/          # output dir for initial cond and static fields
         fodir:      ./ecland_input/forcing/       # output dir for forcing
         scriptsdir: <full_path_to_create_forcing_dir>/scripts/ # Directory with create_forcing scripts
-        retrieve_with: cds         
+        retrieve_with: cds                        # Other option: mars 
 
 
 The block `initial_conditions` allows to specify some variables to select what type of data to download.
@@ -209,8 +209,9 @@ For users outside of ecmwf, these variables should not be modified as ERA5 data 
         CLIMVERSION: "v015"    # the version of the climate data used for the initial condition data. 
                                # ERA5 uses the v015
         clim_data_loc: "cds" # the location of the climate data used for the initial condition data. 
-                               # external users should set it to "cds"
-                               # emcwf users can set it to internal "ecmwf" path.
+                               # - external users should set it to "cds"
+                               # - emcwf users can set it to internal "ecmwf" path.
+			       # Important: in order to use the "ecmwf" option, the user needs to have access to the IFS UNIX group.
 
 
 The block `forcing` allows to specify some variables to select what type of forcing data to download.
