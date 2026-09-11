@@ -196,10 +196,10 @@ REAL(KIND=JPRB) :: Z_RHOH20, ZD, &
  & ZDMAX, ZDMIN, ZALPHA, ZWFAC, ZLAM, ZMFAC, ZRMFAC, &
  & ZWCONS, ZKMD, &
  & ZRSFL, ZROEFF, ZSIGOR, ZBWS, ZB1, ZBM, ZWMAX, ZWMIN, &
- & ZCONW1, ZLYEPS, ZLYSIC, ZVOL, ZROS, ZSUM, ZLIMRS, ZWSATM, ZWRESTM, ZWFAC_S, ZWK ,ZWMK
-REAL(KIND=JPRD) :: ZDD, ZKD, ZSE, ZSEMAX, ZDMAX_D, ZSEMIN, ZDMIN_D
+ & ZCONW1, ZLYEPS, ZLYSIC, ZVOL, ZROS, ZSUM, ZLIMRS, ZWSATM, ZWRESTM, ZWFAC_S
+REAL(KIND=JPRD) :: ZDD, ZKD, ZSE, ZSEMAX, ZDMAX_D, ZSEMIN, ZDMIN_D, ZFMAX
 
-REAL(KIND=JPRB) :: ZFRK(KLON,KLEVS)
+REAL(KIND=JPRB) :: ZFRK(KLEVS),ZWK(KLEVS),ZWMK(KLEVS)
 
 INTEGER(KIND=JPIM) :: KLEVS_WB,ILEVM1_WB
 
@@ -255,8 +255,8 @@ ENDIF
 !*          2.1 Preliminary quantities related to root extraction
 !               Compute first liquid fraction of soil water to 
 !               be used later in stress functions.
-DO JK=1,KLEVS
-  DO JL=KIDIA,KFDIA
+DO JL=KIDIA,KFDIA
+  DO JK=1,KLEVS_WB
     IF(PTSAM1M(JL,JK) < RTF1.AND.PTSAM1M(JL,JK) > RTF2) THEN
       ZF(JL,JK)=0.5_JPRB*(1.0_JPRB-SIN(RTF4*(PTSAM1M(JL,JK)-RTF3)))
     ELSEIF (PTSAM1M(JL,JK) <= RTF2) THEN
@@ -264,6 +264,10 @@ DO JK=1,KLEVS
     ELSE
       ZF(JL,JK)=0.0_JPRB
     ENDIF
+  ENDDO
+  ZFMAX=SUM(ZF(JL,1:KLEVS_WB)*RDAW(1:KLEVS_WB))/SUM(RDAW(1:KLEVS_WB))
+  DO JK=1,KLEVS_WB
+    ZF(JL,JK)=MIN(ZF(JL,JK),ZFMAX) ! Assume partial frozen soil is permeable via macropores (Mohammed et al. 2019 HESS)
     ZLIQ(JL,JK)=MAX(RWPWPM3D(JL,JK),MIN(RWCAPM3D(JL,JK),PWSAM1M(JL,JK)*(1._JPRB-ZF(JL,JK))))
   ENDDO
 ENDDO
@@ -400,7 +404,7 @@ DO JL=KIDIA,KFDIA
         ELSE
           ZSUM=0.
         ENDIF
-        ZFRK(JL,JK)=MAX(0.0_JPRB,(MIN(RSRDEP,SUM(RDAW(1:JK)))-ZSUM)/RDAW(JK))
+        ZFRK(JK)=MAX(0.0_JPRB,(MIN(RSRDEP,SUM(RDAW(1:JK)))-ZSUM)/RDAW(JK))
       ENDDO
       ZRSFL=PTSFL(JL)+PMSN(JL)+PTSFC(JL)                            !Units kg/m2/s
       IF (ZRSFL.GT.0.0_JPRB)THEN
@@ -409,18 +413,16 @@ DO JL=KIDIA,KFDIA
         ZBWS=MAX(MIN(ZROEFF,0.5_JPRB),0.01_JPRB)
         ZB1=1.0_JPRB+ZBWS
         ZBM=1.0_JPRB/ZB1
-        ZW=0.0_JPRB
-        ZWMAX=0.0_JPRB
-        DO JK=1,KLEVS
-          ZWK=MAX(0.0_JPRB,(PWSAM1M(JL,JK)-RWPWPM3D(JL,JK)))*(1.0_JPRB-ZF(JL,JK))+RWPWPM3D(JL,JK)
-          ZW=ZW+ZFRK(JL,JK)*ZWK*RDAW(JK)                              !Units m
-          ZWMK=((ZWSATM-RWPWPM3D(JL,JK))*(1.-ZF(JL,JK))+RWPWPM3D(JL,JK))
-          IF ( LEURBAN ) THEN
-           ZWMK=(((1.0_JPRB-PCUR(JL))*ZWSATM + PCUR(JL)*RURBSAT &
-             & -RWPWPM3D(JL,JK))*(1.-ZF(JL,JK))+RWPWPM3D(JL,JK))
-          ENDIF
-          ZWMAX=ZWMAX+ZFRK(JL,JK)*ZWMK*RDAW(JK)                          !Units m
-        ENDDO
+        ZWK(:)=MAX(0.0_JPRB,(PWSAM1M(JL,:)-RWPWPM3D(JL,:)))*(1.0_JPRB-ZF(JL,:))+RWPWPM3D(JL,:)
+        ZW=SUM(ZFRK(:)*ZWK(:)*RDAW(:))                              !Units m
+
+        ZWMK(:)=((ZWSATM-RWPWPM3D(JL,:))*(1.-ZF(JL,:))+RWPWPM3D(JL,:))
+
+        IF ( LEURBAN ) THEN
+          ZWMK(:)=(((1.0_JPRB-PCUR(JL))*ZWSATM + PCUR(JL)*RURBSAT &
+           & -RWPWPM3D(JL,:))*(1.-ZF(JL,:))+RWPWPM3D(JL,:))
+        ENDIF
+        ZWMAX=SUM(ZFRK(:)*ZWMK(:)*RDAW(:))                          !Units m
 
         ZCONW1=ZWMAX*ZB1
         ZLYEPS=MAX(0.0_JPRB,ZW-ZWMAX)                               !Units m
