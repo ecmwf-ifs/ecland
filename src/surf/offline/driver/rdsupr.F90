@@ -432,6 +432,9 @@ DO IVAR=1,NVARS2D
   END SELECT
   IF( MYPROC == 1 ) THEN
     WRITE(CDUM,*)TRIM(CVAR)
+!   ZREALD is the global field and NMX*NMY the global grid size, so the mask
+!   must be the global LMASK: LMASK(ISP:IENP) is this rank's slice only, and
+!   MINMAX loops to KLON*KLAT, reading past its end whenever NPROC > 1.
     CALL MINMAX(CDUM,ZREALD,NMX,NMY,LMASK,NULOUT)
   ENDIF
   CALL MPL_BARRIER()
@@ -587,6 +590,7 @@ DO IVAR=1,NVARS3D
     END SELECT
     IF( MYPROC == 1 ) THEN
       WRITE(CDUM,'(A8,I2.2)')TRIM(CVAR),ILEVS
+!     Global field and global NMX*NMY -- global mask, as above.
       CALL MINMAX(CDUM,ZREAL3D(:,IVTYPES),NMX,NMY,LMASK,NULOUT)
     ENDIF
     CALL MPL_BARRIER()
