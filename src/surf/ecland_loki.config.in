@@ -1,0 +1,227 @@
+[default]
+mode = "idem"
+role = "kernel"
+expand = true
+strict = true
+replicate = true
+enable_imports = false
+demote_locals = true
+
+# Keep infrastructure and external dependencies out of the scheduler.
+disable = [
+  'yomhook', 'dr_hook', 'abor1', 'abort', 'abort_surf', 'flush', 'write',
+  'parkind1', 'parkind2', 'ec_parkind',
+  'oml_mod', 'mpl_mod', 'mpl_module',
+  'ieee_arithmetic', 'ieee_exceptions',
+  'ieee_set_halting_mode', 'ieee_get_halting_mode',
+  'field_module', 'field_access_module', 'ec_lun', 'iso_c_binding',
+  'yoe*', 'yom*', 'yos*', 'yos_surf', 'abort_surf_mod',
+  'foedelta', 'foeew', 'foede', 'foelh', 'foedesu',
+  'pz0sea', 'pzplus', 'pzmins', 'pzz', 'pznsea', 'pz0ice', 'pz0sice',
+  'phihu', 'phimu', 'psihu', 'psimu', 'phims', 'phihs', 'psihs', 'psims',
+  'flwc', 'fsntcond', 'fsoiltcond', 'zflake_buoypar',
+  'emis_bvoc', 'bvoc_emis',
+  'get_surf', 'ocean_ml_driver', 'ocean_ml_driver_v2',
+  'dattim', 'updcal',
+  '*%update_view*', '*%sync_host*', '*#sget_host_data*', '*#sget_device_data*'
+]
+
+block = [
+  'parkind1', 'parkind2', 'ec_parkind',
+  'farquhar', 'surfws_init_ml', 'surfws_init_mloff', 'surfws_tsnadj'
+]
+
+
+#####################################################################
+##  Define dimensions                                              ##
+#####################################################################
+
+[dimensions.horizontal]
+  size = ["KLON", "NPROMA", "KPROMA"]
+  index = "JL"
+  lower = "KIDIA"
+  upper = "KFDIA"
+
+[dimensions.vertical]
+  size = "KLEV"
+  index = "JK"
+
+[dimensions.block_dim]
+  size = "NGPBLKS"
+  index = "IBL"
+
+#####################################################################
+# Transformation configuration
+# -----------------------------------------
+# Define specific transformation settings
+#####################################################################
+
+[transformations.RemoveCodeTransformation]
+  module = "loki.transformations"
+[transformations.RemoveCodeTransformation.options]
+  remove_marked_regions = true
+  remove_dead_code = false
+  remove_unused_args = false
+  call_names = ['dr_hook', 'abor1', 'abort', 'abort_surf', 'flush']
+  intrinsic_names = ['write', 'print']
+  kernel_only = true
+
+[transformations.IdemTransformation]
+  module = "loki.transformations"
+
+[transformations.ArrayShapeAnalysis]
+  classname = "ArgumentArrayShapeAnalysis"
+  module = "loki.transformations"
+
+[transformations.ArrayShapeSynthesis]
+  classname = "ExplicitArgumentArrayShapeTransformation"
+  module = "loki.transformations"
+
+[transformations.RemoveCode]
+  classname = "RemoveCodeTransformation"
+  module = "loki.transformations"
+[transformations.RemoveCode.options]
+  remove_marked_regions = true
+  remove_dead_code = false
+  remove_unused_args = false
+  call_names = ['dr_hook', 'abor1', 'abort', 'abort_surf', 'flush']
+  intrinsic_names = ['write', 'print']
+  kernel_only = true
+
+[transformations.Sanitise]
+  classname = "SanitiseTransformation"
+  module = "loki.transformations"
+[transformations.Sanitise.options]
+  resolve_associate_mappings = true
+
+[transformations.Inline]
+  classname = "InlineTransformation"
+  module = "loki.transformations"
+[transformations.Inline.options]
+  inline_internals = true
+  inline_marked = true
+  remove_dead_code = true
+  allowed_aliases = "JL"
+
+[transformations.SCCVector]
+  classname = "SCCVectorPipeline"
+  module = "loki.transformations.single_column"
+[transformations.SCCVector.options]
+  horizontal = "%dimensions.horizontal%"
+  block_dim = "%dimensions.block_dim%"
+  trim_vector_sections = true
+  directive = "openacc"
+  remove_unused_vars = true
+
+[transformations.SCCStack]
+  classname = "SCCStackPipeline"
+  module = "loki.transformations.single_column"
+[transformations.SCCStack.options]
+  horizontal = "%dimensions.horizontal%"
+  block_dim = "%dimensions.block_dim%"
+  trim_vector_sections = true
+  check_bounds = false
+  directive = "openacc"
+  remove_unused_vars = true
+
+[transformations.ModuleWrapTransformation]
+  module = "loki.transformations"
+[transformations.ModuleWrapTransformation.options]
+  module_suffix = "_MOD"
+  replace_ignore_items = false
+
+[transformations.DependencyTransformation]
+  module = "loki.transformations"
+[transformations.DependencyTransformation.options]
+  module_suffix = "_MOD"
+  suffix = "_LOKI"
+  replace_ignore_items = false
+
+[pipelines.idem]
+  transformations = [
+    'RemoveCodeTransformation', 'IdemTransformation',
+    'ModuleWrapTransformation', 'DependencyTransformation'
+  ]
+
+[pipelines.scc]
+  transformations = [
+    'ArrayShapeAnalysis', 'ArrayShapeSynthesis',
+    'RemoveCode', 'Sanitise', 'Inline',
+    'SCCVector', 'ModuleWrapTransformation', 'DependencyTransformation'
+  ]
+
+[pipelines.scc-stack]
+  transformations = [
+    'ArrayShapeAnalysis', 'ArrayShapeSynthesis',
+    'RemoveCode', 'Sanitise', 'Inline',
+    'SCCStack', 'ModuleWrapTransformation', 'DependencyTransformation'
+  ]
+
+#####################################################################
+##  Define source routine entry points                             ##
+#####################################################################
+
+[routines.surftstp_layer_loki]
+  role = "driver"
+  expand = true
+  replicate = false
+  lib = 'ecland-master-@prec@'
+
+[routines.surftstp]
+  role = "kernel"
+  expand = true
+  replicate = true
+  lib = 'ecland_surf_@prec@'
+
+[routines.surfbc_layer_loki]
+  role = "driver"
+  expand = true
+  replicate = false
+  lib = 'ecland-master-@prec@'
+
+[routines.surfbc]
+  role = "kernel"
+  expand = true
+  replicate = true
+  lib = 'ecland_surf_@prec@'
+
+[routines.surfrad_layer_loki]
+  role = "driver"
+  expand = true
+  replicate = false
+  lib = 'ecland-master-@prec@'
+
+[routines.surfrad]
+  role = "kernel"
+  expand = true
+  replicate = true
+  lib = 'ecland_surf_@prec@'
+
+[routines.surfws]
+  role = "kernel"
+  expand = true
+  replicate = true
+  lib = 'ecland_surf_@prec@'
+
+[routines.vdfmain1s_layer_loki]
+  role = "driver"
+  expand = true
+  replicate = false
+  lib = 'ecland-master-@prec@'
+
+[routines.surfexcdriver]
+  role = "kernel"
+  expand = true
+  replicate = true
+  lib = 'ecland_surf_@prec@'
+
+[routines.surfpp]
+  role = "kernel"
+  expand = true
+  replicate = true
+  lib = 'ecland_surf_@prec@'
+
+# Dummy these routine for source-inlining
+[routines.canalb]
+[routines.nitro_decline]
+[routines.surfws_init_ml]

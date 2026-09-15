@@ -1,0 +1,21 @@
+# Specify different technical setups here
+
+default: {}
+
+debug:
+  namelists:
+    - mode: set
+      namelist: NAM1S
+      entry: LDBGS1
+      value: true
+    - mode: set
+      namelist: NAM1S
+      entry: IDBGS1
+      value: 1
+
+gpu:
+  namelists:
+    - mode: set
+      namelist: NAMCT01S
+      entry: LON_GPU
+      value: true

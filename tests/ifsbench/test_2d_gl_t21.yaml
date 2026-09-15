@@ -1,4 +1,5 @@
 arch: !include arch.yaml
+tech: !include tech.yaml
 
 
 science:
@@ -74,8 +75,3 @@ science:
         namelist: NAMPHY
         entry: LECMF1WAY
         value: false
-
-
-tech:
-  # Specify technical setups here.
-  default: {}

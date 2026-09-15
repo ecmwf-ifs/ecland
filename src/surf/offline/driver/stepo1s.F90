@@ -4,11 +4,12 @@ USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
 USE YOMGP1S0 , ONLY : GP0
 USE YOMGP1SA , ONLY : GPA      ,QLQNUA   
 USE YOMDYN1S , ONLY : NSTEP
-USE YOMCT01S , ONLY : NFRPOS   ,NSTOP    ,NSTART   ,NFRRES
+USE YOMCT01S , ONLY : NFRPOS   ,NSTOP    ,NSTART   ,NFRRES, LON_GPU
 USE YOMLOG1S , ONLY : LACCUMW  ,CFFORC   ,CFOUT    ,LRESET ,LWROCR
 USE YOMGDI1S , ONLY : GDI1S    ,N2DDI    ,GDIAUX1S ,N2DDIAUX ,D1SWAFR
 USE YOMDPHY  , ONLY : NPOI     ,NGPP     ,NGPA, NBLOCKS
 USE YOMDIM1S , ONLY : NPROMA
+USE YOS_SURF , ONLY : YSURF
 
 #ifdef DOC
 ! (C) Copyright 1995- ECMWF.
@@ -84,6 +85,14 @@ REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 IF (LHOOK) CALL DR_HOOK('STEPO1S',0,ZHOOK_HANDLE)
 
+!     ------------------------------------------------------------------
+
+IF(LON_GPU)THEN
+  ! Offload time-invariant parameter structures on the first time-step
+  IF( NSTEP == 0 )THEN
+    CALL YSURF%UPDATE_DEVICE()
+  ENDIF
+ENDIF
 
 !     ------------------------------------------------------------------
 

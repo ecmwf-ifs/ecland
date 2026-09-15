@@ -12,3 +12,7 @@ include(surf.cmake)
 include(cmflood.cmake)
 include(offline_driver.cmake)
 include(offline_util.cmake)
+
+### Loki GPU pre-processing
+
+include(loki.cmake)

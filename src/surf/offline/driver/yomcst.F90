@@ -80,6 +80,7 @@ INTEGER(KIND=JPIM):: RCO2REFYEAR
 INTEGER(KIND=JPIM), PARAMETER :: RNCO2YEARS=81
 REAL(KIND=JPRB) :: RANCO2(RNCO2YEARS)
 
+!$acc declare copyin(RCPD, RG, RD, RETV, RLSTT, RLVTT, RTT, RSIGMA)
 
 !    ------------------------------------------------------------------
 END MODULE YOMCST

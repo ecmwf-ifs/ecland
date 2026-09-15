@@ -56,7 +56,10 @@ execute_process(
 )
 
 file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/arch.yaml DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
+file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/tech.yaml DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
 file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/custom_launchers.yaml DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
+file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/gpu_srun_launcher.yaml DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
+file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/gpu_cuda_gdb_launcher.yaml DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
 
 ## CI tests
 
@@ -129,6 +132,25 @@ foreach( prec sp dp )
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_2d_gl_t21_nocmf
             --validate=${REFDIR}/reference_2d_gl_t21_nocmf_${prec}.yaml --atol=${ATOL} --rtol=${RTOL}
     )
+
+    if( HAVE_ACC AND HAVE_LOKI )
+        # Add GPU-specific tests when OpenACC and Loki are enabled
+
+        ecbuild_add_test( TARGET ecland_ifsbench_2d_gl_t21_cmf_gpu_${prec}
+            TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
+            ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_t21_${prec}.yaml 2d_gl_t21_nocmf
+                --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_2d_gl_t21_nocmf_gpu_${prec}
+                --validate=${REFDIR}/reference_2d_gl_t21_cmf_${prec}.yaml --atol=${ATOL} --rtol=${RTOL}
+                --arch=atos --tech=gpu --launcher-config=ecland/tests/ifsbench/gpu_srun_launcher.yaml
+        )
+
+        ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_forward_gpu_${prec}
+            TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
+            ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml v1_EU_forward
+                --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_forward_gpu_${prec}
+                --arch=atos --tech=gpu --launcher-config=ecland/tests/ifsbench/gpu_srun_launcher.yaml
+        )
+    endif()
 
   endif()
 endforeach()

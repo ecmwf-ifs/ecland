@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-cmake_minimum_required( VERSION 3.24 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.25 FATAL_ERROR )
 
 include(FetchContent)
 
@@ -46,6 +46,11 @@ ecbuild_add_option( FEATURE OMP
                     DESCRIPTION "support for OpenMP shared memory parallelism"
                     REQUIRED_PACKAGES "OpenMP COMPONENTS Fortran" )
 
+ecbuild_add_option( FEATURE ACC
+                    DEFAULT OFF
+                    DESCRIPTION "Support for using GPUs with OpenACC"
+                    REQUIRED_PACKAGES "OpenACC COMPONENTS Fortran" )
+
 ecbuild_add_option( FEATURE DOUBLE_PRECISION
                     DEFAULT ON
                     DESCRIPTION "Support for Double Precision" )
@@ -58,6 +63,15 @@ ecbuild_add_option( FEATURE IFSBENCH_TESTS
                     DEFAULT ON
                     REQUIRED_PACKAGES "Python3 VERSION 3.8"
                     DESCRIPTION "Enable Python-based IFS-bench tests" )
+
+### Apply Loki source-to-source transformations to ecland physics
+ecbuild_add_option( FEATURE LOKI
+                    DEFAULT OFF
+                    DESCRIPTION "Apply Loki transformations to ecland physics"
+                    REQUIRED_PACKAGES "loki" )
+
+# Set default Loki transformation mode
+set( LOKI_MODE "idem" CACHE STRING "Transformation mode for Loki source transformations" )
 
 ### Define precisions
 set( HAVE_sp OFF )
@@ -77,6 +91,10 @@ if( HAVE_OMP )
   set( OpenMP_Fortran_LIBRARIES OpenMP::OpenMP_Fortran )
 else()
   ecbuild_critical( "Currently OpenMP is non-optional, but only for offline file cpg1s.F90" )
+endif()
+
+if( HAVE_ACC AND TARGET OpenACC::OpenACC_Fortran )
+  set( ECLAND_ACC_Fortran_LIBRARIES OpenACC::OpenACC_Fortran )
 endif()
 
 ### Sources
@@ -104,4 +122,3 @@ add_subdirectory(tests)
 ecbuild_install_project( NAME ${PROJECT_NAME} )
 
 ecbuild_print_summary()
-

@@ -63,4 +63,11 @@ REAL(KIND=JPRB) :: RTWAT_RTICECU_R
 !     *RTWAT_RTICECU_R* REAL      *RTWAT_RTICECU_R=1./(RTWAT-RTICECU)
 
 !       ----------------------------------------------------------------
+
+!$acc declare copyin(RVTMP2)
+!$acc declare copyin(R2ES, R3LES, R3IES, R4LES, &
+!$acc & R4IES, R5LES, R5IES, RVTMP2, R5ALVCP, &
+!$acc & R5ALSCP, RALVDCP, RALSDCP, RTWAT, RTICE, &
+!$acc & RTICECU, RTWAT_RTICE_R, RTWAT_RTICECU_R )
+
 END MODULE YOETHF

@@ -177,4 +177,7 @@ INTEGER (KIND=JPIM) :: NCWS ! Number of layers to merge at the end for the soil 
 ! LBVOC_EMIS: Logical: IF TRUE compute online BVOC emis
 
 !     -----------------------------------------------------------------
+
+!$acc declare copyin(LEFLAKE, LESNML, LEURBAN, LVDFTRAC, LBLEND)
+
 END MODULE YOEPHY

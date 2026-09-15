@@ -146,9 +146,11 @@ foreach( prec sp dp )
         fiat parkind_${prec}
         field_api_${prec}
         ${OpenMP_Fortran_LIBRARIES}
+	${ECLAND_ACC_Fortran_LIBRARIES}
         NetCDF::NetCDF_Fortran
       DEFINITIONS UseMPI_CMF
     )
+    set_target_properties(${PROJECT_NAME}-master-${prec} PROPERTIES LINKER_LANGUAGE Fortran)
     ecbuild_target_fortran_module_directory(
         TARGET ${PROJECT_NAME}-master-${prec}
         MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/module/offline_driver_${prec}

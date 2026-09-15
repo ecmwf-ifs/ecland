@@ -40,6 +40,15 @@ projects :
         cmake   : >
             ENABLE_ACC=OFF
 
+    - loki :
+        git     : https://github.com/ecmwf-ifs/loki
+        version : 0.4.0
+        optional: true
+        require : ecbuild
+        cmake   : >
+            LOKI_ENABLE_TESTS=OFF
+            LOKI_ENABLE_NO_INSTALL=ON
+
     - ecland :
         dir     : $PWD
 
@@ -49,6 +58,10 @@ options :
         help  : Enable single precision build
         cmake : ENABLE_SINGLE_PRECISION=ON
 
+    - with-static-linking :
+        help  : Build static libraries by default
+        cmake : BUILD_SHARED_LIBS=OFF
+
     - without-mpi :
         help  : Disable MPI
         cmake : ENABLE_MPI=OFF
@@ -56,3 +69,25 @@ options :
     - without-omp :
         help  : Disable OpenMP
         cmake : ENABLE_OMP=OFF
+
+    - with-acc :
+        help  : Enable OpenACC support
+        cmake : >
+            ENABLE_ACC=ON
+            FIELD_API_ENABLE_ACC=ON
+
+    - with-loki :
+        help  : Enable Loki source-to-source transformations for ecland physics
+        cmake : >
+            ENABLE_LOKI=ON
+            LOKI_ENABLE_NO_INSTALL=OFF
+
+    - without-loki-install :
+        help  : Skip installation of Loki (Requires Loki to be on the PATH)
+        cmake : >
+            LOKI_ENABLE_NO_INSTALL=ON
+            LOKI_ENABLE_CLAW=OFF
+
+    - loki-mode :
+        help  : Choose Loki transformation mode
+        cmake : LOKI_MODE={{value}}

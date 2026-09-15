@@ -27,6 +27,7 @@ jobs:
         name:
           - ac-cpu intel
           - ac-cpu nvhpc
+          - ac-gpu nvhpc
 
         include:
           - name: ac-cpu intel
@@ -54,6 +55,19 @@ jobs:
               #SBATCH --qos=np
             arch: ecmwf/hpc2020/nvhpc/24.5/hpcx-openmpi/2.17.1
             build_options: ~
+
+          - name: ac-gpu nvhpc
+            site: ac-batch
+            sbatch_options: |
+              #SBATCH --time=00:20:00
+              #SBATCH --nodes=1
+              #SBATCH --ntasks=4
+              #SBATCH --cpus-per-task=32
+              #SBATCH --hint=nomultithread
+              #SBATCH --mem=60GB
+              #SBATCH --qos=dg
+            arch: ecmwf/hpc2020/nvhpc/24.5/hpcx-openmpi/2.17.1
+            build_options: --with-loki --loki-mode=scc --with-acc --with-static-linking
 
     runs-on: [self-hosted, linux, hpc]
     env:
