@@ -299,7 +299,7 @@ cdo -f nc -t ecmwf copy albedo.grb albedo.nc
 # Workaround when using some cdo versions...
 albFileVar=$(cdo infon albedo.nc | head -n2 | tail -n-1 | awk '{print $13 }')
 if [[ $albFileVar != 'al' ]]; then
-  ncrename -v param193.19.0,al albedo.nc tmp.nc ; mv -f tmp.nc albedo.nc
+  ncrename -O -v ${albFileVar},al albedo.nc tmp.nc ; mv -f tmp.nc albedo.nc
 fi
 
 # Wetlands handled separately - in grib1
@@ -330,7 +330,7 @@ ncrename -v LSM,Mask mask.nc
 # Workaround for some eccodes setting of lake depth parameter in the clim.grb
 dlVar=$(cdo infon clim.nc | grep "param0." | awk '{print $13}')
 if [[ $dlVar != '' ]]; then
-  ncrename -v param0.2.1,dl clim.nc tmp.nc ; mv -f tmp.nc clim.nc
+  ncrename -O -v param0.2.1,dl clim.nc tmp.nc ; mv -f tmp.nc clim.nc
 fi
 
 # Fix initial condition files to follow ecLand standard
