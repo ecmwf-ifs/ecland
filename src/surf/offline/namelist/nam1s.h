@@ -15,6 +15,6 @@ NAMELIST/NAM1S/ LDBGS1 , LACCUMW , LSEMISS , CFFORC , CMODID , &
 	       &LWRLKE , &
                &LWRCO2 , LWRVEG , LWRFRA  , LWRFOR  , LWRBIO ,&
                &LWRTIL , LWREXT , LWRVTY ,CSITE,LWRD2M,LWRGGD,NDLEVEL,IDBGS1,&
-               &NCDFTYPE,LNCSNC
+               &NCDFTYPE,LNCSNC,NCHUNKTIME,NIOBUF
 
 !     -----------------------------------------------------------------

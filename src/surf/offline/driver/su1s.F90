@@ -9,7 +9,7 @@ USE YOMLOG1S , ONLY : LDBGS1   ,LACCUMW , LSEMISS , CFFORC &
 		             &,LWRLKE   ,LWROCP  , LWROCD  , LWROCR &
                      &,LOFFL    ,CFOUT    ,CFSURF  , CFINIT &
                      &,LWRCO2,LWRVEG,LWRFRA,LWRFOR,LWRBIO,LWRTIL,LWRVTY,CSITE &
-                     &,LWREXT,LWRD2M,LWRGGD,NDLEVEL,IDBGS1,NCDFTYPE,LNCSNC
+                     &,LWREXT,LWRD2M,LWRGGD,NDLEVEL,IDBGS1,NCDFTYPE,LNCSNC,NCHUNKTIME,NIOBUF
 
 USE YOMLUN1S , ONLY : NULNAM   ,NULOUT
 
@@ -92,6 +92,12 @@ CMODID='tessel'
 CVERID='1.1'
 NACCUR=1
 NDLEVEL=0
+! Records per chunk on the netCDF4 time axis: <0 auto-size (default),
+! 0 legacy one-record chunks, >0 force this many. See NC_DEF_VAR.
+NCHUNKTIME=-1
+! Output records buffered in memory before each netCDF write: <0 one time
+! chunk (default), 0 write straight through, >0 this many. See NCBUF_MOD.
+NIOBUF=-1
 NDIMCDF=2
 NCDFTYPE=4
 LNCSNC=.FALSE.

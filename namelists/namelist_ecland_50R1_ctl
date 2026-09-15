@@ -48,6 +48,10 @@
     NDIMCDF={ndimcdf}         ! INTEGER : NR OF GRID DIMENSIONS
     NDLEVEL=0                ! INTEGER : Level of netcdf4 compression 0-9: 0== no compression -faster output
     NCDFTYPE=4                ! type of netcdf output
+    NCHUNKTIME=-1            ! INTEGER : netcdf4 records per chunk on the time axis: <0 auto-size
+                             !           (default), 0 legacy 1-record chunks, >0 forced
+    NIOBUF=-1                ! INTEGER : output records buffered in memory before each write:
+                             !           <0 one time chunk (default), 0 write through, >0 forced
     LWRGG=.TRUE.              ! logical, write o_gg  - output instantaneus prognostics
     LWRCLM=.FALSE.            ! logical, write o_fix - output fix soil properties
     LWRGGD=.FALSE.            ! logical, write o_ggd - output mean prognostic evolution

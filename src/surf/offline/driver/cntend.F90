@@ -62,8 +62,9 @@ USE YOMLOG1S , ONLY : CFOUT &
            &,LWRCLD   ,LWRGG    ,LWRCLM   ,LWRLKE   &
            &,LWROCD   ,LWROCP   ,LWROCR   & !KPP
            &,LWRCO2 ,LWRVEG ,LWREXT ,LWRBIO ,LWRTIL ,LWRVTY,LWRD2M,LWRGGD
+USE NCBUF_MOD, ONLY : NCBUF_FLUSH_ALL
 USE YOEPHY,    ONLY : LECMF1WAY
-USE CMF_DRV_CONTROL_MOD,     ONLY: CMF_DRV_END  
+USE CMF_DRV_CONTROL_MOD,     ONLY: CMF_DRV_END
 
 USE MPL_MODULE
 IMPLICIT NONE
@@ -125,6 +126,9 @@ IF(CFOUT == 'netcdf')THEN
   LPOS(21)=LWRGGD
 
   IF( MYPROC == 1 ) THEN
+!   Any records still held by the write-behind buffer must reach the file
+!   before it is closed -- see NCBUF_MOD.
+    CALL NCBUF_FLUSH_ALL()
     DO J=1,JPNCDF
       NPOS=IPOS(J)
       IF(LPOS(J))CALL NCCLOS(NPOS,IERR)

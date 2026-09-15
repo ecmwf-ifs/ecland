@@ -30,6 +30,7 @@ list(APPEND offline_driver_src
 #    ibm.F90 # Already included in surf
     incdat.F90
     minmax.F90
+    ncbuf_mod.F90
     netcdf_utils.F90
 #    parkind1.F90 # Already included in fiat
     ptrgp1s.F90

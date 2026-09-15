@@ -408,6 +408,30 @@ These parameters can be identified by looking at the parameters between curly br
 
 The physics options, the output of more variables in netCDF and other settings can be accessed by modifying the namelist file provided.
 
+#### Output I/O tuning (`NAM1S`)
+
+Offline runs that write at every model step spend most of their wallclock in the
+netCDF writers unless the output files are laid out for it. Two `NAM1S` settings
+control that layout; both default to the fast behaviour and neither changes a
+single output value.
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `NCHUNKTIME` | `-1` | Records per chunk on the netCDF-4 time axis. `-1` sizes the chunk so it lands near 64 kB on disk; `0` restores the previous one-record-per-chunk layout; a positive value forces that many records. |
+| `NIOBUF` | `-1` | Output records held in memory before each write. `-1` buffers one time chunk; `0` writes straight through on every step; a positive value forces that many records. |
+
+With the defaults, a single-point site-year at 30-minute output runs roughly
+five times faster and the output directory is about seven times smaller than
+with `NCHUNKTIME=0, NIOBUF=0`, for byte-identical data. Buffered records are
+flushed when a buffer fills, when `LNCSNC=.TRUE.` forces a sync, and when the
+files are closed at the end of the run. Set both to `0` to reproduce the older
+file layout exactly.
+
+One consequence of buffering: if a run is killed part-way, the records still in
+memory never reach the file, so a truncated output file lags the last completed
+step by more than it used to. For a run whose partial output must survive an
+abort, set `NIOBUF=0` (or `LNCSNC=.TRUE.`, which flushes on every write).
+
 #### Running with Cama-Flood river routing
 By default the routing of runoff using Cama-Flood is turned off.
 This requires input data that can be accessed from the Cama-flood developers' page at this

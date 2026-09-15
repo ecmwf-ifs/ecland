@@ -563,26 +563,98 @@ END SUBROUTINE INIT_NCDF_VAR
 
 SUBROUTINE NC_DEF_VAR(NPOS,TVAR,DIMIDS,VARID)
 USE YOMLUN1S , ONLY : RMISS,IMISS,ZMISS,NCTYPE,DMISS
-IMPLICIT NONE 
+USE YOMLOG1S , ONLY : NCHUNKTIME
+IMPLICIT NONE
 
-!* -- define a netcdf variable 
+!* -- define a netcdf variable
 
 INTEGER(KIND=JPIM),INTENT(IN)  :: NPOS
 TYPE(TYPE_NCDF_VAR),INTENT(IN) :: TVAR
 INTEGER(KIND=JPIM),INTENT(IN)  :: DIMIDS(:)
 INTEGER(KIND=JPIM),INTENT(OUT) :: VARID
 
-!* -- LOCAL 
+!* -- LOCAL
 LOGICAL :: SHUFFLE
+
+!  Chunking/caching of the record (time) axis -- see the NCHUNKTIME block below.
+INTEGER(KIND=JPIM),PARAMETER :: ITARGET_BYTES = 65536    ! aimed-for chunk size on disk
+INTEGER(KIND=JPIM),PARAMETER :: ICHUNK_TMAX   = 4096     ! cap on records per chunk
+INTEGER(KIND=JPIM) :: ICHUNKS(SIZE(DIMIDS)),IUNLIM,IDIM,ILEN,IELEM,IRECBYTES
+INTEGER(KIND=JPIM) :: ICHUNK_T,ICACHE,ICHUNKBYTES
+LOGICAL :: LLHASTIME
 
 SHUFFLE = .TRUE.
 IF ( TVAR%IDLEVEL == 0 ) SHUFFLE = .FALSE.
 ! WRITE(*,*),'Creating:',NPOS,TRIM(TVAR%CNAME)
 ! print*,DIMIDS
 IF ( NCTYPE == NF90_NETCDF4  .OR. NCTYPE == NF90_CLASSIC_MODEL+NF90_NETCDF4  ) THEN
-  CALL NCERROR( NF90_DEF_VAR(NPOS,TRIM(TVAR%CNAME),TVAR%IACCUR,DIMIDS,VARID,&
-                DEFLATE_LEVEL=TVAR%IDLEVEL,SHUFFLE=SHUFFLE,cache_preemption=0,cache_nelems=1,cache_size=10),&
-                "Creating variable "//TRIM(TVAR%CNAME))
+
+! A variable on the unlimited (time) axis is chunked by HDF5, and the default
+! chunking is one record per chunk -- which for a single-point run means a
+! 1x1x1, i.e. 4-byte, chunk. Every put_var then costs a B-tree insert and a
+! write-through (the legacy 10-byte cache below could not hold even one chunk),
+! so a site-year of 30-min output became ~260k tiny writes per variable and I/O
+! dominated the run: measured at 87% of wallclock on AR-SLu, with WRTDCDF alone
+! at 66%. Size the record axis so a chunk lands near ITARGET_BYTES instead, and
+! give the variable a cache big enough to hold several of them, so appends
+! accumulate in memory and flush a chunk at a time. Values written are
+! unchanged -- this is storage layout only.
+!   NCHUNKTIME  < 0 : auto-size (default)
+!               = 0 : legacy behaviour, exactly as before
+!               > 0 : force this many records per chunk
+  LLHASTIME = .FALSE.
+  IF ( NCHUNKTIME /= 0 ) THEN
+    CALL NCERROR( NF90_INQUIRE(NPOS,UNLIMITEDDIMID=IUNLIM) )
+    IRECBYTES = 1
+    SELECT CASE ( TVAR%IACCUR )
+      CASE ( NF90_DOUBLE ) ; IELEM = 8
+      CASE DEFAULT         ; IELEM = 4
+    END SELECT
+    DO IDIM=1,SIZE(DIMIDS)
+      IF ( DIMIDS(IDIM) == IUNLIM ) THEN
+        LLHASTIME = .TRUE.
+        ICHUNKS(IDIM) = 1                      ! filled in once the record size is known
+      ELSE
+        CALL NCERROR( NF90_INQUIRE_DIMENSION(NPOS,DIMIDS(IDIM),LEN=ILEN) )
+        ICHUNKS(IDIM) = MAX(1,ILEN)            ! keep the spatial/level extent whole
+        IRECBYTES = IRECBYTES*MAX(1,ILEN)
+      ENDIF
+    ENDDO
+    IRECBYTES = IRECBYTES*IELEM
+  ENDIF
+
+! A single record already larger than the target is not the pathological case:
+! there the library's own default chunking is well tuned, so leave the layout
+! to it and only widen the cache. Only a record that is small compared with a
+! sensible chunk needs several records gathered into one.
+  IF ( LLHASTIME .AND. IRECBYTES > ITARGET_BYTES .AND. NCHUNKTIME < 0 ) THEN
+    ICACHE = MIN(4194304_JPIM,MAX(65536_JPIM,2_JPIM*IRECBYTES))
+    CALL NCERROR( NF90_DEF_VAR(NPOS,TRIM(TVAR%CNAME),TVAR%IACCUR,DIMIDS,VARID,&
+                  DEFLATE_LEVEL=TVAR%IDLEVEL,SHUFFLE=SHUFFLE,&
+                  cache_preemption=75,cache_nelems=13,cache_size=ICACHE),&
+                  "Creating variable "//TRIM(TVAR%CNAME))
+  ELSEIF ( LLHASTIME ) THEN
+    IF ( NCHUNKTIME > 0 ) THEN
+      ICHUNK_T = NCHUNKTIME
+    ELSE
+      ICHUNK_T = MAX(1_JPIM,MIN(ICHUNK_TMAX,ITARGET_BYTES/MAX(1_JPIM,IRECBYTES)))
+    ENDIF
+    DO IDIM=1,SIZE(DIMIDS)
+      IF ( DIMIDS(IDIM) == IUNLIM ) ICHUNKS(IDIM) = ICHUNK_T
+    ENDDO
+!   Hold a few chunks per variable: too small and HDF5 falls back to
+!   read-modify-write on every append, which is the behaviour being fixed.
+    ICHUNKBYTES = IRECBYTES*ICHUNK_T
+    ICACHE = MIN(4194304_JPIM,MAX(65536_JPIM,4_JPIM*ICHUNKBYTES))
+    CALL NCERROR( NF90_DEF_VAR(NPOS,TRIM(TVAR%CNAME),TVAR%IACCUR,DIMIDS,VARID,&
+                  DEFLATE_LEVEL=TVAR%IDLEVEL,SHUFFLE=SHUFFLE,CHUNKSIZES=ICHUNKS,&
+                  cache_preemption=75,cache_nelems=13,cache_size=ICACHE),&
+                  "Creating variable "//TRIM(TVAR%CNAME))
+  ELSE
+    CALL NCERROR( NF90_DEF_VAR(NPOS,TRIM(TVAR%CNAME),TVAR%IACCUR,DIMIDS,VARID,&
+                  DEFLATE_LEVEL=TVAR%IDLEVEL,SHUFFLE=SHUFFLE,cache_preemption=0,cache_nelems=1,cache_size=10),&
+                  "Creating variable "//TRIM(TVAR%CNAME))
+  ENDIF
 ELSEIF ( NCTYPE == NF90_64BIT_OFFSET .OR. NCTYPE == NF90_CLOBBER .OR. NCTYPE == NF90_SHARE  ) THEN
   CALL NCERROR( NF90_DEF_VAR(NPOS,TRIM(TVAR%CNAME),TVAR%IACCUR,DIMIDS,VARID),&
                 "Creating variable "//TRIM(TVAR%CNAME))
