@@ -32,7 +32,9 @@ foreach(program IN ITEMS
   ecbuild_add_executable(TARGET ${PROJECT_NAME}-${program}
     SOURCES offline/util/${program}.F90
     OBJECTS ${PROJECT_NAME}_offline_util_objs
-    LIBS NetCDF::NetCDF_Fortran eccodes_f90)
+    LIBS NetCDF::NetCDF_Fortran eccodes_f90
+    LINKER_LANGUAGE Fortran
+  )
   ecbuild_target_fortran_module_directory(
       TARGET ${PROJECT_NAME}-${program}
       MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/module/offline_util
