@@ -1,0 +1,90 @@
+arch: !include arch.yaml
+
+
+science:
+  # Full-size TCo399 surface test with CaMaFlood (CMF) enabled.
+  2d_gl_tco399_cmf: &2d_gl_tco399
+    binary_path: @CMAKE_BINARY_DIR@/bin/ecland-master-@ECLAND_PREC@
+
+    namelist_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/input
+    namelist_cmf_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/input_cmf.nam
+
+    input_data:
+      - class_name: FetchHandler
+        target_path: 'forcing.tar.gz'
+        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/forcing.tar.gz
+
+      - class_name: ExtractHandler
+        target_path: 'forcing'
+        archive_path: forcing.tar.gz
+
+      - class_name: FetchHandler
+        target_path: 'Ctpf.nc'
+        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/Ctpf.nc
+
+      - class_name: FetchHandler
+        target_path: 'soilinit'
+        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/soilinit
+
+      - class_name: FetchHandler
+        target_path: 'surfclim'
+        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/surfclim
+
+      - class_name: FetchHandler
+        target_path: 'diminfo.txt'
+        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/diminfo.txt
+
+      - class_name: FetchHandler
+        target_path: 'rivpar.nc'
+        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/rivpar.nc
+
+      - class_name: FetchHandler
+        target_path: 'rivclim.nc'
+        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/rivclim.nc
+
+      - class_name: FetchHandler
+        target_path: 'bifprm.txt'
+        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/bifprm.txt
+
+      - class_name: FetchHandler
+        target_path: 'inpmat.nc'
+        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/inpmat.nc
+
+      - class_name: FetchHandler
+        target_path: 'mpireg.nc'
+        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/mpireg.nc
+
+    namelists:
+      - {mode: set, namelist: NAMFORC, entry: CFORCV, value: 'forcing/Wind_N.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCU, value: 'forcing/Wind_E.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCT, value: 'forcing/Tair.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCQ, value: 'forcing/Qair.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCP, value: 'forcing/PSurf.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCRAIN, value: 'forcing/Rainf.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCSNOW, value: 'forcing/Snowf.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCSW, value: 'forcing/SWdown.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCLW, value: 'forcing/LWdown.nc'}
+
+    job:
+      tasks: 16
+      cpus_per_task: 8
+
+
+  2d_gl_tco399_nocmf:
+    <<: *2d_gl_tco399
+
+    namelists:
+      - {mode: set, namelist: NAMFORC, entry: CFORCV, value: 'forcing/Wind_N.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCU, value: 'forcing/Wind_E.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCT, value: 'forcing/Tair.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCQ, value: 'forcing/Qair.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCP, value: 'forcing/PSurf.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCRAIN, value: 'forcing/Rainf.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCSNOW, value: 'forcing/Snowf.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCSW, value: 'forcing/SWdown.nc'}
+      - {mode: set, namelist: NAMFORC, entry: CFORCLW, value: 'forcing/LWdown.nc'}
+      - {mode: set, namelist: NAMPHY, entry: LECMF1WAY, value: false}
+
+
+tech:
+  default: {}
