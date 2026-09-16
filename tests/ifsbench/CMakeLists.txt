@@ -69,6 +69,7 @@ foreach( prec sp dp )
     set( ECLAND_PREC ${prec} )
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test_v1_EU.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml @ONLY )
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test_2d_gl_t21.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_t21_${prec}.yaml @ONLY )
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test_2d_gl_tco399.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_tco399_${prec}.yaml @ONLY )
 
     # Set tolerances for validation
     if(${prec} MATCHES "sp")
