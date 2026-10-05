@@ -355,9 +355,9 @@ DO JF=1,NVARSOUT
     CALL CREATE_OUTBIN
   ENDIF
 END DO
-!#ifdef IFS_CMF
+#ifdef IFS_CMF
 IF (LOUTGRB) CALL CMF_MULTIO_INITIALISE
-!#endif IFS_CMF
+#endif IFS_CMF
 IRECOUT=0  ! Initialize Output record to 1 (shared in netcdf & binary)
 
 CONTAINS
@@ -457,9 +457,9 @@ WRITE(LOGNAM,*) 'OPEN IN UNIT: ',VAROUT(JF)%NCID
 END SUBROUTINE CREATE_OUTCDF
 !==========================================================
 
+#ifdef IFS_CMF
 SUBROUTINE MULTIO_CUSTOM_ERROR_HANDLER(CONTEXT, ERR, INFO)
   ! Makes sure MultIO aborts properly in case of an error.
-#ifdef IFS_CMF
   USE MULTIO_API, ONLY: &
     MULTIO_SUCCESS, &
     MULTIO_FAILURE_INFO, &
@@ -478,8 +478,8 @@ SUBROUTINE MULTIO_CUSTOM_ERROR_HANDLER(CONTEXT, ERR, INFO)
       ER = MIO_HANDLE%DELETE()
       CALL MPL_ABORT('MULTIO ERROR: ' // multio_error_string(err, info))
   ENDIF
-#endif IFS_CMF
 END SUBROUTINE
+#endif IFS_CMF
 
 SUBROUTINE CMF_MULTIO_INITIALISE
 #ifdef IFS_CMF
@@ -691,11 +691,11 @@ IF ( MOD(JHOUR,IFRQ_OUT)==0 .and. JMIN==0 ) THEN             ! JHOUR: end of tim
         ENDIF
       ENDIF
     ENDIF
-!#ifdef IFS_CMF
+#ifdef IFS_CMF
     IF ( LOUTGRB .AND. REGIONTHIS==1  .AND. VAROUT(JF)%GRIB ) THEN
       CALL CMF_WRITE_MULTIO(VAROUT(JF), R2OUT)
     ENDIF
-!#endif IFS_CMF
+#endif IFS_CMF
   END DO
 
   WRITE(LOGNAM,*) 'CMF::OUTPUT_WRITE: end'
@@ -785,8 +785,8 @@ END SUBROUTINE WRTE_OUTCDF
 END SUBROUTINE CMF_OUTPUT_WRITE
 !####################################################################
 
-SUBROUTINE CMF_WRITE_MULTIO(VAROUT, FIELD)
 #ifdef IFS_CMF
+SUBROUTINE CMF_WRITE_MULTIO(VAROUT, FIELD)
   USE YOS_CMF_TIME, ONLY: KSTEP, ISYYYYMMDD, ISHHMM
   USE YOS_CMF_DIAG, ONLY: NADD_out
   USE MULTIO_API, ONLY: MULTIO_METADATA
@@ -849,8 +849,8 @@ SUBROUTINE CMF_WRITE_MULTIO(VAROUT, FIELD)
   ERR = MIO_MD%DELETE()
 !$OMP END CRITICAL
 
-#endif IFS_CMF
 end SUBROUTINE CMF_WRITE_MULTIO
+#endif IFS_CMF
 
 !####################################################################
 SUBROUTINE CMF_OUTPUT_END
