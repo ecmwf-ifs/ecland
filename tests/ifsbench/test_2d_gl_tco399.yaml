@@ -12,7 +12,7 @@ science:
     input_data:
       - class_name: FetchHandler
         target_path: 'forcing.tar.gz'
-        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/forcing.tar.gz
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_TCO399-CMF/forcing.tar.gz
 
       - class_name: ExtractHandler
         target_path: 'forcing'
@@ -20,39 +20,39 @@ science:
 
       - class_name: FetchHandler
         target_path: 'Ctpf.nc'
-        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/Ctpf.nc
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_TCO399-CMF/Ctpf.nc
 
       - class_name: FetchHandler
         target_path: 'soilinit'
-        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/soilinit
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_TCO399-CMF/soilinit
 
       - class_name: FetchHandler
         target_path: 'surfclim'
-        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/surfclim
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_TCO399-CMF/surfclim
 
       - class_name: FetchHandler
         target_path: 'diminfo.txt'
-        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/diminfo.txt
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_TCO399-CMF/diminfo.txt
 
       - class_name: FetchHandler
         target_path: 'rivpar.nc'
-        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/rivpar.nc
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_TCO399-CMF/rivpar.nc
 
       - class_name: FetchHandler
         target_path: 'rivclim.nc'
-        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/rivclim.nc
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_TCO399-CMF/rivclim.nc
 
       - class_name: FetchHandler
         target_path: 'bifprm.txt'
-        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/bifprm.txt
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_TCO399-CMF/bifprm.txt
 
       - class_name: FetchHandler
         target_path: 'inpmat.nc'
-        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/inpmat.nc
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_TCO399-CMF/inpmat.nc
 
       - class_name: FetchHandler
         target_path: 'mpireg.nc'
-        source_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/mpireg.nc
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_TCO399-CMF/mpireg.nc
 
     namelists:
       - {mode: set, namelist: NAMFORC, entry: CFORCV, value: 'forcing/Wind_N.nc'}
