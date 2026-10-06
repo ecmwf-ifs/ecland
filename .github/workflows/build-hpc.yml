@@ -34,8 +34,8 @@ jobs:
             sbatch_options: |
               #SBATCH --time=00:20:00
               #SBATCH --nodes=1
-              #SBATCH --ntasks=4
-              #SBATCH --cpus-per-task=32
+              #SBATCH --ntasks=16
+              #SBATCH --cpus-per-task=8
               #SBATCH --hint=nomultithread
               #SBATCH --mem=60GB
               #SBATCH --qos=np
@@ -47,8 +47,8 @@ jobs:
             sbatch_options: |
               #SBATCH --time=00:20:00
               #SBATCH --nodes=1
-              #SBATCH --ntasks=4
-              #SBATCH --cpus-per-task=32
+              #SBATCH --ntasks=16
+              #SBATCH --cpus-per-task=8
               #SBATCH --hint=nomultithread
               #SBATCH --mem=60GB
               #SBATCH --qos=np
@@ -92,9 +92,15 @@ jobs:
             { set +x; } 2>/dev/null # trace off
             echo "::endgroup::"
 
-            echo "::group::ecLand test"
+            echo "::group::ecLand small tests"
             { set -x; } 2>/dev/null # trace on
             export IFSBENCH_ARCH=atos
-            ctest --test-dir build/ecland -VV --output-on-failure
+            ctest --test-dir build/ecland -VV --output-on-failure -LE '^LARGE$'
+            { set +x; } 2>/dev/null # trace off
+            echo "::endgroup::"
+
+            echo "::group::ecLand large tests"
+            { set -x; } 2>/dev/null # trace on
+            ctest --test-dir build/ecland -VV --output-on-failure -L '^LARGE$' --no-tests=error
             { set +x; } 2>/dev/null # trace off
             echo "::endgroup::"
