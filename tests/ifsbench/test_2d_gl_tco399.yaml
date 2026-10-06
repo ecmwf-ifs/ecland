@@ -6,8 +6,8 @@ science:
   2d_gl_tco399_cmf: &2d_gl_tco399
     binary_path: @CMAKE_BINARY_DIR@/bin/ecland-master-@ECLAND_PREC@
 
-    namelist_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/input
-    namelist_cmf_url: file:///perm/naml/ecland_data/data_2d_gl_tco399/input_cmf.nam
+    namelist_url: file://@CMAKE_CURRENT_SOURCE_DIR@/namelist_2d_gl_tco399
+    namelist_cmf_url: file://@CMAKE_CURRENT_SOURCE_DIR@/namelist_cmf_2d_gl_tco399
 
     input_data:
       - class_name: FetchHandler
