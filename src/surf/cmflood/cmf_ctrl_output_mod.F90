@@ -654,7 +654,7 @@ IF ( MOD(JHOUR,IFRQ_OUT)==0 .and. JMIN==0 ) THEN             ! JHOUR: end of tim
         D2VEC =>  D2LEVDPH
 
       CASE DEFAULT
-!        WRITE(LOGNAM,*) VAROUT(JF)%CVNAME, ' Not defined in CMF_OUTPUT_MOD'
+        WRITE(LOGNAM,*) VAROUT(JF)%CVNAME, ' Not defined in CMF_OUTPUT_MOD'
 
     END SELECT   !! variable name select
 
