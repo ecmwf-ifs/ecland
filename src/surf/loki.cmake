@@ -7,6 +7,7 @@ if( HAVE_LOKI )
 
   foreach( prec sp dp )
     if( HAVE_${prec} )
+      string(TOUPPER "${prec}" PREC)
 
       # Pre-process ecland_loki.config file, since the 'lib' attribute needs to
       # match the target(s) and therefore the precision 'prec' is necessary to be correct.
@@ -15,7 +16,7 @@ if( HAVE_LOKI )
       configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/ecland_loki.config.in ${LOKI_CONFIG_FILE} @ONLY )
 
       loki_transform_target(
-        TARGET ${PROJECT_NAME}_surf_${prec} ${PROJECT_NAME}-master-${prec}
+        TARGET ${PROJECT_NAME}_surf_${prec} ${PROJECT_NAME}-master-${PREC}
         MODE ${LOKI_MODE}
         FRONTEND ${LOKI_FRONTEND}
         CONFIG ${LOKI_CONFIG_FILE}

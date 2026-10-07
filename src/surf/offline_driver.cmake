@@ -134,7 +134,9 @@ list(TRANSFORM offline_driver_src PREPEND offline/driver/)
 
 foreach( prec sp dp )
   if( HAVE_${prec} )
-    ecbuild_add_executable(TARGET ${PROJECT_NAME}-master-${prec}
+    string(TOUPPER "${prec}" PREC)
+
+    ecbuild_add_executable(TARGET ${PROJECT_NAME}-master-${PREC}
       SOURCES offline/master1s.F90
               ${offline_driver_src}
       INCLUDES
@@ -152,7 +154,7 @@ foreach( prec sp dp )
       LINKER_LANGUAGE Fortran
     )
     ecbuild_target_fortran_module_directory(
-        TARGET ${PROJECT_NAME}-master-${prec}
+        TARGET ${PROJECT_NAME}-master-${PREC}
         MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/module/offline_driver_${prec}
     )
   endif()
