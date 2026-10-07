@@ -8,11 +8,13 @@
 
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+  set(autopromote_flags   "-sreal64")
   set(checkbounds_flags   "-Rb")
   set(fpe_flags           "-Ktrap=fp")
   set(initsnan_flags      "-ei")
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+  set(autopromote_flags   "-fdefault-real-8;-fdefault-double-8")
   set(linelength_flags    "-ffree-line-length-none")
   set(checkbounds_flags   "-fcheck=bounds")
   set(fpe_flags           "-ffpe-trap=invalid,zero,overflow")
@@ -25,6 +27,7 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
   set(fpmodel_flags       "-ffp-contract=off")
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+  set(autopromote_flags   "-real-size;64")
   set(checkbounds_flags   "-check bounds")
   set(initsnan_flags      "-init=snan")
   set(fpe_flags           "-fpe0")
@@ -40,6 +43,7 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
   ecbuild_add_fortran_flags( "-diag-disable=7713" NAME unused_statement_function_remark )
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC")
+  set(autopromote_flags   "-r8")
   set(endian_flags        "-Mbyteswapio")
   set(checkbounds_flags   "-Mbounds")
   set(fpe_flags           "-Ktrap=fp")
@@ -61,6 +65,7 @@ elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Flang")
   set(fpe_flags           "-ffp-exception-behavior=strict")
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
+  set(autopromote_flags   "-fdefault-real-8")
   # Needed to guarantee matching test results with Debug build
   set(fpmodel_flags       "-ffp-contract=off")
 
