@@ -23,7 +23,7 @@ USE PARKIND1,                ONLY: JPIM, JPRB, JPRM
 USE YOS_CMF_INPUT,           ONLY: LOGNAM,  IFRQ_OUT
 USE YOS_CMF_INPUT,           ONLY: CSUFBIN, CSUFVEC, CSUFPTH, CSUFCDF
 USE YOS_CMF_INPUT,           ONLY: LPTHOUT, LDAMOUT, LLEVEE,  LWEVAP, LGDWDLY, LOUTINS,LROSPLIT
-#ifdef IFS_CMF
+#ifdef WITH_MULTIO
 USE MULTIO_API,              ONLY: MULTIO_HANDLE
 #endif
 IMPLICIT NONE
@@ -38,7 +38,7 @@ LOGICAL                         ::  LOUTVEC           ! TRUE FOR VECTORIAL OUTPU
 LOGICAL                         ::  LOUTCDF           ! true for netcdf outptu false for binary
 LOGICAL                         ::  LOUTGRB = .FALSE. ! true for GRIB2 output, requires IFS_CMF preprocessor flag and MultIO
 CHARACTER(LEN=256)              ::  GRBCONFIG = "./cmf-multio-conf.yaml"  ! MultIO GRIB2 configuration file path
-#ifdef IFS_CMF
+#ifdef WITH_MULTIO
 TYPE(MULTIO_HANDLE)             :: MIO_HANDLE
 #endif
 INTEGER(KIND=JPIM)              ::  NDLEVEL           ! NETCDF DEFLATION LEVEL 
@@ -355,9 +355,9 @@ DO JF=1,NVARSOUT
     CALL CREATE_OUTBIN
   ENDIF
 END DO
-#ifdef IFS_CMF
+#ifdef WITH_MULTIO
 IF (LOUTGRB) CALL CMF_MULTIO_INITIALISE
-#endif IFS_CMF
+#endif WITH_MULTIO
 IRECOUT=0  ! Initialize Output record to 1 (shared in netcdf & binary)
 
 CONTAINS
@@ -457,7 +457,7 @@ WRITE(LOGNAM,*) 'OPEN IN UNIT: ',VAROUT(JF)%NCID
 END SUBROUTINE CREATE_OUTCDF
 !==========================================================
 
-#ifdef IFS_CMF
+#ifdef WITH_MULTIO
 SUBROUTINE MULTIO_CUSTOM_ERROR_HANDLER(CONTEXT, ERR, INFO)
   ! Makes sure MultIO aborts properly in case of an error.
   USE MULTIO_API, ONLY: &
@@ -479,10 +479,10 @@ SUBROUTINE MULTIO_CUSTOM_ERROR_HANDLER(CONTEXT, ERR, INFO)
       CALL MPL_ABORT('MULTIO ERROR: ' // multio_error_string(err, info))
   ENDIF
 END SUBROUTINE
-#endif IFS_CMF
+#endif WITH_MULTIO
 
+#ifdef WITH_MULTIO
 SUBROUTINE CMF_MULTIO_INITIALISE
-#ifdef IFS_CMF
   USE MULTIO_API,         ONLY: &
     MULTIO_CONFIGURATION, &
     MULTIO_METADATA, &
@@ -513,8 +513,8 @@ SUBROUTINE CMF_MULTIO_INITIALISE
         & TRIM(AGGREGATION_METHOD(VAROUT(JF)%AGGREGATE)), " output variable: ", TRIM(CVNAMES(JF))
     END IF
   END DO
-#endif IFS_CMF
-end SUBROUTINE CMF_MULTIO_INITIALISE
+END SUBROUTINE CMF_MULTIO_INITIALISE
+#endif WITH_MULTIO
 !####################################################################
 
 END SUBROUTINE CMF_OUTPUT_INIT
@@ -691,11 +691,11 @@ IF ( MOD(JHOUR,IFRQ_OUT)==0 .and. JMIN==0 ) THEN             ! JHOUR: end of tim
         ENDIF
       ENDIF
     ENDIF
-#ifdef IFS_CMF
+#ifdef WITH_MULTIO
     IF ( LOUTGRB .AND. REGIONTHIS==1  .AND. VAROUT(JF)%GRIB ) THEN
       CALL CMF_WRITE_MULTIO(VAROUT(JF), R2OUT)
     ENDIF
-#endif IFS_CMF
+#endif WITH_MULTIO
   END DO
 
   WRITE(LOGNAM,*) 'CMF::OUTPUT_WRITE: end'
@@ -785,7 +785,7 @@ END SUBROUTINE WRTE_OUTCDF
 END SUBROUTINE CMF_OUTPUT_WRITE
 !####################################################################
 
-#ifdef IFS_CMF
+#ifdef WITH_MULTIO
 SUBROUTINE CMF_WRITE_MULTIO(VAROUT, FIELD)
   USE YOS_CMF_TIME, ONLY: KSTEP, ISYYYYMMDD, ISHHMM
   USE YOS_CMF_DIAG, ONLY: NADD_out
@@ -850,7 +850,7 @@ SUBROUTINE CMF_WRITE_MULTIO(VAROUT, FIELD)
 !$OMP END CRITICAL
 
 end SUBROUTINE CMF_WRITE_MULTIO
-#endif IFS_CMF
+#endif WITH_MULTIO
 
 !####################################################################
 SUBROUTINE CMF_OUTPUT_END
@@ -888,7 +888,7 @@ IF( REGIONTHIS==1 )THEN
   ENDIF
 ENDIF
 
-#ifdef IFS_CMF
+#ifdef WITH_MULTIO
 IF (LOUTGRB) THEN
   ERR = MIO_HANDLE%DELETE()
 ENDIF
