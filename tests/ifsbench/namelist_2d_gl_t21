@@ -4,7 +4,7 @@
     NFRPOS=94                 ! frequency of post-processing events (time-steps)
     NFRRES=0                 ! frequency of writing intermediate restart files (time-steps)
     LNF=.TRUE.               ! .T. = start, .F. = restart
-    NCYCLE=1                ! number of the experiment
+    NOSMCYCLE=1             ! number of the experiment
     CNMEXP="DEFAULT"            ! name of the experiment
     /
     &NAMDYN1S
