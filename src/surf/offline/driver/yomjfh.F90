@@ -17,6 +17,8 @@ SAVE
 
 INTEGER(KIND=JPIM) :: N_VMASS=0
 
+!$acc declare create(N_VMASS)
+
 !    -----------------------------------------------------------------
 
 END MODULE YOMJFH

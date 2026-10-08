@@ -10,6 +10,7 @@
 NAMELIST/NAMCT01S/LNF,LMPLOT, NFRPLT, NCYCLE &
               &,CNMEXP &
               &,NSTART,NSTOP &
-              &,NFRPOS,NFRHIS,NPOSTS,NHISTS,NFRRES
+              &,NFRPOS,NFRHIS,NPOSTS,NHISTS,NFRRES &
+              &,LON_GPU
 
 !     ------------------------------------------------------------------

@@ -52,6 +52,8 @@ SAVE
 ! REXTZ0M : externally supplied roughness length for momentum [m]
 ! REXTZ0H : externally supplied roughness length for heat [m]
 
+!========== GPU offload switches ==============================================
+! LON_GPU : Offload timestep computations to GPU
 
 
 INTEGER(KIND=JPIM), PARAMETER :: JPNPST=240
@@ -77,6 +79,9 @@ REAL(KIND=JPRB) :: REXTLHF
 LOGICAL :: LROUGH
 REAL(KIND=JPRB) :: REXTZ0M
 REAL(KIND=JPRB) :: REXTZ0H
+
+! * GPU offload
+LOGICAL :: LON_GPU
 
 !     ------------------------------------------------------------------
 END MODULE YOMCT01S

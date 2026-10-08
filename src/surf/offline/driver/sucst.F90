@@ -197,6 +197,8 @@ RLSZER=RLSTT+RTT*(RCS-RCPV)
 RLMLT=RLSTT-RLVTT
 RATM=100000._JPRB
 
+!$acc update device(RCPD, RG, RD, RETV, RLSTT, RLVTT, RTT, RSIGMA)
+
 !     ------------------------------------------------------------------
 
 !*       9.    SATURATED VAPOUR PRESSURE.
@@ -319,4 +321,3 @@ ENDIF
 
 IF (LHOOK) CALL DR_HOOK('SUCST',1,ZHOOK_HANDLE)
 END SUBROUTINE SUCST
-

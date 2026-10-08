@@ -43,8 +43,15 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "PGI|NVHPC")
   set(endian_flags        "-Mbyteswapio")
   set(checkbounds_flags   "-Mbounds")
   set(fpe_flags           "-Ktrap=fp")
-  set(initsnan_flags      "-Minit-real=snan")
   set(optimization_flags  "-g -O3 -fast")
+
+  if( HAVE_ACC )
+    # NVHPC lowers -Minit-real=snan initialization of local real arrays to
+    # __c_mset8 calls, which are rejected inside OpenACC device routines.
+    set(initsnan_flags      "")
+  else()
+    set(initsnan_flags      "-Minit-real=snan")
+  endif()
 
   # Needed to guarantee matching test results with Debug build
   set(fpmodel_flags       "-Kieee")
