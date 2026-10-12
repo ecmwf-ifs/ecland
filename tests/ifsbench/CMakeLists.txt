@@ -137,7 +137,7 @@ foreach( prec sp dp )
         ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_tco399_${prec}.yaml 2d_gl_tco399_nocmf
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_2d_gl_tco399_nocmf_${prec}
             --validate=${REFDIR}/reference_2d_gl_tco399_nocmf_${prec}.yaml --atol=${ATOL} --rtol=${RTOL}
-   	    --arch=atos -f"--mem=80G"
+   	    --arch=atos
         LABELS IFSBENCH LARGE
     )
 
