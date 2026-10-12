@@ -39,7 +39,7 @@ jobs:
               #SBATCH --ntasks=16
               #SBATCH --cpus-per-task=8
               #SBATCH --hint=nomultithread
-              #SBATCH --mem=60GB
+              #SBATCH --mem=80GB
             arch: ecmwf/hpc2020/intel/2023.2.0/hpcx-openmpi/2.9.0
             build_options: ~
 
@@ -52,7 +52,7 @@ jobs:
               #SBATCH --ntasks=16
               #SBATCH --cpus-per-task=8
               #SBATCH --hint=nomultithread
-              #SBATCH --mem=60GB
+              #SBATCH --mem=80GB
             arch: ecmwf/hpc2020/nvhpc/24.5/hpcx-openmpi/2.17.1
             build_options: ~
 
