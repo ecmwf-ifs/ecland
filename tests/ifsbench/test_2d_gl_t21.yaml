@@ -36,7 +36,7 @@ science:
 
       - class_name: FetchHandler
         target_path: 'diminfo.txt'
-        source_url: file://@CMAKE_CURRENT_SOURCE_DIR@/cmf_diminfo.txt
+        source_url: https://sites.ecmwf.int/repository/ecland/tests/2.0/2D_GL_T21-CMF/diminfo.txt
 
       - class_name: FetchHandler
         target_path: 'rivpar.nc'

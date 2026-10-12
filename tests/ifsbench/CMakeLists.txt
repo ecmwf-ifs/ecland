@@ -69,6 +69,7 @@ foreach( prec sp dp )
     set( ECLAND_PREC ${prec} )
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test_v1_EU.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml @ONLY )
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test_2d_gl_t21.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_t21_${prec}.yaml @ONLY )
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/test_2d_gl_tco399.yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_tco399_${prec}.yaml @ONLY )
 
     # Set tolerances for validation
     if(${prec} MATCHES "sp")
@@ -128,6 +129,16 @@ foreach( prec sp dp )
         ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_t21_${prec}.yaml 2d_gl_t21_nocmf
             --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_2d_gl_t21_nocmf
             --validate=${REFDIR}/reference_2d_gl_t21_nocmf_${prec}.yaml --atol=${ATOL} --rtol=${RTOL}
+    )
+
+    # Large global tests run only on HPC CI - this is land-only, no CMF (yet).
+    ecbuild_add_test( TARGET ecland_ifsbench_2d_gl_tco399_nocmf_${prec}
+        TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
+        ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_tco399_${prec}.yaml 2d_gl_tco399_nocmf
+            --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_2d_gl_tco399_nocmf_${prec}
+            --validate=${REFDIR}/reference_2d_gl_tco399_nocmf_${prec}.yaml --atol=${ATOL} --rtol=${RTOL}
+   	    --arch=atos
+        LABELS IFSBENCH LARGE
     )
 
   endif()
