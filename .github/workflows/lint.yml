@@ -1,0 +1,55 @@
+name: lint
+
+# Controls when the action will run
+on:
+
+  # Trigger the workflow on all pushes, except on tag creation
+  push:
+    branches:
+    - '**'
+    tags-ignore:
+    - '**'
+
+  # Trigger the workflow on all pull requests
+  pull_request: ~
+
+  # Allow workflow to be dispatched on demand
+  workflow_dispatch: ~
+
+env:
+  IAL_LINT_VERSION: 0.1.0
+
+jobs:
+  loki-lint:
+    name: loki-lint
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Loki and ial-lint
+      run: |
+        python -m venv "${{ runner.temp }}/venv"
+        . "${{ runner.temp }}/venv/bin/activate"
+        python -m pip install --upgrade pip
+        # pip install "loki @ git+https://github.com/ecmwf-ifs/loki@${LOKI_VERSION}"
+        pip install "ial-lint @ git+https://github.com/ecmwf-ifs/ial-lint@${IAL_LINT_VERSION}"
+
+    - name: Run loki-lint
+      run: |
+        . "${{ runner.temp }}/venv/bin/activate"
+        loki-lint.py --rules-module "ial_lint.rules.ifs_arpege_coding_standards" check --config lint-config.yml
+
+    - name: Upload lint report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: loki-lint-report
+        path: linter.xml
+        if-no-files-found: ignore
