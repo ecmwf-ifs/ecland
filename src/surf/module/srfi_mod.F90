@@ -1,4 +1,5 @@
 MODULE SRFI_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFI(KIDIA  , KFDIA  , KLON , KLEVS  , KLEVI  ,LDLAND, &
  & PTMST  ,PFRTI ,PTIAM1M , PAHFSTI, PEVAPTI, PGSN,&
@@ -88,7 +89,6 @@ USE SRFWDIF_MOD, ONLY: SRFWDIF
 !              G. Arduini       Sept 2024 Land-ice fraction
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -356,6 +356,5 @@ DO JK=1,KLEVS
 ENDDO
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SRFI_MOD:SRFI',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFI
 END MODULE SRFI_MOD

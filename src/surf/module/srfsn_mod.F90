@@ -1,4 +1,5 @@
 MODULE SRFSN_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFSN(KIDIA       , KFDIA  , KLON   , KTILES  , PTMST, &
  & PSSNM1M ,PTSNM1M ,PASNM1M ,PRSNM1M ,PTSAM1M ,PHLICEM1M, &
@@ -115,7 +116,6 @@ USE YOS_URB  , ONLY : TURB
 !     J. McNorton    24/08/2022      urban tile
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -396,6 +396,5 @@ DO JL=KIDIA,KFDIA
 ENDDO
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SRFSN_MOD:SRFSN',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFSN
 END MODULE SRFSN_MOD

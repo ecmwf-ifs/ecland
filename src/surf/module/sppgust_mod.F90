@@ -1,4 +1,5 @@
 MODULE SPPGUST_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SPPGUST(KIDIA, KFDIA, KLON &
  & , PZ0MM, PBUOM, PUSTAR, PU10M, PV10M &
@@ -78,7 +79,6 @@ USE YOS_EXC  , ONLY : TEXC
 
 !     --------------------------------------------------------------------------------
 
-IMPLICIT NONE
 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 
