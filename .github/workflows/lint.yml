@@ -54,3 +54,30 @@ jobs:
         name: loki-lint-report
         path: linter.xml
         if-no-files-found: ignore
+
+    # loki-lint exits with 0 even when rules fail, so check the JUnit report
+    - name: Check lint report for failures
+      run: |
+        python3 - <<'EOF'
+        import sys
+        import xml.etree.ElementTree as ET
+
+        try:
+            root = ET.parse('linter.xml').getroot()
+        except (OSError, ET.ParseError) as exc:
+            sys.exit(f'Could not read linter.xml: {exc}')
+
+        problems = [
+            (case.get('classname'), case.get('name'), (res.get('message') or res.text or '').strip())
+            for case in root.iter('testcase')
+            for res in list(case.findall('failure')) + list(case.findall('error'))
+        ]
+        for classname, rule, message in problems:
+            print(f'::error title={rule}::{classname}: {message}')
+
+        total = root.get('tests')
+        print(f'{total} checks run, {len(problems)} failed')
+        if not total or int(total) == 0:
+            sys.exit('No lint checks were run')
+        sys.exit(1 if problems else 0)
+        EOF
