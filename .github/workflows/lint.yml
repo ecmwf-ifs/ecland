@@ -17,6 +17,7 @@ on:
   workflow_dispatch: ~
 
 env:
+  LOKI_VERSION: main
   IAL_LINT_VERSION: 0.1.0
 
 jobs:
@@ -38,8 +39,8 @@ jobs:
         python -m venv "${{ runner.temp }}/venv"
         . "${{ runner.temp }}/venv/bin/activate"
         python -m pip install --upgrade pip
-        # pip install "loki @ git+https://github.com/ecmwf-ifs/loki@${LOKI_VERSION}"
-        pip install "ial-lint @ git+https://github.com/ecmwf-ifs/ial-lint@${IAL_LINT_VERSION}"
+        pip install "loki @ git+https://github.com/ecmwf-ifs/loki@${LOKI_VERSION}"
+        pip install --no-deps "ial-lint @ git+https://github.com/ecmwf-ifs/ial-lint@${IAL_LINT_VERSION}"
 
     - name: Run loki-lint
       run: |
