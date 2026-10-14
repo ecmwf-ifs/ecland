@@ -23,6 +23,9 @@ ecland_run.sh
 tools/create_forcing/scripts/osm_pyutils/cython_ext.c
 tools/create_forcing/scripts/osm_pyutils/cython_ext.cpython-311-x86_64-linux-gnu.so
 
-#test temporaries
+# test temporaries
 tests/ifsbench/ifsbench_ecland.egg-info
 **/*.patch
+
+# Linting byproduct
+linter.xml
