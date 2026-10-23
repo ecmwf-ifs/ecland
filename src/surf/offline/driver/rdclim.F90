@@ -66,10 +66,8 @@ USE YOMHOOK   ,ONLY : LHOOK    ,DR_HOOK, JPHOOK
 !      E. Dutra 07/2014 : netcdf4 
 !      R. Hogan 15/01/2019   6-component MODIS albedo
 !      A. Agusti-Panareda 17/06/2021: Add C3/C4 type of photosynthetic pathway
+!      G. Arduini 02/2023: fixes for regular lat/lon
 !      V. Huijnen 13/08/2024: Add Avg PAR
-!
-!      G. Arduini fixes for regular lat/lon
-!
 !     ------------------------------------------------------------------
 
 #endif

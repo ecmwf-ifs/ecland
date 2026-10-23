@@ -560,8 +560,8 @@ ASSOCIATE(RTT=>YDCST%RTT, &
  & RC_OC_MAXICEZ=>YDFLAKE%RC_OC_MAXICEZ, RC_OC_MAXDEPTH=>YDFLAKE%RC_OC_MAXDEPTH, &
  & RC_SHAPE=>YDFLAKE%RC_SHAPE, LOCMLTKE=>YDMLM%LOCMLTKE, &
  & LEOCML=>YDOCEAN_ML%LEOCML, &
- & LESN09=>YDSOIL%LESN09,LESNML=>YDSOIL%LESNML,LESNICE=>YDSOIL%LESNICE,LEVGEN=>YDSOIL%LEVGEN, RALFMINPSN=>YDSOIL%RALFMINPSN, &
- & RDAW=>YDSOIL%RDAW, RHOMAXSN=>YDSOIL%RHOMAXSN,  RSNPERT=>YDSOIL%RSNPERT, RSNGLC=>YDSOIL%RSNGLC,&
+ & LESN09=>YDSOIL%LESN09,LESNML=>YDSOIL%LESNML,LESNICE=>YDSOIL%LESNICE,LEVGEN=>YDSOIL%LEVGEN, &
+ & RDAW=>YDSOIL%RDAW, &
  & LECTESSEL=>YDVEG%LECTESSEL)
 
 ZTSPHY=(1.0_JPRD)/PTSPHY
@@ -621,7 +621,6 @@ CALL SRFWL(KIDIA,KFDIA,KTILES,&
 
 !*         2.     SNOW CHANGES.
 !                 ---- --------
-! IF ( LESNML ) THEN
 IF ( LESNML ) THEN
 !   
   CALL SRFSN_DRIVER(KIDIA   ,KFDIA   ,KLON   ,KLEVSN, PTSPHY, LDLAND,&
@@ -897,7 +896,7 @@ DO JL =KIDIA,KFDIA
       ZTLBOT(JL)=MAX(PSST(JL),RTT)
       ZTLSF(JL) = RC_SHAPE
       ZTLICE(JL)= ZTIA(JL,1)
-      IF (LDSICE(JL)) THEN  ! The sea-ice presence is used to set a ice-depth over ocean (capped to 0.1m)
+      IF (LDSICE(JL)) THEN  ! The sea-ice presence is used to set a ice-depth over ocean (capped to 0.1m / namelist var RC_OC_MAXICEZ)
       ! We use ZHLML mixed layer depth and ZHLICE ice thickness as container for snow
       ! depth and ice thickness over sea-ice respectively
          IF ( LNEMOICETHK ) THEN

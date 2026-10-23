@@ -38,7 +38,7 @@ SUBROUTINE SURFEXCDRIVER(YDSURF &
 ! output data, non-tiled CO2
  & , PAN,PAG,PRD,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX&
 ! output data: Biogenic VOC (BVOC) emissions
- & , PBVOCFLUX &
+ & , PBVOCFLUX  &
 ! output diagnostics
  & , PWETB, PWETL, PWETLU, PWETH, PWETHS &
 ! output data, diagnostics
