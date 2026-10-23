@@ -1,4 +1,5 @@
 MODULE SUVEXCS_MOD
+IMPLICIT NONE
 CONTAINS
 
 SUBROUTINE SUVEXCS
@@ -65,7 +66,6 @@ USE YOS_EXCS  , ONLY : JPRITBL  ,RITBL    ,RIMAX    ,RCHBA    ,&
 
 !      -----------------------------------------------------------------
 
-IMPLICIT NONE
 
 INTEGER(KIND=JPIM) :: ITMAX, JIT, JJP
 

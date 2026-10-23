@@ -1,4 +1,5 @@
 MODULE SURFWS_INIT_SL_MOD
+IMPLICIT NONE
 CONTAINS
 
 SUBROUTINE SURFWS_INIT_SL(KIDIA, KFDIA, KLON, KLEVSN, PMU0, PSDOR,         &  ! Input
@@ -43,7 +44,6 @@ USE YOS_CST  , ONLY : TCST, JPNCL, TCENTRADAY2, TCENTRBDAY2, TCENTRCDAY2, TCENTR
   &                  RMLRC5M, RMLRD5M, RMLRE5M
 USE YOS_SOIL , ONLY : TSOIL
 
-USE ABORT_SURF_MOD
 
 ! (C) Copyright 2017- ECMWF.
 !
@@ -142,7 +142,6 @@ USE ABORT_SURF_MOD
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments 
 INTEGER(KIND=JPIM), INTENT(IN) :: KIDIA
@@ -899,8 +898,5 @@ END ASSOCIATE
 
 !    -----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('SURFWS_INIT_SL_MOD:SURFWS_INIT_SL',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SURFWS_INIT_SL
 END MODULE SURFWS_INIT_SL_MOD
-
-

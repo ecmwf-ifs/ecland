@@ -1,4 +1,5 @@
 MODULE FLAKERAD_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE FLAKERAD&
   & (KIDIA        , KFDIA           , LDLAKEPOINT     ,  &
@@ -60,7 +61,6 @@ USE YOS_FLAKE, ONLY : TFLAKE, ROPTICPAR_MEDIUM
 
 !==============================================================================
 
-IMPLICIT NONE
 
 !==============================================================================
 !
@@ -180,6 +180,5 @@ ENDDO
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('FLAKERAD_MOD:FLAKERAD',1,ZHOOK_HANDLE)
-
 END SUBROUTINE FLAKERAD
 END MODULE FLAKERAD_MOD

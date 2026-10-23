@@ -1,4 +1,5 @@
 MODULE SPPCFLSTL_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SPPCFLSTL(KIDIA,KFDIA,KLON &
 ! INPUT - trajectory
@@ -105,7 +106,6 @@ USE YOS_EXC  , ONLY : TEXC
 !
 !-----------------------------------------------------------------------
 
-IMPLICIT NONE
 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KLON 
 INTEGER(KIND=JPIM),INTENT(IN)    :: KIDIA 

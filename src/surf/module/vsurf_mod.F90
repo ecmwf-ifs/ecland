@@ -1,4 +1,5 @@
 MODULE VSURF_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE VSURF(KIDIA,KFDIA,KLON,KTILES,KLEVS,KTILE,&
  & KTVL, KCO2TYP, KTVH,&
@@ -166,7 +167,6 @@ USE BVOC_EMIS_MOD,     ONLY : BVOC_EMIS
 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 TYPE(TCST)        ,INTENT(IN)    :: YDCST
 TYPE(TVEG)        ,INTENT(IN)    :: YDVEG
