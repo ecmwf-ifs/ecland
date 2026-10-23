@@ -1,0 +1,13 @@
+class_name: CompositeLauncher
+flags:
+  - -q
+  - dg
+  - --nodes=1
+  - --gpus=1
+  - --mem=0
+base_launcher:
+  class_name: SrunLauncher
+  flags: []
+wrappers:
+  - class_name: CudaGdbLauncher
+    flags: []

@@ -48,4 +48,7 @@ REAL(KIND=JPRB) :: RPARSRF
 !     *RPAR1*     REAL     *COEFFICIENT OF (W*)**3 IN WS         
 !     *RPARSRF*   REAL     *DEPTH OF SURFACE LAYER AS FRACTION OF PBL-H 
 !     ------------------------------------------------------------------
+
+!$acc declare create(RVDIFTS)
+
 END MODULE YOEVDF
