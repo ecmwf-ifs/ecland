@@ -66,6 +66,7 @@ jobs:
               #SBATCH --hint=nomultithread
               #SBATCH --mem=60GB
               #SBATCH --qos=dg
+              #SBATCH --gres=gpu:1
             arch: ecmwf/hpc2020/nvhpc/24.5/hpcx-openmpi/2.17.1
             build_options: --with-loki --loki-mode=scc --with-acc --with-static-linking
 
