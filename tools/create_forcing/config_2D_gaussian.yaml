@@ -1,0 +1,76 @@
+# config_2D_gaussian.yaml
+# (C) Copyright 2024- ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+#
+# Configuration file for ecland_create_forcing.py script.
+# Example for 2D extraction on REDUCED GAUSSIAN GRID (TL or TCO).
+#
+# NOTE: This config outputs data on reduced Gaussian grids instead of regular lat-lon.
+# Grid types supported: 
+#   - TL (linear truncation): N32, N64, N128, N256, N320, N640, etc.
+#   - TCO (cubic octahedral): O96, O400, O1280, etc.
+
+# General information of the type of data to retrieve
+sites:
+    ftype: 2D_GG         # 2D_GG for Gaussian grid output
+    group: TEST_2D_GG    # Group the sites extracted under a common label/project
+    sitenames:           # site name code
+        - MINI-GG
+    iniDate:             # iniDate, one entry for each entry of sitename
+        - 20220101
+    endDate:             # endDate, one entry for each entry of sitename
+        - 20220103
+
+# This is only relevant for ftype=2D_GG (Gaussian grid)
+gaussian:
+    grid_type: "N"       # "N" for TL (linear), "O" for TCO (cubic octahedral)
+    truncation: 32       # Truncation number (e.g., 32 for N32/TL63, 64 for N64/TL127)
+                         # Common values: N32 (TL63), N64 (TL127), N128 (TL255), N320 (TL639)
+                         # For TCO: O96, O400, O1280
+    # Optional: regional clipping (leave empty for global)
+    clatn:  ""           # north latitude corner (empty for global)
+    clats:  ""           # south latitude corner
+    clone:  ""           # east longitude corner
+    clonw:  ""           # west longitude corner
+    actions:             # Note order of the following items is important!
+        - prepare_initialconditions_2D_GG: true  # Prepare initial conditions on Gaussian grid
+        - prepare_forcing_2D_GG          : false # Prepare forcing on Gaussian grid
+
+# Configuration of folders, paths etc.
+config:
+    workingdir: ./era5_data_gg             # working dir forcing
+    inidir:     ./era5_data_gg             # working dir initial cond
+    sodir:      ./ecland_input/clim/       # output dir for initial cond and static fields
+    fodir:      ./ecland_input/forcing/    # output dir for forcing
+    scriptsdir: <full_path_to_create_forcing_dir>/scripts/ # Directory with create_forcing scripts
+    retrieve_with: cds                     # mars (ecmwf) or cds (climate data store)
+
+# Initial condition and climate (static) fields
+initial_conditions:
+    INICLASS: "ea"         # the class of the initial condition data
+    INISTREAM: oper        # the stream of the initial condition data
+    INIEXPVER: 1           # the experiment version of the initial condition data
+    INIHOUR: "00:00:00"    # the time of the initial condition data
+    RESOL: "639"           # the resolution used for the initial condition data (ERA5 native)
+    GTYPE: "l_2"           # the type of gaussian grid used by ERA5
+    CLIMVERSION: "v015"    # the version of the "climate" data
+    clim_data_loc: "cds"   # the location of the climate data
+
+# Forcing
+forcing:
+    FORCINGCLASS: "ea"
+    FORCINGSTREAM: oper
+    FORCINGEXPVER: 1
+    FORCINGHOUR: "00:00:00"
+    lapseCorrection: False
+    ORODIFF_FILE: None
+    nthreads: 1
+    forcingCommonName: ""
+    forcingdir: ""
+    SAVE_FORCING_GRIB: false
+
