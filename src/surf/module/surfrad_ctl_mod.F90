@@ -1,4 +1,5 @@
 MODULE SURFRAD_CTL_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SURFRAD_CTL(KDDN,KMMN,KMON,KSECO,&
  & KIDIA,KFDIA,KLON,KTILES,KCSS,KSSDP3D,KSW,KLW,&
@@ -26,7 +27,7 @@ USE YOS_FLAKE, ONLY : TFLAKE
 USE YOS_URB  , ONLY : TURB
 USE YOMSURF_SSDP_MOD, ONLY: SSDP3D_ID
 USE CANALB_MOD, ONLY: CANALB
-USE ABORT_SURF_MOD
+USE ABORT_SURF_MOD, ONLY : ABORT_SURF
 
 ! (C) Copyright 1991- ECMWF.
 !
@@ -154,7 +155,6 @@ USE ABORT_SURF_MOD
 !     G. Arduini            Sep 2024   Land and sea ice tile
 !-----------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -835,6 +835,5 @@ END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SURFRAD_CTL_MOD:SURFRAD_CTL',1,ZHOOK_HANDLE)
 
 !     ------------------------------------------------------------------
-
 END SUBROUTINE SURFRAD_CTL
 END MODULE SURFRAD_CTL_MOD

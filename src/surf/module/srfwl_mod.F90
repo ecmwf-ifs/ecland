@@ -1,4 +1,5 @@
 MODULE SRFWL_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SRFWL(KIDIA,KFDIA,KTILES,&
  & PTMST,PWLM1M,PCVL,PCVH,PWLMX,&
@@ -105,7 +106,6 @@ USE YOS_VEG   , ONLY : TVEG
 !     E. Dutra      07-07-2008      clean number of tiles dependence 
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 
@@ -293,6 +293,5 @@ ENDIF
 
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SRFWL_MOD:SRFWL',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SRFWL
 END MODULE SRFWL_MOD

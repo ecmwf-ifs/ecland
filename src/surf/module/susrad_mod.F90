@@ -1,4 +1,5 @@
 MODULE SUSRAD_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SUSRAD(KSW,KSIL,KTSW,KLWEMISS,&
  & LD_LLCCNL,LD_LLCCNO,KALBEDOSCHEME,KEMISSSCHEME,&
@@ -12,7 +13,7 @@ USE YOS_RAD   , ONLY : TRAD
 USE YOS_RDI   , ONLY : TRDI
 USE YOS_LW    , ONLY : TLW
 USE YOS_SW    , ONLY : TSW
-USE ABORT_SURF_MOD
+USE ABORT_SURF_MOD, ONLY : ABORT_SURF
 
 ! (C) Copyright 2005- ECMWF.
 !
@@ -44,9 +45,8 @@ USE ABORT_SURF_MOD
 !     -------------
 !     R. Hogan        23-01-2019  Longwave spectral emissivity in six intervals
 
-USE SURWN_MOD
+USE SURWN_MOD, ONLY : SURWN
 
-IMPLICIT NONE
 
 INTEGER(KIND=JPIM), INTENT(IN)    :: KSW ! Number of shortwave spectral albedo intervals
 INTEGER(KIND=JPIM), INTENT(IN)    :: KSIL
@@ -202,6 +202,5 @@ END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SUSRAD_MOD:SUSRAD',1,ZHOOK_HANDLE)
 
 !     ------------------------------------------------------------------
-
 END SUBROUTINE SUSRAD
 END MODULE SUSRAD_MOD

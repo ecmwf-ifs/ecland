@@ -1,4 +1,5 @@
 MODULE SURWN_MOD
+IMPLICIT NONE
 CONTAINS
 SUBROUTINE SURWN (KSIL,PTSTAND,PXP,PRSUN,YDDIM,YDRAD,YDLW,YDSW)
 
@@ -8,7 +9,7 @@ USE YOS_DIM   , ONLY : TDIM
 USE YOS_RAD   , ONLY : TRAD
 USE YOS_LW    , ONLY : TLW
 USE YOS_SW    , ONLY : TSW
-USE ABORT_SURF_MOD
+USE ABORT_SURF_MOD, ONLY : ABORT_SURF
 ! (C) Copyright 1988- ECMWF.
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
@@ -72,7 +73,6 @@ USE ABORT_SURF_MOD
 !        R. Hogan     26-Feb-2019 Removed RWEIGHT
 !     ------------------------------------------------------------------
 
-IMPLICIT NONE
 
 ! Declaration of arguments
 INTEGER(KIND=JPIM), INTENT(IN)    :: KSIL
@@ -244,6 +244,5 @@ DEALLOCATE(ZALBICE4)
 DEALLOCATE(ZALBICE6)
 END ASSOCIATE
 IF (LHOOK) CALL DR_HOOK('SURWN_MOD:SURWN',1,ZHOOK_HANDLE)
-
 END SUBROUTINE SURWN
 END MODULE SURWN_MOD
