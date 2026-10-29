@@ -39,7 +39,7 @@ jobs:
               #SBATCH --cpus-per-task=32
               #SBATCH --hint=nomultithread
               #SBATCH --mem=60GB
-              #SBATCH --qos=np
+              #SBATCH --qos=${{ secrets.HPC_CI_CPU_QUEUE }}$
             arch: ecmwf/hpc2020/intel/2023.2.0/hpcx-openmpi/2.9.0
             build_options: ~
 
@@ -52,7 +52,7 @@ jobs:
               #SBATCH --cpus-per-task=32
               #SBATCH --hint=nomultithread
               #SBATCH --mem=60GB
-              #SBATCH --qos=np
+              #SBATCH --qos=${{ secrets.HPC_CI_CPU_QUEUE }}$
             arch: ecmwf/hpc2020/nvhpc/24.5/hpcx-openmpi/2.17.1
             build_options: ~
 
@@ -65,7 +65,7 @@ jobs:
               #SBATCH --cpus-per-task=32
               #SBATCH --hint=nomultithread
               #SBATCH --mem=60GB
-              #SBATCH --qos=dg
+              #SBATCH --qos=${{ secrets.HPC_CI_GPU_QUEUE }}$
               #SBATCH --gres=gpu:1
             arch: ecmwf/hpc2020/nvhpc/24.5/hpcx-openmpi/2.17.1
             build_options: --with-loki --loki-mode=scc --with-acc --with-static-linking
