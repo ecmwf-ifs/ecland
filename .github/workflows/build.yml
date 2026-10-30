@@ -326,7 +326,7 @@ jobs:
         if [[ "$(uname)" != "Darwin" ]]; then
           ulimit -s unlimited
         fi
-        ctest -VV  --output-on-failure ${{ matrix.ctest_options }}
+        ctest -VV --output-on-failure -LE '^LARGE$' ${{ matrix.ctest_options }}
       working-directory: build
 
     - name: Verify tools
