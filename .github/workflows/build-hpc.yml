@@ -32,6 +32,7 @@ jobs:
         include:
           - name: ac-cpu intel
             site: ac-batch
+            queue: cpu
             sbatch_options: |
               #SBATCH --time=00:20:00
               #SBATCH --nodes=1
@@ -39,12 +40,12 @@ jobs:
               #SBATCH --cpus-per-task=32
               #SBATCH --hint=nomultithread
               #SBATCH --mem=60GB
-              #SBATCH --qos=${{ secrets.HPC_CI_CPU_QUEUE }}$
             arch: ecmwf/hpc2020/intel/2023.2.0/hpcx-openmpi/2.9.0
             build_options: ~
 
           - name: ac-cpu nvhpc
             site: ac-batch
+            queue: cpu
             sbatch_options: |
               #SBATCH --time=00:20:00
               #SBATCH --nodes=1
@@ -52,12 +53,12 @@ jobs:
               #SBATCH --cpus-per-task=32
               #SBATCH --hint=nomultithread
               #SBATCH --mem=60GB
-              #SBATCH --qos=${{ secrets.HPC_CI_CPU_QUEUE }}$
             arch: ecmwf/hpc2020/nvhpc/24.5/hpcx-openmpi/2.17.1
             build_options: ~
 
           - name: ac-gpu nvhpc
             site: ac-batch
+            queue: gpu
             sbatch_options: |
               #SBATCH --time=00:20:00
               #SBATCH --nodes=1
@@ -65,7 +66,6 @@ jobs:
               #SBATCH --cpus-per-task=32
               #SBATCH --hint=nomultithread
               #SBATCH --mem=60GB
-              #SBATCH --qos=${{ secrets.HPC_CI_GPU_QUEUE }}$
               #SBATCH --gres=gpu:1
             arch: ecmwf/hpc2020/nvhpc/24.5/hpcx-openmpi/2.17.1
             build_options: --with-loki --loki-mode=scc --with-acc --with-static-linking
@@ -78,7 +78,9 @@ jobs:
         with:
           site: ${{ matrix.site }}
           troika_user: ${{ secrets.HPC_CI_SSH_USER }}
-          sbatch_options: ${{ matrix.sbatch_options }}
+          sbatch_options: |
+            ${{ matrix.sbatch_options }}
+            #SBATCH --qos=${{ matrix.queue == 'gpu' && secrets.HPC_CI_GPU_QUEUE || secrets.HPC_CI_CPU_QUEUE }}
           template: |
             REPO=${{ github.event.pull_request.head.repo.full_name || github.repository }}
             SHA=${{ github.event.pull_request.head.sha || github.sha }}
