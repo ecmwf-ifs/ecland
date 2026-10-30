@@ -141,14 +141,14 @@ foreach( prec sp dp )
             ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_2d_gl_t21_${prec}.yaml 2d_gl_t21_nocmf
                 --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_2d_gl_t21_nocmf_gpu_${prec}
                 --validate=${REFDIR}/reference_2d_gl_t21_cmf_${prec}.yaml --atol=${ATOL} --rtol=${RTOL}
-                --arch=atos --tech=gpu --launcher-config=ecland/tests/ifsbench/gpu_srun_launcher.yaml
+                --arch=atos --tech=gpu --launcher-config=${CMAKE_CURRENT_BINARY_DIR}/gpu_srun_launcher.yaml
         )
 
         ecbuild_add_test( TARGET ecland_ifsbench_v1_EU_forward_gpu_${prec}
             TYPE SCRIPT COMMAND ${LAUNCH_COMMAND}
             ARGS from_yaml ${CMAKE_CURRENT_BINARY_DIR}/test_v1_EU_${prec}.yaml v1_EU_forward
                 --run-dir=${CMAKE_CURRENT_BINARY_DIR}/ecland_ifsbench_v1_EU_forward_gpu_${prec}
-                --arch=atos --tech=gpu --launcher-config=ecland/tests/ifsbench/gpu_srun_launcher.yaml
+                --arch=atos --tech=gpu --launcher-config=${CMAKE_CURRENT_BINARY_DIR}/gpu_srun_launcher.yaml
         )
     endif()
 
