@@ -39,6 +39,9 @@ set( HAVE_MPI ${fiat_HAVE_MPI} )
 #### field_api
 ecbuild_find_package(field_api REQUIRED)
 
+#### multio
+ecbuild_find_package(multio)
+
 ### Options
 ########################################################################
 
@@ -111,7 +114,9 @@ add_subdirectory(share)
 
 ### Tests
 
-add_subdirectory(tests)
+if( HAVE_TESTS )
+  add_subdirectory(tests)
+endif()
 
 ### Documentation
 

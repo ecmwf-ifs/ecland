@@ -52,8 +52,8 @@ SUBROUTINE FLAKEENE                                                      &
 !  Set lake shape factor to constant 0.65 value for safety (instability issues)
 ! 1.03       11.11.2010     G. Balsamo 
 !  Fixes for coupled atmospheric runs
-
-! 17.12.2015  F. Vana       Support for single precision
+!            17.12.2015     F. Vana
+!  Support for single precision
 !  M. Kelbling and S. Thober (UFZ) 11/6/2020 use of parameter values defined in namelist
 ! 26.02.2025  T. Stockdale  Faster evolution of shape factor plus second-law constraints
 

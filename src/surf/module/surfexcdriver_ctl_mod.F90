@@ -36,7 +36,7 @@ SUBROUTINE SURFEXCDRIVER_CTL(&
  & , PZ0MTIW, PZ0HTIW, PZ0QTIW, PZDLTI, PQSAPPTI, PCPTSPPTI &
 ! output data, non-tiled
  & , PKHLEV, PKCLEV, PCFMLEV, PKMFL, PKHFL, PKQFL, PEVAPSNW &
- & , PZ0MW, PZ0HW, PZ0QW, PBLENDPP, PCPTSPP, PQSAPP, PBUOMPP, PZDLPP &
+ & , PZ0MW, PZ0HW, PZ0QW, PBLENDPP, PCPTSPP, PQSAPP, PBUOMPP, PZDLPP, PZL &
 ! output data, non-tiled CO2
  & , PAN,PAG,PRD,PRSOIL_STR,PRECO,PCO2FLUX,PCH4FLUX&
 ! output data: Biogenic VOC (BVOC) emissions
@@ -52,7 +52,7 @@ SUBROUTINE SURFEXCDRIVER_CTL(&
  & , YDCST, YDEXC, YDVEG, YDBVOC, YDAGS, YDAGF, YDSOIL, YDFLAKE, YDURB & 
  & )
 
-USE PARKIND1  , ONLY : JPIM, JPRB
+USE PARKIND1  , ONLY : JPIM, JPRB, JPRD
 USE YOMHOOK   , ONLY : LHOOK, DR_HOOK, JPHOOK
 USE YOS_EXC   , ONLY : TEXC
 USE YOS_CST   , ONLY : TCST
@@ -70,10 +70,10 @@ USE VEXCS_MOD , ONLY : VEXCS
 USE VEVAP_MOD , ONLY : VEVAP
 USE SURFSEB_CTL_MOD , ONLY : SURFSEB_CTL
 USE SRFCOTWO_MOD    , ONLY : SRFCOTWO
+USE SRFBVOC_MOD     , ONLY : SRFBVOC
 USE VSFLX_MOD       , ONLY : VSFLX
 USE VLAMSK_MOD      , ONLY : VLAMSK
 USE YOMSURF_SSDP_MOD, ONLY : NSSDP2D, NSSDP3D
-USE SRFBVOC_MOD,      ONLY : SRFBVOC
 
 USE EC_LUN       , ONLY : NULERR
 ! (C) Copyright 2005- ECMWF.
@@ -267,6 +267,7 @@ USE EC_LUN       , ONLY : NULERR
 !                     of weather parameters
 !      PBUOMPP  :    Buoyancy flux, for post-processing of gustiness  ???? 
 !      PZDLPP   :    z/L for post-processing of weather parameters    -
+!      PZL      :    1/L for diagnostics on dominant tile
 !      PDHTLS   :    Diagnostic array for tiles (see module yomcdh)
 !                      (Wm-2 for energy fluxes, kg/(m2s) for water fluxes)
 !      PDHTSS   :    Diagnostic array for snow T (see module yomcdh)
@@ -433,6 +434,7 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCPTSPP(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PQSAPP(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PBUOMPP(KLON)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZDLPP(KLON)
+REAL(KIND=JPRB)   ,INTENT(OUT)   :: PZL(KLON) ! dominant tile 1/L
 ! Tile depend
 REAL(KIND=JPRB)   ,INTENT(OUT)    :: PZ0MTIW(KLON,KTILES)
 REAL(KIND=JPRB)   ,INTENT(OUT)    :: PZ0HTIW(KLON,KTILES)
@@ -1130,6 +1132,8 @@ DO JL=KIDIA,KFDIA
   PQSAPP(JL)=ZZQSATI(JL,JTILE)
   PBUOMPP(JL)=ZBUOMTI(JL,JTILE)
   PZDLPP(JL)=ZZDLTI(JL,JTILE)
+  PZL(JL)=ZZDLTI(JL,JTILE)/(PGEOMLEV(JL)*ZRG + ZZ0MTI(JL,JTILE)) ! Dominant tile 1/L - divide z/L by (zn + z0m)
+  PZL(JL)=MIN(MAX(PZL(JL), -1000.0_JPRB), 1000.0_JPRB) ! limit values due to grib packing
 ENDDO
 
 !          PP: STORE TILE-DEPENDENT QUANTITIES FOR T2M/D2M per TILE CALCULATION 

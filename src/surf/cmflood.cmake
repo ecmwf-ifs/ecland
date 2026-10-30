@@ -45,12 +45,19 @@ list(APPEND CMF_DEFINITIONS
   UseMPI_CMF
 )
 
+if(multio_FOUND)
+  list(APPEND CMF_DEFINITIONS WITH_MULTIO)
+endif()
+
 foreach( prec sp dp )
   if( HAVE_${prec} )
+    string(TOUPPER "${prec}" PREC)
+
     ecbuild_add_library( TARGET ${PROJECT_NAME}_cmflood_${prec}
         SOURCES ${cmflood_src}
         PRIVATE_LIBS fiat parkind_${prec}
                      NetCDF::NetCDF_Fortran ${OpenMP_Fortran_LIBRARIES}
+                     $<${multio_FOUND}:multio-fapi>
         PRIVATE_DEFINITIONS ${CMF_DEFINITIONS}
     )
     
@@ -60,7 +67,7 @@ foreach( prec sp dp )
         INSTALL_MODULE_DIRECTORY module/${PROJECT_NAME}_${prec}
     )
 
-    ecbuild_add_executable(TARGET ${PROJECT_NAME}-master-cmflood-${prec}
+    ecbuild_add_executable(TARGET ${PROJECT_NAME}-master-cmflood-${PREC}
       DEFINITIONS ${CMF_DEFINITIONS}
       SOURCES offline/cmfld1s.F90
       LIBS

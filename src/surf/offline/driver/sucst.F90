@@ -247,74 +247,74 @@ RANCO2=(/312.821_JPRB, 313.014_JPRB, 313.342_JPRB, 313.730_JPRB, 314.095_JPRB, &
 IF (KPRINTLEV >= 1) THEN
   WRITE(KULOUT,'(''0*** Constants of the ICM   ***'')')
   WRITE(KULOUT,'('' *** Fundamental constants ***'')')
-  WRITE(KULOUT,'(''           PI = '',E14.7,'' -'')')RPI
-  WRITE(KULOUT,'(''            c = '',E14.7,''m s-1'')')RCLUM
-  WRITE(KULOUT,'(''            h = '',E14.7,''J s'')')RHPLA
-  WRITE(KULOUT,'(''            K = '',E14.7,''J K-1'')')RKBOL
-  WRITE(KULOUT,'(''            N = '',E14.7,''mol-1'')')RNAVO
+  WRITE(KULOUT,'(''           PI = '',E15.7E3,'' -'')')RPI
+  WRITE(KULOUT,'(''            c = '',E15.7E3,''m s-1'')')RCLUM
+  WRITE(KULOUT,'(''            h = '',E15.7E3,''J s'')')RHPLA
+  WRITE(KULOUT,'(''            K = '',E15.7E3,''J K-1'')')RKBOL
+  WRITE(KULOUT,'(''            N = '',E15.7E3,''mol-1'')')RNAVO
   WRITE(KULOUT,'('' *** Astronomical constants ***'')')
-  WRITE(KULOUT,'(''          day = '',E14.7,'' s'')')RDAY
-  WRITE(KULOUT,'('' half g. axis = '',E14.7,'' m'')')REA
-  WRITE(KULOUT,'('' mean anomaly = '',E14.7,'' -'')')REPSM
-  WRITE(KULOUT,'('' sideral year = '',E14.7,'' s'')')RSIYEA
-  WRITE(KULOUT,'(''  sideral day = '',E14.7,'' s'')')RSIDAY
-  WRITE(KULOUT,'(''        omega = '',E14.7,'' s-1'')')ROMEGA
+  WRITE(KULOUT,'(''          day = '',E15.7E3,'' s'')')RDAY
+  WRITE(KULOUT,'('' half g. axis = '',E15.7E3,'' m'')')REA
+  WRITE(KULOUT,'('' mean anomaly = '',E15.7E3,'' -'')')REPSM
+  WRITE(KULOUT,'('' sideral year = '',E15.7E3,'' s'')')RSIYEA
+  WRITE(KULOUT,'(''  sideral day = '',E15.7E3,'' s'')')RSIDAY
+  WRITE(KULOUT,'(''        omega = '',E15.7E3,'' s-1'')')ROMEGA
 
   WRITE(KULOUT,'('' The initial date of the run is :'')')
   WRITE(KULOUT,'(1X,I8,1X,I5,5X,I4,1X,I2,1X,I2)')IDAT,ISSS,IA,IM,ID
   WRITE(KULOUT,'('' The Julian date is : '',F11.2)') ZJU
   WRITE(KULOUT,'('' Time of the model  : '',F15.2,'' s'')')ZTI
-  WRITE(KULOUT,'('' Distance Earth-Sun : '',E14.7,'' m'')')ZRS
-  WRITE(KULOUT,'('' Relative Dist. E-S : '',E14.7,'' m'')')ZRSREL
+  WRITE(KULOUT,'('' Distance Earth-Sun : '',E15.7E3,'' m'')')ZRS
+  WRITE(KULOUT,'('' Relative Dist. E-S : '',E15.7E3,'' m'')')ZRSREL
   WRITE(KULOUT,'('' Declination        : '',F12.5)') ZDE
   WRITE(KULOUT,'('' Eq. of time        : '',F12.5,'' s'')')ZET
   WRITE(KULOUT,'('' ***         Geoide         ***'')')
-  WRITE(KULOUT,'(''      Gravity = '',E14.7,'' m s-2'')')RG
-  WRITE(KULOUT,'('' Earth radius = '',E14.7,'' m'')')RA
-  WRITE(KULOUT,'('' Inverse E.R. = '',E14.7,'' m'')')R1SA
+  WRITE(KULOUT,'(''      Gravity = '',E15.7E3,'' m s-2'')')RG
+  WRITE(KULOUT,'('' Earth radius = '',E15.7E3,'' m'')')RA
+  WRITE(KULOUT,'('' Inverse E.R. = '',E15.7E3,'' m'')')R1SA
   WRITE(KULOUT,'('' ***        Radiation       ***'')')
-  WRITE(KULOUT,'('' Stefan-Bol.  = '',E14.7,'' W m-2 K-4'')')  RSIGMA
-  WRITE(KULOUT,'('' Solar const. = '',E14.7,'' W m-2'')')RI0
+  WRITE(KULOUT,'('' Stefan-Bol.  = '',E15.7E3,'' W m-2 K-4'')')  RSIGMA
+  WRITE(KULOUT,'('' Solar const. = '',E15.7E3,'' W m-2'')')RI0
   WRITE(KULOUT,'('' *** Thermodynamic, gas     ***'')')
-  WRITE(KULOUT,'('' Perfect gas  = '',e13.7)') R
-  WRITE(KULOUT,'('' Dry air mass = '',e13.7)') RMD
-  WRITE(KULOUT,'('' Vapour  mass = '',e13.7)') RMV
-  WRITE(KULOUT,'('' Ozone   mass = '',e13.7)') RMO3
-  WRITE(KULOUT,'('' Dry air cst. = '',e13.7)') RD
-  WRITE(KULOUT,'('' Vapour  cst. = '',e13.7)') RV
-  WRITE(KULOUT,'(''         Cpd  = '',e13.7)') RCPD
-  WRITE(KULOUT,'(''         Cvd  = '',e13.7)') RCVD
-  WRITE(KULOUT,'(''         Cpv  = '',e13.7)') RCPV
-  WRITE(KULOUT,'(''         Cvv  = '',e13.7)') RCVV
-  WRITE(KULOUT,'(''      Rd/Cpd  = '',e13.7)') RKAPPA
-  WRITE(KULOUT,'(''     Rv/Rd-1  = '',e13.7)') RETV
+  WRITE(KULOUT,'('' Perfect gas  = '',e15.7E3)') R
+  WRITE(KULOUT,'('' Dry air mass = '',e15.7E3)') RMD
+  WRITE(KULOUT,'('' Vapour  mass = '',e15.7E3)') RMV
+  WRITE(KULOUT,'('' Ozone   mass = '',e15.7E3)') RMO3
+  WRITE(KULOUT,'('' Dry air cst. = '',e15.7E3)') RD
+  WRITE(KULOUT,'('' Vapour  cst. = '',e15.7E3)') RV
+  WRITE(KULOUT,'(''         Cpd  = '',e15.7E3)') RCPD
+  WRITE(KULOUT,'(''         Cvd  = '',e15.7E3)') RCVD
+  WRITE(KULOUT,'(''         Cpv  = '',e15.7E3)') RCPV
+  WRITE(KULOUT,'(''         Cvv  = '',e15.7E3)') RCVV
+  WRITE(KULOUT,'(''      Rd/Cpd  = '',e15.7E3)') RKAPPA
+  WRITE(KULOUT,'(''     Rv/Rd-1  = '',e15.7E3)') RETV
   WRITE(KULOUT,'('' *** Thermodynamic, liquid  ***'')')
-  WRITE(KULOUT,'(''         Cw   = '',E14.7)') RCW
+  WRITE(KULOUT,'(''         Cw   = '',E15.7E3)') RCW
   WRITE(KULOUT,'('' *** thermodynamic, solid   ***'')')
-  WRITE(KULOUT,'(''         Cs   = '',E14.7)') RCS
+  WRITE(KULOUT,'(''         Cs   = '',E15.7E3)') RCS
   WRITE(KULOUT,'('' *** Thermodynamic, trans.  ***'')')
-  WRITE(KULOUT,'('' Fusion point  = '',E14.7)') RTT
-  WRITE(KULOUT,'('' RTT-Tx(ew-ei) = '',E14.7)') RDT
-  WRITE(KULOUT,'(''        RLvTt  = '',E14.7)') RLVTT
-  WRITE(KULOUT,'(''        RLsTt  = '',E14.7)') RLSTT
-  WRITE(KULOUT,'(''        RLv0   = '',E14.7)') RLVZER
-  WRITE(KULOUT,'(''        RLs0   = '',E14.7)') RLSZER
-  WRITE(KULOUT,'(''        RLMlt  = '',E14.7)') RLMLT
-  WRITE(KULOUT,'('' Normal press. = '',E14.7)') RATM
+  WRITE(KULOUT,'('' Fusion point  = '',E15.7E3)') RTT
+  WRITE(KULOUT,'('' RTT-Tx(ew-ei) = '',E15.7E3)') RDT
+  WRITE(KULOUT,'(''        RLvTt  = '',E15.7E3)') RLVTT
+  WRITE(KULOUT,'(''        RLsTt  = '',E15.7E3)') RLSTT
+  WRITE(KULOUT,'(''        RLv0   = '',E15.7E3)') RLVZER
+  WRITE(KULOUT,'(''        RLs0   = '',E15.7E3)') RLSZER
+  WRITE(KULOUT,'(''        RLMlt  = '',E15.7E3)') RLMLT
+  WRITE(KULOUT,'('' Normal press. = '',E15.7E3)') RATM
   WRITE(KULOUT,'('' Latent heat :  '')')
-  WRITE(KULOUT,'(10(1X,E11.4))') (10._JPRB*J,J=-4,4)
-  WRITE(KULOUT,'(10(1X,E11.4))') (RLV(RTT+10._JPRB*J),J=-4,4)
-  WRITE(KULOUT,'(10(1X,E11.4))') (RLS(RTT+10._JPRB*J),J=-4,4)
+  WRITE(KULOUT,'(10(1X,E12.4E3))') (10._JPRB*J,J=-4,4)
+  WRITE(KULOUT,'(10(1X,E12.4E3))') (RLV(RTT+10._JPRB*J),J=-4,4)
+  WRITE(KULOUT,'(10(1X,E12.4E3))') (RLS(RTT+10._JPRB*J),J=-4,4)
   WRITE(KULOUT,'('' *** Thermodynamic, satur.  ***'')')
-  WRITE(KULOUT,'('' Fusion point = '',E14.7)') RTT
-  WRITE(KULOUT,'(''      es(Tt)  = '',e13.7)') RESTT
+  WRITE(KULOUT,'('' Fusion point = '',E15.7E3)') RTT
+  WRITE(KULOUT,'(''      es(Tt)  = '',e15.7E3)') RESTT
   WRITE(KULOUT,'('' es(T) :  '')')
-  WRITE(KULOUT,'(10(1X,E11.4))') (10._JPRB*J,J=-4,4)
-  WRITE(KULOUT,'(10(1X,E11.4))') (ESW(RTT+10._JPRB*J),J=-4,4)
-  WRITE(KULOUT,'(10(1X,E11.4))') (ESS(RTT+10._JPRB*J),J=-4,4)
-  WRITE(KULOUT,'(10(1X,E11.4))') (ES (RTT+10._JPRB*J),J=-4,4)
+  WRITE(KULOUT,'(10(1X,E12.4E3))') (10._JPRB*J,J=-4,4)
+  WRITE(KULOUT,'(10(1X,E12.4E3))') (ESW(RTT+10._JPRB*J),J=-4,4)
+  WRITE(KULOUT,'(10(1X,E12.4E3))') (ESS(RTT+10._JPRB*J),J=-4,4)
+  WRITE(KULOUT,'(10(1X,E12.4E3))') (ES (RTT+10._JPRB*J),J=-4,4)
   WRITE(KULOUT,'('' CMPI6 atmospheric global mean CO2 :  '')')
-  WRITE(KULOUT,'(20(1X,E11.4))') (RANCO2(J),J=60,79)
+  WRITE(KULOUT,'(20(1X,E12.4E3))') (RANCO2(J),J=60,79)
 ENDIF
 
 !     ------------------------------------------------------------------

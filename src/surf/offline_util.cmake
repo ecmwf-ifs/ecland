@@ -39,6 +39,14 @@ foreach(program IN ITEMS
       TARGET ${PROJECT_NAME}-${program}
       MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/module/offline_util
   )
+
+  if( HAVE_DOUBLE_PRECISION AND DEFINED autopromotion_flags)
+    set_source_files_properties(
+        offline/util/create_init_clim.F90
+        offline/util/conv_forcing.F90
+        PROPERTIES COMPILE_OPTIONS "${autopromotion_flags}" 
+    )
+  endif()
   
 endforeach()
 
