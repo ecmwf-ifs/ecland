@@ -19,3 +19,11 @@ gpu:
       namelist: NAMCT01S
       entry: LON_GPU
       value: true
+    - mode: set
+      namelist: NAMDIM
+      entry: NPROMA
+      value: 128
+  env:
+    - mode: set
+      key: NV_ACC_CUDA_HEAPSIZE
+      value: 2G
