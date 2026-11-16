@@ -15,7 +15,7 @@
   LSWINT=.FALSE.            ! SWdown solar angle interpolation if true
   LPREINT=.FALSE. ! precipitation interpolation if true
   LFLXINT=.FALSE.          ! SWdown/LWdown linear interpolation if true
-  TCOUPFREQ=1  ! Coupling frequency with CaMa-flood
+  TCOUPFREQ=24  ! Coupling frequency with CaMa-flood
   /
   &NAMDIM
   NLAT=0               ! number of latitudes
