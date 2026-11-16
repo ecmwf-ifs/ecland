@@ -69,6 +69,18 @@ export IFSBENCH_ARCH=atos
 ctest -j 10
 ```
 
+The global TCo399 tests carry the `IFSBENCH` and `LARGE` labels and require
+16 MPI tasks with 8 threads each (128 CPU cores). Select tests locally using:
+
+```bash
+ctest -LE '^LARGE$'  # Exclude large tests, as in GitHub-hosted CI
+ctest -L '^LARGE$'   # Run only large tests on a suitable HPC allocation
+```
+
+The `build-hpc` workflow runs both selections sequentially. An unfiltered
+`ctest` includes large tests; labels do not enforce a runner restriction.
+TCo399 currently runs without reference-result validation.
+
 # Technical setup
 
 ## Runner script
