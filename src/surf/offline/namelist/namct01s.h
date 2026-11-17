@@ -7,7 +7,7 @@
 ! nor does it submit to any jurisdiction.
 
 !*    ------------------------------------------------------------------
-NAMELIST/NAMCT01S/LNF,LMPLOT, NFRPLT, NCYCLE &
+NAMELIST/NAMCT01S/LNF,LMPLOT, NFRPLT, NOSMCYCLE &
               &,CNMEXP &
               &,NSTART,NSTOP &
               &,NFRPOS,NFRHIS,NPOSTS,NHISTS,NFRRES &

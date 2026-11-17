@@ -591,38 +591,36 @@ IF( REGIONTHIS==1 )THEN   !! write restart only on master node
   CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
   CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
   
-  IF ( .not. LSTOONLY )THEN           !! default restart with previous t-step outflw
-    CALL NCERROR( NF90_DEF_VAR(NCID, 'rivout_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/),&
-                               VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"river outflow prev" ) )
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
-    
-    CALL NCERROR( NF90_DEF_VAR(NCID, 'fldout_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
-                               VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"floodplain outflow prev" ) )
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
-    
-    CALL NCERROR( NF90_DEF_VAR(NCID, 'rivdph_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
-                               VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"river depth prev" ) )
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m") )
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
-    
-    CALL NCERROR( NF90_DEF_VAR(NCID, 'fldsto_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
-                               VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"floodplain storage prev" ) )
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
-    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+  CALL NCERROR( NF90_DEF_VAR(NCID, 'rivout_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/),&
+                              VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"river outflow prev" ) )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
   
-    !! optional variables
-    IF ( LPTHOUT ) THEN
-      CALL NCERROR( NF90_DEF_VAR(NCID, 'pthflw_pre', NF90_DOUBLE, (/NPTHOUTID,NPTHLEVID,TIMEID/),&
-                                 VARID,DEFLATE_LEVEL=6) ) 
-      CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"bifurcation outflow pre" ) )
-      CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
-    ENDIF
+  CALL NCERROR( NF90_DEF_VAR(NCID, 'fldout_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                              VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"floodplain outflow prev" ) )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+  
+  CALL NCERROR( NF90_DEF_VAR(NCID, 'rivdph_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                              VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"river depth prev" ) )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m") )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+  
+  CALL NCERROR( NF90_DEF_VAR(NCID, 'fldsto_pre', NF90_DOUBLE, (/LONID,LATID,TIMEID/), &
+                              VARID,DEFLATE_LEVEL=6), 'Creating Variable')  
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"floodplain storage prev" ) )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3") )
+  CALL NCERROR( NF90_PUT_ATT(NCID, VARID, '_FillValue',REAL(DMIS,KIND=JPRD)) )
+
+  !! optional variables
+  IF ( LPTHOUT ) THEN
+    CALL NCERROR( NF90_DEF_VAR(NCID, 'pthflw_pre', NF90_DOUBLE, (/NPTHOUTID,NPTHLEVID,TIMEID/),&
+                                VARID,DEFLATE_LEVEL=6) ) 
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'long_name',"bifurcation outflow pre" ) )
+    CALL NCERROR( NF90_PUT_ATT(NCID, VARID, 'units',"m3/s") )
   ENDIF
   
   IF ( LGDWDLY ) THEN

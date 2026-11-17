@@ -133,11 +133,7 @@ if [[ ${ECLAND_CONTEXT:-unset} == "test" ]]; then
   fi
 fi
 
-if [[ ${prec} != "" ]]; then
-  export PREC=${prec}
-else
-  export PREC=dp
-fi
+export PREC="${prec:-dp}"
 
 if [[ ${launch_cmd} != "" ]]; then
   LAUNCH=${launch_cmd}

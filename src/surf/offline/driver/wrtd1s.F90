@@ -127,7 +127,7 @@
      &  //'     kgm-2s-1     kgm-2s-1'&
      &  //'          K            K            % '
       ENDIF
-      WRITE(NPOSDFO,'(f10.3,1X,I8,1X,I4,1X,I8,13(1X,E13.6))')&
+      WRITE(NPOSDFO,'(f10.3,1X,I8,1X,I4,1X,I8,13(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP &
      &      ,UNLEV0(JL,1),VNLEV0(JL,1),TNLEV0(JL,1),QNLEV0(JL,1)&
      &     ,FSSRD(JL,1),FSTRD(JL,1) &
@@ -168,7 +168,7 @@
      &  //'     kgm-2d-1'
         endif
       ENDIF
-      WRITE(NPOSDBD,'(f10.3,1X,I8,1X,I4,1X,I8,8(1X,E13.6))')&
+      WRITE(NPOSDBD,'(f10.3,1X,I8,1X,I4,1X,I8,8(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP,(D1SRFLD2(JL,IA,1)+D1SRFLU2(JL,IA,1))*ZWA&
      &     ,(D1TRFLD2(JL,IA,1)+D1TRFLU2(JL,IA,1))*ZWA&
      &     ,(D1AHFS2(JL,IA,1)+D1AHFL2(JL,IA,1))*ZWA&
@@ -236,7 +236,7 @@
      &  //'         Wm-2         Wm-2         Wm-2         Wm-2'
       ENDIF
 
-!     WRITE(NPOSDT0,'(f10.3,1X,I8,1X,I4,1X,I8,8(1X,E13.6))')&
+!     WRITE(NPOSDT0,'(f10.3,1X,I8,1X,I4,1X,I8,8(1X,E14.6E3))')&
 !    &      zjul,IYYMD,IHM,NSTEP&
 !    &     ,DOT_PRODUCT(D1STIFR(JL,:),D1STISRD2(JL,:,IA))*ZWA&
 !    &     ,DOT_PRODUCT(D1STIFR(JL,:),D1STISRU2(JL,:,IA))*ZWA&
@@ -250,7 +250,7 @@
 ! All fluxes are already tile-area weighted therefore the sum gives the 
 ! grid-point flux
 
-      WRITE(NPOSDT0,'(f10.3,1X,I8,1X,I4,1X,I8,8(1X,E13.6))')&
+      WRITE(NPOSDT0,'(f10.3,1X,I8,1X,I4,1X,I8,8(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,SUM(D1STISRD2(JL,:,IA,1))*ZWA&
      &     ,SUM(D1STISRU2(JL,:,IA,1))*ZWA&
@@ -276,7 +276,7 @@
      &  //'         Wm-2         Wm-2         Wm-2         Wm-2'&
      &  //'         Wm-2         Wm-2         Wm-2         Wm-2'
       ENDIF
-      WRITE(NPOSDST,'(f10.3,1X,I8,1X,I4,1X,I8,11(1X,E13.6))')&
+      WRITE(NPOSDST,'(f10.3,1X,I8,1X,I4,1X,I8,11(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1STIFR(JL,5,1)+D1STIFR(JL,7,1)&
      &     ,D1STIFR(JL,5,1)*D1STIALB(JL,5,1)+D1STIFR(JL,7,1)*D1STIALB(JL,7,1)&
@@ -304,7 +304,7 @@
      &  //'         Wm-2         Wm-2         Wm-2         Wm-2'&
      &  //'         Wm-2'
       ENDIF
-      WRITE(NPOSDT1,'(F10.3,1X,I8,1X,I4,1X,I8,9(1X,E13.6))')&
+      WRITE(NPOSDT1,'(F10.3,1X,I8,1X,I4,1X,I8,9(1X,E14.6E3))')&
      &    zjul,IYYMD,IHM,NSTEP&
      &   ,D1ST1SRD2(JL,IA,1)*ZWA,D1ST1SRU2(JL,IA,1)*ZWA&
      &   ,D1ST1TRD2(JL,IA,1)*ZWA,D1ST1TRU2(JL,IA,1)*ZWA&
@@ -323,7 +323,7 @@
         WRITE(NPOSDT2,'(a)') '#   jjj.j yyyymmdd hhmm          '&
      &  //'         Wm-2         Wm-2         Wm-2'
       ENDIF
-      WRITE(NPOSDT2,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E12.6E3))')&
+      WRITE(NPOSDT2,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1STAGFL2(JL,1,IA,1)*ZWA,D1STAGFL2(JL,2,IA,1)*ZWA&
      &     ,D1STASF2(JL,2,IA,1)*ZWA
@@ -339,7 +339,7 @@
         WRITE(NPOSDT3,'(a)') '#   jjj.j yyyymmdd hhmm          '&
      &  //'         Wm-2         Wm-2         Wm-2'
       ENDIF
-      WRITE(NPOSDT3,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E12.6))')&
+      WRITE(NPOSDT3,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1STAGFL2(JL,2,IA,1)*ZWA,D1STAGFL2(JL,3,IA,1)*ZWA&
      &     ,D1STASF2(JL,3,IA,1)*ZWA
@@ -355,7 +355,7 @@
         WRITE(NPOSDT4,'(a)') '#   jjj.j yyyymmdd hhmm          '&
      &  //'         Wm-2         Wm-2'
       ENDIF
-      WRITE(NPOSDT4,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E12.6))')&
+      WRITE(NPOSDT4,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1STAGFL2(JL,3,IA,1)*ZWA,D1STASF2(JL,4,IA,1)*ZWA
 
@@ -375,7 +375,7 @@
      &  //'     kgm-2d-1     kgm-2d-1     kgm-2d-1'
         endif
       ENDIF
-      WRITE(NPOSDSW,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E12.6))')&
+      WRITE(NPOSDSW,'(F10.3,1X,I8,1X,I4,1X,I8,3(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1SWNJQ2(JL,IA,1)*ZMM,(D1SSFL2(JL,IA,1)+D1SSFC2(JL,IA,1))*ZMM&
      &     ,D1SWNM2(JL,IA,1)*ZMM
@@ -396,7 +396,7 @@
      &  //'     kgm-2d-1     kgm-2d-1'
         endif
       ENDIF
-      WRITE(NPOSDW0,'(F10.3,1X,I8,1X,I4,1X,I8,2(1X,E12.6))')&
+      WRITE(NPOSDW0,'(F10.3,1X,I8,1X,I4,1X,I8,2(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1SWLIT2(JL,IA,1)*ZMM,D1SWLJQ2(JL,IA,1)*ZMM
 
@@ -422,7 +422,7 @@
      &  //'     kgm-2d-1'
         endif
       ENDIF
-      WRITE(NPOSDW1,'(F10.3,1X,I8,1X,I4,1X,I8,9(1X,E12.6))')&
+      WRITE(NPOSDW1,'(F10.3,1X,I8,1X,I4,1X,I8,9(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1SWAFR(JL,1,1),D1SW1TF2(JL,IA,1)*ZMM&
      &     ,D1SW1M2(JL,IA,1)*ZMM,D1SW1JBG2(JL,IA,1)*ZMM&
@@ -449,7 +449,7 @@
      &  //'     kgm-2d-1     kgm-2d-1'
         endif
       ENDIF
-      WRITE(NPOSDW2,'(F10.3,1X,I8,1X,I4,1X,I8,6(1X,E12.6))')&
+      WRITE(NPOSDW2,'(F10.3,1X,I8,1X,I4,1X,I8,6(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1SWAFR(JL,2,1),D1SWAGFL2(JL,1,IA,1)*ZMM&
      &     ,D1SWAGFL2(JL,2,IA,1)*ZMM,D1SWARS2(JL,2,IA,1)*ZMM&
@@ -474,7 +474,7 @@
      &  //'     kgm-2d-1     kgm-2d-1'
         endif
       ENDIF
-      WRITE(NPOSDW3,'(F10.3,1X,I8,1X,I4,1X,I8,6(1X,E12.6))')&
+      WRITE(NPOSDW3,'(F10.3,1X,I8,1X,I4,1X,I8,6(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1SWAFR(JL,3,1),D1SWAGFL2(JL,2,IA,1)*ZMM&
      &     ,D1SWAGFL2(JL,3,IA,1)*ZMM,D1SWARS2(JL,3,IA,1)*ZMM&
@@ -500,14 +500,14 @@
 
         endif
       ENDIF
-      WRITE(NPOSDW4,'(F10.3,1X,I8,1X,I4,1X,I8,6(1X,E12.6))')&
+      WRITE(NPOSDW4,'(F10.3,1X,I8,1X,I4,1X,I8,6(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &     ,D1SWAFR(JL,4,1),D1SWAGFL2(JL,3,IA,1)*ZMM&
      &     ,D1SWAGFL2(JL,4,IA,1)*ZMM,D1SWARS2(JL,4,IA,1)*ZMM&
      &     ,D1SWAEXT2(JL,4,IA,1)*ZMM,D1SWAC2(JL,4,IA,1)*ZMM
 
       
-      WRITE(NPOSRC,'(F10.3,1X,I8,1X,I4,1X,I8,4(1X,E12.6))')&
+      WRITE(NPOSRC,'(F10.3,1X,I8,1X,I4,1X,I8,4(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP,&
      &      D1SVTRC2(JL,1,IA,1)*ZWA, D1SVTRC2(JL,2,IA,1)*ZWA,&
      &      D1SVTRA2(JL,1,IA,1)*ZWA, D1SVTRA2(JL,2,IA,1)*ZWA
@@ -574,7 +574,7 @@
      &  //'         dmaxvt_h       dmaxvt_l       intfr'
       ENDIF
 
- WRITE(NPOSVEG,'(F10.3,1X,I8,1X,I4,1X,I8,15(1X,E12.6))')&
+ WRITE(NPOSVEG,'(F10.3,1X,I8,1X,I4,1X,I8,15(1X,E14.6E3))')&
      &      zjul,IYYMD,IHM,NSTEP&
      &      ,D1SVTGC2(JL,1,IA,1)*ZWA,D1SVTGC2(JL,2,IA,1)*ZWA & 
      &      ,D1SVTGA2(JL,1,IA,1)*ZWA,D1SVTGA2(JL,2,IA,1)*ZWA &

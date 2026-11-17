@@ -196,7 +196,7 @@ IF( CDIMINFO/="NONE" )THEN
   READ(TMPNAM,*) NYIN
   READ(TMPNAM,*) INPN
   READ(TMPNAM,*) 
-  IF( LGRIDMAP )THEN
+  IF( LGRIDMAP ) THEN  ! will be overwritten in ctrl_maps_mod:READ_MAP_CDF if LMAPCDF is true
     READ(TMPNAM,*) WEST
     READ(TMPNAM,*) EAST
     READ(TMPNAM,*) NORTH

@@ -99,7 +99,7 @@
 
         WRITE(NULOUT,*) ' SOIL TEMPERATURE - SOIL MOISTURE - ICE T'
         DO JSLEV=1,NCSS
-          WRITE(NULOUT,'(3(2X,E12.6))') TSLNU0(1,JSLEV,1),QLINU0(1,JSLEV,1),&
+          WRITE(NULOUT,'(3(2X,E14.6E3))') TSLNU0(1,JSLEV,1),QLINU0(1,JSLEV,1),&
      &                TILNU0(1,JSLEV,1)
         ENDDO
 
@@ -108,14 +108,14 @@
 !              ---------------------
 
         WRITE(NULOUT,*) ' SKIN TEMP. - SKIN. RES. CONT. '
-        WRITE(NULOUT,'(2(2X,E12.6))') TRENU0(1,1) , WRENU0(1,1)
+        WRITE(NULOUT,'(2(2X,E14.6E3))') TRENU0(1,1) , WRENU0(1,1)
 
 
 !*       5.    WRITE SNOW VARIABLES
 !              -----------------
 
         WRITE(NULOUT,*) 'SNOW_DEPTH   SNOW_T  SNOW_ALBEDO  SNOW_DENSITY'
-        WRITE(NULOUT,'(E12.6)') FSNNU0(1,1,1),TSNNU0(1,1,1),ASNNU0(1,1),RSNNU0(1,1,1)
+        WRITE(NULOUT,'(E14.6E3)') FSNNU0(1,1,1),TSNNU0(1,1,1),ASNNU0(1,1),RSNNU0(1,1,1)
       ENDIF
 
 !        7.1   WRITE IN SURFSOIL FILE.
@@ -148,7 +148,7 @@
 ! to avoid trouble reading very small value (1e-XXX)
 IF (WRENU0(1,1)<1e-30_JPRB) WRENU0=0._JPRB
       
-     WRITE(NPOSGG,'(f10.3,1X,I8,1X,I4,2X,I8,18(1X,E12.6E3))')&
+     WRITE(NPOSGG,'(f10.3,1X,I8,1X,I4,2X,I8,18(1X,E14.6E3))')&
      &                 ZJUL,IYYMD,IHM,NSTEP&
      &                ,TRENU0(1,1),WRENU0(1,1)&
      &                ,TSLNU0(1,1,1),TSLNU0(1,2,1),TSLNU0(1,3,1),TSLNU0(1,4,1)&
@@ -156,7 +156,7 @@ IF (WRENU0(1,1)<1e-30_JPRB) WRENU0=0._JPRB
      &                ,FSNNU0(1,1,1),TSNNU0(1,1,1),ASNNU0(1,1),RSNNU0(1,1,1) &
      &                ,TILNU0(1,1,1),TILNU0(1,2,1),TILNU0(1,3,1),TILNU0(1,4,1)
 
-     WRITE(NPOSGGL,'(f10.3,1X,I8,1X,I4,2X,I8,18(1X,E12.6E3))')&
+     WRITE(NPOSGGL,'(f10.3,1X,I8,1X,I4,2X,I8,18(1X,E14.6E3))')&
      &                 ZJUL,IYYMD,IHM,NSTEP,&
      &                 TLICENU0,TLMNWNU0,TLWMLNU0,TLBOTNU0,TLSFNU0,& 
      &                 HLICENU0,HLMLNU0                              

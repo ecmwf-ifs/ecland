@@ -232,7 +232,7 @@ REAL(KIND=JPRB)   ,INTENT(INOUT) :: PWETH(:)
 REAL(KIND=JPRB)   ,INTENT(INOUT) :: PWETHS(:) 
 
 !ZLIQ is passed to compute soil moisture scaling factor in Reco (CO2 routine) CTESSEL
-REAL(KIND=JPRB)   ,INTENT(OUT)   :: PPWLIQ(KLON,KLEVS)
+REAL(KIND=JPRB)   ,INTENT(INOUT)   :: PPWLIQ(KLON,KLEVS)
 
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP2(:,:)
 REAL(KIND=JPRB)   ,INTENT(IN)    :: PSSDP3(:,:,:)

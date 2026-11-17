@@ -15,6 +15,7 @@ foreach( test ${tests} )
     foreach( prec sp dp )
        if( HAVE_${prec} )
           unset(TEST_ARGS)
+          string(TOUPPER "${prec}" PREC)
 
           # set precision
           list(APPEND TEST_ARGS "--prec=${prec}")
@@ -54,7 +55,7 @@ foreach( test ${tests} )
               COMMAND ${CMAKE_BINARY_DIR}/share/ecland/scripts/ecland_run_test.sh
               ARGS ${TEST_ARGS}
               ENVIRONMENT
-                  ECLAND_MASTER=${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}-master-${prec}
+                  ECLAND_MASTER=${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}-master-${PREC}
                   ECLAND_CI=1
                   WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}_${prec}/work
                   OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}_${prec}/output

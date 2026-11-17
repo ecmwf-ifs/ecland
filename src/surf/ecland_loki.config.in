@@ -165,7 +165,7 @@ block = [
   role = "driver"
   expand = true
   replicate = false
-  lib = 'ecland-master-@prec@'
+  lib = 'ecland-master-@PREC@'
 
 [routines.surftstp]
   role = "kernel"
@@ -177,7 +177,7 @@ block = [
   role = "driver"
   expand = true
   replicate = false
-  lib = 'ecland-master-@prec@'
+  lib = 'ecland-master-@PREC@'
 
 [routines.surfbc]
   role = "kernel"
@@ -189,7 +189,7 @@ block = [
   role = "driver"
   expand = true
   replicate = false
-  lib = 'ecland-master-@prec@'
+  lib = 'ecland-master-@PREC@'
 
 [routines.surfrad]
   role = "kernel"
@@ -207,7 +207,7 @@ block = [
   role = "driver"
   expand = true
   replicate = false
-  lib = 'ecland-master-@prec@'
+  lib = 'ecland-master-@PREC@'
 
 [routines.surfexcdriver]
   role = "kernel"
